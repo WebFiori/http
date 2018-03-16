@@ -405,7 +405,7 @@ abstract class API implements JsonI{
                     $j->add('action', $this->getAction());
                     $j->add('content-type', $this->getContentType());
                     $j->add('method', $this->getRequestMethod());
-                    $j->add('parameters', 'err');
+                    $j->add('parameters', $this->getInputs());
                     $this->send(self::MIME_TYPES['json'], $j);
                 }
                 else{
