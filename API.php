@@ -389,7 +389,7 @@ abstract class API implements JsonI{
      */
     public function process(){
         $reqMeth = $this->getRequestMethod();
-        if($reqMeth == 'GET' || $reqMeth == 'DELETE' || $reqMeth = 'PUT'){
+        if($reqMeth == 'GET' || $reqMeth == 'DELETE' || $reqMeth == 'PUT'){
             $this->filter->filterGET();
         }
         else if($reqMeth == 'POST'){
