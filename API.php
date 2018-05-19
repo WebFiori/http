@@ -109,10 +109,17 @@ abstract class API implements JsonI{
     }
     /**
      * Sends a response message to indicate that a database error has occur.
+     * @param JsonI|string $info An object of type <b>JsonI</b> that 
+     * describe the error in more details. Also it can be a simple string.
      * @since 1.0
      */
     public function databaseErr($info=''){
-        $this->sendResponse('Database Error', TRUE, 404, '"err-info":"'.$info.'"');
+        if($info instanceof JsonI){
+            $this->sendResponse('Database Error', TRUE, 404, '"err-info":'.$info->toJSON());
+        }
+        else{
+            $this->sendResponse('Database Error', TRUE, 404, '"err-info":"'.$info.'"');
+        }
     }
     /**
      * Sends a response message to indicate that a user is not authorized to do an API call.
@@ -211,8 +218,10 @@ abstract class API implements JsonI{
                 foreach ($params as $val){
                     $this->filter->addParameter($val->getName(), $val->getType());
                 }
+                return TRUE;
             }
         }
+        return FALSE;
     }
     /**
      * Returns the request method used to fetch the API.
@@ -348,9 +357,8 @@ abstract class API implements JsonI{
      */
     public abstract function processRequest();
     /**
-     * Process user request.
-     * @param string $callback A name of a callback function. It must be a function 
-     * in the child class.
+     * Process user request. This function must be called after creating any 
+     * new instance of the API in order to process user request.
      * @since 1.0
      */
     public function process(){
@@ -410,9 +418,9 @@ abstract class API implements JsonI{
         }
     }
     /**
-     * Sends Back a data using specific content type.
-     * @param type $conentType
-     * @param type $data
+     * Sends Back a data using specific content type using code 200.
+     * @param string $conentType Response content type (such as 'application/json')
+     * @param type $data Any data to send back (it can be a file, a string ...).
      */
     public function send($conentType,$data){
         header('content-type:'.$conentType);
