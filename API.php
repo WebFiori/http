@@ -106,19 +106,25 @@ abstract class API implements JsonI{
      */
     public function __construct($version='1.0.0'){
         $this->setVersion($version);
+        $this->setDescription('NO DESCRIPTION');
         $this->requestMethod = filter_var(getenv('REQUEST_METHOD'));
         $this->actions = array();
         $this->authActions = array();
         $this->filter = new APIFilter();
         $action = new APIAction();
+        $action->setDescription('Gets all information about the API.');
         $action->setName('api-info');
         $action->addRequestMethod('get');
+        $action->addParameter(new RequestParameter('version', 'string', TRUE));
+        $action->getParameterByName('version')->setDescription('Optional parameter. '
+                . 'If set, the information that will be returned will be specific '
+                . 'to the given version number.');
         $this->addAction($action);
         $action2 = new APIAction();
+        $action2->setDescription('Gets basic information about the request.');
         $action2->setName('request-info');
         $action2->addRequestMethod('get');
         $this->addAction($action2);
-        $this->filter->addParameter('action', 'string');
     }
     /**
      * Sets the description of the API.
@@ -249,11 +255,26 @@ abstract class API implements JsonI{
     }
     /**
      * Sets API version number.
-     * @param string $val Version number.
+     * @param string $val Version number (such as 1.0.0). Version number 
+     * must be provided in the form 'x.x.x'.
+     * @return boolean <b>TRUE</b> if set. <b>FALSE</b> otherwise.
      * @since 1.0
      */
     public final function setVersion($val){
-        $this->apiVersion = $val;
+        $nums = explode('.', $val);
+        if(count($nums) == 3){
+            foreach ($nums as $v) {
+                $len = strlen($v);
+                for($x = 0 ; $x < $len ; $x++){
+                    if($v[$x] < '0' || $v[$x] > '9'){
+                        return FALSE;
+                    }
+                }
+            }
+            $this->apiVersion = $val;
+            return TRUE;
+        }
+        return FALSE;
     }
     /**
      * Returns an API action given its name.
@@ -338,8 +359,35 @@ abstract class API implements JsonI{
         $json->add('api-version', $this->getVersion());
         $json->add('method', $this->getRequestMethod());
         $json->add('description', $this->getDescription());
-        $json->add('actions', $this->getActions());
-        $json->add('auth-actions', $this->getAuthActions());
+        $reqMeth = $this->getRequestMethod();
+        if($reqMeth == 'GET' || $reqMeth == 'DELETE' || $reqMeth == 'PUT'){
+            $vNum = filter_input(INPUT_GET, 'version');
+        }
+        else if($reqMeth == 'POST'){
+            $vNum = filter_input(INPUT_POST, 'version');
+        }
+        if($vNum == NULL || $vNum == FALSE){
+            $json->add('actions', $this->getActions());
+            $json->add('auth-actions', $this->getAuthActions());
+        }
+        else{
+            $actions = array();
+            foreach ($this->getActions() as $a){
+                if($a->getSince() == $vNum){
+                    array_push($actions, $a);
+                }
+            }
+            $authActions = array();
+            foreach ($this->getAuthActions() as $a){
+                if($a->getSince() == $vNum){
+                    array_push($authActions, $a);
+                }
+            }
+            $json->add('actions', $actions);
+            $json->add('auth-actions', $authActions);
+        }
+        
+        
         return $json;
     }
     /**
