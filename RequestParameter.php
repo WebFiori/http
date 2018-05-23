@@ -66,6 +66,25 @@ class RequestParameter implements JsonI{
      * @since 1.1
      */
     private $maxVal;
+    private $desc;
+    /**
+     * Sets the description of the parameter.
+     * @param sting $desc Parameter description. Used to help front-end to identify 
+     * the use of the API.
+     * @since 1.1
+     */
+    public function setDescription($desc) {
+        $this->desc = $desc;
+    }
+    /**
+     * Returns the description of the parameter.
+     * @return string|NULL The description of the parameter. If the description is 
+     * not set, the function will return <b>NULL</b>.
+     * @since 1.1
+     */
+    public function getDescription() {
+        return $this->desc;
+    }
     /**
      * Creates new instance of <b>RequestParameter</b>
      * @param string $name The name of the parameter as it appears in the request body.
@@ -261,6 +280,7 @@ class RequestParameter implements JsonI{
         $json = new JsonX();
         $json->add('name', $this->name);
         $json->add('type', $this->getType());
+        $json->add('description', $this->getDescription());
         $json->add('is-optional', $this->isOptional());
         if($this->getDefault() != NULL){
             $json->add('default', $this->getDefault());
