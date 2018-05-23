@@ -24,7 +24,7 @@
  */
 /**
  * A class that represents a REST API.
- * @version 1.2
+ * @version 1.3
  */
 abstract class API implements JsonI{
     /**
@@ -88,10 +88,24 @@ abstract class API implements JsonI{
      * @since 1.0 
      */
     private $filter;
-
+    /**
+     * The version number of the API.
+     * @var string
+     * @since 1.0 
+     */
     private $apiVersion;
-    
-    public function __construct(){
+    /**
+     * A general description for the API.
+     * @var string
+     * @since 1.3 
+     */
+    private $apiDesc;
+    /**
+     * Creates new instance of <b>API</b>.
+     * @param string $version [Optional] initial API version. Default is '1.0.0'
+     */
+    public function __construct($version='1.0.0'){
+        $this->setVersion($version);
         $this->requestMethod = filter_var(getenv('REQUEST_METHOD'));
         $this->actions = array();
         $this->authActions = array();
@@ -105,7 +119,24 @@ abstract class API implements JsonI{
         $action2->addRequestMethod('get');
         $this->addAction($action2);
         $this->filter->addParameter('action', 'string');
-        $this->setVersion('1.0.0');
+    }
+    /**
+     * Sets the description of the API.
+     * @param sting $desc Action description. Used to help front-end to identify 
+     * the use of the API.
+     * @since 1.3
+     */
+    public function setDescription($desc) {
+        $this->apiDesc = $desc;
+    }
+    /**
+     * Returns the description of the API.
+     * @return string|NULL The description of the API. If the description is 
+     * not set, the function will return <b>NULL</b>.
+     * @since 1.3
+     */
+    public function getDescription() {
+        return $this->apiDesc;
     }
     /**
      * Sends a response message to indicate that a database error has occur.
@@ -146,7 +177,7 @@ abstract class API implements JsonI{
      * Sends a response message to indicate that request method is not supported.
      * @since 1.0
      */
-    public function requMethNotSupported(){
+    public function requMethNotAllowed(){
         $this->sendResponse('Method Not Allowed', TRUE, 405);
     }
     /**
@@ -165,6 +196,50 @@ abstract class API implements JsonI{
         $this->sendResponse('The parameter \''.$paramName.'\' is missing.', TRUE, 404);
     }
     /**
+     * Sends a response message to indicate that a request parameter or parameters are missing.
+     * @param array $paramsNamesArr An array that contains the name(s) of the parameter(s).
+     * @since 1.3
+     */
+    public function missingParams($paramsNamesArr){
+        $val = '';
+        if(gettype($paramsNamesArr) == 'array'){
+            $i = 0;
+            $count = count($paramsNamesArr);
+            foreach ($paramsNamesArr as $paramName){
+                if($i + 1 == $count){
+                    $val .= '\''.$paramName.'\'';
+                }
+                else{
+                    $val .= '\''.$paramName.'\', ';
+                }
+                $i++;
+            }
+        }
+        $this->sendResponse('The following required parameter(s) where missing from the request body: '.$val.'.', TRUE, 404);
+    }
+    /**
+     * Sends a response message to indicate that a request parameter(s) have invalid values.
+     * @param array $paramsNamesArr An array that contains the name(s) of the parameter(s).
+     * @since 1.3
+     */
+    public function invParams($paramsNamesArr){
+        $val = '';
+        if(gettype($paramsNamesArr) == 'array'){
+            $i = 0;
+            $count = count($paramsNamesArr);
+            foreach ($paramsNamesArr as $paramName){
+                if($i + 1 == $count){
+                    $val .= '\''.$paramName.'\'';
+                }
+                else{
+                    $val .= '\''.$paramName.'\', ';
+                }
+                $i++;
+            }
+        }
+        $this->sendResponse('The following parameter(s) has invalid values: '.$val.'.', TRUE, 404);
+    }
+    /**
      * Returns the version number of the API.
      * @return string
      * @since 1.0
@@ -180,19 +255,43 @@ abstract class API implements JsonI{
     public final function setVersion($val){
         $this->apiVersion = $val;
     }
-
+    /**
+     * Returns an API action given its name.
+     * @param string $actionName The name of the action.
+     * @return APIAction|NULL An object of type <b>APIAction</b> 
+     * if the action is found. If no action was found, The function will return 
+     * <b>NULL</b>.
+     * @since 1.3
+     */
+    public function getActionByName($actionName) {
+        $actionName .= '';
+        if(strlen($actionName) != 0){
+            foreach ($this->getActions() as $action){
+                if($action->getName() == $actionName){
+                    return $action;
+                }
+            }
+            foreach ($this->getAuthActions() as $action){
+                if($action->getName() == $actionName){
+                    return $action;
+                }
+            }
+        }
+        return NULL;
+    }
     /**
      * Returns an array of supported API actions.
-     * @return array An array of supported API actions.
+     * @return array An array that contains an objects of type <b>APIAction</b>.
      * @since 1.0
      */
     public final function getActions(){
         return $this->actions;
     }
     /**
-     * Returns an array of supported API actions. The array will contains the actions 
+     * Returns an array of supported API actions.
+     * @return array An array that contains an objects of type <b>APIAction</b>. 
+     * The array will contains the actions 
      * that require authentication.
-     * @return array An array of supported API actions.
      * @since 1.0
      */
     public final function getAuthActions(){
@@ -200,23 +299,21 @@ abstract class API implements JsonI{
     }
     /**
      * Adds new action to the set of API actions.
-     * @param string $action The action that will be added.
-     * @param boolean $reqPermissions <b>TRUE</b> if the action require user login.
+     * @param APIAction $action The action that will be added.
+     * @param boolean $reqPermissions Set to <b>TRUE</b> if the action require user login or 
+     * any additional permissions.
      * @return boolean <b>TRUE</b> if the action is added. <b>FAlSE</b> otherwise.
      * @since 1.0
      */
-    public final function addAction($action='',$reqPermissions=false){
+    public final function addAction($action,$reqPermissions=false){
         if($action instanceof APIAction){
             if(!in_array($action, $this->getActions()) && !in_array($action, $this->getAuthActions())){
+                $action->setSince($this->getVersion());
                 if($reqPermissions == TRUE){
                     array_push($this->authActions, $action);
                 }
                 else{
                     array_push($this->actions, $action);
-                }
-                $params = $action->getParameters();
-                foreach ($params as $val){
-                    $this->filter->addParameter($val->getName(), $val->getType());
                 }
                 return TRUE;
             }
@@ -238,16 +335,18 @@ abstract class API implements JsonI{
      */
     public function toJSON() {
         $json = new JsonX();
-        $json->add('method', $this->getRequestMethod());
         $json->add('api-version', $this->getVersion());
+        $json->add('method', $this->getRequestMethod());
+        $json->add('description', $this->getDescription());
         $json->add('actions', $this->getActions());
         $json->add('auth-actions', $this->getAuthActions());
         return $json;
     }
     /**
-     * Checks if the action is supported by the API.
+     * Checks if the action that is used to fetch the API is supported or not.
      * @return boolean <b>TRUE</b> if the API supports the action. <b>FALSE</b> 
-     * if not or it is not set.
+     * if not or it is not set. The action name must be provided with the request 
+     * as a parameter with the name 'action'.
      * @since 1.0
      */
     public final function isActionSupported(){
@@ -304,16 +403,20 @@ abstract class API implements JsonI{
         $action = $this->getAction();
         if($action != NULL){
             if($this->isActionSupported()){
+                $validReqMeth = FALSE;
                 foreach ($this->getAuthActions() as $val){
                     if($val->getName() == $action){
                         if($this->isAuthorized()){
                             $reqMethods = $val->getActionMethods();
                             foreach ($reqMethods as $method){
                                 if($method == $this->getRequestMethod()){
-                                    return TRUE;
+                                    $validReqMeth = TRUE;
                                 }
                             }
-                            return FALSE;
+                            if(!$validReqMeth){
+                                $this->requMethNotAllowed();
+                            }
+                            return $validReqMeth;
                         }
                         else{
                             $this->notAuth();
@@ -326,10 +429,13 @@ abstract class API implements JsonI{
                         $reqMethods = $val->getActionMethods();
                         foreach ($reqMethods as $method){
                             if($method == $this->getRequestMethod()){
-                                return TRUE;
+                                $validReqMeth = TRUE;
                             }
                         }
-                        return FALSE;
+                        if(!$validReqMeth){
+                            $this->requMethNotAllowed();
+                        }
+                        return $validReqMeth;
                     }
                 }
                 return TRUE;
@@ -362,15 +468,9 @@ abstract class API implements JsonI{
      * @since 1.0
      */
     public function process(){
-        $reqMeth = $this->getRequestMethod();
-        if($reqMeth == 'GET' || $reqMeth == 'DELETE' || $reqMeth == 'PUT'){
-            $this->filter->filterGET();
-        }
-        else if($reqMeth == 'POST'){
-            $this->filter->filterPOST();
-        }
         if($this->isContentTypeSupported()){
             if($this->checkAction()){
+                
                 if($this->getAction() == 'api-info'){
                     echo $this->toJSON();
                 }
@@ -383,7 +483,47 @@ abstract class API implements JsonI{
                     $this->send(self::MIME_TYPES['json'], $j);
                 }
                 else{
-                    $this->processRequest();
+                    $actionObj = $this->getActionByName($this->getAction());
+                    $params = $actionObj->getParameters();
+                    $this->filter->clear();
+                    foreach ($params as $param) {
+                        $this->filter->addRequestPaameter($param);
+                        $this->filter->addParameter($param->getName(), $param->getType());
+                    }
+                    $reqMeth = $this->getRequestMethod();
+                    if($reqMeth == 'GET' || $reqMeth == 'DELETE' || $reqMeth == 'PUT'){
+                        $this->filter->filterGET();
+                    }
+                    else if($reqMeth == 'POST'){
+                        $this->filter->filterPOST();
+                    }
+                    $i = $this->getInputs();
+                    $processReq = TRUE;
+                    $missingParams = array();
+                    $invParams = array();
+                    foreach ($params as $param) {
+                        if(!$param->isOptional()){
+                            if(!isset($i[$param->getName()])){
+                                array_push($missingParams, $param->getName());
+                                $processReq = FALSE;
+                            }
+                        }
+                        if(isset($i[$param->getName()]) && $i[$param->getName()] === 'INV'){
+                            array_push($invParams, $param->getName());
+                            $processReq = FALSE;
+                        }
+                    }
+                    if($processReq){
+                        $this->processRequest();
+                    }
+                    else{
+                        if(count($missingParams) != 0){
+                            $this->missingParams($missingParams);
+                        }
+                        else if(count($invParams) != 0){
+                            $this->invParams($invParams);
+                        }
+                    }
                 }
             }
         }
@@ -442,9 +582,12 @@ abstract class API implements JsonI{
      * @since 1.0
      */
     public function getAction(){
-        $i = $this->getInputs();
-        if(isset($i['action'])){
-            return $i['action'];
+        $reqMeth = $this->getRequestMethod();
+        if($reqMeth == 'GET' || $reqMeth == 'DELETE' || $reqMeth == 'PUT'){
+            return filter_input(INPUT_GET, 'action');
+        }
+        else if($reqMeth == 'POST'){
+            return filter_input(INPUT_POST, 'action');
         }
         return NULL;
     }
