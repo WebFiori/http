@@ -270,10 +270,10 @@ class APIFilter{
                     );
                     if($def['parameter']->applyBasicFilter() === TRUE){
                         if($def['parameter']->getType() == 'boolean'){
-                            $filteredValue = $this->filterBoolean(filter_input(INPUT_GET, $name));
+                            $filteredValue = $this->filterBoolean(filter_input(INPUT_POST, $name));
                         }
                         else{
-                            $filteredValue = filter_input(INPUT_GET, $name);
+                            $filteredValue = filter_input(INPUT_POST, $name);
                             foreach ($def['filters'] as $val) {
                                 $filteredValue = filter_var($filteredValue, $val, $def['options']);
                             }
@@ -300,10 +300,10 @@ class APIFilter{
                 }
                 else{
                     if($def['parameter']->getType() == 'boolean'){
-                        $this->inputs[$name] = $this->filterBoolean(filter_input(INPUT_GET, $name));
+                        $this->inputs[$name] = $this->filterBoolean(filter_input(INPUT_POST, $name));
                     }
                     else{
-                        $this->inputs[$name] = filter_input(INPUT_GET, $name);
+                        $this->inputs[$name] = filter_input(INPUT_POST, $name);
                         foreach ($def['filters'] as $val) {
                             $this->inputs[$name] = filter_var($this->inputs[$name], $val, $def['options']);
                         }
