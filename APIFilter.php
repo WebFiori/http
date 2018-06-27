@@ -197,7 +197,7 @@ class APIFilter{
             $name = $def['parameter']->getName();
             if(isset($_GET[$name])){
                 $this->nonFilteredInputs[$name] = $_GET[$name];
-                if($def['options']['filter-func']){
+                if(isset($def['options']['filter-func'])){
                     $filteredValue = '';
                     $arr = array(
                         'original-value'=>$_GET[$name],
@@ -263,7 +263,7 @@ class APIFilter{
             $name = $def['parameter']->getName();
             if(isset($_POST[$name])){
                 $this->nonFilteredInputs[$name] = $_POST[$name];
-                if($def['options']['filter-func']){
+                if(isset($def['options']['filter-func'])){
                     $filteredValue = '';
                     $arr = array(
                         'original-value'=>$_POST[$name],
