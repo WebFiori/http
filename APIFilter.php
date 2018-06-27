@@ -107,7 +107,7 @@ class APIFilter{
                 'filters'=>array(),
                 'options'=>array('options'=>array())
             );
-            if($reqParam->getDefault() != NULL){
+            if($reqParam->getDefault() !== NULL){
                 $attribute['options']['options']['default'] = $reqParam->getDefault();
             }
             if($reqParam->getCustomFilterFunction() != NULL){
@@ -115,10 +115,10 @@ class APIFilter{
             }
             $paramType = $reqParam->getType();
             if($paramType == 'integer'){
-                if($reqParam->getMaxVal() != NULL){
+                if($reqParam->getMaxVal() !== NULL){
                     $attribute['options']['options']['max_range'] = $reqParam->getMaxVal();
                 }
-                if($reqParam->getMinVal() != NULL){
+                if($reqParam->getMinVal() !== NULL){
                     $attribute['options']['options']['min_range'] = $reqParam->getMinVal();
                 }
                 array_push($attribute['filters'], FILTER_SANITIZE_NUMBER_INT);
@@ -222,7 +222,7 @@ class APIFilter{
                         $arr['basic-filter-result'] = 'NOT APLICABLE';
                     }
                     $r = call_user_func($def['options']['filter-func'],$arr,$def['parameter']);
-                    if($r == NULL){
+                    if($r === NULL){
                         $this->inputs[$name] = FALSE;
                     }
                     else{
@@ -288,7 +288,7 @@ class APIFilter{
                         $arr['basic-filter-result'] = 'NOT APLICABLE';
                     }
                     $r = call_user_func($def['options']['filter-func'],$arr,$def['parameter']);
-                    if($r == NULL){
+                    if($r === NULL){
                         $this->inputs[$name] = FALSE;
                     }
                     else{
