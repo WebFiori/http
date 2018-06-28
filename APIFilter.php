@@ -241,7 +241,7 @@ class APIFilter{
                         foreach ($def['filters'] as $val) {
                             $this->inputs[$name] = filter_var($this->inputs[$name], $val, $def['options']);
                         }
-                        if($this->inputs[$name] == FALSE){
+                        if($this->inputs[$name] === FALSE){
                             $this->inputs[$name] = 'INV';
                         }
                     }
