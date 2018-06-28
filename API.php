@@ -24,7 +24,7 @@
  */
 /**
  * A class that represents a REST API.
- * @version 1.3
+ * @version 1.4
  */
 abstract class API implements JsonI{
     /**
@@ -38,7 +38,8 @@ abstract class API implements JsonI{
     );
     /**
      * An array that contains most common MIME types with file extension as key.
-     * @var array An array that contains most common MIME types with file extension as key.
+     * @var array An array that contains most common MIME types with file extension as key 
+     * (e.g. 'pdf'=>'application/pdf').
      * @since 1.1
      */
     const MIME_TYPES = array(
@@ -95,6 +96,13 @@ abstract class API implements JsonI{
      */
     private $apiVersion;
     /**
+     * An attribute that is set to <b></b> if the action 'api-info' and 
+     * 'request-info' can be accessed publicly.
+     * @var boolean
+     * @since 1.4 
+     */
+    private $publicInfo;
+    /**
      * A general description for the API.
      * @var string
      * @since 1.3 
@@ -104,27 +112,59 @@ abstract class API implements JsonI{
      * Creates new instance of <b>API</b>.
      * @param string $version [Optional] initial API version. Default is '1.0.0'
      */
-    public function __construct($version='1.0.0'){
+    public function __construct($version='1.0.0',$publicInfo=true){
+        $this->publicInfo = $publicInfo === TRUE ? TRUE : FALSE;
         $this->setVersion($version);
         $this->setDescription('NO DESCRIPTION');
         $this->requestMethod = filter_var(getenv('REQUEST_METHOD'));
         $this->actions = array();
         $this->authActions = array();
         $this->filter = new APIFilter();
-        $action = new APIAction();
+        $action = new APIAction('api-info');
         $action->setDescription('Gets all information about the API.');
-        $action->setName('api-info');
         $action->addRequestMethod('get');
         $action->addParameter(new RequestParameter('version', 'string', TRUE));
         $action->getParameterByName('version')->setDescription('Optional parameter. '
                 . 'If set, the information that will be returned will be specific '
                 . 'to the given version number.');
-        $this->addAction($action);
-        $action2 = new APIAction();
+        $action->addResponseDescription('In case the api info is public, the call will '
+                . 'return a JSON object which contains all needed information about the '
+                . 'API.');
+        $action->addResponseDescription('If API information are private, a 401 code '
+                . 'will be returned by the call in addition to a JSON object '
+                . 'which contains the message "Not Authorized".');
+        $this->addAction($action, !$this->isInfoPublic());
+        $action2 = new APIAction('request-info');
         $action2->setDescription('Gets basic information about the request.');
-        $action2->setName('request-info');
         $action2->addRequestMethod('get');
-        $this->addAction($action2);
+        $action2->addResponseDescription('If the user is authorized to do the call, '
+                . 'The API will return a JSON object which contains basic request information.');
+        $action2->addResponseDescription('If API information are private, a 401 code '
+                . 'will be returned by the call in addition to a JSON object '
+                . 'which contains the message "Not Authorized".');
+        $this->addAction($action2, !$this->isInfoPublic());
+
+        $action3 = new APIAction('get-mime-types');
+        $action3->setDescription('Returns a JSON array that contains most common MIME types alongside file extention.');
+        $action3->addRequestMethod('get');
+        $this->addAction($action3, !$this->isInfoPublic());
+    }
+    /**
+     * Checks if it is possible to call basic API actions without 
+     * the need of authentication. The actions include the following:
+     * <ul>
+     * <li>api-info</li>
+     * <li>request-info</li>
+     * <li>get-mime-types</li>
+     * </ul>
+     * @return boolean The function will return <b>TRUE</b> if any one 
+     * can access the actions. If authentication is required, the user 
+     * must implement the function <b>API::isAuthorized()</b> in a way that 
+     * it returns <b>TRUE</b> if any one can access the given actions.
+     * @since 1.4
+     */
+    public final function isInfoPublic(){
+        return $this->publicInfo;
     }
     /**
      * Sets the description of the API.
@@ -132,7 +172,7 @@ abstract class API implements JsonI{
      * the use of the API.
      * @since 1.3
      */
-    public function setDescription($desc) {
+    public final function setDescription($desc) {
         $this->apiDesc = $desc;
     }
     /**
@@ -141,7 +181,7 @@ abstract class API implements JsonI{
      * not set, the function will return <b>NULL</b>.
      * @since 1.3
      */
-    public function getDescription() {
+    public final function getDescription() {
         return $this->apiDesc;
     }
     /**
@@ -163,7 +203,7 @@ abstract class API implements JsonI{
      * @since 1.0
      */
     public function notAuth(){
-        $this->sendResponse('Not authorized', TRUE, 401);
+        $this->sendResponse('Not Authorized', TRUE, 401);
     }
     /**
      * Sends a response message to indicate that an action is not supported by the API.
@@ -197,8 +237,9 @@ abstract class API implements JsonI{
      * Sends a response message to indicate that a request parameter is missing.
      * @param string $paramName The name of the parameter.
      * @since 1.0
+     * @deprecated since version 1.3
      */
-    public function missingParam($paramName){
+    public final function missingParam($paramName){
         $this->sendResponse('The parameter \''.$paramName.'\' is missing.', TRUE, 404);
     }
     /**
@@ -228,7 +269,7 @@ abstract class API implements JsonI{
      * @param array $paramsNamesArr An array that contains the name(s) of the parameter(s).
      * @since 1.3
      */
-    public function invParams($paramsNamesArr){
+    public final function invParams($paramsNamesArr){
         $val = '';
         if(gettype($paramsNamesArr) == 'array'){
             $i = 0;
@@ -284,7 +325,7 @@ abstract class API implements JsonI{
      * <b>NULL</b>.
      * @since 1.3
      */
-    public function getActionByName($actionName) {
+    public final function getActionByName($actionName) {
         $actionName .= '';
         if(strlen($actionName) != 0){
             foreach ($this->getActions() as $action){
@@ -354,7 +395,7 @@ abstract class API implements JsonI{
      * @return JsonX An object of type <b>JsonX</b>
      * @since 1.0
      */
-    public function toJSON() {
+    public final function toJSON() {
         $json = new JsonX();
         $json->add('api-version', $this->getVersion());
         $json->add('method', $this->getRequestMethod());
@@ -367,8 +408,8 @@ abstract class API implements JsonI{
             $vNum = filter_input(INPUT_POST, 'version');
         }
         if($vNum == NULL || $vNum == FALSE){
-            $json->add('actions', $this->getActions());
-            $json->add('auth-actions', $this->getAuthActions());
+            $json->addArray('actions', $this->getActions(),FALSE);
+            $json->addArray('auth-actions', $this->getAuthActions(),FALSE);
         }
         else{
             $actions = array();
@@ -383,8 +424,8 @@ abstract class API implements JsonI{
                     array_push($authActions, $a);
                 }
             }
-            $json->add('actions', $actions);
-            $json->add('auth-actions', $authActions);
+            $json->addArray('actions', $actions,FALSE);
+            $json->addArray('auth-actions', $authActions,FALSE);
         }
         
         
@@ -515,20 +556,55 @@ abstract class API implements JsonI{
      * new instance of the API in order to process user request.
      * @since 1.0
      */
-    public function process(){
+    public final function process(){
         if($this->isContentTypeSupported()){
             if($this->checkAction()){
-                
                 if($this->getAction() == 'api-info'){
-                    echo $this->toJSON();
+                    if($this->isInfoPublic()){
+                        echo $this->toJSON();
+                    }
+                    else if($this->isAuthorized()){
+                        echo $this->toJSON();
+                    }
+                    else{
+                        $this->notAuth();
+                    }
                 }
                 else if($this->getAction() == 'request-info'){
-                    $j = new JsonX();
-                    $j->add('action', $this->getAction());
-                    $j->add('content-type', $this->getContentType());
-                    $j->add('method', $this->getRequestMethod());
-                    $j->add('parameters', $this->getInputs());
-                    $this->send(self::MIME_TYPES['json'], $j);
+                    if($this->isInfoPublic()){
+                        $j = new JsonX();
+                        $j->add('action', $this->getAction());
+                        $j->add('content-type', $this->getContentType());
+                        $j->add('method', $this->getRequestMethod());
+                        $j->add('parameters', $this->getInputs());
+                        $this->send(self::MIME_TYPES['json'], $j);
+                    }
+                    else if($this->isAuthorized()){
+                        $j = new JsonX();
+                        $j->add('action', $this->getAction());
+                        $j->add('content-type', $this->getContentType());
+                        $j->add('method', $this->getRequestMethod());
+                        $j->add('parameters', $this->getInputs());
+                        $this->send(self::MIME_TYPES['json'], $j);
+                    }
+                    else{
+                        $this->notAuth();
+                    }
+                }
+                else if($this->getAction() == 'get-mime-types'){
+                    if($this->isInfoPublic()){
+                        $j = new JsonX();
+                        $j->add('mime-types', self::MIME_TYPES);
+                        $this->send(self::MIME_TYPES['json'], $j);
+                    }
+                    else if($this->isAuthorized()){
+                        $j = new JsonX();
+                        $j->add('mime-types', self::MIME_TYPES);
+                        $this->send(self::MIME_TYPES['json'], $j);
+                    }
+                    else{
+                        $this->notAuth();
+                    }
                 }
                 else{
                     $actionObj = $this->getActionByName($this->getAction());
@@ -584,8 +660,8 @@ abstract class API implements JsonI{
      * @param string $message The message to send back.
      * @param boolean $isErr <b>TRUE</b> if the message represents an error state.
      * @param int $code Response code (such as 404 or 200).
-     * @param string $otherJsonStr Any other data to send back (it should be a 
-     * JSON string).
+     * @param string|JsonX $otherJsonStr Any other data to send back (it should be a 
+     * JSON string). Also it can be an object of type <b>JsonX</b>.
      * @since 1.0
      */
     public function sendResponse($message,$isErr=false,$code=200,$otherJsonStr=''){
@@ -598,11 +674,16 @@ abstract class API implements JsonI{
             $e = 'info';
         }
         $value =  '{"message":"'.$message.'","type":"'.$e.'"';
-        if(strlen($otherJsonStr) != 0){
-            echo $value . ','.$otherJsonStr.'}';
+        if($otherJsonStr instanceof JsonX){
+            echo $value . ',"jsonx":'.$otherJsonStr.'}';
         }
         else{
-            echo $value .'}';
+            if(strlen($otherJsonStr) != 0){
+                echo $value . ','.$otherJsonStr.'}';
+            }
+            else{
+                echo $value .'}';
+            }
         }
     }
     /**
@@ -615,21 +696,28 @@ abstract class API implements JsonI{
         echo $data;
     }
     /**
-     * Returns an array of filtered request inputs.
+     * Returns an array of filtered (sanitized) request inputs.
      * @return array An array of filtered request inputs.
      * @since 1.0
      */
-    public function getInputs(){
+    public final function getInputs(){
         return $this->filter->getInputs();
     }
-
+    /**
+     * Returns an array of filtered (non-sanitized) request inputs.
+     * @return array An array of filtered request inputs.
+     * @since 1.4
+     */
+    public final function getNonFilteredInputs() {
+        return $this->filter->getNonFiltered();
+    }
     /**
      * Returns the action that was requested to perform.
      * @return string|NULL The action that was requested to perform. If the action 
      * is not set, the function will return <b>NULL</b>.
      * @since 1.0
      */
-    public function getAction(){
+    public final function getAction(){
         $reqMeth = $this->getRequestMethod();
         if($reqMeth == 'GET' || $reqMeth == 'DELETE' || $reqMeth == 'PUT'){
             return filter_input(INPUT_GET, 'action');
