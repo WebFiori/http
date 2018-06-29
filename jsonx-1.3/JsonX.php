@@ -105,6 +105,30 @@ class JsonX {
         return FALSE;
     }
     /**
+     * NOT IMPLEMENTED
+     * @param string $key
+     * @return boolean
+     */
+    public function hasKey($key) {
+        $key = ''.$key;
+        if(strlen($key) != 0){
+            
+        }
+        return FALSE;
+    }
+    /**
+     * NOT IMPLEMENTED
+     * @param string $key
+     * @return type
+     */
+    public function get($key) {
+        $key = ''.$key;
+        if(strlen($key) != 0){
+            
+        }
+        return NULL;
+    }
+    /**
      * Returns the data on the object as a JSON string.
      * @return string
      */
@@ -150,6 +174,26 @@ class JsonX {
         }
         return FALSE;
     }
+    private function stringAsBoolean($str){
+        $lower = strtolower($str);
+        $boolTypes = array(
+            't'=>TRUE,
+            'f'=>FALSE,
+            'yes'=>TRUE,
+            'no'=>FALSE,
+            'true'=>TRUE,
+            'false'=>FALSE,
+            'on'=>TRUE,
+            'off'=>FALSE,
+            'y'=>TRUE,
+            'n'=>FALSE,
+            'ok'=>TRUE
+        );
+        if(isset($boolTypes[$lower])){
+            return $boolTypes[$lower];
+        }
+        return 'INV';
+    }
     /**
      * Adds a boolean value (true or false) to the JSON data.
      * @param string $key The name of the key.
@@ -181,13 +225,15 @@ class JsonX {
      * is indexed array, all values will be added as single entity (e.g. [1, 2, 3]). 
      * If the array is associative, the values of the array will be added as 
      * objects.
+     * @param boolean $asObject [Optional] If this parameter is set to <b>TRUE</b>, 
+     * the array will be added as an object in JSON string. Default is <b>FALSE</b>.
      * @return boolean <b>FALSE</b> if the given key is invalid or the given value 
      * is not an array.
      */
-    public function addArray($key, $value){
+    public function addArray($key, $value,$asObject=true){
         if(JsonX::isValidKey($key)){
             if(gettype($value) == 'array'){
-                $this->attributes[$key] = $this->arrayToJSONString($value);
+                $this->attributes[$key] = $this->arrayToJSONString($value,$asObject);
                 return TRUE;
             }
         }
@@ -199,10 +245,15 @@ class JsonX {
      * @return string A JSON string that represents the array.
      * @since 1.0
      */
-    private function arrayToJSONString($value){
+    private function arrayToJSONString($value,$asObject=false){
         $keys = array_keys($value);
         $keysCount = count($keys);
-        $arr = '[';
+        if($asObject === TRUE){
+            $arr = '{';
+        }
+        else{
+            $arr = '[';
+        }
         for($x = 0 ; $x < $keysCount ; $x++){
             if($x + 1 == $keysCount){
                 $comma = '';
@@ -219,44 +270,152 @@ class JsonX {
             //echo '$keyType = '.$keyType.'<br/>';
             //echo '$valueType = '.$valueType.'<br/><br/>';
             if($valueAtKey instanceof JsonI){
-                $arr .= $valueAtKey->toJSON().$comma;
+                if($asObject === TRUE){
+                    $arr .= '"'.$keys[$x].'":'.$valueAtKey->toJSON().$comma;
+                }
+                else{
+                    $arr .= $valueAtKey->toJSON().$comma;
+                }
             }
             else{
                 if($keyType == 'integer'){
                     if($valueType == 'integer' || $valueType == 'double'){
-                        if(is_nan($valueAtKey)){
-                            $arr .= '"NAN"'.$comma;
-                        }
-                        else if($valueAtKey == INF){
-                            $arr .= '"INF"'.$comma;
+                        if($asObject === TRUE){
+                            if(is_nan($valueAtKey)){
+                                $arr .= '"'.$keys[$x].'":"NAN"'.$comma;
+                            }
+                            else if($valueAtKey == INF){
+                                $arr .= '"'.$keys[$x].'":"INF"'.$comma;
+                            }
+                            else{
+                                $arr .= '"'.$keys[$x].'":'.$valueAtKey.$comma;
+                            }
                         }
                         else{
-                            $arr .= $valueAtKey.$comma;
+                            if(is_nan($valueAtKey)){
+                                $arr .= '"NAN"'.$comma;
+                            }
+                            else if($valueAtKey == INF){
+                                $arr .= '"INF"'.$comma;
+                            }
+                            else{
+                                $arr .= $valueAtKey.$comma;
+                            }
                         }
                     }
                     else if($valueType == 'string'){
-                        $arr .= '"'.JsonX::escapeJSONSpecialChars($valueAtKey).'"'.$comma;
-                    }
-                    else if($valueType == 'boolean'){
-                        if($valueAtKey == TRUE){
-                            $arr .= 'true'.$comma;
+                        if($asObject === TRUE){
+                            $asBool = $this->stringAsBoolean($valueAtKey);
+                            if(gettype($asBool) == 'boolean'){
+                                $arr .= '"'.$keys[$x].'":"'. $asBool === TRUE ? 'true'.$comma : 'false'.$comma;
+                            }
+                            else{
+                                $arr .= '"'.$keys[$x].'":"'.JsonX::escapeJSONSpecialChars($valueAtKey).'"'.$comma;
+                            }
                         }
                         else{
-                            $arr .= 'false'.$comma;
+                            $asBool = $this->stringAsBoolean($valueAtKey);
+                            if(gettype($asBool) == 'boolean'){
+                                $arr .= $asBool === true ? 'true'.$comma : 'false'.$comma;
+                            }
+                            else{
+                                $arr .= '"'.JsonX::escapeJSONSpecialChars($valueAtKey).'"'.$comma;
+                            }
+                        }
+                    }
+                    else if($valueType == 'boolean'){
+                        if($asObject === TRUE){
+                            if($valueAtKey == TRUE){
+                                $arr .= '"'.$keys[$x].'":true'.$comma;
+                            }
+                            else{
+                                $arr .= '"'.$keys[$x].'":false'.$comma;
+                            }
+                        }
+                        else{
+                            if($valueAtKey == TRUE){
+                                $arr .= 'true'.$comma;
+                            }
+                            else{
+                                $arr .= 'false'.$comma;
+                            }
                         }
                     }
                     else if($valueType == 'array'){
-                        $arr .= $this->arrayToJSONString($valueAtKey);
+                        if($asObject === TRUE){
+                            $arr .= '"'.$keys[$x].'":'.$this->arrayToJSONString($valueAtKey,$asObject);
+                        }
+                        else{
+                            $arr .= '"'.$keys[$x].'":'.$this->arrayToJSONString($valueAtKey,$asObject);
+                        }
                     }
                 }
                 else{
-                    $j = new JsonX();
-                    $j->add($keys[$x], $valueAtKey);
-                    $arr .= $j.$comma;
+                    if($asObject === TRUE){
+                        $arr .= '"'.$keys[$x].'":';
+                        $type = gettype($valueAtKey);
+                        if($type == 'string'){
+                            $asBool = $this->stringAsBoolean($valueAtKey);
+                            if(gettype($asBool) == 'boolean'){
+                                $result = $asBool === TRUE ? 'true'.$comma : 'false'.$comma;
+                                $arr .= $result;
+                            }
+                            else{
+                                $arr .= '"'.self::escapeJSONSpecialChars($valueAtKey).'"'.$comma;
+                            }
+                        }
+                        else if($type == 'integer' || $type == 'double'){
+                            $arr .= $valueAtKey.$comma;
+                        }
+                        else if($type == 'boolean'){
+                            $arr .= $valueAtKey === TRUE ? 'true'.$comma : 'false'.$comma;
+                        }
+                        else if($type == 'NULL'){
+                            $arr .= 'null'.$comma;
+                        }
+                        else if($type == 'array'){
+                            $result = $this->arrayToJSONString($valueAtKey, $asObject);
+                            $arr .= $result.$comma;
+                        }
+                        else if($type == 'object'){
+                            if(is_subclass_of($valueAtKey, 'JsonI')){
+                                $arr .= $valueAtKey->toJSON().$comma;
+                            }
+                            else if($valueAtKey instanceof JsonX){
+                                $arr .= $valueAtKey;
+                            }
+                            else{
+                                $methods = get_class_methods($valueAtKey);
+                                $count = count($methods);
+                                $json = new JsonX();
+                                set_error_handler(function() {});
+                                for($x = 0 ; $x < $count; $x++){
+                                    $propVal = $valueAtKey->$methods[$x]();
+                                    if($propVal != NULL){
+                                        $json->add('prop-'.$x, $propVal);
+                                    }
+                                }
+                                $arr .= $json.$comma;
+                            }
+                        }
+                        else{
+                            $arr .= 'null'.$comma;
+                        }
+                    }
+                    else{
+                        $j = new JsonX();
+                        $j->add($keys[$x], $valueAtKey);
+                        $arr .= $j.$comma;
+                    }
                 }
             }
         }
-        $arr.= ']';
+        if($asObject === TRUE){
+            $arr.= '}';
+        }
+        else{
+            $arr.= ']';
+        }
         return $arr;
     }
     /**
@@ -267,19 +426,43 @@ class JsonX {
      */
     private static function isValidKey($key){
         $key_type = gettype($key);
-        return $key_type == 'string';
+        return $key_type == 'string' && strlen($key) != 0;
     }
     /**
      * Adds a new key to the JSON data with its value as string.
      * @param string $key The name of the key.
-     * @param string $val The value of the string.
+     * @param string $val The value of the string. Note that if the given string 
+     * is one of the following and the parameter <b>$toBool</b> is set to <b>TRUE</b>, it will be converted into boolean (case insensitive).
+     * <ul>
+     * <li>yes => <b>TRUE</b></li>
+     * <li>no => <b>FALSE</b></li>
+     * <li>y => <b>TRUE</b></li>
+     * <li>n => <b>FALSE</b></li>
+     * <li>t => <b>TRUE</b></li>
+     * <li>f => <b>FALSE</b></li>
+     * <li>true => <b>TRUE</b></li>
+     * <li>false => <b>FALSE</b></li>
+     * <li>on => <b>TRUE</b></li>
+     * <li>off => <b>FALSE</b></li>
+     * <li>ok => <b>TRUE</b></li>
+     * </ul>
+     * @param boolean $toBool [Optional] If set to <b>TRUE</b> and the string represents a boolean 
+     * value, then the string will be added as a boolean. Default is <b>FALSE</b>.
      * @return boolean <b>TRUE</b> in case the string is added. If the given value 
      * is not a string or the given key is invalid, the method will return <b>FALSE</b>.
      * @since 1.0
      */
-    public function addString($key, $val){
+    public function addString($key, $val,$toBool=false){
         if(JsonX::isValidKey($key)){
             if(gettype($val) == 'string'){
+                if($toBool === TRUE){
+                    if($val != 'INV'){
+                        $boolVal = $this->stringAsBoolean($val);
+                        if($boolVal != 'INV'){
+                            return $this->addBoolean($key, $boolVal);
+                        }
+                    }
+                }
                 $this->attributes[$key] = '"'. JsonX::escapeJSONSpecialChars($val).'"';
                 return TRUE;
             }
