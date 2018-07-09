@@ -612,7 +612,6 @@ abstract class API implements JsonI{
                     $this->filter->clear();
                     foreach ($params as $param) {
                         $this->filter->addRequestPaameter($param);
-                        $this->filter->addParameter($param->getName(), $param->getType());
                     }
                     $reqMeth = $this->getRequestMethod();
                     if($reqMeth == 'GET' || $reqMeth == 'DELETE' || $reqMeth == 'PUT'){
@@ -720,10 +719,14 @@ abstract class API implements JsonI{
     public final function getAction(){
         $reqMeth = $this->getRequestMethod();
         if($reqMeth == 'GET' || $reqMeth == 'DELETE' || $reqMeth == 'PUT'){
-            return filter_input(INPUT_GET, 'action');
+            if(isset($_GET['action'])){
+                return filter_var($_GET['action']);
+            }
         }
         else if($reqMeth == 'POST'){
-            return filter_input(INPUT_POST, 'action');
+            if(isset($_POST['action'])){
+                return filter_var($_POST['action']);
+            }
         }
         return NULL;
     }
