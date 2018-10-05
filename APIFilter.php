@@ -31,7 +31,16 @@
 class APIFilter{
     /**
      * Supported input types.
-     * @var array
+     * @var array The values are:
+     * <ul>
+     * <li>string</li>
+     * <li>integer</li>
+     * <li>email</li>
+     * <li>float</li>
+     * <li>url</li>
+     * <li>boolean</li>
+     * <li>array</li>
+     * </ul>
      * @since 1.0
      */
     const TYPES = array(
@@ -44,7 +53,7 @@ class APIFilter{
      */
     private $inputs;
     /**
-     * An array that contains non-filtered data.
+     * An array that contains non-filtered data (original).
      * @var array
      * @since 1.2 
      */
@@ -107,7 +116,7 @@ class APIFilter{
      * @return boolean|string
      * @since 1.1
      */
-    private function filterBoolean($boolean) {
+    private function _filterBoolean($boolean) {
         $booleanLwr = strtolower($boolean);
         $boolTypes = array(
             't'=>TRUE,
@@ -129,7 +138,15 @@ class APIFilter{
         }
         return 'INV';
     }
-    public static function filterArray($array) {
+    /**
+     * Converts a string to an array.
+     * @param string $array A string in the format '[3,"hello",4.8,"",44,...]'.
+     * @return string|array If the string has valid array format, an array 
+     * which contains the values is returned. If has invalid syntax, the 
+     * function will return the string 'INV'.
+     * @since 1.2.1
+     */
+    private static function _filterArray($array) {
         $len = strlen($array);
         $retVal = 'INV';
         $arrayValues = array();
@@ -261,6 +278,7 @@ class APIFilter{
      * @param type $start
      * @param type $len
      * @return boolean
+     * @since 1.2.1
      */
     private static function _parseStringFromArray($arr,$start,$len){
         $retVal = array(
@@ -288,9 +306,6 @@ class APIFilter{
                     $str .= '\\ ';
                 }
             }
-//            else if($ch == '$'){
-//                $str .= '\$';
-//            }
             else{
                 $str .= $ch;
             }
@@ -323,7 +338,7 @@ class APIFilter{
      * @return array The array that contains request inputs.
      * @since 1.2
      */
-    public function getNonFiltered(){
+    public final function getNonFiltered(){
         return $this->nonFilteredInputs;
     }
 
@@ -331,7 +346,7 @@ class APIFilter{
      * Filter GET parameters.
      * @since 1.0
      */
-    public function filterGET(){
+    public final function filterGET(){
         foreach ($this->paramDefs as $def){
             $name = $def['parameter']->getName();
             if(isset($_GET[$name])){
@@ -344,10 +359,10 @@ class APIFilter{
                     );
                     if($def['parameter']->applyBasicFilter() === TRUE){
                         if($def['parameter']->getType() == 'boolean'){
-                            $filteredValue = $this->filterBoolean(filter_var($toBeFiltered));
+                            $filteredValue = $this->_filterBoolean(filter_var($toBeFiltered));
                         }
                         else if($def['parameter']->getType() == 'array'){
-                            $filteredValue = $this->filterArray(filter_var($toBeFiltered));
+                            $filteredValue = $this->_filterArray(filter_var($toBeFiltered));
                         }
                         else{
                             $filteredValue = filter_var($toBeFiltered);
@@ -377,10 +392,10 @@ class APIFilter{
                 }
                 else{
                     if($def['parameter']->getType() == 'boolean'){
-                        $this->inputs[$name] = $this->filterBoolean(filter_var($toBeFiltered));
+                        $this->inputs[$name] = $this->_filterBoolean(filter_var($toBeFiltered));
                     }
                     else if($def['parameter']->getType() == 'array'){
-                        $this->inputs[$name] = $this->filterArray(filter_var($toBeFiltered));
+                        $this->inputs[$name] = $this->_filterArray(filter_var($toBeFiltered));
                     }
                     else{
                         $this->inputs[$name] = filter_var($toBeFiltered);
@@ -404,7 +419,7 @@ class APIFilter{
      * Filter POST parameters.
      * @since 1.0
      */
-    public function filterPOST(){
+    public final function filterPOST(){
         foreach ($this->paramDefs as $def){
             $name = $def['parameter']->getName();
             if(isset($_POST[$name])){
@@ -417,10 +432,10 @@ class APIFilter{
                     );
                     if($def['parameter']->applyBasicFilter() === TRUE){
                         if($def['parameter']->getType() == 'boolean'){
-                            $filteredValue = $this->filterBoolean(filter_var($toBeFiltered));
+                            $filteredValue = $this->_filterBoolean(filter_var($toBeFiltered));
                         }
                         else if($def['parameter']->getType() == 'array'){
-                            $filteredValue = $this->filterArray(filter_var($toBeFiltered));
+                            $filteredValue = $this->_filterArray(filter_var($toBeFiltered));
                         }
                         else{
                             $filteredValue = filter_var($toBeFiltered);
@@ -450,10 +465,10 @@ class APIFilter{
                 }
                 else{
                     if($def['parameter']->getType() == 'boolean'){
-                        $this->inputs[$name] = $this->filterBoolean(filter_var($toBeFiltered));
+                        $this->inputs[$name] = $this->_filterBoolean(filter_var($toBeFiltered));
                     }
                     else if($def['parameter']->getType() == 'array'){
-                        $this->inputs[$name] = $this->filterArray(filter_var($toBeFiltered));
+                        $this->inputs[$name] = $this->_filterArray(filter_var($toBeFiltered));
                     }
                     else{
                         $this->inputs[$name] = filter_var($toBeFiltered);
@@ -474,7 +489,8 @@ class APIFilter{
         }
     }
     /**
-     * Clears filter variables.
+     * Clears filter variables (parameters definitions, filtered inputs and non
+     * -filtered inputs). 
      * @since 1.1
      */
     public function clear() {
