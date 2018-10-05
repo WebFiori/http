@@ -250,18 +250,18 @@ class RequestParameter implements JsonI{
         $len = strlen($name);
         if($len != 0){
             if(strpos($name, ' ') === FALSE){
-                    for ($x = 0 ; $x < $len ; $x++){
-                        $ch = $name[$x];
-                        if($ch == '_' || $ch == '-' || ($ch >= 'a' && $ch <= 'z') || ($ch >= 'A' && $ch <= 'Z') || ($ch >= '0' && $ch <= '9')){
-                            
-                        }
-                        else{
-                            return FALSE;
-                        }
+                for ($x = 0 ; $x < $len ; $x++){
+                    $ch = $name[$x];
+                    if($ch == '_' || $ch == '-' || ($ch >= 'a' && $ch <= 'z') || ($ch >= 'A' && $ch <= 'Z') || ($ch >= '0' && $ch <= '9')){
+
                     }
-                    $this->name = $name;
-                    return TRUE;
+                    else{
+                        return FALSE;
+                    }
                 }
+                $this->name = $name;
+                return TRUE;
+            }
         }
         return FALSE;
     }

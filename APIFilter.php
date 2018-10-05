@@ -26,7 +26,7 @@
 /**
  * A class used to filter request parameters.
  * @author Ibrahim Ali <ibinshikh@hotmail.com>
- * @version 1.2
+ * @version 1.2.1
  */
 class APIFilter{
     /**
@@ -35,7 +35,7 @@ class APIFilter{
      * @since 1.0
      */
     const TYPES = array(
-        'string','integer','email','float','url','boolean'
+        'string','integer','email','float','url','boolean','array'
     );
     /**
      * An array that will contains filtered data.
@@ -129,6 +129,53 @@ class APIFilter{
             return $boolTypes[$booleanLwr];
         }
         return 'INV';
+    }
+    public static function filterArray($array) {
+        $len = strlen($array);
+        $retVal = 'INV';
+        $arrayValues = array();
+        if($len > 2){
+            if($array[0] == '[' && $array[$len - 1] == ']'){
+                $stringStartDelemeterIndex = -1;
+                $stringEndDelemeterIndex = -1;
+                $tmpArrValue = '';
+                for($x = 1 ; $x < $len - 1 ; $x++){
+                    $char = $array[$x];
+                    if($char == ""){
+                        
+                    }
+                    if($char == ','){
+                        $arrayValues[] = $tmpArrValue;
+                        $tmpArrValue = '';
+                    }
+                    else if($x + 1 == $len - 1){
+                        $arrayValues[] = $tmpArrValue.$char;
+                    }
+                    else{
+                        $tmpArrValue .= $char;
+                    }
+                }
+                $retVal = $arrayValues;
+            }
+        }
+        return $retVal;
+    }
+    public function _parseStringFromArray($arr,$start,$len){
+        $retVal = array(
+            'end'=>0,
+            'string'=>'',
+            'parsed'=>false
+        );
+        $str = '"';
+        $booleanIsNextCharacterEsc = FALSE;
+        for($x = 0 ; $x < $len - 1 ; $x++){
+            $ch = $arr[$x];
+            if($ch == '"'){
+                
+            }
+        }
+        
+        return $retVal;
     }
     /**
      * Returns the array that contains request inputs.
