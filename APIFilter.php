@@ -102,14 +102,13 @@ class APIFilter{
         }
     }
     /**
-     * 
+     * Returns the boolean value of given input.
      * @param type $boolean
      * @return boolean|string
      * @since 1.1
      */
     private function filterBoolean($boolean) {
         $booleanLwr = strtolower($boolean);
-        
         $boolTypes = array(
             't'=>TRUE,
             'f'=>FALSE,
@@ -134,25 +133,85 @@ class APIFilter{
         $len = strlen($array);
         $retVal = 'INV';
         $arrayValues = array();
-        if($len > 2){
+        if($len >= 2){
             if($array[0] == '[' && $array[$len - 1] == ']'){
-                $stringStartDelemeterIndex = -1;
-                $stringEndDelemeterIndex = -1;
                 $tmpArrValue = '';
                 for($x = 1 ; $x < $len - 1 ; $x++){
                     $char = $array[$x];
-                    if($char == ""){
-                        
-                    }
-                    if($char == ','){
-                        $arrayValues[] = $tmpArrValue;
-                        $tmpArrValue = '';
-                    }
-                    else if($x + 1 == $len - 1){
-                        $arrayValues[] = $tmpArrValue.$char;
+                    if($x + 1 == $len - 1){
+                        $tmpArrValue .= $char;
+                        $number = self::checkIsNumber($tmpArrValue);
+                        if($number != 'INV'){
+                            $arrayValues[] = $number;
+                        }
+                        else{
+                            return $retVal;
+                        }
                     }
                     else{
-                        $tmpArrValue .= $char;
+                        if($char == "\""){
+                            $tmpArrValue = strtolower(trim($tmpArrValue));
+                            if(strlen($tmpArrValue)){
+                                if($tmpArrValue == 'true'){
+                                    $arrayValues[] = TRUE;
+                                }
+                                else if($tmpArrValue == 'false'){
+                                    $arrayValues[] = FALSE;
+                                }
+                                else if($tmpArrValue == 'null'){
+                                    $arrayValues[] = NULL;
+                                }
+                                else{
+                                    $number = self::checkIsNumber($tmpArrValue);
+                                    if($number != 'INV'){
+                                        $arrayValues[] = $number;
+                                    }
+                                    else{
+                                        return $retVal;
+                                    }
+                                }
+                            }
+                            else{
+                                $result = self::_parseStringFromArray($array, $x + 1, $len - 1);
+                                if($result['parsed'] == TRUE){
+                                    $x = $result['end'];
+                                    $arrayValues[] = filter_var($result['string'], FILTER_SANITIZE_STRING);
+                                    $tmpArrValue = '';
+                                    continue;
+                                }
+                                else{
+                                    return $retVal;
+                                }
+                            }
+                        }
+                        if($char == ','){
+                            $tmpArrValue = strtolower(trim($tmpArrValue));
+                            if($tmpArrValue == 'true'){
+                                $arrayValues[] = TRUE;
+                            }
+                            else if($tmpArrValue == 'false'){
+                                $arrayValues[] = FALSE;
+                            }
+                            else if($tmpArrValue == 'null'){
+                                $arrayValues[] = NULL;
+                            }
+                            else{
+                                $number = self::checkIsNumber($tmpArrValue);
+                                if($number != 'INV'){
+                                    $arrayValues[] = $number;
+                                }
+                                else{
+                                    return $retVal;
+                                }
+                            }
+                            $tmpArrValue = '';
+                        }
+                        else if($x + 1 == $len - 1){
+                            $arrayValues[] = $tmpArrValue.$char;
+                        }
+                        else{
+                            $tmpArrValue .= $char;
+                        }
                     }
                 }
                 $retVal = $arrayValues;
@@ -160,21 +219,94 @@ class APIFilter{
         }
         return $retVal;
     }
-    public function _parseStringFromArray($arr,$start,$len){
+    /**
+     * Checks if a given string represents an integer or float value. If yes, 
+     * return its numeric value.
+     * @param type $str
+     * @return string
+     */
+    private static function checkIsNumber($str){
+        $str = trim($str);
+        $len = strlen($str);
+        $isFloat = FALSE;
+        $retVal = 'INV';
+        for($y = 0 ; $y < $len ; $y++){
+            $char = $str[$y];
+            if($char == '.' && !$isFloat){
+                $isFloat = TRUE;
+            }
+            else if($char == '-' && $y == 0){
+                
+            }
+            else if($char == '.' && $isFloat){
+                return $retVal;
+            }
+            else{
+                if(!($char <= '9' && $char >= '0')){
+                    return $retVal;
+                }
+            }
+        }
+        if($isFloat){
+            $retVal = floatval($str);
+        }
+        else{
+            $retVal = intval($str);
+        }
+        return $retVal;
+    }
+    /**
+     * Extract string value from an array that is formed as string.
+     * @param type $arr
+     * @param type $start
+     * @param type $len
+     * @return boolean
+     */
+    private static function _parseStringFromArray($arr,$start,$len){
         $retVal = array(
             'end'=>0,
             'string'=>'',
             'parsed'=>false
         );
-        $str = '"';
-        $booleanIsNextCharacterEsc = FALSE;
-        for($x = 0 ; $x < $len - 1 ; $x++){
+        $str = "";
+        for($x = $start ; $x < $len ; $x++){
             $ch = $arr[$x];
             if($ch == '"'){
-                
+                $str .= "";
+                $retVal['end'] = $x;
+                $retVal['string'] = $str;
+                $retVal['parsed'] = TRUE;
+                break;
+            }
+            else if($ch == '\\'){
+                $x++;
+                $nextCh = $arr[$x];
+                if($ch != ' '){
+                    $str .= '\\'.$nextCh;
+                }
+                else{
+                    $str .= '\\ ';
+                }
+            }
+//            else if($ch == '$'){
+//                $str .= '\$';
+//            }
+            else{
+                $str .= $ch;
             }
         }
-        
+        for($x = $retVal['end'] + 1 ; $x < $len ; $x++){
+            $ch = $arr[$x];
+            if($ch == ','){
+                $retVal['parsed'] = TRUE;
+                $retVal['end'] = $x;
+                break;
+            }
+            else if($ch != ' '){
+                $retVal['parsed'] = FALSE;
+                break;
+            }
+        }
         return $retVal;
     }
     /**
@@ -214,6 +346,9 @@ class APIFilter{
                         if($def['parameter']->getType() == 'boolean'){
                             $filteredValue = $this->filterBoolean(filter_var($toBeFiltered));
                         }
+                        else if($def['parameter']->getType() == 'array'){
+                            $filteredValue = $this->filterArray(filter_var($toBeFiltered));
+                        }
                         else{
                             $filteredValue = filter_var($toBeFiltered);
                             foreach ($def['filters'] as $val) {
@@ -243,6 +378,9 @@ class APIFilter{
                 else{
                     if($def['parameter']->getType() == 'boolean'){
                         $this->inputs[$name] = $this->filterBoolean(filter_var($toBeFiltered));
+                    }
+                    else if($def['parameter']->getType() == 'array'){
+                        $this->inputs[$name] = $this->filterArray(filter_var($toBeFiltered));
                     }
                     else{
                         $this->inputs[$name] = filter_var($toBeFiltered);
@@ -281,6 +419,9 @@ class APIFilter{
                         if($def['parameter']->getType() == 'boolean'){
                             $filteredValue = $this->filterBoolean(filter_var($toBeFiltered));
                         }
+                        else if($def['parameter']->getType() == 'array'){
+                            $filteredValue = $this->filterArray(filter_var($toBeFiltered));
+                        }
                         else{
                             $filteredValue = filter_var($toBeFiltered);
                             foreach ($def['filters'] as $val) {
@@ -310,6 +451,9 @@ class APIFilter{
                 else{
                     if($def['parameter']->getType() == 'boolean'){
                         $this->inputs[$name] = $this->filterBoolean(filter_var($toBeFiltered));
+                    }
+                    else if($def['parameter']->getType() == 'array'){
+                        $this->inputs[$name] = $this->filterArray(filter_var($toBeFiltered));
                     }
                     else{
                         $this->inputs[$name] = filter_var($toBeFiltered);
