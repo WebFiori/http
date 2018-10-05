@@ -131,12 +131,12 @@ abstract class API implements JsonI{
         $action->getParameterByName('version')->setDescription('Optional parameter. '
                 . 'If set, the information that will be returned will be specific '
                 . 'to the given version number.');
-        $this->addAction($action);
+        $this->addAction($action,TRUE);
         $action2 = new APIAction();
         $action2->setDescription('Gets basic information about the request.');
         $action2->setName('request-info');
         $action2->addRequestMethod('get');
-        $this->addAction($action2);
+        $this->addAction($action2,TRUE);
         $this->invParamsArr = array();
         $this->missingParamsArr = array();
     }
@@ -160,13 +160,16 @@ abstract class API implements JsonI{
     }
     /**
      * Sends a response message to indicate that a database error has occur.
-     * @param JsonI|string $info An object of type <b>JsonI</b> that 
-     * describe the error in more details. Also it can be a simple string.
+     * @param JsonI|JsonX|string $info An object of type <b>JsonI</b> or 
+     * JsonX that describe the error in more details. Also it can be a simple string.
      * @since 1.0
      */
     public function databaseErr($info=''){
         if($info instanceof JsonI){
             $this->sendResponse('Database Error', TRUE, 404, '"err-info":'.$info->toJSON());
+        }
+        if($info instanceof JsonX){
+            $this->sendResponse('Database Error', TRUE, 404, '"err-info":'.$info);
         }
         else{
             $this->sendResponse('Database Error', TRUE, 404, '"err-info":"'.$info.'"');
@@ -336,7 +339,8 @@ abstract class API implements JsonI{
     }
     /**
      * Returns an array of supported API actions.
-     * @return array An array that contains an objects of type <b>APIAction</b>.
+     * @return array An array that contains an objects of type <b>APIAction</b>. 
+     * The actions on the returned array does not require authentication.
      * @since 1.0
      */
     public final function getActions(){
@@ -360,7 +364,7 @@ abstract class API implements JsonI{
      * @return boolean TRUE if the action is added. FAlSE otherwise.
      * @since 1.0
      */
-    public function addAction($action,$reqPermissions=false){
+    public function addAction(&$action,$reqPermissions=false){
         if($action instanceof APIAction){
             if(!in_array($action, $this->getActions()) && !in_array($action, $this->getAuthActions())){
                 $action->setSince($this->getVersion());
@@ -578,60 +582,60 @@ abstract class API implements JsonI{
         $this->missingParamsArr = array();
         if($this->isContentTypeSupported()){
             if($this->_checkAction()){
-                if($this->getAction() == 'api-info'){
-                    $this->send(self::MIME_TYPES['json'], $this->toJSON());
+                $actionObj = $this->getActionByName($this->getAction());
+                $params = $actionObj->getParameters();
+                $this->filter->clear();
+                foreach ($params as $param) {
+                    $this->filter->addRequestPaameter($param);
                 }
-                else if($this->getAction() == 'request-info'){
-                    $j = new JsonX();
-                    $j->add('action', $this->getAction());
-                    $j->add('content-type', $this->getContentType());
-                    $j->add('method', $this->getRequestMethod());
-                    $j->add('parameters', $this->getInputs());
-                    $this->send(self::MIME_TYPES['json'], $j);
+                $reqMeth = $this->getRequestMethod();
+                if($reqMeth == 'GET' || $reqMeth == 'DELETE' || $reqMeth == 'PUT'){
+                    $this->filter->filterGET();
                 }
-                else{
-                    $actionObj = $this->getActionByName($this->getAction());
-                    $params = $actionObj->getParameters();
-                    $this->filter->clear();
-                    foreach ($params as $param) {
-                        $this->filter->addRequestPaameter($param);
-                    }
-                    $reqMeth = $this->getRequestMethod();
-                    if($reqMeth == 'GET' || $reqMeth == 'DELETE' || $reqMeth == 'PUT'){
-                        $this->filter->filterGET();
-                    }
-                    else if($reqMeth == 'POST'){
-                        $this->filter->filterPOST();
-                    }
-                    $i = $this->getInputs();
-                    $processReq = TRUE;
-                    foreach ($params as $param) {
-                        if(!$param->isOptional()){
-                            if(!isset($i[$param->getName()])){
-                                array_push($this->missingParamsArr, $param->getName());
-                                $processReq = FALSE;
-                            }
-                        }
-                        if(isset($i[$param->getName()]) && $i[$param->getName()] === 'INV'){
-                            array_push($this->invParamsArr, $param->getName());
+                else if($reqMeth == 'POST'){
+                    $this->filter->filterPOST();
+                }
+                $i = $this->getInputs();
+                $processReq = TRUE;
+                foreach ($params as $param) {
+                    if(!$param->isOptional()){
+                        if(!isset($i[$param->getName()])){
+                            array_push($this->missingParamsArr, $param->getName());
                             $processReq = FALSE;
                         }
                     }
-                    if($processReq){
-                        if($this->_isAuthorizedAction()){
-                            $this->processRequest();
+                    if(isset($i[$param->getName()]) && $i[$param->getName()] === 'INV'){
+                        array_push($this->invParamsArr, $param->getName());
+                        $processReq = FALSE;
+                    }
+                }
+                if($processReq){
+                    if($this->_isAuthorizedAction()){
+                        if($this->getAction() == 'api-info'){
+                            $this->send(self::MIME_TYPES['json'], $this->toJSON());
+                        }
+                        else if($this->getAction() == 'request-info'){
+                            $j = new JsonX();
+                            $j->add('action', $this->getAction());
+                            $j->add('content-type', $this->getContentType());
+                            $j->add('method', $this->getRequestMethod());
+                            $j->add('parameters', $this->getInputs());
+                            $this->send(self::MIME_TYPES['json'], $j);
                         }
                         else{
-                            $this->notAuth();
+                            $this->processRequest();
                         }
                     }
                     else{
-                        if(count($this->missingParamsArr) != 0){
-                            $this->missingParams();
-                        }
-                        else if(count($this->invParamsArr) != 0){
-                            $this->invParams();
-                        }
+                        $this->notAuth();
+                    }
+                }
+                else{
+                    if(count($this->missingParamsArr) != 0){
+                        $this->missingParams();
+                    }
+                    else if(count($this->invParamsArr) != 0){
+                        $this->invParams();
                     }
                 }
             }
