@@ -23,6 +23,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+namespace RESTEasy;
 /**
  * A class used to filter request parameters.
  * @author Ibrahim Ali <ibinshikh@hotmail.com>
