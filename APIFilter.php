@@ -32,7 +32,7 @@ namespace RESTEasy;
 class APIFilter{
     /**
      * Supported input types.
-     * @var array The values are:
+     * The filter supports the following data types:
      * <ul>
      * <li>string</li>
      * <li>integer</li>
@@ -42,6 +42,7 @@ class APIFilter{
      * <li>boolean</li>
      * <li>array</li>
      * </ul>
+     * @var array 
      * @since 1.0
      */
     const TYPES = array(
@@ -238,10 +239,15 @@ class APIFilter{
         return $retVal;
     }
     /**
-     * Checks if a given string represents an integer or float value. If yes, 
-     * return its numeric value.
-     * @param type $str
-     * @return string
+     * Checks if a given string represents an integer or float value. 
+     * If the given string represents numeric value, the function will 
+     * convert it to its numerical value.
+     * @param string $str A value such as '1' or '7.0'.
+     * @return string|int|double If the given string does not represents any 
+     * numerical value, the function will return the string 'INV'. If the 
+     * given string represents an integer, an integer value is returned. 
+     * If the given string represents a floating point value, a float number 
+     * is returned.
      */
     private static function checkIsNumber($str){
         $str = trim($str);
@@ -275,6 +281,7 @@ class APIFilter{
     }
     /**
      * Extract string value from an array that is formed as string.
+     * It is a helper function that works with the function APIFilter::_parseStringFromArray().
      * @param type $arr
      * @param type $start
      * @param type $len
@@ -326,9 +333,10 @@ class APIFilter{
         return $retVal;
     }
     /**
-     * Returns the array that contains request inputs.
+     * Returns an associative array that contains request body inputs.
+     * The data in the array will have the filters applied to.
      * @return array|NULL The array that contains request inputs. If no data was 
-     * filtered, the function will return <b>NULL</b>.
+     * filtered, the function will return NULL.
      * @since 1.0
      */
     public function getInputs(){
