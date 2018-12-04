@@ -33,6 +33,18 @@ use jsonx\JsonI;
 class APIAction implements JsonI{
     /**
      * An array that contains the names of request methods.
+     * This array contains the following strings:
+     * <ul>
+     * <li>GET</li>
+     * <li>HEAD</li>
+     * <li>POST</li>
+     * <li>PUT</li>
+     * <li>DELETE</li>
+     * <li>TRACE</li>
+     * <li>OPTIONS</li>
+     * <li>PATCH</li>
+     * <li>CONNECT</li>
+     * </ul>
      * @var array An array that contains the names of request methods.
      * @since 1.1
      */
@@ -53,7 +65,7 @@ class APIAction implements JsonI{
      */
     private $reqMethods = array();
     /**
-     * An array that holds an objects of type <b>RequestParameter</b>.
+     * An array that holds an objects of type RequestParameter.
      * @var array
      * @since 1.0 
      */
@@ -79,14 +91,15 @@ class APIAction implements JsonI{
      */
     private $responses;
     /**
-     * Creates new instance of <b>APIAction</b>.
-     * @param string $name [Optional] The name of the action. A valid action name must 
-     * follow the following rules:
+     * Creates new instance of the class.
+     * The developer can supply an optional action name. 
+     * A valid action name must follow the following rules:
      * <ul>
      * <li>It can contain the letters [A-Z] and [a-z].</li>
      * <li>It can contain the numbers [0-9].</li>
      * <li>It can have the character '-' and the character '_'.</li>
      * </ul>
+     * @param string $name The name of the action. 
      */
     public function __construct($name='') {
         if(!$this->setName($name)){
@@ -94,7 +107,9 @@ class APIAction implements JsonI{
         }
     }
     /**
-     * Returns an array that contains information about possible responses.
+     * Returns an indexed array that contains information about possible responses.
+     * It is used to describe the API for front-end developers and help them 
+     * identify possible responses if they call the API using the specified action.
      * @return array An array that contains information about possible responses.
      * @since 1.3
      */
