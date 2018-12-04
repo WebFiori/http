@@ -1,25 +1,15 @@
 <?php
-
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-ini_set('display_startup_errors', 1);
-ini_set('display_errors', 1);
-error_reporting(-1);
-require_once '../jsonx-1.3/JsonI.php';
-require_once '../jsonx-1.3/JsonX.php';
-require_once '../API.php';
-require_once '../APIAction.php';
-require_once '../APIFilter.php';
-require_once '../RequestParameter.php';
+require_once 'load.php';
+use restEasy\WebAPI;
+use restEasy\APIAction;
+use restEasy\RequestParameter;
+use jsonx\JsonX;
 /**
- * Description of BooleanAPI
+ * An API that is used to show how to use booleans in API calls.
  *
  * @author Ibrahim
  */
-class BooleanAPI extends API{
+class BooleanAPI extends WebAPI{
     public function __construct() {
         parent::__construct();
         $a1 = new APIAction('add-user');

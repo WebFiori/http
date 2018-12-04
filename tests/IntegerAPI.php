@@ -1,17 +1,15 @@
 <?php
-
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 require_once 'load.php';
+use restEasy\WebAPI;
+use restEasy\APIAction;
+use restEasy\RequestParameter;
+use jsonx\JsonX;
 /**
- * Description of IntegerAPI
+ * An API that can be used to add or subtract numbers.
  *
  * @author Ibrahim
  */
-class IntegerAPI extends API{
+class IntegerAPI extends WebAPI{
     public function __construct() {
         parent::__construct();
         $a1 = new APIAction('add-numbers');
