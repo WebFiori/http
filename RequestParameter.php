@@ -27,7 +27,7 @@ namespace restEasy;
 use jsonx\JsonI;
 /**
  * A class that represents request parameter.
- * @author Ibrahim <ibinshikh@hotmail.com>
+ * @author Ibrahim
  * @version 1.2
  */
 class RequestParameter implements JsonI{

@@ -26,7 +26,7 @@
 namespace restEasy;
 /**
  * A class used to filter request parameters.
- * @author Ibrahim Ali <ibinshikh@hotmail.com>
+ * @author Ibrahim
  * @version 1.2.1
  */
 class APIFilter{
