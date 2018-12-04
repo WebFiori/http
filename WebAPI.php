@@ -28,7 +28,7 @@ use jsonx\JsonI;
  * A class that represents a REST API.
  * @version 1.4.2
  */
-abstract class API implements JsonI{
+abstract class WebAPI implements JsonI{
     /**
      * An array that contains the supported 'POST' request content types.
      * This array has the following values:
