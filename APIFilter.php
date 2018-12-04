@@ -419,7 +419,10 @@ class APIFilter{
             }
             else{
                 if($def['parameter']->isOptional()){
-                    $this->inputs[$name] = $def['parameter']->getDefault();
+                    $defaultVal = $def['parameter']->getDefault();
+                    if($defaultVal !== NULL){
+                        $this->inputs[$name] = $defaultVal;
+                    }
                 }
             }
         }
@@ -492,7 +495,10 @@ class APIFilter{
             }
             else{
                 if($def['parameter']->isOptional()){
-                    $this->inputs[$name] = $def['parameter']->getDefault();
+                    $defaultVal = $def['parameter']->getDefault();
+                    if($defaultVal !== NULL){
+                        $this->inputs[$name] = $defaultVal;
+                    }
                 }
             }
         }
