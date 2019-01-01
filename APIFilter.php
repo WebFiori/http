@@ -168,7 +168,7 @@ class APIFilter{
                         }
                     }
                     else{
-                        if($char == "\""){
+                        if($char == '"' || $char == "'"){
                             $tmpArrValue = strtolower(trim($tmpArrValue));
                             if(strlen($tmpArrValue)){
                                 if($tmpArrValue == 'true'){
@@ -191,7 +191,7 @@ class APIFilter{
                                 }
                             }
                             else{
-                                $result = self::_parseStringFromArray($array, $x + 1, $len - 1);
+                                $result = self::_parseStringFromArray($array, $x + 1, $len - 1, $char);
                                 if($result['parsed'] == TRUE){
                                     $x = $result['end'];
                                     $arrayValues[] = filter_var($result['string'], FILTER_SANITIZE_STRING);
@@ -288,7 +288,7 @@ class APIFilter{
      * @return boolean
      * @since 1.2.1
      */
-    private static function _parseStringFromArray($arr,$start,$len){
+    private static function _parseStringFromArray($arr,$start,$len,$stringEndChar){
         $retVal = array(
             'end'=>0,
             'string'=>'',
@@ -297,7 +297,7 @@ class APIFilter{
         $str = "";
         for($x = $start ; $x < $len ; $x++){
             $ch = $arr[$x];
-            if($ch == '"'){
+            if($ch == $stringEndChar){
                 $str .= "";
                 $retVal['end'] = $x;
                 $retVal['string'] = $str;
