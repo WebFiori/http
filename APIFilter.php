@@ -145,7 +145,7 @@ class APIFilter{
      * @param string $array A string in the format '[3,"hello",4.8,"",44,...]'.
      * @return string|array If the string has valid array format, an array 
      * which contains the values is returned. If has invalid syntax, the 
-     * function will return the string 'INV'.
+     * method will return the string 'INV'.
      * @since 1.2.1
      */
     private static function _filterArray($array) {
@@ -240,22 +240,22 @@ class APIFilter{
     }
     /**
      * Checks if a given string represents an integer or float value. 
-     * If the given string represents numeric value, the function will 
+     * If the given string represents numeric value, the method will 
      * convert it to its numerical value.
      * @param string $str A value such as '1' or '7.0'.
      * @return string|int|double If the given string does not represents any 
-     * numerical value, the function will return the string 'INV'. If the 
+     * numerical value, the method will return the string 'INV'. If the 
      * given string represents an integer, an integer value is returned. 
      * If the given string represents a floating point value, a float number 
      * is returned.
      */
     private static function checkIsNumber($str){
-        $str = trim($str);
-        $len = strlen($str);
+        $strX = trim($str);
+        $len = strlen($strX);
         $isFloat = FALSE;
         $retVal = 'INV';
         for($y = 0 ; $y < $len ; $y++){
-            $char = $str[$y];
+            $char = $strX[$y];
             if($char == '.' && !$isFloat){
                 $isFloat = TRUE;
             }
@@ -272,16 +272,16 @@ class APIFilter{
             }
         }
         if($isFloat){
-            $retVal = floatval($str);
+            $retVal = floatval($strX);
         }
         else{
-            $retVal = intval($str);
+            $retVal = intval($strX);
         }
         return $retVal;
     }
     /**
      * Extract string value from an array that is formed as string.
-     * It is a helper function that works with the function APIFilter::_parseStringFromArray().
+     * It is a helper method that works with the method APIFilter::_parseStringFromArray().
      * @param type $arr
      * @param type $start
      * @param type $len
@@ -336,7 +336,7 @@ class APIFilter{
      * Returns an associative array that contains request body inputs.
      * The data in the array will have the filters applied to.
      * @return array|NULL The array that contains request inputs. If no data was 
-     * filtered, the function will return NULL.
+     * filtered, the method will return NULL.
      * @since 1.0
      */
     public function getInputs(){
