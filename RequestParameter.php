@@ -29,9 +29,15 @@ use jsonx\JsonX;
 /**
  * A class that represents request parameter.
  * @author Ibrahim
- * @version 1.2
+ * @version 1.2.1
  */
 class RequestParameter implements JsonI{
+    /**
+     * A boolean value that can be set to TRUE to allow empty strings.
+     * @var boolean 
+     * @since 1.2.1
+     */
+    private $isEmptStrAllowed;
     /**
      * The type of the data the parameter will represents.
      * @var string
@@ -125,6 +131,7 @@ class RequestParameter implements JsonI{
             $this->type = 'string';
         }
         $this->applyBasicFilter = FALSE;
+        $this->isEmptStrAllowed = FALSE;
     }
     /**
      * Returns the minimum numeric value the parameter can accept.
@@ -171,6 +178,29 @@ class RequestParameter implements JsonI{
             }
         }
         return FALSE;
+    }
+    /**
+     * Checks if empty strings are allowed as values for the parameter.
+     * By default, The method will return FALSE.
+     * @return boolean TRUE if empty strings are allowed as values for the parameter. 
+     * FALSE if not.
+     * @since 1.2.1
+     */
+    public function isEmptyStringAllowed() {
+        return $this->isEmptStrAllowed;
+    }
+    /**
+     * Allow or disallow empty strings as values for the parameter.
+     * The value of the attribute will be updated only if the type of the 
+     * parameter is set to 'string'.
+     * @param boolean $bool TRUE to allow empty strings and FALSE to disallow 
+     * empty strings.
+     * @since 1.2.1
+     */
+    public function setIsEmptyStringAllowed($bool) {
+        if($this->getType() == 'string'){
+            $this->isEmptStrAllowed = $bool === TRUE ? TRUE : FALSE;
+        }
     }
     /**
      * Sets the maximum value.

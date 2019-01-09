@@ -95,6 +95,10 @@ class APIFilter{
                 array_push($attribute['filters'], FILTER_SANITIZE_NUMBER_INT);
                 array_push($attribute['filters'], FILTER_VALIDATE_INT);
             }
+            else if($paramType == 'string'){
+                $attribute['options']['options']['allow-empty'] = $reqParam->isEmptyStringAllowed();
+                array_push($attribute['filters'], FILTER_DEFAULT);
+            }
             else if($paramType == 'float'){
                 array_push($attribute['filters'], FILTER_SANITIZE_NUMBER_FLOAT);
             }
@@ -378,8 +382,14 @@ class APIFilter{
                             foreach ($def['filters'] as $val) {
                                 $filteredValue = filter_var($filteredValue, $val, $def['options']);
                             }
-                            if($filteredValue == FALSE){
+                            if($filteredValue === FALSE){
                                 $filteredValue = 'INV';
+                            }
+                            if($def['parameter']->getType() == 'string' &&
+                                    $filteredValue != 'INV' &&
+                                    strlen($filteredValue) == 0 && 
+                                    $def['options']['options']['allow-empty'] === FALSE){
+                                $this->inputs[$name] = 'INV';
                             }
                         }
                         $arr['basic-filter-result'] = $filteredValue;
@@ -395,7 +405,7 @@ class APIFilter{
                     else{
                         $this->inputs[$name] = $r;
                     }
-                    if($this->inputs[$name] == FALSE && $def['parameter']->getType() != 'boolean'){
+                    if($this->inputs[$name] === FALSE && $def['parameter']->getType() != 'boolean'){
                         $this->inputs[$name] = 'INV';
                     }
                 }
@@ -412,6 +422,9 @@ class APIFilter{
                             $this->inputs[$name] = filter_var($this->inputs[$name], $val, $def['options']);
                         }
                         if($this->inputs[$name] === FALSE){
+                            $this->inputs[$name] = 'INV';
+                        }
+                        if($def['parameter']->getType() == 'string' && strlen($filteredValue) == 0 && $def['options']['options']['allow-empty'] === FALSE){
                             $this->inputs[$name] = 'INV';
                         }
                     }
@@ -454,7 +467,13 @@ class APIFilter{
                             foreach ($def['filters'] as $val) {
                                 $filteredValue = filter_var($filteredValue, $val, $def['options']);
                             }
-                            if($filteredValue == FALSE){
+                            if($filteredValue === FALSE){
+                                $filteredValue = 'INV';
+                            }
+                            if($def['parameter']->getType() == 'string' && 
+                                    strlen($filteredValue) == 0 && 
+                                    $def['options']['options']['allow-empty'] === FALSE){
+                                
                                 $filteredValue = 'INV';
                             }
                         }
@@ -471,7 +490,7 @@ class APIFilter{
                     else{
                         $this->inputs[$name] = $r;
                     }
-                    if($this->inputs[$name] == FALSE && $def['parameter']->getType() != 'boolean'){
+                    if($this->inputs[$name] === FALSE && $def['parameter']->getType() != 'boolean'){
                         $this->inputs[$name] = 'INV';
                     }
                 }
@@ -488,6 +507,12 @@ class APIFilter{
                             $this->inputs[$name] = filter_var($this->inputs[$name], $val, $def['options']);
                         }
                         if($this->inputs[$name] === FALSE){
+                            $this->inputs[$name] = 'INV';
+                        }
+                        if($def['parameter']->getType() == 'string' &&
+                                $this->inputs[$name] != 'INV' &&
+                                strlen($this->inputs[$name]) == 0 && 
+                                $def['options']['options']['allow-empty'] === FALSE){
                             $this->inputs[$name] = 'INV';
                         }
                     }
