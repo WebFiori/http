@@ -765,11 +765,11 @@ abstract class WebAPI implements JsonI{
      * @param string $message The message to send back.
      * @param boolean $isErr TRUE if the message represents an error state.
      * @param int $code Response code (such as 404 or 200).
-     * @param string $otherJsonStr Any other data to send back (it should be a 
-     * JSON string).
+     * @param string|JsonX|JsonI $otherInfo Any other data to send back it can be a simple 
+     * string, an object of type JsonX or JsonI.
      * @since 1.0
      */
-    public function sendResponse($message,$isErr=false,$code=200,$otherJsonStr=''){
+    public function sendResponse($message,$isErr=false,$code=200,$otherInfo=''){
         header('content-type:application/json');
         http_response_code($code);
         if($isErr == TRUE){
@@ -779,11 +779,19 @@ abstract class WebAPI implements JsonI{
             $e = 'info';
         }
         $value =  '{"message":"'.$message.'","type":"'.$e.'"';
-        if(strlen($otherJsonStr) != 0){
-            echo $value . ','.$otherJsonStr.'}';
+        if($otherInfo instanceof JsonX){
+            echo $value . ',"more-info":'.$otherInfo.'}';
+        }
+        else if($otherInfo instanceof JsonI){
+            echo $value . ',"more-info":'.$otherInfo->toJSON().'}';
         }
         else{
-            echo $value .'}';
+            if(strlen($otherInfo) != 0){
+                echo $value . ',"more-info":"'.JsonX::escapeJSONSpecialChars($otherInfo).'"}';
+            }
+            else{
+                echo $value .'}';
+            }
         }
     }
     /**
