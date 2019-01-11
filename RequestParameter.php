@@ -3,7 +3,7 @@
 /* 
  * The MIT License
  *
- * Copyright 2018 Ibrahim BinAlshikh.
+ * Copyright 2019 Ibrahim BinAlshikh, restEasy library.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -97,7 +97,7 @@ class RequestParameter implements JsonI{
     /**
      * Sets the description of the parameter.
      * This method is used to document the API. Used to help front-end developers.
-     * @param sting $desc Parameter description.
+     * @param string $desc Parameter description.
      * @since 1.1
      */
     public function setDescription($desc) {
@@ -115,12 +115,13 @@ class RequestParameter implements JsonI{
     /**
      * Creates new instance of the class.
      * @param string $name The name of the parameter as it appears in the request body. 
-     * It must be a valid name> If the given name is invalid, the parameter 
+     * It must be a valid name. If the given name is invalid, the parameter 
      * name will be set to 'a-parameter'.
      * @param string $type The type of the data that will be in the parameter (integer, 
      * string, email etc...). It must be a value from the array APIFilter::TYPES. 
-     * If the given type is invalid, 'string' is used.
-     * @param boolean $isOptional Set to TRUE if the parameter is optional.
+     * Default is 'string'.
+     * @param boolean $isOptional Set to TRUE if the parameter is optional. Default 
+     * is FALSE.
      */
     public function __construct($name,$type='string',$isOptional=false) {
         if(!$this->setName($name)){
