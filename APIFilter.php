@@ -3,7 +3,7 @@
 /* 
  * The MIT License
  *
- * * Copyright 2018 Ibrahim BinAlshikh.
+ * Copyright 2019 Ibrahim BinAlshikh, restEasy library.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,6 +26,8 @@
 namespace restEasy;
 /**
  * A class used to filter request parameters.
+ * This class is the core class which is used to manage and set request 
+ * parameters.
  * @author Ibrahim
  * @version 1.2.1
  */
