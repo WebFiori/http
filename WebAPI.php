@@ -181,13 +181,13 @@ abstract class WebAPI implements JsonI{
      */
     public function databaseErr($info=''){
         if($info instanceof JsonI){
-            $this->sendResponse('Database Error', TRUE, 404, '"err-info":'.$info->toJSON());
+            $this->sendResponse('Database Error', TRUE, 500, '"err-info":'.$info->toJSON());
         }
         if($info instanceof JsonX){
-            $this->sendResponse('Database Error', TRUE, 404, '"err-info":'.$info);
+            $this->sendResponse('Database Error', TRUE, 500, '"err-info":'.$info);
         }
         else{
-            $this->sendResponse('Database Error', TRUE, 404, '"err-info":"'.JsonX::escapeJSONSpecialChars($info).'"');
+            $this->sendResponse('Database Error', TRUE, 500, '"err-info":"'.JsonX::escapeJSONSpecialChars($info).'"');
         }
     }
     /**
