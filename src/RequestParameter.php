@@ -198,7 +198,9 @@ class RequestParameter implements JsonI{
     }
     /**
      * Checks if empty strings are allowed as values for the parameter.
-     * By default, The method will return false.
+     * If the property value is not updated using the method 
+     * RequestParameter::setIsEmptyStringAllowed(), The method will return 
+     * default value which is false.
      * @return boolean true if empty strings are allowed as values for the parameter. 
      * false if not.
      * @since 1.2.1
@@ -212,12 +214,17 @@ class RequestParameter implements JsonI{
      * parameter is set to 'string'.
      * @param boolean $bool true to allow empty strings and false to disallow 
      * empty strings.
+     * @return boolean The method will return true if the property is updated. 
+     * If datatype of the request parameter is not string, The method will 
+     * not update the property value and will return false.
      * @since 1.2.1
      */
     public function setIsEmptyStringAllowed($bool) {
         if($this->getType() == 'string'){
             $this->isEmptStrAllowed = $bool === true ? true : false;
+            return true;
         }
+        return false;
     }
     /**
      * Sets the maximum value.
