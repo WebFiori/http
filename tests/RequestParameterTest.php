@@ -101,6 +101,27 @@ class RequestParameterTest extends TestCase{
     /**
      * @test
      */
+    public function testConstructor07() {
+        $requestParam = new RequestParameter('valid',' floaT ',true);
+        $this->assertEquals('valid',$requestParam->getName());
+        $this->assertFalse($requestParam->isEmptyStringAllowed());
+        $this->assertTrue($requestParam->isOptional());
+        if(PHP_MAJOR_VERSION >= 7 && PHP_MINOR_VERSION >= 2){
+            $this->assertEquals(PHP_FLOAT_MAX, $requestParam->getMaxVal());
+            $this->assertEquals(PHP_FLOAT_MIN,$requestParam->getMinVal());
+        }
+        else{
+            $this->assertEquals(PHP_INT_MAX, $requestParam->getMaxVal());
+            $this->assertEquals(~PHP_INT_MAX,$requestParam->getMinVal());
+        }
+        $this->assertNull($requestParam->getDefault());
+        $this->assertNull($requestParam->getDescription());
+        $this->assertNull($requestParam->getCustomFilterFunction());
+        $this->assertEquals('float',$requestParam->getType());
+    }
+    /**
+     * @test
+     */
     public function testSetIsEmptyStrAllowed00() {
         $requestParam = new RequestParameter('hello');
         $this->assertTrue($requestParam->setIsEmptyStringAllowed(true));
@@ -122,4 +143,84 @@ class RequestParameterTest extends TestCase{
         $this->assertFalse($requestParam->setIsEmptyStringAllowed(false));
         $this->assertTrue($requestParam->isEmptyStringAllowed());
     }
+    /**
+     * @test
+     */
+    public function testSetMax00() {
+        $rp = new RequestParameter('val');
+        $this->assertFalse($rp->setMaxVal(5));
+        $this->assertNull($rp->getMaxVal());
+    }
+    /**
+     * @test
+     */
+    public function testSetMax01() {
+        $rp = new RequestParameter('val','integer');
+        $this->assertTrue($rp->setMaxVal(5));
+        $this->assertEquals(5,$rp->getMaxVal());
+    }
+    /**
+     * @test
+     */
+    public function testSetMax02() {
+        $rp = new RequestParameter('val','integer');
+        $this->assertFalse($rp->setMaxVal('5'));
+        $this->assertEquals(PHP_INT_MAX,$rp->getMaxVal());
+    }
+    /**
+     * @test
+     */
+    public function testSetMax03() {
+        $rp = new RequestParameter('val','integer');
+        $this->assertFalse($rp->setMaxVal(66.90));
+        $this->assertEquals(PHP_INT_MAX,$rp->getMaxVal());
+    }
+    /**
+     * @test
+     */
+    public function testSetMax04() {
+        $rp = new RequestParameter('val','float');
+        $this->assertTrue($rp->setMaxVal(5.6));
+        $this->assertEquals(5.6,$rp->getMaxVal());
+    }
+    /**
+     * @test
+     */
+    public function testSetMax05() {
+        $rp = new RequestParameter('val','float');
+        $this->assertFalse($rp->setMaxVal('5'));
+        if(PHP_MAJOR_VERSION >= 7 && PHP_MINOR_VERSION >= 2){
+            $this->assertEquals(PHP_FLOAT_MAX,$rp->getMaxVal());
+        }
+        else{
+            $this->assertEquals(PHP_INT_MAX,$rp->getMaxVal());
+        }
+    }
+    /**
+     * @test
+     */
+    public function testSetMax06() {
+        $rp = new RequestParameter('val','float');
+        $this->assertTrue($rp->setMaxVal(66));
+        $this->assertEquals(66,$rp->getMaxVal());
+    }
+    /**
+     * @test
+     */
+    public function testSetMax07() {
+        $rp = new RequestParameter('val','integer');
+        $rp->setMinVal(0);
+        $this->assertFalse($rp->setMaxVal(-66));
+        $this->assertEquals(PHP_INT_MAX,$rp->getMaxVal());
+        $this->assertFalse($rp->setMaxVal(0));
+        $this->assertTrue($rp->setMaxVal(1));
+        $this->assertEquals(1,$rp->getMaxVal());
+    }
 }
+
+
+
+
+
+
+
