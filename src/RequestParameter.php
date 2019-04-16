@@ -177,7 +177,7 @@ class RequestParameter implements JsonI{
      * The value will be updated 
      * only if:
      * <ul>
-     * <li>The request parameter type is numeric ('integer').</li>
+     * <li>The request parameter type is numeric ('integer' or 'float').</li>
      * <li>The given value is less than RequestParameter::getMaxVal()</li>
      * </ul>
      * @param int $val The minimum value to set.
@@ -187,9 +187,11 @@ class RequestParameter implements JsonI{
      */
     public function setMinVal($val) {
         $type = $this->getType();
-        if($type == 'integer'){
+        $valType = gettype($val);
+        if(($type == 'integer' && $valType == 'integer') || 
+            ($type == 'float' && ($valType == 'double' || $valType == 'integer'))){
             $max = $this->getMaxVal();
-            if($max != null && $val < $max){
+            if($max !== null && $val < $max){
                 $this->minVal = $val;
                 return true;
             }
@@ -231,7 +233,7 @@ class RequestParameter implements JsonI{
      * The value will be updated 
      * only if:
      * <ul>
-     * <li>The request parameter type is numeric ('integer').</li>
+     * <li>The request parameter type is numeric ('integer' or 'float').</li>
      * <li>The given value is greater than RequestParameter::getMinVal()</li>
      * </ul>
      * @param int $val The maximum value to set.
@@ -241,9 +243,11 @@ class RequestParameter implements JsonI{
      */
     public function setMaxVal($val) {
         $type = $this->getType();
-        if($type == 'integer'){
+        $valType = gettype($val);
+        if(($type == 'integer' && $valType == 'integer') || 
+            ($type == 'float' && ($valType == 'double' || $valType == 'integer'))){
             $min = $this->getMinVal();
-            if($min != null && $val > $min){
+            if($min !== null && $val > $min){
                 $this->maxVal = $val;
                 return true;
             }
@@ -286,9 +290,13 @@ class RequestParameter implements JsonI{
         $sType = strtolower(trim($type));
         if(in_array($sType, APIFilter::TYPES)){
             $this->type = $sType;
-            if($sType == 'integer'){
+            if($sType == 'integer' || ($sType == 'float' && PHP_MAJOR_VERSION <= 7 && PHP_MINOR_VERSION < 2)){
                 $this->minVal = defined('PHP_INT_MIN') ? PHP_INT_MIN : ~PHP_INT_MAX;
                 $this->maxVal = PHP_INT_MAX;
+            }
+            else if($sType == 'float' && PHP_MAJOR_VERSION >= 7 && PHP_MINOR_VERSION >= 2){
+                $this->maxVal = PHP_FLOAT_MAX;
+                $this->minVal = PHP_FLOAT_MIN;
             }
             else{
                 $this->maxVal = null;
