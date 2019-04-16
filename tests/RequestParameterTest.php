@@ -220,6 +220,82 @@ class RequestParameterTest extends TestCase{
         $this->assertTrue($rp->setMaxVal(1));
         $this->assertEquals(1,$rp->getMaxVal());
     }
+    /**
+     * @test
+     */
+    public function testSetMin00() {
+        $rp = new RequestParameter('val');
+        $this->assertFalse($rp->setMinVal(5));
+        $this->assertNull($rp->getMinVal());
+    }
+    /**
+     * @test
+     */
+    public function testSetMin01() {
+        $rp = new RequestParameter('val','integer');
+        $this->assertTrue($rp->setMinVal(5));
+        $this->assertEquals(5,$rp->getMinVal());
+    }
+    /**
+     * @test
+     */
+    public function testSetMin02() {
+        $rp = new RequestParameter('val','integer');
+        $this->assertFalse($rp->setMinVal('5'));
+        $this->assertEquals(~PHP_INT_MAX,$rp->getMinVal());
+    }
+    /**
+     * @test
+     */
+    public function testSetMin03() {
+        $rp = new RequestParameter('val','integer');
+        $this->assertFalse($rp->setMinVal(66.90));
+        $this->assertEquals(~PHP_INT_MAX,$rp->getMinVal());
+    }
+    /**
+     * @test
+     */
+    public function testSetMin04() {
+        $rp = new RequestParameter('val','float');
+        $this->assertEquals('float',$rp->getType());
+        $this->assertTrue($rp->setMinVal(5.6));
+        $this->assertEquals(5.6,$rp->getMinVal());
+    }
+    /**
+     * @test
+     */
+    public function testSetMin05() {
+        $rp = new RequestParameter('val','float');
+        $this->assertEquals('float',$rp->getType());
+        $this->assertFalse($rp->setMinVal('5'));
+        if(PHP_MAJOR_VERSION >= 7 && PHP_MINOR_VERSION >= 2){
+            $this->assertEquals(PHP_FLOAT_MIN,$rp->getMinVal());
+        }
+        else{
+            $this->assertEquals(~PHP_INT_MAX,$rp->getMinVal());
+        }
+    }
+    /**
+     * @test
+     */
+    public function testSetMin06() {
+        $rp = new RequestParameter('val','float');
+        $this->assertEquals('float',$rp->getType());
+        $this->assertTrue($rp->setMinVal(66));
+        $this->assertEquals(66,$rp->getMinVal());
+    }
+    /**
+     * @test
+     */
+    public function testSetMin07() {
+        $rp = new RequestParameter('val','integer');
+        $rp->setMaxVal(-100);
+        $this->assertFalse($rp->setMinVal(66));
+        $this->assertEquals(~PHP_INT_MAX,$rp->getMinVal());
+        $this->assertFalse($rp->setMinVal(-100));
+        $this->assertTrue($rp->setMinVal(-101));
+        $this->assertEquals(-101,$rp->getMinVal());
+    }
 }
 
 
