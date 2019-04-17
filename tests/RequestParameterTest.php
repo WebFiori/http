@@ -22,6 +22,7 @@ class RequestParameterTest extends TestCase{
         $this->assertNull($requestParam->getDescription());
         $this->assertNull($requestParam->getCustomFilterFunction());
         $this->assertEquals('string',$requestParam->getType());
+        return $requestParam;
     }
     /**
      * @test
@@ -323,6 +324,26 @@ class RequestParameterTest extends TestCase{
         $this->assertTrue($rp->setCustomFilterFunction(function(){},true));
         $this->assertTrue(is_callable($rp->getCustomFilterFunction()));
         $this->assertTrue($rp->applyBasicFilter());
+    }
+    /**
+     * @test
+     * @depends testConstructor00
+     * @param RequestParameter $reqParam
+     */
+    public function testToJson00($reqParam) {
+        $reqParam->setDescription('Test Parameter.');
+        $this->assertEquals('{"name":"a-parameter", "type":"string", "description":"Test Parameter.", '
+                . '"is-optional":false, "default-value":null, "min-val":null, "max-val":null}',$reqParam->toJSON().'');
+    }
+    /**
+     * @test
+     * @depends testConstructor03
+     * @param RequestParameter $reqParam
+     */
+    public function testToJson01($reqParam) {
+        $reqParam->setDescription('Test Parameter.');
+        $this->assertEquals('{"name":"valid", "type":"integer", "description":"Test Parameter.", '
+                . '"is-optional":true, "default-value":null, "min-val":'.~PHP_INT_MAX.', "max-val":'.PHP_INT_MAX.'}',$reqParam->toJSON().'');
     }
 }
 
