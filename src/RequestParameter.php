@@ -372,8 +372,20 @@ class RequestParameter implements JsonI{
     /**
      * Returns a JsonX object that represents the request parameter.
      * This method is used to help front-end developers in showing the 
-     * documentation of the request parameter.
-     * @return JsonX An object of type JsonX.
+     * documentation of the request parameter. The format of JSON string 
+     * will be as follows:
+     * <p>
+     * {<br/>
+     * &nbsp;&nbsp;"name":"a-param",<br/>
+     * &nbsp;&nbsp;"type":"string",<br/>
+     * &nbsp;&nbsp;"description":"",<br/>
+     * &nbsp;&nbsp;"is-optional":true,<br/>
+     * &nbsp;&nbsp;"default-value":null,<br/>
+     * &nbsp;&nbsp;"min-val":null,<br/>
+     * &nbsp;&nbsp;"max-val":null<br/>
+     * }
+     * </p>
+     * @return JsonX An object of type JsonX. 
      * @since 1.0
      */
     public function toJSON() {
@@ -382,15 +394,9 @@ class RequestParameter implements JsonI{
         $json->add('type', $this->getType());
         $json->add('description', $this->getDescription());
         $json->add('is-optional', $this->isOptional());
-        if($this->getDefault() !== null){
-            $json->add('default', $this->getDefault());
-        }
-        if($this->getMinVal() !== null){
-            $json->add('min-val', $this->getMinVal());
-        }
-        if($this->getMaxVal() !== null){
-            $json->add('max-val', $this->getMaxVal());
-        }
+        $json->add('default-value', $this->getDefault());
+        $json->add('min-val', $this->getMinVal());
+        $json->add('max-val', $this->getMaxVal());
         return $json;
     }
     /**
