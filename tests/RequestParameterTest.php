@@ -296,6 +296,34 @@ class RequestParameterTest extends TestCase{
         $this->assertTrue($rp->setMinVal(-101));
         $this->assertEquals(-101,$rp->getMinVal());
     }
+    /**
+     * @test
+     */
+    public function testSetCustomFilter00() {
+        $rp = new RequestParameter('hello');
+        $this->assertNull($rp->getCustomFilterFunction());
+        $this->assertFalse($rp->setCustomFilterFunction('not a func',false));
+        $this->assertNull($rp->getCustomFilterFunction());
+        $this->assertTrue($rp->applyBasicFilter());
+    }
+    /**
+     * @test
+     */
+    public function testSetCustomFilter01() {
+        $rp = new RequestParameter('hello');
+        $this->assertTrue($rp->setCustomFilterFunction(function(){},false));
+        $this->assertTrue(is_callable($rp->getCustomFilterFunction()));
+        $this->assertFalse($rp->applyBasicFilter());
+    }
+    /**
+     * @test
+     */
+    public function testSetCustomFilter02() {
+        $rp = new RequestParameter('hello');
+        $this->assertTrue($rp->setCustomFilterFunction(function(){},true));
+        $this->assertTrue(is_callable($rp->getCustomFilterFunction()));
+        $this->assertTrue($rp->applyBasicFilter());
+    }
 }
 
 
