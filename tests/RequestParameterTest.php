@@ -346,6 +346,104 @@ class RequestParameterTest extends TestCase{
         $this->assertEquals('{"name":"valid", "type":"integer", "description":"Test Parameter.", '
                 . '"is-optional":true, "default-value":null, "min-val":'.~PHP_INT_MAX.', "max-val":'.PHP_INT_MAX.'}',$reqParam->toJSON().'');
     }
+    /**
+     * @test
+     */
+    public function testSetDefault00() {
+        $rp = new RequestParameter('test','string');
+        $this->assertTrue($rp->setDefault('A string.'));
+        $this->assertEquals('A string.',$rp->getDefault());
+        $this->assertFalse($rp->setDefault(44));
+        $this->assertEquals('A string.',$rp->getDefault());
+        $this->assertFalse($rp->setDefault(44.99));
+        $this->assertFalse($rp->setDefault(array()));
+        $this->assertFalse($rp->setDefault(new \Exception()));
+        $this->assertFalse($rp->setDefault(null));
+        $this->assertFalse($rp->setDefault(false));
+    }
+    /**
+     * @test
+     */
+    public function testSetDefault01() {
+        $rp = new RequestParameter('test','url');
+        $this->assertTrue($rp->setDefault('A string.'));
+        $this->assertEquals('A string.',$rp->getDefault());
+        $this->assertFalse($rp->setDefault(44));
+        $this->assertEquals('A string.',$rp->getDefault());
+        $this->assertFalse($rp->setDefault(44.99));
+        $this->assertFalse($rp->setDefault(array()));
+        $this->assertFalse($rp->setDefault(new \Exception()));
+        $this->assertFalse($rp->setDefault(null));
+        $this->assertFalse($rp->setDefault(false));
+    }
+    /**
+     * @test
+     */
+    public function testSetDefault02() {
+        $rp = new RequestParameter('test','email');
+        $this->assertTrue($rp->setDefault('A string.'));
+        $this->assertEquals('A string.',$rp->getDefault());
+        $this->assertFalse($rp->setDefault(44));
+        $this->assertEquals('A string.',$rp->getDefault());
+        $this->assertFalse($rp->setDefault(44.99));
+        $this->assertFalse($rp->setDefault(array()));
+        $this->assertFalse($rp->setDefault(new \Exception()));
+        $this->assertFalse($rp->setDefault(null));
+        $this->assertFalse($rp->setDefault(false));
+    }
+    /**
+     * @test
+     */
+    public function testSetDefault03() {
+        $rp = new RequestParameter('test','integer');
+        $this->assertFalse($rp->setDefault('A string.'));
+        $this->assertTrue($rp->setDefault(44));
+        $this->assertEquals(44,$rp->getDefault());
+        $this->assertFalse($rp->setDefault(44.99));
+        $this->assertFalse($rp->setDefault(array()));
+        $this->assertFalse($rp->setDefault(new \Exception()));
+        $this->assertFalse($rp->setDefault(null));
+        $this->assertFalse($rp->setDefault(false));
+    }
+    /**
+     * @test
+     */
+    public function testSetDefault04() {
+        $rp = new RequestParameter('test','float');
+        $this->assertFalse($rp->setDefault('A string.'));
+        $this->assertTrue($rp->setDefault(44));
+        $this->assertTrue($rp->setDefault(44.99));
+        $this->assertFalse($rp->setDefault(array()));
+        $this->assertFalse($rp->setDefault(new \Exception()));
+        $this->assertFalse($rp->setDefault(null));
+        $this->assertFalse($rp->setDefault(false));
+    }
+    /**
+     * @test
+     */
+    public function testSetDefault05() {
+        $rp = new RequestParameter('test','boolean');
+        $this->assertFalse($rp->setDefault('A string.'));
+        $this->assertFalse($rp->setDefault(44));
+        $this->assertFalse($rp->setDefault(44.99));
+        $this->assertFalse($rp->setDefault(array()));
+        $this->assertFalse($rp->setDefault(new \Exception()));
+        $this->assertFalse($rp->setDefault(null));
+        $this->assertTrue($rp->setDefault(false));
+    }
+    /**
+     * @test
+     */
+    public function testSetDefault06() {
+        $rp = new RequestParameter('test','array');
+        $this->assertFalse($rp->setDefault('A string.'));
+        $this->assertFalse($rp->setDefault(44));
+        $this->assertFalse($rp->setDefault(44.99));
+        $this->assertTrue($rp->setDefault(array()));
+        $this->assertFalse($rp->setDefault(new \Exception()));
+        $this->assertFalse($rp->setDefault(null));
+        $this->assertFalse($rp->setDefault(false));
+    }
 }
 
 
