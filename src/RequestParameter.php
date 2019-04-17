@@ -259,13 +259,25 @@ class RequestParameter implements JsonI{
      * Sets a default value for the parameter to use if the parameter is 
      * not provided.
      * This method can be used to include a default value for the parameter if 
-     * it is optional.
+     * it is optional. Note that the type of passed value must match request 
+     * parameter type.
      * @param mixed $val default value for the parameter to use if the parameter is 
      * not provided.
+     * @return boolean If the default value is set, the method will return true. 
+     * If it is not set, the method will return false.
      * @since 1.1
      */
     public function setDefault($val) {
-        $this->default = $val;
+        $valType = gettype($val);
+        $RPType = $this->getType();
+        if($valType == $RPType || 
+          ($RPType == 'float' && $valType == 'double') || 
+          ($valType == 'string' && ($RPType == 'url' || $RPType == 'email')) || 
+          ($valType == 'integer' && $RPType == 'float')){
+            $this->default = $val;
+            return true;
+        }
+        return false;
     }
     /**
      * Returns the default value to use in case the parameter is 
