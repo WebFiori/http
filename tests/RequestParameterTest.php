@@ -68,6 +68,7 @@ class RequestParameterTest extends TestCase{
         $this->assertNull($requestParam->getDescription());
         $this->assertNull($requestParam->getCustomFilterFunction());
         $this->assertEquals('integer',$requestParam->getType());
+        return $requestParam;
     }
     /**
      * @test
