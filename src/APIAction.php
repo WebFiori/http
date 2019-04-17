@@ -100,9 +100,10 @@ class APIAction implements JsonI{
      * <li>It can contain the numbers [0-9].</li>
      * <li>It can have the character '-' and the character '_'.</li>
      * </ul>
+     * If The given name is invalid, the name of the action will be set to 'an-action'.
      * @param string $name The name of the action. 
      */
-    public function __construct($name='') {
+    public function __construct($name) {
         if(!$this->setName($name)){
             $this->setName('an-action');
         }
@@ -219,7 +220,7 @@ class APIAction implements JsonI{
      * @since 1.1
      */
     public function removeRequestMethod($method){
-        $uMethod = strtoupper($method);
+        $uMethod = strtoupper(trim($method));
         if(in_array($uMethod, $this->getActionMethods())){
             $count = count($this->getActionMethods());
             for($x = 0 ; $x < $count ; $x++){
@@ -246,22 +247,20 @@ class APIAction implements JsonI{
      * @since 1.0
      */
     public final function setName($name){
-        $name .= '';
-        $len = strlen($name);
+        $trimmedName = trim($name);
+        $len = strlen($trimmedName);
         if($len != 0){
-            if(strpos($name, ' ') === FALSE){
-                for ($x = 0 ; $x < $len ; $x++){
-                    $ch = $name[$x];
-                    if($ch == '_' || $ch == '-' || ($ch >= 'a' && $ch <= 'z') || ($ch >= 'A' && $ch <= 'Z') || ($ch >= '0' && $ch <= '9')){
+            for ($x = 0 ; $x < $len ; $x++){
+                $ch = $trimmedName[$x];
+                if($ch == '_' || $ch == '-' || ($ch >= 'a' && $ch <= 'z') || ($ch >= 'A' && $ch <= 'Z') || ($ch >= '0' && $ch <= '9')){
 
-                    }
-                    else{
-                        return FALSE;
-                    }
                 }
-                $this->name = $name;
-                return TRUE;
+                else{
+                    return FALSE;
+                }
             }
+            $this->name = $name;
+            return TRUE;
         }
         return FALSE;
     }
