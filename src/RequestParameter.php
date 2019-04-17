@@ -147,7 +147,7 @@ class RequestParameter implements JsonI{
         if(!$this->setType($type)){
             $this->type = 'string';
         }
-        $this->applyBasicFilter = false;
+        $this->applyBasicFilter = true;
         $this->isEmptStrAllowed = false;
     }
     /**
@@ -395,10 +395,9 @@ class RequestParameter implements JsonI{
     }
     /**
      * Sets a callback method to work as a filter for request parameter.
-     * The callback method 
-     * will have two parameters passed to it. The first one is an associative 
-     * array that contains the not-filtered value and the value filtered 
-     * using basic filter. The values are contained in two 
+     * The callback method will have two parameters passed to it. The first 
+     * one is an associative array that contains the not-filtered value and 
+     * the value filtered using basic filter. The values are contained in two 
      * indices: 
      * <ul>
      * <li>original-value</li>
@@ -416,19 +415,24 @@ class RequestParameter implements JsonI{
      * @param boolean $applyBasicFilter If set to true, 
      * the basic filter will be applied to the parameter. Default 
      * is true.
+     * @return boolean If the callback is set, the method will return true. If 
+     * not set, the method will return false.
      * @since 1.2
      */
     public function setCustomFilterFunction($function,$applyBasicFilter=true) {
         if(is_callable($function)){
             $this->customFilterFunc = $function;
+            $this->applyBasicFilter = $applyBasicFilter === true ? true : false;
+            return true;
         }
-        $this->applyBasicFilter = $applyBasicFilter === true ? true : false;
+        return false;
     }
     /**
      * Checks if we need to apply basic filter or not 
      * before applying custom filter callback.
      * @return boolean The method will return true 
-     * if the basic filter will be applied before applying custom filter.
+     * if the basic filter will be applied before applying custom filter. If no custom 
+     * filter is set, the method will return true by default.
      * @since 1.2
      */
     public function applyBasicFilter() {
