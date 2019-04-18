@@ -80,18 +80,18 @@ class APIFilter{
                 'filters'=>array(),
                 'options'=>array('options'=>array())
             );
-            if($reqParam->getDefault() !== NULL){
+            if($reqParam->getDefault() !== null){
                 $attribute['options']['options']['default'] = $reqParam->getDefault();
             }
-            if($reqParam->getCustomFilterFunction() != NULL){
+            if($reqParam->getCustomFilterFunction() != null){
                 $attribute['options']['filter-func'] = $reqParam->getCustomFilterFunction();
             }
             $paramType = $reqParam->getType();
             if($paramType == 'integer'){
-                if($reqParam->getMaxVal() !== NULL){
+                if($reqParam->getMaxVal() !== null){
                     $attribute['options']['options']['max_range'] = $reqParam->getMaxVal();
                 }
-                if($reqParam->getMinVal() !== NULL){
+                if($reqParam->getMinVal() !== null){
                     $attribute['options']['options']['min_range'] = $reqParam->getMinVal();
                 }
                 array_push($attribute['filters'], FILTER_SANITIZE_NUMBER_INT);
@@ -127,20 +127,20 @@ class APIFilter{
     private function _filterBoolean($boolean) {
         $booleanLwr = strtolower($boolean);
         $boolTypes = array(
-            't'=>TRUE,
-            'f'=>FALSE,
-            'yes'=>TRUE,
-            'no'=>FALSE,
-            '-1'=>FALSE,
-            '1'=>TRUE,
-            '0'=>FALSE,
-            'true'=>TRUE,
-            'false'=>FALSE,
-            'on'=>TRUE,
-            'off'=>FALSE,
-            'y'=>TRUE,
-            'n'=>FALSE,
-            'ok'=>TRUE);
+            't'=>true,
+            'f'=>false,
+            'yes'=>true,
+            'no'=>false,
+            '-1'=>false,
+            '1'=>true,
+            '0'=>false,
+            'true'=>true,
+            'false'=>false,
+            'on'=>true,
+            'off'=>false,
+            'y'=>true,
+            'n'=>false,
+            'ok'=>true);
         if(isset($boolTypes[$booleanLwr])){
             return $boolTypes[$booleanLwr];
         }
@@ -178,13 +178,13 @@ class APIFilter{
                             $tmpArrValue = strtolower(trim($tmpArrValue));
                             if(strlen($tmpArrValue)){
                                 if($tmpArrValue == 'true'){
-                                    $arrayValues[] = TRUE;
+                                    $arrayValues[] = true;
                                 }
                                 else if($tmpArrValue == 'false'){
-                                    $arrayValues[] = FALSE;
+                                    $arrayValues[] = false;
                                 }
                                 else if($tmpArrValue == 'null'){
-                                    $arrayValues[] = NULL;
+                                    $arrayValues[] = null;
                                 }
                                 else{
                                     $number = self::checkIsNumber($tmpArrValue);
@@ -198,7 +198,7 @@ class APIFilter{
                             }
                             else{
                                 $result = self::_parseStringFromArray($array, $x + 1, $len - 1, $char);
-                                if($result['parsed'] == TRUE){
+                                if($result['parsed'] == true){
                                     $x = $result['end'];
                                     $arrayValues[] = filter_var($result['string'], FILTER_SANITIZE_STRING);
                                     $tmpArrValue = '';
@@ -212,13 +212,13 @@ class APIFilter{
                         if($char == ','){
                             $tmpArrValue = strtolower(trim($tmpArrValue));
                             if($tmpArrValue == 'true'){
-                                $arrayValues[] = TRUE;
+                                $arrayValues[] = true;
                             }
                             else if($tmpArrValue == 'false'){
-                                $arrayValues[] = FALSE;
+                                $arrayValues[] = false;
                             }
                             else if($tmpArrValue == 'null'){
-                                $arrayValues[] = NULL;
+                                $arrayValues[] = null;
                             }
                             else{
                                 $number = self::checkIsNumber($tmpArrValue);
@@ -258,12 +258,12 @@ class APIFilter{
     private static function checkIsNumber($str){
         $strX = trim($str);
         $len = strlen($strX);
-        $isFloat = FALSE;
+        $isFloat = false;
         $retVal = 'INV';
         for($y = 0 ; $y < $len ; $y++){
             $char = $strX[$y];
             if($char == '.' && !$isFloat){
-                $isFloat = TRUE;
+                $isFloat = true;
             }
             else if($char == '-' && $y == 0){
                 
@@ -307,7 +307,7 @@ class APIFilter{
                 $str .= "";
                 $retVal['end'] = $x;
                 $retVal['string'] = $str;
-                $retVal['parsed'] = TRUE;
+                $retVal['parsed'] = true;
                 break;
             }
             else if($ch == '\\'){
@@ -327,12 +327,12 @@ class APIFilter{
         for($x = $retVal['end'] + 1 ; $x < $len ; $x++){
             $ch = $arr[$x];
             if($ch == ','){
-                $retVal['parsed'] = TRUE;
+                $retVal['parsed'] = true;
                 $retVal['end'] = $x;
                 break;
             }
             else if($ch != ' '){
-                $retVal['parsed'] = FALSE;
+                $retVal['parsed'] = false;
                 break;
             }
         }
@@ -341,8 +341,8 @@ class APIFilter{
     /**
      * Returns an associative array that contains request body inputs.
      * The data in the array will have the filters applied to.
-     * @return array|NULL The array that contains request inputs. If no data was 
-     * filtered, the method will return NULL.
+     * @return array|null The array that contains request inputs. If no data was 
+     * filtered, the method will return null.
      * @since 1.0
      */
     public function getInputs(){
@@ -359,6 +359,7 @@ class APIFilter{
 
     /**
      * Filter GET parameters.
+     * GET parameters are usually sent when request method is GET or DELETE.
      * @since 1.0
      */
     public final function filterGET(){
@@ -372,7 +373,7 @@ class APIFilter{
                     $arr = array(
                         'original-value'=>$toBeFiltered,
                     );
-                    if($def['parameter']->applyBasicFilter() === TRUE){
+                    if($def['parameter']->applyBasicFilter() === true){
                         if($def['parameter']->getType() == 'boolean'){
                             $filteredValue = $this->_filterBoolean(filter_var($toBeFiltered));
                         }
@@ -384,13 +385,13 @@ class APIFilter{
                             foreach ($def['filters'] as $val) {
                                 $filteredValue = filter_var($filteredValue, $val, $def['options']);
                             }
-                            if($filteredValue === FALSE){
+                            if($filteredValue === false){
                                 $filteredValue = 'INV';
                             }
                             if($def['parameter']->getType() == 'string' &&
                                     $filteredValue != 'INV' &&
                                     strlen($filteredValue) == 0 && 
-                                    $def['options']['options']['allow-empty'] === FALSE){
+                                    $def['options']['options']['allow-empty'] === false){
                                 $this->inputs[$name] = 'INV';
                             }
                         }
@@ -401,13 +402,13 @@ class APIFilter{
                         $arr['basic-filter-result'] = 'NOT_APLICABLE';
                     }
                     $r = call_user_func($def['options']['filter-func'],$arr,$def['parameter']);
-                    if($r === NULL){
-                        $this->inputs[$name] = FALSE;
+                    if($r === null){
+                        $this->inputs[$name] = false;
                     }
                     else{
                         $this->inputs[$name] = $r;
                     }
-                    if($this->inputs[$name] === FALSE && $def['parameter']->getType() != 'boolean'){
+                    if($this->inputs[$name] === false && $def['parameter']->getType() != 'boolean'){
                         $this->inputs[$name] = 'INV';
                     }
                 }
@@ -423,13 +424,13 @@ class APIFilter{
                         foreach ($def['filters'] as $val) {
                             $this->inputs[$name] = filter_var($this->inputs[$name], $val, $def['options']);
                         }
-                        if($this->inputs[$name] === FALSE){
+                        if($this->inputs[$name] === false){
                             $this->inputs[$name] = 'INV';
                         }
                         if($def['parameter']->getType() == 'string' &&
                                 $this->inputs[$name] != 'INV' &&
                                 strlen($this->inputs[$name]) == 0 && 
-                                $def['options']['options']['allow-empty'] === FALSE){
+                                $def['options']['options']['allow-empty'] === false){
                             $this->inputs[$name] = 'INV';
                         }
                     }
@@ -438,7 +439,7 @@ class APIFilter{
             else{
                 if($def['parameter']->isOptional()){
                     $defaultVal = $def['parameter']->getDefault();
-                    if($defaultVal !== NULL){
+                    if($defaultVal !== null){
                         $this->inputs[$name] = $defaultVal;
                     }
                 }
@@ -447,6 +448,7 @@ class APIFilter{
     }
     /**
      * Filter POST parameters.
+     * POST parameters are usually sent when request method is POST or PUT.
      * @since 1.0
      */
     public final function filterPOST(){
@@ -460,7 +462,7 @@ class APIFilter{
                     $arr = array(
                         'original-value'=>$toBeFiltered,
                     );
-                    if($def['parameter']->applyBasicFilter() === TRUE){
+                    if($def['parameter']->applyBasicFilter() === true){
                         if($def['parameter']->getType() == 'boolean'){
                             $filteredValue = $this->_filterBoolean(filter_var($toBeFiltered));
                         }
@@ -472,12 +474,12 @@ class APIFilter{
                             foreach ($def['filters'] as $val) {
                                 $filteredValue = filter_var($filteredValue, $val, $def['options']);
                             }
-                            if($filteredValue === FALSE){
+                            if($filteredValue === false){
                                 $filteredValue = 'INV';
                             }
                             if($def['parameter']->getType() == 'string' && 
                                     strlen($filteredValue) == 0 && 
-                                    $def['options']['options']['allow-empty'] === FALSE){
+                                    $def['options']['options']['allow-empty'] === false){
                                 
                                 $filteredValue = 'INV';
                             }
@@ -489,13 +491,13 @@ class APIFilter{
                         $arr['basic-filter-result'] = 'NOT_APLICABLE';
                     }
                     $r = call_user_func($def['options']['filter-func'],$arr,$def['parameter']);
-                    if($r === NULL){
-                        $this->inputs[$name] = FALSE;
+                    if($r === null){
+                        $this->inputs[$name] = false;
                     }
                     else{
                         $this->inputs[$name] = $r;
                     }
-                    if($this->inputs[$name] === FALSE && $def['parameter']->getType() != 'boolean'){
+                    if($this->inputs[$name] === false && $def['parameter']->getType() != 'boolean'){
                         $this->inputs[$name] = 'INV';
                     }
                 }
@@ -511,13 +513,13 @@ class APIFilter{
                         foreach ($def['filters'] as $val) {
                             $this->inputs[$name] = filter_var($this->inputs[$name], $val, $def['options']);
                         }
-                        if($this->inputs[$name] === FALSE){
+                        if($this->inputs[$name] === false){
                             $this->inputs[$name] = 'INV';
                         }
                         if($def['parameter']->getType() == 'string' &&
                                 $this->inputs[$name] != 'INV' &&
                                 strlen($this->inputs[$name]) == 0 && 
-                                $def['options']['options']['allow-empty'] === FALSE){
+                                $def['options']['options']['allow-empty'] === false){
                             $this->inputs[$name] = 'INV';
                         }
                     }
@@ -526,7 +528,7 @@ class APIFilter{
             else{
                 if($def['parameter']->isOptional()){
                     $defaultVal = $def['parameter']->getDefault();
-                    if($defaultVal !== NULL){
+                    if($defaultVal !== null){
                         $this->inputs[$name] = $defaultVal;
                     }
                 }
@@ -540,8 +542,8 @@ class APIFilter{
      */
     public function clear() {
         $this->paramDefs = array();
-        $this->inputs = NULL;
-        $this->nonFilteredInputs = NULL;
+        $this->inputs = null;
+        $this->nonFilteredInputs = null;
     }
 }
 

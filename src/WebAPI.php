@@ -33,7 +33,7 @@ use jsonx\JsonX;
  * <ul>
  * <li>Extend this class.</li>
  * <li>Create API actions using the class APIAction.</li>
- * <li>Implement the abstract method <a href="#isAuthorized">WebAPI::isAuthorized?()</a> 
+ * <li>Implement the abstract method <a href="#isAuthorized">WebAPI::isAuthorized()</a> 
  * and the method <a href="#processRequest">WebAPI::processRequest()</a></li>
  * </li>
  * @version 1.4.3
@@ -126,11 +126,11 @@ abstract class WebAPI implements JsonI{
         $action->setDescription('Gets all information about the API.');
         $action->setName('api-info');
         $action->addRequestMethod('get');
-        $action->addParameter(new RequestParameter('version', 'string', TRUE));
+        $action->addParameter(new RequestParameter('version', 'string', true));
         $action->getParameterByName('version')->setDescription('Optional parameter. '
                 . 'If set, the information that will be returned will be specific '
                 . 'to the given version number.');
-        $this->addAction($action,TRUE);
+        $this->addAction($action,true);
         $action2 = new APIAction();
         $action2->setDescription('Gets basic information about the request.');
         $action2->setName('request-info');
@@ -140,7 +140,7 @@ abstract class WebAPI implements JsonI{
         $action2->addRequestMethod('put');
         $action2->addRequestMethod('head');
         $action2->addRequestMethod('options');
-        $this->addAction($action2,TRUE);
+        $this->addAction($action2,true);
         $this->invParamsArr = array();
         $this->missingParamsArr = array();
     }
@@ -155,8 +155,8 @@ abstract class WebAPI implements JsonI{
     }
     /**
      * Returns the description of the API.
-     * @return string|NULL The description of the API. If the description is 
-     * not set, the method will return NULL.
+     * @return string|null The description of the API. If the description is 
+     * not set, the method will return null.
      * @since 1.3
      */
     public function getDescription() {
@@ -367,7 +367,7 @@ abstract class WebAPI implements JsonI{
      * Sets API version number.
      * @param string $val Version number (such as 1.0.0). Version number 
      * must be provided in the form 'x.x.x'.
-     * @return boolean TRUE if set. FALSE otherwise.
+     * @return boolean true if set. false otherwise.
      * @since 1.0
      */
     public final function setVersion($val){
@@ -377,21 +377,21 @@ abstract class WebAPI implements JsonI{
                 $len = strlen($v);
                 for($x = 0 ; $x < $len ; $x++){
                     if($v[$x] < '0' || $v[$x] > '9'){
-                        return FALSE;
+                        return false;
                     }
                 }
             }
             $this->apiVersion = $val;
-            return TRUE;
+            return true;
         }
-        return FALSE;
+        return false;
     }
     /**
      * Returns an API action given its name.
      * @param string $actionName The name of the action.
-     * @return APIAction|NULL An object of type 'APIAction' 
+     * @return APIAction|null An object of type 'APIAction' 
      * if the action is found. If no action was found, The method will return 
-     * NULL.
+     * null.
      * @since 1.3
      */
     public function &getActionByName($actionName) {
@@ -408,7 +408,7 @@ abstract class WebAPI implements JsonI{
                 }
             }
         }
-        $null = NULL;
+        $null = null;
         return $null;
     }
     /**
@@ -433,25 +433,25 @@ abstract class WebAPI implements JsonI{
     /**
      * Adds new action to the set of API actions.
      * @param APIAction $action The action that will be added.
-     * @param boolean $reqPermissions Set to TRUE if the action require user login or 
-     * any additional permissions. Default is FALSE.
-     * @return boolean TRUE if the action is added. FAlSE otherwise.
+     * @param boolean $reqPermissions Set to true if the action require user login or 
+     * any additional permissions. Default is false.
+     * @return boolean true if the action is added. FAlSE otherwise.
      * @since 1.0
      */
     public function addAction(&$action,$reqPermissions=false){
         if($action instanceof APIAction){
             if(!in_array($action, $this->getActions()) && !in_array($action, $this->getAuthActions())){
                 $action->setSince($this->getVersion());
-                if($reqPermissions == TRUE){
+                if($reqPermissions == true){
                     array_push($this->authActions, $action);
                 }
                 else{
                     array_push($this->actions, $action);
                 }
-                return TRUE;
+                return true;
             }
         }
-        return FALSE;
+        return false;
     }
     /**
      * Returns the request method used to fetch the API.
@@ -478,7 +478,7 @@ abstract class WebAPI implements JsonI{
         else if($reqMeth == 'POST'){
             $vNum = filter_input(INPUT_POST, 'version');
         }
-        if($vNum == NULL || $vNum == FALSE){
+        if($vNum == null || $vNum == false){
             $json->add('actions', $this->getActions());
             $json->add('auth-actions', $this->getAuthActions());
         }
@@ -504,7 +504,7 @@ abstract class WebAPI implements JsonI{
     }
     /**
      * Checks if the action that is used to fetch the API is supported or not.
-     * @return boolean TRUE if the API supports the action. FALSE 
+     * @return boolean true if the API supports the action. false 
      * if not or it is not set. The action name must be provided with the request 
      * as a parameter with the name 'action'.
      * @since 1.0
@@ -513,15 +513,15 @@ abstract class WebAPI implements JsonI{
         $action = $this->getAction();
         foreach ($this->getActions() as $val){
             if($val->getName() == $action){
-                return TRUE;
+                return true;
             }
         }
         foreach ($this->getAuthActions() as $val){
             if($val->getName() == $action){
-                return TRUE;
+                return true;
             }
         }
-        return FALSE;
+        return false;
     }
     /**
      * Returns request content type.
@@ -530,32 +530,32 @@ abstract class WebAPI implements JsonI{
      */
     public final function getContentType(){
         $c = filter_input(INPUT_SERVER, 'CONTENT_TYPE');
-        if($c != NULL && $c != FALSE){
+        if($c != null && $c != false){
             return strtok($c, ';');
         }
-        return NULL;
+        return null;
     }
     /**
      * Checks if request content type is supported by the API or not (For 'POST' 
      * and PUT requests only).
-     * @return boolean Returns TRUE in case the 'content-type' header is not 
+     * @return boolean Returns true in case the 'content-type' header is not 
      * set or the request method is not 'POST'. Also the method will return 
-     * TRUE if the content type is supported. Other than that, the method 
-     * will return FALSE
+     * true if the content type is supported. Other than that, the method 
+     * will return false
      * @since 1.1
      */
     public final function isContentTypeSupported(){
         $c = $this->getContentType();
         $rm = $this->getRequestMethod();
-        if($c != NULL && $rm == 'POST' || $rm == 'PUT'){
+        if($c != null && $rm == 'POST' || $rm == 'PUT'){
             return in_array($c, self::POST_CONTENT_TYPES);
         }
-        return TRUE;
+        return true;
     }
     /**
      * Checks if a client is authorized to call the API using the given 
      * action in request body.
-     * @return boolean The method will return TRUE if the client is allowed 
+     * @return boolean The method will return true if the client is allowed 
      * to call the API using the action in request body.
      * @since 1.3.1
      */
@@ -566,7 +566,7 @@ abstract class WebAPI implements JsonI{
                 return $this->isAuthorized();
             }
         }
-        return TRUE;
+        return true;
     }
     /**
      * Checks the status of the API action.
@@ -576,24 +576,24 @@ abstract class WebAPI implements JsonI{
      * <li>The action is supported by the API.</li>
      * <li>Request method of the action is correct.</li>
      * </ul>
-     * If one of the conditions is not met, the method will return FALSE and 
+     * If one of the conditions is not met, the method will return false and 
      * send back a response to indicate the issue.
-     * @return boolean TRUE if API action is valid.
+     * @return boolean true if API action is valid.
      * @since 1.0
      */
     private final function _checkAction(){
         $action = $this->getAction();
         //first, check if action is set and not null
-        if($action != NULL){
+        if($action != null){
             //after that, check if action is supported by the API.
             if($this->isActionSupported()){
-                $isValidRequestMethod = FALSE;
+                $isValidRequestMethod = false;
                 foreach ($this->getAuthActions() as $val){
                     if($val->getName() == $action){
                         $reqMethods = $val->getActionMethods();
                         foreach ($reqMethods as $method){
                             if($method == $this->getRequestMethod()){
-                                $isValidRequestMethod = TRUE;
+                                $isValidRequestMethod = true;
                             }
                         }
                         if(!$isValidRequestMethod){
@@ -607,7 +607,7 @@ abstract class WebAPI implements JsonI{
                         $reqMethods = $val->getActionMethods();
                         foreach ($reqMethods as $method){
                             if($method == $this->getRequestMethod()){
-                                $isValidRequestMethod = TRUE;
+                                $isValidRequestMethod = true;
                             }
                         }
                         if(!$isValidRequestMethod){
@@ -616,7 +616,7 @@ abstract class WebAPI implements JsonI{
                         return $isValidRequestMethod;
                     }
                 }
-                return TRUE;
+                return true;
             }
             else{
                 $this->actionNotSupported();
@@ -625,7 +625,7 @@ abstract class WebAPI implements JsonI{
         else{
             $this->missingAPIAction();
         }
-        return FALSE;
+        return false;
     }
     /**
      * Sends a response message to tell the front-end that the parameter 
@@ -646,8 +646,8 @@ abstract class WebAPI implements JsonI{
     /**
      * Checks if a user is authorized to perform an action that require authorization.
      * @return boolean The method must be implemented by the sub-class in a way 
-     * that makes it return TRUE in case the user is allowed to perform the 
-     * action. If the user is not permitted, the method must return FALSE.
+     * that makes it return true in case the user is allowed to perform the 
+     * action. If the user is not permitted, the method must return false.
      * @since 1.1
      */
     public abstract function isAuthorized();
@@ -681,17 +681,17 @@ abstract class WebAPI implements JsonI{
                     $this->filter->filterPOST();
                 }
                 $i = $this->getInputs();
-                $processReq = TRUE;
+                $processReq = true;
                 foreach ($params as $param) {
                     if(!$param->isOptional()){
                         if(!isset($i[$param->getName()])){
                             array_push($this->missingParamsArr, $param->getName());
-                            $processReq = FALSE;
+                            $processReq = false;
                         }
                     }
                     if(isset($i[$param->getName()]) && $i[$param->getName()] === 'INV'){
                         array_push($this->invParamsArr, $param->getName());
-                        $processReq = FALSE;
+                        $processReq = false;
                     }
                 }
                 if($processReq){
@@ -823,8 +823,8 @@ abstract class WebAPI implements JsonI{
     }
     /**
      * Returns the action that was requested to perform.
-     * @return string|NULL The action that was requested to perform. If the action 
-     * is not set, the method will return NULL.
+     * @return string|null The action that was requested to perform. If the action 
+     * is not set, the method will return null.
      * @since 1.0
      */
     public function getAction(){
@@ -839,6 +839,6 @@ abstract class WebAPI implements JsonI{
                 return filter_var($_POST['action']);
             }
         }
-        return NULL;
+        return null;
     }
 }
