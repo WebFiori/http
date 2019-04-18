@@ -29,7 +29,7 @@ use jsonx\JsonX;
 /**
  * A class that represents API action.
  * @author Ibrahim
- * @version 1.3
+ * @version 1.3.1
  */
 class APIAction implements JsonI{
     /**
@@ -127,8 +127,9 @@ class APIAction implements JsonI{
      * @since 1.3
      */
     public final function addResponseDescription($description) {
-        if(strlen($description) != 0){
-            $this->responses[] = $description;
+        $trimmed = trim($description);
+        if(strlen($trimmed) != 0){
+            $this->responses[] = $trimmed;
         }
     }
     /**
@@ -138,7 +139,7 @@ class APIAction implements JsonI{
      * @since 1.2
      */
     public final function setDescription($desc) {
-        $this->actionDesc = $desc;
+        $this->actionDesc = trim($desc);
     }
     /**
      * Returns the description of the action.
@@ -150,7 +151,7 @@ class APIAction implements JsonI{
         return $this->actionDesc;
     }
     /**
-     * Sets the version number at which the action was added to the API.
+     * Sets version number or name at which the action was added to the API.
      * This method is called automatically when an action is added to any object of 
      * type WebAPI. The developer does not have to use this method.
      * @param string The version number at which the action was added to the API.
@@ -160,7 +161,7 @@ class APIAction implements JsonI{
         $this->sinceVersion = $sinceAPIv;
     }
     /**
-     * Returns the version number at which the action was added to the API.
+     * Returns version number or name at which the action was added to the API.
      * Version number is set based on the version number which was set in the 
      * class WebAPI.
      * @return string The version number at which the action was added to the API.
@@ -171,13 +172,77 @@ class APIAction implements JsonI{
     }
     /**
      * Adds new request parameter for the action.
+     * The parameter will only be added if no parameter which has the same 
+     * name as the given one is added before.
      * @param RequestParameter $param The action that will be added.
+     * @return boolean If the given request parameter is added, the method will 
+     * return true. If it was not added for any reason, the method will return 
+     * false.
      * @since 1.0
      */
     public function addParameter($param){
         if($param instanceof RequestParameter){
-            $this->parameters[] = $param;
+            if(!$this->hasParameter($param->getName())){
+                $this->parameters[] = $param;
+                return true;
+            }
         }
+        return false;
+    }
+    /**
+     * Checks if the action has a specific request parameter given its name.
+     * Note that the name of the parameter is case sensitive. This means that 
+     * 'get-profile' is not the same as 'Get-Profile'.
+     * @param string $name The name of the parameter.
+     * @return boolean If a request parameter which has the given name is added 
+     * to the action, the method will return true. Otherwise, the method will return 
+     * false.
+     * @since 1.3.1
+     */
+    public function hasParameter($name) {
+        $trimmed = trim($name);
+        if(strlen($name) != 0){
+            foreach ($this->getParameters() as $param){
+                if($param->getName() == $trimmed){
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    /**
+     * Removes a request parameter from the action given its name.
+     * @param string $paramName The name of the parameter (case sensitive).
+     * @return null|RequestParameter If a parameter which has the given name 
+     * was removed, the method will return an object of type 'RequestParameter' 
+     * that represents the removed parameter. If nothing is removed, the 
+     * method will return null.
+     * @since 1.3.1
+     */
+    public function removeParameter($paramName) {
+        $trimmed = trim($paramName);
+        $params = &$this->getParameters();
+        $index = -1;
+        $count = count($params);
+        for($x = 0 ; $x < $count ; $x++){
+            if($params[$x]->getName() == $trimmed){
+                $index = $x;
+                break;
+            }
+        }
+        $retVal = null;
+        if($index != -1){
+            if($count == 1){
+                $retVal = $params[0];
+                unset($params[0]);
+            }
+            else{
+                $retVal = $params[$index];
+                $params[$index] = $params[$count - 1];
+                unset($params[$count - 1]);
+            }
+        }
+        return $retVal;
     }
     /**
      * Adds new action request method.
@@ -279,7 +344,7 @@ class APIAction implements JsonI{
      * @return array an array that contains an objects of type RequestParameter.
      * @since 1.0
      */
-    public final function getParameters(){
+    public final function &getParameters(){
         return $this->parameters;
     }
     /**
@@ -335,6 +400,76 @@ class APIAction implements JsonI{
         $json->add('parameters', $this->parameters);
         $json->add('responses', $this->getResponsesDescriptions());
         return $json;
+    }
+    /**
+     * 
+     * @return string
+     * @since 1.3.1
+     */
+    public function __toString() {
+        $retVal = "APIAction[\n";
+        $retVal .= "    Name => '".$this->getName()."',\n";
+        $retVal .= "    Description => '".$this->getDescription()."',\n";
+        $since = $this->getSince() === null ? 'null' : $this->getSince();
+        $retVal .= "    Since => '$since',\n";
+        $reqMethodsStr = "[\n";
+        for($x = 0,  $count = count($this->getActionMethods()) ; $x < $count ; $x++) {
+            $meth = $this->getActionMethods()[$x];
+            if($x + 1 == $count){
+                $reqMethodsStr .= "        $meth\n";
+            }
+            else{
+                $reqMethodsStr .= "        $meth,\n";
+            }
+        }
+        $reqMethodsStr .= "    ],\n";
+        $retVal .= "    Request Methods => $reqMethodsStr";
+        $paramsStr = "[\n";
+        for($x = 0 , $count = count($this->getParameters()); $x < $count ; $x++){
+            $param = $this->getParameters()[$x];
+            if($x + 1 == $count){
+                $paramsStr .= "        ".$param->getName()." => [\n";
+                $paramsStr .= "            Type => '". $param->getType()."',\n";
+                $descStr = $param->getDescription() === null ? 'null' : $param->getDescription();
+                $paramsStr .= "            Description => '$descStr',\n";
+                $isOptional = $param->isOptional() ? 'true' : 'false';
+                $paramsStr .= "            Is Optional => '$isOptional',\n";
+                $defaultStr = $param->getDefault() === null ? 'null' : $param->getDefault();
+                $paramsStr .= "            Default => '$defaultStr',\n";
+                $min = $param->getMinVal() === null ? 'null' : $param->getMinVal();
+                $paramsStr .= "            Minimum Value => '$min',\n";
+                $max = $param->getMaxVal() === null ? 'null' : $param->getMaxVal();
+                $paramsStr .= "            Maximum Value => '$max'\n        ]\n";
+            }
+            else{
+                $paramsStr .= "        ".$param->getName()." => [\n";
+                $paramsStr .= "            Type => '". $param->getType()."',\n";
+                $descStr = $param->getDescription() === null ? 'null' : $param->getDescription();
+                $paramsStr .= "            Description => '$descStr',\n";
+                $isOptional = $param->isOptional() ? 'true' : 'false';
+                $paramsStr .= "            Is Optional => '$isOptional',\n";
+                $defaultStr = $param->getDefault() === null ? 'null' : $param->getDefault();
+                $paramsStr .= "            Default => '$defaultStr',\n";
+                $min = $param->getMinVal() === null ? 'null' : $param->getMinVal();
+                $paramsStr .= "            Minimum Value => '$min',\n";
+                $max = $param->getMaxVal() === null ? 'null' : $param->getMaxVal();
+                $paramsStr .= "            Maximum Value => '$max'\n        ],\n";
+            }
+        }
+        $paramsStr .= "    ],\n";
+        $retVal .= "    Parameters => $paramsStr";
+        $responses = "[\n";
+        for($x = 0, $count = count($this->getResponsesDescriptions()) ; $x < $count ; $x++){
+            if($x + 1 == $count){
+                $responses .= "        Response #$x => '".$this->getResponsesDescriptions()[$x]."'\n";
+            }
+            else{
+                $responses .= "        Response #$x => '".$this->getResponsesDescriptions()[$x]."',\n";
+            }
+        }
+        $responses .= "    ]\n";
+        $retVal .= "    Responses Descriptions => $responses]\n";
+        return $retVal;
     }
 }
 
