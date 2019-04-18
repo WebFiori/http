@@ -29,7 +29,7 @@ use jsonx\JsonX;
 /**
  * A class that represents request parameter.
  * @author Ibrahim
- * @version 1.2.1
+ * @version 1.2.2
  */
 class RequestParameter implements JsonI{
     /**
@@ -101,7 +101,7 @@ class RequestParameter implements JsonI{
      * @since 1.1
      */
     public function setDescription($desc) {
-        $this->desc = $desc;
+        $this->desc = trim($desc);
     }
     /**
      * Returns the description of the parameter.
@@ -143,12 +143,21 @@ class RequestParameter implements JsonI{
         if(!$this->setName($name)){
             $this->setName('a-parameter');
         }
-        $this->isOptional = $isOptional;
+        $this->setIsOptional($isOptional);
         if(!$this->setType($type)){
             $this->type = 'string';
         }
         $this->applyBasicFilter = true;
         $this->isEmptStrAllowed = false;
+    }
+    /**
+     * Sets the value of the property 'is optional'.
+     * @param boolean $bool True to make the parameter optional. False to make 
+     * it mandatory.
+     * @since 1.2.2
+     */
+    public function setIsOptional($bool) {
+        $this->isOptional = $bool === true ? true : false;
     }
     /**
      * Returns the minimum numeric value the parameter can accept.
@@ -465,5 +474,38 @@ class RequestParameter implements JsonI{
      */
     public function getCustomFilterFunction() {
         return $this->customFilterFunc;
+    }
+    /**
+     * Returns a string that represents the object.
+     * @return string A string in the following format:
+     * <p>
+     * RequestParameter[<br/>
+     * &nbsp;&nbsp;&nbsp;&nbsp;Name => 'a_name'<br/>
+     * &nbsp;&nbsp;&nbsp;&nbsp;Type => 'a_type'<br/>
+     * &nbsp;&nbsp;&nbsp;&nbsp;Description => 'a_desc'<br/>
+     * &nbsp;&nbsp;&nbsp;&nbsp;Is Optional => 'true'<br/>
+     * &nbsp;&nbsp;&nbsp;&nbsp;Default => 'a_defalt'<br/>
+     * &nbsp;&nbsp;&nbsp;&nbsp;Minimum Value => 'a_number'<br/>
+     * &nbsp;&nbsp;&nbsp;&nbsp;Maximum Value => 'a_number'
+     * <br/>]
+     * </p>
+     * If any of the values is null, the value will be shown as 'null'.
+     * @since 1.2.2
+     */
+    public function __toString() {
+        $retVal = "RequestParameter[\n";
+        $retVal .= "    Name => '".$this->getName()."',\n";
+        $retVal .= "    Type => '". $this->getType()."',\n";
+        $descStr = $this->getDescription() === null ? 'null' : $this->getDescription();
+        $retVal .= "    Description => '$descStr',\n";
+        $isOptional = $this->isOptional() ? 'true' : 'false';
+        $retVal .= "    Is Optional => '$isOptional',\n";
+        $defaultStr = $this->getDefault() === null ? 'null' : $this->getDefault();
+        $retVal .= "    Default => '$defaultStr',\n";
+        $min = $this->getMinVal() === null ? 'null' : $this->getMinVal();
+        $retVal .= "    Minimum Value => '$min',\n";
+        $max = $this->getMaxVal() === null ? 'null' : $this->getMaxVal();
+        $retVal .= "    Maximum Value => '$max'\n]\n";
+        return $retVal;
     }
 }
