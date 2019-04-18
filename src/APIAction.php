@@ -142,8 +142,8 @@ class APIAction implements JsonI{
     }
     /**
      * Returns the description of the action.
-     * @return string|NULL The description of the action. If the description is 
-     * not set, the method will return NULL.
+     * @return string|null The description of the action. If the description is 
+     * not set, the method will return null.
      * @since 1.2
      */
     public final function getDescription() {
@@ -185,20 +185,20 @@ class APIAction implements JsonI{
      * that represents HTTP request method (e.g. 'get', 'post', 'options' ...). It 
      * can be in upper case or lower case.
      * @param string $method The request method.
-     * @return boolean TRUE in case the request method is added. If the given 
+     * @return boolean true in case the request method is added. If the given 
      * request method is already added or the method is unknown, the method 
-     * will return FALSE.
+     * will return false.
      * @since 1.1
      */
     public final function addRequestMethod($method){
-        $uMethod = strtoupper($method);
+        $uMethod = strtoupper(trim($method));
         if(in_array($uMethod, self::METHODS)){
             if(!in_array($uMethod, $this->reqMethods)){
                 $this->reqMethods[] = $uMethod;
-                return TRUE;
+                return true;
             }
         }
-        return FALSE;
+        return false;
     }
     /**
      * Returns an array that contains all action request methods.
@@ -208,29 +208,39 @@ class APIAction implements JsonI{
      * @since 1.1
      * 
      */
-    public final function getActionMethods(){
+    public final function &getActionMethods(){
         return $this->reqMethods;
     }
     /**
      * Removes a request method from the previously added ones. 
      * @param string $method The request method (e.g. 'get', 'post', 'options' ...). It 
      * can be in upper case or lower case.
-     * @return string|NULL The method will return the removed request method. 
-     * In case nothing has changed, the method will return NULL.
+     * @return boolean If the given request method is remove, the method will 
+     * return true. Other than that, the method will return true.
      * @since 1.1
      */
     public function removeRequestMethod($method){
         $uMethod = strtoupper(trim($method));
-        if(in_array($uMethod, $this->getActionMethods())){
-            $count = count($this->getActionMethods());
+        $actionMethods = &$this->getActionMethods();
+        if(in_array($uMethod, $actionMethods)){
+            $count = count($actionMethods);
+            $methodIndex = -1;
             for($x = 0 ; $x < $count ; $x++){
                 if($this->getActionMethods()[$x] == $uMethod){
-                    unset($this->getActionMethods()[$x]);
-                    return $uMethod;
+                    $methodIndex = $x;
+                    break;
                 }
             }
+            if($count == 1){
+                unset($actionMethods[0]);
+            }
+            else{
+                $actionMethods[$methodIndex] = $actionMethods[$count - 1];
+                unset($actionMethods[$count - 1]);
+            }
+            return true;
         }
-        return NULL;
+        return false;
     }
     /**
      * Sets the name of the action.
@@ -242,7 +252,7 @@ class APIAction implements JsonI{
      * </ul>
      * @param string $name The name of the action.
      * @return boolean If the given name is valid, the method will return 
-     * TRUE once the name is set. FALSE is returned if the given 
+     * true once the name is set. false is returned if the given 
      * name is invalid.
      * @since 1.0
      */
@@ -256,13 +266,13 @@ class APIAction implements JsonI{
 
                 }
                 else{
-                    return FALSE;
+                    return false;
                 }
             }
             $this->name = $name;
-            return TRUE;
+            return true;
         }
-        return FALSE;
+        return false;
     }
     /**
      * Returns an array that contains an objects of type RequestParameter.
@@ -275,8 +285,8 @@ class APIAction implements JsonI{
     /**
      * Returns action parameter given its name.
      * @param string $paramName The name of the parameter.
-     * @return RequestParameter|NULL Returns an objects of type RequestParameter if 
-     * a parameter with the given name was found. NULL if nothing is found.
+     * @return RequestParameter|null Returns an objects of type RequestParameter if 
+     * a parameter with the given name was found. null if nothing is found.
      * @since 1.2
      */
     public final function &getParameterByName($paramName) {
@@ -288,7 +298,7 @@ class APIAction implements JsonI{
                 }
             }
         }
-        $null = NULL;
+        $null = null;
         return $null;
     }
     /**
