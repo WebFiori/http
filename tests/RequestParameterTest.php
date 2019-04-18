@@ -444,6 +444,52 @@ class RequestParameterTest extends TestCase{
         $this->assertFalse($rp->setDefault(null));
         $this->assertFalse($rp->setDefault(false));
     }
+    /**
+     * 
+     * @test
+     */
+    public function testToString00() {
+        $rp = new RequestParameter('');
+        $this->assertEquals("RequestParameter[\n"
+                . "    Name => 'a-parameter',\n"
+                . "    Type => 'string',\n"
+                . "    Description => 'null',\n"
+                . "    Is Optional => 'false',\n"
+                . "    Default => 'null',\n"
+                . "    Minimum Value => 'null',\n"
+                . "    Maximum Value => 'null'\n"
+                . "]\n",$rp.'');
+    }
+    /**
+     * 
+     * @test
+     */
+    public function testToString01() {
+        $rp = new RequestParameter('user-id','integer');
+        $rp->setMinVal(0);
+        $rp->setMaxVal(1000);
+        $rp->setDescription(' The ID of the user. ');
+        $this->assertEquals("RequestParameter[\n"
+                . "    Name => 'user-id',\n"
+                . "    Type => 'integer',\n"
+                . "    Description => 'The ID of the user.',\n"
+                . "    Is Optional => 'false',\n"
+                . "    Default => 'null',\n"
+                . "    Minimum Value => '0',\n"
+                . "    Maximum Value => '1000'\n"
+                . "]\n",$rp.'');
+        $rp->setDefault(33);
+        $rp->setIsOptional(true);
+        $this->assertEquals("RequestParameter[\n"
+                . "    Name => 'user-id',\n"
+                . "    Type => 'integer',\n"
+                . "    Description => 'The ID of the user.',\n"
+                . "    Is Optional => 'true',\n"
+                . "    Default => '33',\n"
+                . "    Minimum Value => '0',\n"
+                . "    Maximum Value => '1000'\n"
+                . "]\n",$rp.'');
+    }
 }
 
 
