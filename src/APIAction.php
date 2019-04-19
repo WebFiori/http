@@ -106,6 +106,9 @@ class APIAction implements JsonI{
     public function __construct($name) {
         if(!$this->setName($name)){
             $this->setName('an-action');
+            $this->reqMethods = [];
+            $this->parameters = [];
+            $this->responses = [];
         }
     }
     /**
@@ -459,7 +462,8 @@ class APIAction implements JsonI{
         $paramsStr .= "    ],\n";
         $retVal .= "    Parameters => $paramsStr";
         $responses = "[\n";
-        for($x = 0, $count = count($this->getResponsesDescriptions()) ; $x < $count ; $x++){
+        $count = count($this->getResponsesDescriptions());
+        for($x = 0 ; $x < $count ; $x++){
             if($x + 1 == $count){
                 $responses .= "        Response #$x => '".$this->getResponsesDescriptions()[$x]."'\n";
             }
