@@ -106,10 +106,10 @@ class APIAction implements JsonI{
     public function __construct($name) {
         if(!$this->setName($name)){
             $this->setName('an-action');
-            $this->reqMethods = [];
-            $this->parameters = [];
-            $this->responses = [];
         }
+        $this->reqMethods = [];
+        $this->parameters = [];
+        $this->responses = [];
     }
     /**
      * Returns an indexed array that contains information about possible responses.
