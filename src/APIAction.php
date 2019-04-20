@@ -358,10 +358,10 @@ class APIAction implements JsonI{
      * @since 1.2
      */
     public final function &getParameterByName($paramName) {
-        $paramName .= '';
-        if(strlen($paramName) != 0){
+        $trimmed = trim($paramName);
+        if(strlen($trimmed) != 0){
             foreach ($this->parameters as $param){
-                if($param->getName() == $paramName){
+                if($param->getName() == $trimmed){
                     return $param;
                 }
             }
@@ -388,7 +388,7 @@ class APIAction implements JsonI{
      * &nbsp;&nbsp;"description":"",<br/>
      * &nbsp;&nbsp;"request-methods":[],<br/>
      * &nbsp;&nbsp;"parameters":[],<br/>
-     * &nbsp;&nbsp;"responses":"[]"<br/>
+     * &nbsp;&nbsp;"responses":[]<br/>
      * }
      * </p>
      * @return JsonX an object of type JsonX.
