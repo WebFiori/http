@@ -399,7 +399,7 @@ class RequestParameter implements JsonI{
      * {<br/>
      * &nbsp;&nbsp;"name":"a-param",<br/>
      * &nbsp;&nbsp;"type":"string",<br/>
-     * &nbsp;&nbsp;"description":"",<br/>
+     * &nbsp;&nbsp;"description":null,<br/>
      * &nbsp;&nbsp;"is-optional":true,<br/>
      * &nbsp;&nbsp;"default-value":null,<br/>
      * &nbsp;&nbsp;"min-val":null,<br/>
