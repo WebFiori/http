@@ -671,7 +671,7 @@ abstract class WebAPI implements JsonI{
                 $params = $actionObj->getParameters();
                 $this->filter->clear();
                 foreach ($params as $param) {
-                    $this->filter->addRequestPaameter($param);
+                    $this->filter->addRequestParameter($param);
                 }
                 $reqMeth = $this->getRequestMethod();
                 if($reqMeth == 'GET' || $reqMeth == 'DELETE' || $reqMeth == 'PUT'){
