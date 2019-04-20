@@ -7,6 +7,23 @@ class APIActionTest extends TestCase{
     /**
      * @test
      */
+    public function testGetParameterByName00() {
+        $action = new APIAction('do-somthing');
+        $this->assertNull($action->getParameterByName('     '));
+        $this->assertNull($action->getParameterByName(''));
+        $this->assertNull($action->getParameterByName('username'));
+        $action->addParameter(new RequestParameter('username'));
+        $this->assertTrue($action->getParameterByName('     username') instanceof RequestParameter);
+        $action->addParameter(new RequestParameter('password'));
+        $this->assertTrue($action->getParameterByName('     password') instanceof RequestParameter);
+        $action->addParameter(new RequestParameter('email'));
+        $this->assertTrue($action->getParameterByName('     email') instanceof RequestParameter);
+        $action->removeParameter(' username');
+        $this->assertNull($action->getParameterByName('username'));
+    }
+    /**
+     * @test
+     */
     public function testConstructor00() {
         $action = new APIAction('');
         $this->assertEquals('an-action',$action->getName());
@@ -68,6 +85,23 @@ class APIActionTest extends TestCase{
         $this->assertTrue($action->removeRequestMethod('options'));
         $this->assertTrue($action->removeRequestMethod('delete'));
         $this->assertEquals(0,count($action->getActionMethods()));
+    }
+    /**
+     * @test
+     */
+    public function testRemoveParameter00() {
+        $action = new APIAction('hello');
+        $action->addParameter(new RequestParameter('world'));
+        $action->addParameter(new RequestParameter('ibrahim'));
+        $action->addParameter(new RequestParameter('ali'));
+        $this->assertEquals(3,count($action->getParameters()));
+        $this->assertTrue($action->removeParameter('ibrahim') instanceof RequestParameter);
+        $this->assertEquals(2,count($action->getParameters()));
+        $this->assertNull($action->removeParameter('ibrahim'));
+        $this->assertEquals(2,count($action->getParameters()));
+        $this->assertTrue($action->removeParameter('ali') instanceof RequestParameter);
+        $this->assertTrue($action->removeParameter('world') instanceof RequestParameter);
+        $this->assertEquals(0,count($action->getParameters()));
     }
     /**
      * @test
@@ -185,5 +219,79 @@ class APIActionTest extends TestCase{
                 . "        Response #1 => 'If a user is already exist wich has the given email, a 404 code is sent back.'\n"
                 . "    ]\n"
                 . "]\n",$action.'');
+    }
+    /**
+     * @test
+     */
+    public function testToJson00() {
+        $action = new APIAction('login');
+        $this->assertEquals(''
+                . '{"name":"login", '
+                . '"since":null, '
+                . '"description":null, '
+                . '"request-methods":[], '
+                . '"parameters":[], '
+                . '"responses":[]}',$action->toJSON().'');
+        $action->setSince('1.0.0');
+        $action->setDescription('Allow the user to login to the system.');
+        $this->assertEquals(''
+                . '{"name":"login", '
+                . '"since":"1.0.0", '
+                . '"description":"Allow the user to login to the system.", '
+                . '"request-methods":[], '
+                . '"parameters":[], '
+                . '"responses":[]}',$action->toJSON().'');
+        $action->addRequestMethod('get');
+        $action->addRequestMethod('put');
+        $action->addRequestMethod('post');
+        $this->assertEquals(''
+                . '{"name":"login", '
+                . '"since":"1.0.0", '
+                . '"description":"Allow the user to login to the system.", '
+                . '"request-methods":["GET", "PUT", "POST"], '
+                . '"parameters":[], '
+                . '"responses":[]}',$action->toJSON().'');
+        $action->removeRequestMethod('put');
+        $action->addParameter(new RequestParameter('username'));
+        $this->assertEquals(''
+                . '{"name":"login", '
+                . '"since":"1.0.0", '
+                . '"description":"Allow the user to login to the system.", '
+                . '"request-methods":["GET", "POST"], '
+                . '"parameters":['
+                . '{"name":"username", '
+                . '"type":"string", '
+                . '"description":null, '
+                . '"is-optional":false, '
+                . '"default-value":null, '
+                . '"min-val":null, '
+                . '"max-val":null}'
+                . '], '
+                . '"responses":[]}',$action->toJSON().'');
+        $action->addParameter(new RequestParameter('password', 'integer'));
+        $action->getParameterByName('password')->setDescription('The password of the user.');
+        $action->getParameterByName('password')->setMinVal(1000000);
+        $this->assertEquals(''
+                . '{"name":"login", '
+                . '"since":"1.0.0", '
+                . '"description":"Allow the user to login to the system.", '
+                . '"request-methods":["GET", "POST"], '
+                . '"parameters":['
+                . '{"name":"username", '
+                . '"type":"string", '
+                . '"description":null, '
+                . '"is-optional":false, '
+                . '"default-value":null, '
+                . '"min-val":null, '
+                . '"max-val":null}, '
+                . '{"name":"password", '
+                . '"type":"integer", '
+                . '"description":"The password of the user.", '
+                . '"is-optional":false, '
+                . '"default-value":null, '
+                . '"min-val":1000000, '
+                . '"max-val":'.PHP_INT_MAX.'}'
+                . '], '
+                . '"responses":[]}',$action->toJSON().'');
     }
 }
