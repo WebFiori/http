@@ -29,7 +29,7 @@ namespace restEasy;
  * This class is the core class which is used to manage and set request 
  * parameters.
  * @author Ibrahim
- * @version 1.2.1
+ * @version 1.2.2
  */
 class APIFilter{
     /**
@@ -73,7 +73,7 @@ class APIFilter{
      * @param RequestParameter $reqParam The request parameter that will be added.
      * @since 1.1
      */
-    public function addRequestPaameter($reqParam) {
+    public function addRequestParameter($reqParam) {
         if($reqParam instanceof RequestParameter){
             $attribute = array(
                 'parameter'=>$reqParam,
@@ -117,6 +117,14 @@ class APIFilter{
             }
             array_push($this->paramDefs, $attribute);
         }
+    }
+    /**
+     * Returns an array that contains filter constraints.
+     * @return array An array that contains filter constraints.
+     * @since 1.2.2
+     */
+    public function getFilterDef() {
+        return $this->paramDefs;
     }
     /**
      * Returns the boolean value of given input.
