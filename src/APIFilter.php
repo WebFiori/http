@@ -55,13 +55,13 @@ class APIFilter{
      * @var array
      * @since 1.0 
      */
-    private $inputs;
+    private $inputs = array();
     /**
      * An array that contains non-filtered data (original).
      * @var array
      * @since 1.2 
      */
-    private $nonFilteredInputs;
+    private $nonFilteredInputs = array();
     /**
      * Array that contains filter definitions.
      * @var array
@@ -374,7 +374,7 @@ class APIFilter{
         foreach ($this->paramDefs as $def){
             $name = $def['parameter']->getName();
             if(isset($_GET[$name])){
-                $toBeFiltered = $_GET[$name];
+                $toBeFiltered = strip_tags($_GET[$name]);
                 $this->nonFilteredInputs[$name] = $toBeFiltered;
                 if(isset($def['options']['filter-func'])){
                     $filteredValue = '';
@@ -463,7 +463,7 @@ class APIFilter{
         foreach ($this->paramDefs as $def){
             $name = $def['parameter']->getName();
             if(isset($_POST[$name])){
-                $toBeFiltered = $_POST[$name];
+                $toBeFiltered = strip_tags($_POST[$name]);
                 $this->nonFilteredInputs[$name] = $toBeFiltered;
                 if(isset($def['options']['filter-func'])){
                     $filteredValue = '';
