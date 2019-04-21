@@ -51,6 +51,12 @@ class APIFilter{
         'string','integer','email','float','url','boolean','array'
     );
     /**
+     * A constant that indicates a given value is invalid.
+     * @var string A string that indicates a given value is invalid.
+     * @since 1.2.2
+     */
+    const INVALID = 'INV';
+    /**
      * An array that will contains filtered data.
      * @var array
      * @since 1.0 
@@ -132,7 +138,7 @@ class APIFilter{
      * @return boolean|string
      * @since 1.1
      */
-    private function _filterBoolean($boolean) {
+    private static function _filterBoolean($boolean) {
         $booleanLwr = strtolower($boolean);
         $boolTypes = array(
             't'=>true,
@@ -152,19 +158,19 @@ class APIFilter{
         if(isset($boolTypes[$booleanLwr])){
             return $boolTypes[$booleanLwr];
         }
-        return 'INV';
+        return self::INVALID;
     }
     /**
      * Converts a string to an array.
      * @param string $array A string in the format '[3,"hello",4.8,"",44,...]'.
      * @return string|array If the string has valid array format, an array 
      * which contains the values is returned. If has invalid syntax, the 
-     * method will return the string 'INV'.
+     * method will return the string 'APIFilter::INVALID'.
      * @since 1.2.1
      */
     private static function _filterArray($array) {
         $len = strlen($array);
-        $retVal = 'INV';
+        $retVal = self::INVALID;
         $arrayValues = array();
         if($len >= 2){
             if($array[0] == '[' && $array[$len - 1] == ']'){
@@ -174,7 +180,7 @@ class APIFilter{
                     if($x + 1 == $len - 1){
                         $tmpArrValue .= $char;
                         $number = self::checkIsNumber($tmpArrValue);
-                        if($number != 'INV'){
+                        if($number != self::INVALID){
                             $arrayValues[] = $number;
                         }
                         else{
@@ -184,7 +190,7 @@ class APIFilter{
                     else{
                         if($char == '"' || $char == "'"){
                             $tmpArrValue = strtolower(trim($tmpArrValue));
-                            if(strlen($tmpArrValue)){
+                            if(strlen($tmpArrValue) != 0){
                                 if($tmpArrValue == 'true'){
                                     $arrayValues[] = true;
                                 }
@@ -196,7 +202,7 @@ class APIFilter{
                                 }
                                 else{
                                     $number = self::checkIsNumber($tmpArrValue);
-                                    if($number != 'INV'){
+                                    if($number != self::INVALID){
                                         $arrayValues[] = $number;
                                     }
                                     else{
@@ -208,7 +214,7 @@ class APIFilter{
                                 $result = self::_parseStringFromArray($array, $x + 1, $len - 1, $char);
                                 if($result['parsed'] == true){
                                     $x = $result['end'];
-                                    $arrayValues[] = filter_var($result['string'], FILTER_SANITIZE_STRING);
+                                    $arrayValues[] = filter_var(strip_tags($result['string']));
                                     $tmpArrValue = '';
                                     continue;
                                 }
@@ -230,7 +236,7 @@ class APIFilter{
                             }
                             else{
                                 $number = self::checkIsNumber($tmpArrValue);
-                                if($number != 'INV'){
+                                if($number != self::INVALID){
                                     $arrayValues[] = $number;
                                 }
                                 else{
@@ -258,7 +264,7 @@ class APIFilter{
      * convert it to its numerical value.
      * @param string $str A value such as '1' or '7.0'.
      * @return string|int|double If the given string does not represents any 
-     * numerical value, the method will return the string 'INV'. If the 
+     * numerical value, the method will return the string 'APIFilter::INVALID'. If the 
      * given string represents an integer, an integer value is returned. 
      * If the given string represents a floating point value, a float number 
      * is returned.
@@ -267,7 +273,7 @@ class APIFilter{
         $strX = trim($str);
         $len = strlen($strX);
         $isFloat = false;
-        $retVal = 'INV';
+        $retVal = self::INVALID;
         for($y = 0 ; $y < $len ; $y++){
             $char = $strX[$y];
             if($char == '.' && !$isFloat){
@@ -364,95 +370,155 @@ class APIFilter{
     public final function getNonFiltered(){
         return $this->nonFilteredInputs;
     }
-
     /**
-     * Filter GET parameters.
-     * GET parameters are usually sent when request method is GET or DELETE.
-     * @since 1.0
+     * Filter the values of an associative array.
+     * The filtering algorithm will work as follows:
+     * <ul>
+     * <li>First, check if $arr['param-name'] is set.</li>
+     * <li>If not set, check if its optional. If optional and default value is 
+     * given, then use default value. Else, set the filtered value to null.</li>
+     * <li>If arr['param-name'] is given, then do the following steps:
+     * <ul>
+     * <li>First, apply basic filtering (if applicable).</li>
+     * <li>If custom filter is provided, then apply it.</li>
+     * </ul>
+     * </li>
+     * </ul>
+     * @param APIFilter $apiFilter An instance of the class 'APIFilter' that 
+     * contains filter constrains.
+     * @param array $arr An associative array of values which will be filtered.
+     * @return array The method will return an associative array which has two 
+     * indices. The index with key 'filtered' will contain an array which 
+     * has all values filtered. The index which has the key 'non-filtered' 
+     * will contain the original values.
+     * @since 1.2.2
      */
-    public final function filterGET(){
-        foreach ($this->paramDefs as $def){
-            $name = $def['parameter']->getName();
-            if(isset($_GET[$name])){
-                $toBeFiltered = strip_tags($_GET[$name]);
-                $this->nonFilteredInputs[$name] = $toBeFiltered;
-                if(isset($def['options']['filter-func'])){
-                    $filteredValue = '';
-                    $arr = array(
-                        'original-value'=>$toBeFiltered,
-                    );
-                    if($def['parameter']->applyBasicFilter() === true){
-                        if($def['parameter']->getType() == 'boolean'){
-                            $filteredValue = $this->_filterBoolean(filter_var($toBeFiltered));
-                        }
-                        else if($def['parameter']->getType() == 'array'){
-                            $filteredValue = $this->_filterArray(filter_var($toBeFiltered));
+    public static function filter($apiFilter,$arr) {
+        $retVal = [
+            'filtered'=>array(),
+            'non-filtered'=>array()
+        ];
+        if($apiFilter instanceof APIFilter && gettype($arr) == 'array'){
+            $filterDef = $apiFilter->getFilterDef();
+            foreach ($filterDef as $def){
+                $name = $def['parameter']->getName();
+                $paramType = $def['parameter']->getType();
+                $defaultVal = $def['parameter']->getDefault();
+                if(isset($arr[$name])){
+                    $toBeFiltered = $arr[$name];
+                    $retVal['non-filtered'][$name] = $arr[$name];
+                    if(isset($def['options']['filter-func'])){
+                        $filteredValue = '';
+                        $arrToPass = array(
+                            'original-value'=>$toBeFiltered,
+                        );
+                        if($def['parameter']->applyBasicFilter() === true){
+                            $toBeFiltered = strip_tags($toBeFiltered);
+                            if($paramType == 'boolean'){
+                                $filteredValue = self::_filterBoolean(filter_var($toBeFiltered));
+                            }
+                            else if($paramType == 'array'){
+                                $filteredValue = self::_filterArray(filter_var($toBeFiltered));
+                            }
+                            else{
+                                $filteredValue = filter_var($toBeFiltered);
+                                foreach ($def['filters'] as $val) {
+                                    $filteredValue = filter_var($filteredValue, $val, $def['options']);
+                                }
+                                if($filteredValue === false){
+                                    $filteredValue = self::INVALID;
+                                }
+                                if($paramType == 'string' &&
+                                        $filteredValue != self::INVALID &&
+                                        strlen($filteredValue) == 0 && 
+                                        $def['options']['options']['allow-empty'] === false){
+                                    $retVal['filtered'][$name] = self::INVALID;
+                                }
+                            }
+                            $arrToPass['basic-filter-result'] = $filteredValue;
                         }
                         else{
-                            $filteredValue = filter_var($toBeFiltered);
+                            $filteredValue = self::INVALID;
+                            $arrToPass['basic-filter-result'] = 'NOT_APLICABLE';
+                        }
+                        $r = call_user_func($def['options']['filter-func'],$arrToPass,$def['parameter']);
+                        if($r === null){
+                            $retVal['filtered'][$name] = false;
+                        }
+                        else{
+                            $retVal['filtered'][$name] = $r;
+                        }
+                        if($retVal['filtered'][$name] === false && $paramType != 'boolean'){
+                            $retVal['filtered'][$name] = self::INVALID;
+                        }
+                    }
+                    else{
+                        $toBeFiltered = strip_tags($toBeFiltered);
+                        if($paramType == 'boolean'){
+                            $retVal['filtered'][$name] = self::_filterBoolean(filter_var($toBeFiltered));
+                        }
+                        else if($paramType == 'array'){
+                            $retVal['filtered'][$name] = self::_filterArray(filter_var($toBeFiltered));
+                        }
+                        else{
+                            $retVal['filtered'][$name] = filter_var($toBeFiltered);
                             foreach ($def['filters'] as $val) {
-                                $filteredValue = filter_var($filteredValue, $val, $def['options']);
+                                $retVal['filtered'][$name] = filter_var($retVal['filtered'][$name], $val, $def['options']);
                             }
-                            if($filteredValue === false){
-                                $filteredValue = 'INV';
+                            if($retVal['filtered'][$name] === false || 
+                                    (($paramType == 'integer' || $paramType == 'float') && strlen($retVal['filtered'][$name]) == 0)){
+                                $retVal['filtered'][$name] = self::INVALID;
                             }
-                            if($def['parameter']->getType() == 'string' &&
-                                    $filteredValue != 'INV' &&
-                                    strlen($filteredValue) == 0 && 
+                            if($paramType == 'string' &&
+                                    $retVal['filtered'][$name] != self::INVALID &&
+                                    strlen($retVal['filtered'][$name]) == 0 && 
                                     $def['options']['options']['allow-empty'] === false){
-                                $this->inputs[$name] = 'INV';
+                                $retVal['filtered'][$name] = self::INVALID;
                             }
                         }
-                        $arr['basic-filter-result'] = $filteredValue;
                     }
-                    else{
-                        $filteredValue = 'INV';
-                        $arr['basic-filter-result'] = 'NOT_APLICABLE';
-                    }
-                    $r = call_user_func($def['options']['filter-func'],$arr,$def['parameter']);
-                    if($r === null){
-                        $this->inputs[$name] = false;
-                    }
-                    else{
-                        $this->inputs[$name] = $r;
-                    }
-                    if($this->inputs[$name] === false && $def['parameter']->getType() != 'boolean'){
-                        $this->inputs[$name] = 'INV';
+                    if($retVal['filtered'][$name] == self::INVALID && $defaultVal !== null){
+                        $retVal['filtered'][$name] = $defaultVal;
                     }
                 }
                 else{
-                    if($def['parameter']->getType() == 'boolean'){
-                        $this->inputs[$name] = $this->_filterBoolean(filter_var($toBeFiltered));
-                    }
-                    else if($def['parameter']->getType() == 'array'){
-                        $this->inputs[$name] = $this->_filterArray(filter_var($toBeFiltered));
-                    }
-                    else{
-                        $this->inputs[$name] = filter_var($toBeFiltered);
-                        foreach ($def['filters'] as $val) {
-                            $this->inputs[$name] = filter_var($this->inputs[$name], $val, $def['options']);
+                    if($def['parameter']->isOptional()){
+                        if($defaultVal !== null){
+                            $retVal['filtered'][$name] = $defaultVal;
+                            $retVal['non-filtered'][$name] = $defaultVal;
                         }
-                        if($this->inputs[$name] === false){
-                            $this->inputs[$name] = 'INV';
+                        else{
+                            $retVal['filtered'][$name] = null;
+                            $retVal['non-filtered'][$name] = null;
                         }
-                        if($def['parameter']->getType() == 'string' &&
-                                $this->inputs[$name] != 'INV' &&
-                                strlen($this->inputs[$name]) == 0 && 
-                                $def['options']['options']['allow-empty'] === false){
-                            $this->inputs[$name] = 'INV';
-                        }
-                    }
-                }
-            }
-            else{
-                if($def['parameter']->isOptional()){
-                    $defaultVal = $def['parameter']->getDefault();
-                    if($defaultVal !== null){
-                        $this->inputs[$name] = $defaultVal;
                     }
                 }
             }
         }
+        return $retVal;
+    }
+    /**
+     * Filter GET parameters.
+     * GET parameters are usually sent when request method is GET or DELETE.
+     * The filtering algorithm will work as follows:
+     * <ul>
+     * <li>First, check if $_GET['param-name'] is set.</li>
+     * <li>If not set, check if its optional. If optional and default value is 
+     * given, then use default value. Else, set the filtered value to null.</li>
+     * <li>If $_GET['param-name'] is given, then do the following steps:
+     * <ul>
+     * <li>First, apply basic filtering (if applicable).</li>
+     * <li>If custom filter is provided, then apply it.</li>
+     * </ul>
+     * </li>
+     * </ul>
+     * @since 1.0
+     */
+    public final function filterGET(){
+        $this->clearInputs();
+        $filterResult = $this->filter($this, $_GET);
+        $this->inputs = $filterResult['filtered'];
+        $this->nonFilteredInputs = $filterResult['non-filtered'];
     }
     /**
      * Filter POST parameters.
@@ -460,98 +526,25 @@ class APIFilter{
      * @since 1.0
      */
     public final function filterPOST(){
-        foreach ($this->paramDefs as $def){
-            $name = $def['parameter']->getName();
-            if(isset($_POST[$name])){
-                $toBeFiltered = strip_tags($_POST[$name]);
-                $this->nonFilteredInputs[$name] = $toBeFiltered;
-                if(isset($def['options']['filter-func'])){
-                    $filteredValue = '';
-                    $arr = array(
-                        'original-value'=>$toBeFiltered,
-                    );
-                    if($def['parameter']->applyBasicFilter() === true){
-                        if($def['parameter']->getType() == 'boolean'){
-                            $filteredValue = $this->_filterBoolean(filter_var($toBeFiltered));
-                        }
-                        else if($def['parameter']->getType() == 'array'){
-                            $filteredValue = $this->_filterArray(filter_var($toBeFiltered));
-                        }
-                        else{
-                            $filteredValue = filter_var($toBeFiltered);
-                            foreach ($def['filters'] as $val) {
-                                $filteredValue = filter_var($filteredValue, $val, $def['options']);
-                            }
-                            if($filteredValue === false){
-                                $filteredValue = 'INV';
-                            }
-                            if($def['parameter']->getType() == 'string' && 
-                                    strlen($filteredValue) == 0 && 
-                                    $def['options']['options']['allow-empty'] === false){
-                                
-                                $filteredValue = 'INV';
-                            }
-                        }
-                        $arr['basic-filter-result'] = $filteredValue;
-                    }
-                    else{
-                        $filteredValue = 'INV';
-                        $arr['basic-filter-result'] = 'NOT_APLICABLE';
-                    }
-                    $r = call_user_func($def['options']['filter-func'],$arr,$def['parameter']);
-                    if($r === null){
-                        $this->inputs[$name] = false;
-                    }
-                    else{
-                        $this->inputs[$name] = $r;
-                    }
-                    if($this->inputs[$name] === false && $def['parameter']->getType() != 'boolean'){
-                        $this->inputs[$name] = 'INV';
-                    }
-                }
-                else{
-                    if($def['parameter']->getType() == 'boolean'){
-                        $this->inputs[$name] = $this->_filterBoolean(filter_var($toBeFiltered));
-                    }
-                    else if($def['parameter']->getType() == 'array'){
-                        $this->inputs[$name] = $this->_filterArray(filter_var($toBeFiltered));
-                    }
-                    else{
-                        $this->inputs[$name] = filter_var($toBeFiltered);
-                        foreach ($def['filters'] as $val) {
-                            $this->inputs[$name] = filter_var($this->inputs[$name], $val, $def['options']);
-                        }
-                        if($this->inputs[$name] === false){
-                            $this->inputs[$name] = 'INV';
-                        }
-                        if($def['parameter']->getType() == 'string' &&
-                                $this->inputs[$name] != 'INV' &&
-                                strlen($this->inputs[$name]) == 0 && 
-                                $def['options']['options']['allow-empty'] === false){
-                            $this->inputs[$name] = 'INV';
-                        }
-                    }
-                }
-            }
-            else{
-                if($def['parameter']->isOptional()){
-                    $defaultVal = $def['parameter']->getDefault();
-                    if($defaultVal !== null){
-                        $this->inputs[$name] = $defaultVal;
-                    }
-                }
-            }
-        }
+        $this->clearInputs();
+        $filterResult = $this->filter($this, $_POST);
+        $this->inputs = $filterResult['filtered'];
+        $this->nonFilteredInputs = $filterResult['non-filtered'];
     }
     /**
-     * Clears filter variables (parameters definitions, filtered inputs and non
-     * -filtered inputs). 
+     * Clears filter parameters. 
      * @since 1.1
      */
-    public function clear() {
+    public function clearParametersDef() {
         $this->paramDefs = array();
-        $this->inputs = null;
-        $this->nonFilteredInputs = null;
+    }
+    /**
+     * Clears the arrays that are used to store filtered and not-filtered variables.
+     * @since 1.2.2
+     */
+    public function clearInputs() {
+        $this->inputs = [];
+        $this->nonFilteredInputs = [];
     }
 }
 
