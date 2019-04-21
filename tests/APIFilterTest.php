@@ -180,6 +180,9 @@ class APIFilterTest extends TestCase{
      * @test
      */
     public function testFilterGet08() {
+        foreach ($_GET as $key => $value) {
+            unset($_GET[$key]);
+        }
         $this->apiFilter = new APIFilter();
         $param00 = new RequestParameter('first-number','float');
         $this->apiFilter->addRequestParameter($param00);
@@ -245,6 +248,9 @@ class APIFilterTest extends TestCase{
      * @test
      */
     public function testFilterGet10() {
+        foreach ($_GET as $key => $value) {
+            unset($_GET[$key]);
+        }
         $this->apiFilter = new APIFilter();
         $param00 = new RequestParameter('first-number','float',true);
         $this->apiFilter->addRequestParameter($param00);
