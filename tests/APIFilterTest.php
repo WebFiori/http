@@ -194,17 +194,25 @@ class APIFilterTest extends TestCase{
         print_r($filtered);
         if(PHP_MAJOR_VERSION == 5){
             $this->assertEquals(1,count($filtered));
+            $this->assertTrue(isset($filtered['first-number']));
+            $this->assertEquals('INV',$filtered['first-number']);
+            $this->assertFalse(isset($filtered['second-number']));
+            $nonFiltered = $this->apiFilter->getNonFiltered();
+            $this->assertTrue(isset($nonFiltered['first-number']));
+            $this->assertEquals('Admin',$nonFiltered['first-number']);
+            $this->assertFalse(isset($nonFiltered['second-number']));
         }
         else{
             $this->assertEquals(2,count($filtered));
+            $this->assertTrue(isset($filtered['first-number']));
+            $this->assertEquals('INV',$filtered['first-number']);
+            $this->assertTrue(isset($filtered['second-number']));
+            $nonFiltered = $this->apiFilter->getNonFiltered();
+            $this->assertTrue(isset($nonFiltered['first-number']));
+            $this->assertEquals('Admin',$nonFiltered['first-number']);
+            $this->assertFalse(isset($nonFiltered['second-number']));
         }
-        $this->assertTrue(isset($filtered['first-number']));
-        $this->assertEquals('INV',$filtered['first-number']);
-        $this->assertTrue(isset($filtered['second-number']));
-        $nonFiltered = $this->apiFilter->getNonFiltered();
-        $this->assertTrue(isset($nonFiltered['first-number']));
-        $this->assertEquals('Admin',$nonFiltered['first-number']);
-        $this->assertFalse(isset($nonFiltered['second-number']));
+        
     }
     /**
      * @test
