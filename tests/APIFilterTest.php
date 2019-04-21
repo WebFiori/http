@@ -14,14 +14,11 @@ class APIFilterTest extends TestCase{
      * @var APIFilter 
      */
     private $apiFilter;
-    public function setUp() : void{
-        $this->apiFilter = new APIFilter();
-        echo "\nSetup Finshed\n";
-    }
     /**
      * @test
      */
     public function testFilterGet00() {
+        $this->apiFilter = new APIFilter();
         $param00 = new RequestParameter('username');
         $this->apiFilter->addRequestParameter($param00);
         $this->apiFilter->filterGET();
@@ -32,6 +29,7 @@ class APIFilterTest extends TestCase{
      * @test
      */
     public function testFilterGet01() {
+        $this->apiFilter = new APIFilter();
         $param00 = new RequestParameter('username');
         $this->apiFilter->addRequestParameter($param00);
         $_GET['username'] = 'Admin';
@@ -45,6 +43,7 @@ class APIFilterTest extends TestCase{
      * @test
      */
     public function testFilterGet02() {
+        $this->apiFilter = new APIFilter();
         $param00 = new RequestParameter('username');
         $this->apiFilter->addRequestParameter($param00);
         $_GET['username'] = '<script>alert(Admin)</script>';
@@ -58,6 +57,7 @@ class APIFilterTest extends TestCase{
      * @test
      */
     public function testFilterGet03() {
+        $this->apiFilter = new APIFilter();
         $param00 = new RequestParameter('username');
         $this->apiFilter->addRequestParameter($param00);
         $_GET['username'] = '<?php echo "<script>alert("Oh No!")</script>";?>Book';
@@ -71,6 +71,7 @@ class APIFilterTest extends TestCase{
      * @test
      */
     public function testFilterGet04() {
+        $this->apiFilter = new APIFilter();
         $param00 = new RequestParameter('username');
         $this->apiFilter->addRequestParameter($param00);
         $param01 = new RequestParameter('password', 'integer');
@@ -90,6 +91,7 @@ class APIFilterTest extends TestCase{
      * @test
      */
     public function testFilterGet05() {
+        $this->apiFilter = new APIFilter();
         $param00 = new RequestParameter('username');
         $this->apiFilter->addRequestParameter($param00);
         $param01 = new RequestParameter('password', 'integer');
