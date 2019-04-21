@@ -190,7 +190,14 @@ class APIFilterTest extends TestCase{
         $_GET['first-number'] = 'Admin';
         $this->apiFilter->filterGET();
         $filtered = $this->apiFilter->getInputs();
-        $this->assertEquals(2,count($filtered));
+        echo "testFilterGet08\n";
+        print_r($filtered);
+        if(PHP_MAJOR_VERSION == 5){
+            $this->assertEquals(1,count($filtered));
+        }
+        else{
+            $this->assertEquals(2,count($filtered));
+        }
         $this->assertTrue(isset($filtered['first-number']));
         $this->assertEquals('INV',$filtered['first-number']);
         $this->assertTrue(isset($filtered['second-number']));
