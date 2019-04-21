@@ -255,8 +255,10 @@ class APIFilterTest extends TestCase{
         $_GET['second-number'] = 'this is a 100076800 year .';
         $this->apiFilter->filterGET();
         $filtered = $this->apiFilter->getInputs();
+        echo "testFilterGet10\n";
+        print_r($filtered);
         $this->assertEquals(2,count($filtered));
-        $this->assertNull($filtered['first-number']);
+        $this->assertTrue($filtered['first-number'] === null);
         $this->assertTrue(isset($filtered['second-number']));
         $this->assertEquals(100076800,$filtered['second-number']);
         
