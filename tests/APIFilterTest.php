@@ -190,10 +190,10 @@ class APIFilterTest extends TestCase{
         $_GET['first-number'] = 'Admin';
         $this->apiFilter->filterGET();
         $filtered = $this->apiFilter->getInputs();
-        $this->assertEquals(1,count($filtered));
+        $this->assertEquals(2,count($filtered));
         $this->assertTrue(isset($filtered['first-number']));
         $this->assertEquals('INV',$filtered['first-number']);
-        $this->assertFalse(isset($filtered['second-number']));
+        $this->assertTrue(isset($filtered['second-number']));
         $nonFiltered = $this->apiFilter->getNonFiltered();
         $this->assertTrue(isset($nonFiltered['first-number']));
         $this->assertEquals('Admin',$nonFiltered['first-number']);
