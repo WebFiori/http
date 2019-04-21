@@ -266,12 +266,10 @@ class RequestParameter implements JsonI{
     
     /**
      * Sets a default value for the parameter to use if the parameter is 
-     * not provided.
+     * not provided Or when the filter fails.
      * This method can be used to include a default value for the parameter if 
-     * it is optional. Note that the type of passed value must match request 
-     * parameter type.
-     * @param mixed $val default value for the parameter to use if the parameter is 
-     * not provided.
+     * it is optional or in case the filter was not able to filter given value.
+     * @param mixed $val default value for the parameter to use.
      * @return boolean If the default value is set, the method will return true. 
      * If it is not set, the method will return false.
      * @since 1.1
@@ -422,19 +420,23 @@ class RequestParameter implements JsonI{
     }
     /**
      * Sets a callback method to work as a filter for request parameter.
-     * The callback method will have two parameters passed to it. The first 
-     * one is an associative array that contains the not-filtered value and 
+     * The callback method will have two parameters passed to it:
+     * <ul>
+     * <li>An associative array.</li>
+     * <li>An object of type RequestParameter.</li>
+     * </ul> 
+     * The associative array will contain the not-filtered value and 
      * the value filtered using basic filter. The values are contained in two 
-     * indices: 
+     * indices of the array: 
      * <ul>
      * <li>original-value</li>
      * <li>basic-filter-result</li>
      * </ul>
-     * If the parameter $applyBasicFilter is set to false, the index 'basic-filter-result' 
-     * will have the value 'NOT_APLICABLE'.
-     * The second parameter is an object of type <b>RequestParameter</b> 
-     * which contains original information for the filter. The method 
-     * must be implemented in a way that makes it return false if the 
+     * <p>If the parameter $applyBasicFilter is set to false, the index 'basic-filter-result' 
+     * will have the value 'NOT_APLICABLE'.</p>
+     * <p>The object of type <b>RequestParameter</b> 
+     * will contain original information for the filter.</p> The method 
+     * must be implemented in a way that makes it return false or null if the 
      * parameter has invalid value. If the parameter is filtered and 
      * was validated, the method must return the valid and filtered 
      * value.
