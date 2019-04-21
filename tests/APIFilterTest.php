@@ -14,7 +14,7 @@ class APIFilterTest extends TestCase{
      * @var APIFilter 
      */
     private $apiFilter;
-    public function setup() {
+    public function setUp() : void{
         $this->apiFilter = new APIFilter();
         echo "\nSetup Finshed\n";
     }
