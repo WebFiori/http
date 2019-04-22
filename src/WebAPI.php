@@ -175,7 +175,7 @@ abstract class WebAPI implements JsonI{
      * @since 1.0
      */
     public function databaseErr($info=''){
-        $this->sendResponse('Database Error', 'error', 500, $info);
+        $this->sendResponse('Database Error.', 'error', 500, $info);
     }
     /**
      * Sends a response message to indicate that a user is not authorized to 
@@ -191,7 +191,7 @@ abstract class WebAPI implements JsonI{
      * @since 1.0
      */
     public function notAuth(){
-        $this->sendResponse('Not authorized', 'error', 401);
+        $this->sendResponse('Not authorized.', 'error', 401);
     }
     /**
      * Sends a response message to indicate that an action is not supported by the API.
@@ -206,7 +206,7 @@ abstract class WebAPI implements JsonI{
      * @since 1.0
      */
     public function actionNotSupported(){
-        $this->sendResponse('Action not supported', 'error', 404);
+        $this->sendResponse('Action not supported.', 'error', 404);
     }
     /**
      * Sends a response message to indicate that request content type is 
@@ -464,7 +464,6 @@ abstract class WebAPI implements JsonI{
     public function toJSON() {
         $json = new JsonX();
         $json->add('api-version', $this->getVersion());
-        $json->add('method', $this->getRequestMethod());
         $json->add('description', $this->getDescription());
         $reqMeth = $this->getRequestMethod();
         if($reqMeth == 'GET' || $reqMeth == 'DELETE' || $reqMeth == 'PUT'){
@@ -724,6 +723,7 @@ abstract class WebAPI implements JsonI{
      * {<br/>
      * &nbsp;&nbsp;"message":"Action is not set.",<br/>
      * &nbsp;&nbsp;"type":"error"<br/>
+     * &nbsp;&nbsp;"http-code":404<br/>
      * &nbsp;&nbsp;"more-info":EXTRA_INFO<br/>
      * }
      * </p>
@@ -734,31 +734,25 @@ abstract class WebAPI implements JsonI{
      * 'debug', 'info' or any string. If it is empty string, it will be not 
      * included in response payload.
      * @param int $code Response code (such as 404 or 200). Default is 200.
-     * @param string|JsonX|JsonI $otherInfo Any other data to send back it can be a simple 
-     * string, an object of type JsonX or JsonI. Default is empty string.
+     * @param mixed $otherInfo Any other data to send back it can be a simple 
+     * string, an object... . If null is given, the parameter 'more-info' 
+     * will be not included in response. Default is empty string. Default is null.
      * @since 1.0
      */
-    public function sendResponse($message,$type='',$code=200,$otherInfo=''){
+    public function sendResponse($message,$type='',$code=200,$otherInfo=null){
         header('content-type:application/json');
         http_response_code($code);
-        $value =  '{"message":"'.$message.'"';
-        if(strlen($type) !== 0){
-            $value .= ',"type":"'.JsonX::escapeJSONSpecialChars($type).'"';
+        $json = new JsonX();
+        $json->add('message', $message);
+        $typeTrimmed = trim($type);
+        if(strlen($typeTrimmed) !== 0){
+            $json->add('type', $typeTrimmed);
         }
-        if($otherInfo instanceof JsonX){
-            echo $value . ',"more-info":'.$otherInfo.'}';
+        $json->add('http-code', $code);
+        if($otherInfo !== null){
+            $json->add('more-info', $otherInfo);
         }
-        else if($otherInfo instanceof JsonI){
-            echo $value . ',"more-info":'.$otherInfo->toJSON().'}';
-        }
-        else{
-            if(strlen($otherInfo) != 0){
-                echo $value . ',"more-info":"'.JsonX::escapeJSONSpecialChars($otherInfo).'"}';
-            }
-            else{
-                echo $value .'}';
-            }
-        }
+        echo $json;
         //die();
     }
     /**
