@@ -20,8 +20,8 @@ class WebAPITest extends TestCase{
         $this->assertEquals('1.0.0',$api->getVersion());
         $this->assertEquals('NO DESCRIPTION',$api->getDescription());
         $api->setDescription('Test API.');
-        $this->assertEquals(0,count($api->getActions()));
-        $this->assertEquals(1,count($api->getAuthActions()));
+        $this->assertEquals(1,count($api->getActions()));
+        $this->assertEquals(4,count($api->getAuthActions()));
         $this->assertEquals('Test API.',$api->getDescription());
         $this->assertTrue($api->getActionByName('api-info') instanceof APIAction);
         $this->assertNull($api->getActionByName('request-info'));
@@ -34,19 +34,42 @@ class WebAPITest extends TestCase{
      */
     public function testProcess00($api) {
         $api->process();
-        $this->expectOutputString('{"message":"Action is not set.","type":"error"}');
+        $this->expectOutputString('{"message":"Action is not set.", "type":"error", "http-code":404}');
     }
     /**
      * @test
      */
     public function testActionAPIInfo00() {
         $_GET['action'] = 'api-info';
+        $_GET['pass'] = '123';
         $api = new SampleAPI();
         $api->process();
         $this->expectOutputString('{'
                 . '"api-version":"1.0.0", '
-                . '"method":"GET", "description":"NO DESCRIPTION", '
-                . '"actions":[], "auth-actions":['
+                . '"description":"NO DESCRIPTION", '
+                . '"actions":['
+                . '{'
+                . '"name":"add-two-integers", '
+                . '"since":"1.0.0", '
+                . '"description":"Returns a JSON string that has the sum of two integers.", '
+                . '"request-methods":["GET"], '
+                . '"parameters":['
+                . '{"name":"first-number", '
+                . '"type":"integer", '
+                . '"description":null, '
+                . '"is-optional":false, '
+                . '"default-value":null, '
+                . '"min-val":-2147483648, '
+                . '"max-val":2147483647}, '
+                . '{"name":"second-number", '
+                . '"type":"integer", '
+                . '"description":null, '
+                . '"is-optional":false, '
+                . '"default-value":null, '
+                . '"min-val":-2147483648, '
+                . '"max-val":2147483647}], '
+                . '"responses":[]}], '
+                . '"auth-actions":['
                 . '{"name":"api-info", '
                 . '"since":"1.0.0", '
                 . '"description":"Returns a JSON string that contains all needed information about all end points in the given API.", '
@@ -57,7 +80,137 @@ class WebAPITest extends TestCase{
                 . '"description":"Optional parameter. If set, the information that will be returned will be specific to the given version number.", '
                 . '"is-optional":true, "default-value":null, '
                 . '"min-val":null, "max-val":null}], '
-                . '"responses":[]}'
-                . ']}');
+                . '"responses":[]}, '
+                . '{"name":"sum-array", '
+                . '"since":"1.0.0", '
+                . '"description":"Returns a JSON string that has the sum of array of numbers.", '
+                . '"request-methods":["POST", "GET"], '
+                . '"parameters":[{"name":"numbers", '
+                . '"type":"array", '
+                . '"description":null, '
+                . '"is-optional":false, '
+                . '"default-value":null, '
+                . '"min-val":null, "max-val":null}], "responses":[]}, '
+                . '{"name":"get-user-profile", '
+                . '"since":"1.0.0", '
+                . '"description":"Returns a JSON string that has user profile info.", '
+                . '"request-methods":["POST"], '
+                . '"parameters":[{"name":"user-id", '
+                . '"type":"integer", '
+                . '"description":null, '
+                . '"is-optional":false, '
+                . '"default-value":null, '
+                . '"min-val":-2147483648, '
+                . '"max-val":2147483647}], '
+                . '"responses":[]}, '
+                . '{"name":"do-nothing", '
+                . '"since":"1.0.0", '
+                . '"description":null, '
+                . '"request-methods":["GET", "POST", "PUT", "DELETE"], '
+                . '"parameters":[], "responses":[]}]}');
+    }
+    /**
+     * @test
+     */
+    public function testActionAPIInfo01() {
+        $_GET['action'] = 'api-info';
+        $api = new SampleAPI();
+        $api->process();
+        $this->expectOutputString('{"message":"Not authorized.", "type":"error", "http-code":401}');
+    }
+    /**
+     * @test
+     */
+    public function testSumTwoIntegers00() {
+        $_GET['first-number'] = '100';
+        $_GET['second-number'] = '300';
+        $_GET['action'] = 'add-two-integers';
+        $api = new SampleAPI();
+        $api->process();
+        $this->expectOutputString('{"message":"The sum of 100 and 300 is 400.", "http-code":200}');
+    }
+    /**
+     * @test
+     */
+    public function testSumTwoIntegers01() {
+        $_GET['first-number'] = '-100';
+        $_GET['second-number'] = '300';
+        $_GET['action'] = 'add-two-integers';
+        $api = new SampleAPI();
+        $api->process();
+        $this->expectOutputString('{"message":"The sum of -100 and 300 is 200.", "http-code":200}');
+    }
+    /**
+     * @test
+     */
+    public function testSumTwoIntegers02() {
+        $_GET['first-number'] = '1.8.89';
+        $_GET['second-number'] = '300';
+        $_GET['action'] = 'add-two-integers';
+        $api = new SampleAPI();
+        $api->process();
+        $this->expectOutputString('{"message":"The sum of 1889 and 300 is 2189.", "http-code":200}');
+    }
+    /**
+     * @test
+     */
+    public function testSumTwoIntegers03() {
+        $_GET['first-number'] = 'one';
+        $_GET['second-number'] = 'two';
+        $_GET['action'] = 'add-two-integers';
+        $api = new SampleAPI();
+        $api->process();
+        $this->expectOutputString('{"message":"The following parameter(s) has invalid values: \'first-number\', \'second-number\'.", "type":"error", "http-code":404}');
+    }
+    /**
+     * @test
+     */
+    public function testSumTwoIntegers04() {
+        $_GET['action'] = 'add-two-integers';
+        $api = new SampleAPI();
+        $api->process();
+        $this->expectOutputString('{"message":"The following required parameter(s) where missing from the request body: \'first-number\', \'second-number\'.", "type":"error", "http-code":404}');
+    }
+    /**
+     * @test
+     */
+    public function testSumTwoIntegers05() {
+        $_GET['first-number'] = '-1.8.89';
+        $_GET['second-number'] = '300';
+        $_GET['action'] = 'add-two-integers';
+        $api = new SampleAPI();
+        $api->process();
+        $this->expectOutputString('{"message":"The sum of -1889 and 300 is -1589.", "http-code":200}');
+    }
+    /**
+     * @test
+     */
+    public function testSumTwoIntegers06() {
+        $_GET['first-number'] = '-1.8-8.89';
+        $_GET['second-number'] = '300';
+        $_GET['action'] = 'add-two-integers';
+        $api = new SampleAPI();
+        $api->process();
+        $this->expectOutputString('{"message":"The following parameter(s) has invalid values: \'first-number\'.", "type":"error", "http-code":404}');
+    }
+    /**
+     * @test
+     */
+    public function testSumArray00() {
+        $_GET['action'] = 'sum-array';
+        $api = new SampleAPI();
+        $api->process();
+        $this->expectOutputString('{"message":"The following required parameter(s) where missing from the request body: \'numbers\'.", "type":"error", "http-code":404}');
+    }
+    /**
+     * @test
+     */
+    public function testSumArray01() {
+        putenv('REQUEST_METHOD=POST');
+        $_POST['action'] = 'sum-array';
+        $_POST['numbers'] = '[m v b]';
+        $api = new SampleAPI();
+        $api->process();
+        $this->expectOutputString('{"message":"The following parameter(s) has invalid values: \'numbers\'.", "type":"error", "http-code":404}');
     }
 }
