@@ -26,16 +26,19 @@ namespace restEasy;
 use jsonx\JsonI;
 use jsonx\JsonX;
 /**
- * A class that represents a REST API.
+ * A class that represents a set of REST APIs.
  * This class is used to create web services.
  * In order to create a simple web service, the developer must 
  * follow the following steps:
  * <ul>
  * <li>Extend this class.</li>
- * <li>Create API actions using the class APIAction.</li>
+ * <li>Create API actions using the class APIAction. Each action will 
+ * represent one end point.</li>
  * <li>Implement the abstract method <a href="#isAuthorized">WebAPI::isAuthorized()</a> 
  * and the method <a href="#processRequest">WebAPI::processRequest()</a></li>
  * </li>
+ * When a request is made to the API, An instance of the child class must be created 
+ * and the method WebAPI::process() must be called.
  * @version 1.4.3
  */
 abstract class WebAPI implements JsonI{
@@ -122,18 +125,16 @@ abstract class WebAPI implements JsonI{
         $this->actions = array();
         $this->authActions = array();
         $this->filter = new APIFilter();
-        $action = new APIAction();
+        $action = new APIAction('api-info');
         $action->setDescription('Gets all information about the API.');
-        $action->setName('api-info');
         $action->addRequestMethod('get');
         $action->addParameter(new RequestParameter('version', 'string', true));
         $action->getParameterByName('version')->setDescription('Optional parameter. '
                 . 'If set, the information that will be returned will be specific '
                 . 'to the given version number.');
         $this->addAction($action,true);
-        $action2 = new APIAction();
+        $action2 = new APIAction('request-info');
         $action2->setDescription('Gets basic information about the request.');
-        $action2->setName('request-info');
         $action2->addRequestMethod('get');
         $action2->addRequestMethod('post');
         $action2->addRequestMethod('delete');
@@ -775,11 +776,15 @@ abstract class WebAPI implements JsonI{
         die();
     }
     /**
-     * Sends Back a data using specific content type using HTTP code 200 - Ok.
+     * Sends Back a data using specific content type using specific response code.
      * @param string $conentType Response content type (such as 'application/json')
-     * @param mixed $data Any data to send back. Mostly, it will be a string.
+     * @param mixed $data Any data to send back. Mostly, it will be a string of 
+     * data.
+     * @param int $code HTTP response code that will be used to send the data. 
+     * Default is HTTP code 200 - Ok.
      */
-    public function send($conentType,$data){
+    public function send($conentType,$data,$code=200){
+        http_response_code($code);
         header('content-type:'.$conentType);
         echo $data;
         die();
@@ -824,13 +829,20 @@ abstract class WebAPI implements JsonI{
     }
     /**
      * Returns the action that was requested to perform.
+     * API action must be passed in the body of the request for POST and PUT 
+     * request methods (e.g. 'action=do-something'. In case of GET and DELETE, it must be passed as query 
+     * string.
      * @return string|null The action that was requested to perform. If the action 
-     * is not set, the method will return null.
+     * is not set, the method will return null. 
      * @since 1.0
      */
     public function getAction(){
         $reqMeth = $this->getRequestMethod();
-        if($reqMeth == 'GET' || $reqMeth == 'DELETE' || $reqMeth == 'PUT'){
+        if($reqMeth == 'GET' || 
+           $reqMeth == 'DELETE' || 
+           $reqMeth == 'PUT' || 
+           $reqMeth == 'OPTIONS' || 
+           $reqMeth == 'PATCH'){
             if(isset($_GET['action'])){
                 return filter_var($_GET['action']);
             }
