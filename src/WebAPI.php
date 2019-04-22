@@ -122,26 +122,20 @@ abstract class WebAPI implements JsonI{
         $this->setVersion($version);
         $this->setDescription('NO DESCRIPTION');
         $this->requestMethod = filter_var(getenv('REQUEST_METHOD'));
+        if(!in_array($this->requestMethod, APIAction::METHODS)){
+            $this->requestMethod = 'GET';
+        }
         $this->actions = array();
         $this->authActions = array();
         $this->filter = new APIFilter();
         $action = new APIAction('api-info');
-        $action->setDescription('Gets all information about the API.');
+        $action->setDescription('Returns a JSON string that contains all needed information about all end points in the given API.');
         $action->addRequestMethod('get');
         $action->addParameter(new RequestParameter('version', 'string', true));
         $action->getParameterByName('version')->setDescription('Optional parameter. '
                 . 'If set, the information that will be returned will be specific '
                 . 'to the given version number.');
         $this->addAction($action,true);
-        $action2 = new APIAction('request-info');
-        $action2->setDescription('Gets basic information about the request.');
-        $action2->addRequestMethod('get');
-        $action2->addRequestMethod('post');
-        $action2->addRequestMethod('delete');
-        $action2->addRequestMethod('put');
-        $action2->addRequestMethod('head');
-        $action2->addRequestMethod('options');
-        $this->addAction($action2,true);
         $this->invParamsArr = array();
         $this->missingParamsArr = array();
     }
@@ -396,15 +390,15 @@ abstract class WebAPI implements JsonI{
      * @since 1.3
      */
     public function &getActionByName($actionName) {
-        $actionName .= '';
-        if(strlen($actionName) != 0){
+        $trimmed = trim($actionName);
+        if(strlen($trimmed) != 0){
             foreach ($this->getActions() as $action){
-                if($action->getName() == $actionName){
+                if($action->getName() == $trimmed){
                     return $action;
                 }
             }
             foreach ($this->getAuthActions() as $action){
-                if($action->getName() == $actionName){
+                if($action->getName() == $trimmed){
                     return $action;
                 }
             }
@@ -701,14 +695,6 @@ abstract class WebAPI implements JsonI{
                         if($this->getAction() == 'api-info'){
                             $this->send('application/json', $this->toJSON());
                         }
-                        else if($this->getAction() == 'request-info'){
-                            $j = new JsonX();
-                            $j->add('action', $this->getAction());
-                            $j->add('content-type', $this->getContentType());
-                            $j->add('method', $this->getRequestMethod());
-                            $j->add('parameters', $this->getInputs());
-                            $this->send('application/json', $j);
-                        }
                         else{
                             $this->processRequest();
                         }
@@ -773,7 +759,7 @@ abstract class WebAPI implements JsonI{
                 echo $value .'}';
             }
         }
-        die();
+        //die();
     }
     /**
      * Sends Back a data using specific content type using specific response code.
@@ -787,7 +773,7 @@ abstract class WebAPI implements JsonI{
         http_response_code($code);
         header('content-type:'.$conentType);
         echo $data;
-        die();
+        //die();
     }
     /**
      * Sends back multiple HTTP headers to the client.
