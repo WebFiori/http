@@ -193,8 +193,6 @@ class APIFilterTest extends TestCase{
         $_GET['first-number'] = 'Admin';
         $this->apiFilter->filterGET();
         $filtered = $this->apiFilter->getInputs();
-        echo "testFilterGet08\n";
-        print_r($filtered);
 //        if(PHP_MAJOR_VERSION == 5){
 //            $this->assertEquals(1,count($filtered));
 //            $this->assertTrue(isset($filtered['first-number']));
@@ -261,8 +259,6 @@ class APIFilterTest extends TestCase{
         $_GET['second-number'] = 'this is a 100076800 year .';
         $this->apiFilter->filterGET();
         $filtered = $this->apiFilter->getInputs();
-        echo "testFilterGet10\n";
-        print_r($filtered);
         $this->assertEquals(2,count($filtered));
         $this->assertTrue($filtered['first-number'] === null);
         $this->assertTrue(isset($filtered['second-number']));
