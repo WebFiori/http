@@ -25,6 +25,9 @@ class WebAPITest extends TestCase{
         foreach ($_ENV as $k => $v){
             unset($_ENV[$k]);
         }
+        foreach ($_SERVER as $k => $v){
+            unset($_SERVER[$k]);
+        }
     }
     /**
      * @test
