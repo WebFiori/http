@@ -18,7 +18,7 @@ This library is a part of <a>WebFiori Framework</a>. To access API docs of the l
 ## The Idea
 The idea of the library is as follows, when a client performs a request to a web service, he is usually intersted in performing specific action. One web service can have multiple actions. An action can be considered as API end point. The client can pass arguments (or parameters) to the end point in request body or as a query string.
 
-An end point is represented as the class <a href="https://programmingacademia.com/webfiori/docs/restEasy/APIAction">APIAction</a> and a web service is represented by the class <a href="https://programmingacademia.com/webfiori/docs/restEasy/WebAPI">WebAPI</a>. Also, body parameters represented by the class <a href="https://programmingacademia.com/webfiori/docs/restEasy/APIAction">APIAction">RequestParameter</a>.
+An end point is represented as the class <a href="https://programmingacademia.com/webfiori/docs/restEasy/APIAction">APIAction</a> and a web service is represented by the class <a href="https://programmingacademia.com/webfiori/docs/restEasy/WebAPI">WebAPI</a>. Also, body parameters represented by the class <a href="https://programmingacademia.com/webfiori/docs/restEasy/RequestParameter">RequestParameter</a>.
 
 ## Usage
 The first step is to include the requierd classes. There are basically 3 classes that you need:
