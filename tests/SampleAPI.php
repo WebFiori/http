@@ -18,6 +18,7 @@ class SampleAPI extends WebAPI{
         $a00->addParameter(new RequestParameter('second-number', 'integer'));
         $this->addAction($a00);
         
+        $this->setVersion('1.0.1');
         $a01 = new APIAction('sum-array');
         $a01->addRequestMethod('post');
         $a01->addRequestMethod('get');
