@@ -4,6 +4,8 @@ use PHPUnit\Framework\TestCase;
 use restEasy\RequestParameter;
 use restEasy\tests\SampleAPI;
 use restEasy\APIAction;
+use restEasy\WebAPI;
+use jsonx\JsonX;
 /**
  * Description of WebAPITest
  *
@@ -218,6 +220,7 @@ class WebAPITest extends TestCase{
         $api->process();
         $this->expectOutputString('{"message":"The sum of -100 and 300 is 200.", "http-code":200}');
     }
+    
     /**
      * @test
      */
@@ -267,6 +270,7 @@ class WebAPITest extends TestCase{
         $api = new SampleAPI();
         $api->process();
         $this->expectOutputString('{"message":"The sum of -1889 and 300 is -1589.", "http-code":200}');
+        return $api;
     }
     /**
      * @test
@@ -280,6 +284,20 @@ class WebAPITest extends TestCase{
         $api = new SampleAPI();
         $api->process();
         $this->expectOutputString('{"message":"The following parameter(s) has invalid values: \'first-number\'.", "type":"error", "http-code":404}');
+    }
+    /**
+     * @test
+     */
+    public function testSumTwoIntegers07() {
+        $this->clrearVars();
+        putenv('REQUEST_METHOD=POST');
+        $_SERVER['CONTENT_TYPE'] = 'application/x-www-form-urlencoded';
+        $_POST['first-number'] = '100';
+        $_POST['second-number'] = '300';
+        $_POST['action'] = 'add-two-integers';
+        $api = new SampleAPI();
+        $api->process();
+        $this->expectOutputString('{"message":"Method Not Allowed.", "type":"error", "http-code":405}');
     }
     /**
      * @test
@@ -390,6 +408,19 @@ class WebAPITest extends TestCase{
     /**
      * @test
      */
+    public function testGetUser04() {
+        $this->clrearVars();
+        putenv('REQUEST_METHOD=POST');
+        $_POST['action'] = 'get-user-profile';
+        $_POST['user-id'] = '99';
+        $_POST['pass'] = '123';
+        $api = new SampleAPI();
+        $api->process();
+        $this->expectOutputString('{"message":"Content type not supported.", "type":"error", "http-code":404, "more-info":{"request-content-type":null}}');
+    }
+    /**
+     * @test
+     */
     public function testDoNothing00() {
         $this->clrearVars();
         putenv('REQUEST_METHOD=DELETE');
@@ -421,4 +452,42 @@ class WebAPITest extends TestCase{
         $this->assertEquals('1065430.9000000009.10000087',$api->getVersion());
         $this->assertFalse($api->setVersion('1.0.9.0.8'));
     }
+    /**
+     * @depends testSumTwoIntegers05
+     * @param WebAPI $api
+     */
+    public function testGetNonFiltered00($api) {
+        $nonFiltered = $api->getNonFiltered();
+        $j = new JsonX();
+        $j->add('non-filtered', $nonFiltered);
+        $api->sendHeaders(array('content-type'=>'application/json'));
+        echo $j;
+        $this->expectOutputString('{"non-filtered":[{"first-number":"-1.8.89"}, {"second-number":"300"}]}');
+    }
+    /**
+     * @test
+     */
+    public function testAddAction00() {
+        $api = new SampleAPI();
+        $action00 = null;
+        $this->assertFalse($api->addAction($action00));
+        $action01 = 1;
+        $this->assertFalse($api->addAction($action01));
+        $action02 = 'string';
+        $this->assertFalse($api->addAction($action02));
+        $action03 = true;
+        $this->assertFalse($api->addAction($action03));
+    }
 }
+
+
+
+
+
+
+
+
+
+
+
+
