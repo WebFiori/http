@@ -260,22 +260,6 @@ abstract class WebAPI implements JsonI{
         $this->sendResponse('Action not implemented.', 'error', 404);
     }
     /**
-     * Sends a response message to indicate that a request parameter is missing.
-     * This method will send back a JSON string in the following format:
-     * <p>
-     * {<br/>
-     * &nbsp;&nbsp;"message":"The parameter 'param_name' is missing.",<br/>
-     * &nbsp;&nbsp;"type":"error",<br/>
-     * }
-     * </p>
-     * In addition to the message, The response will sent HTTP code 404 - Not Found.
-     * @param string $paramName The name of the parameter.
-     * @since 1.0
-     */
-    public function missingParam($paramName){
-        $this->sendResponse('The parameter \''.$paramName.'\' is missing.', 'error', 404);
-    }
-    /**
      * Returns an array that contains the names of missing required API 
      * parameters.
      * @return array An array that contains the names of missing required API 
@@ -610,7 +594,6 @@ abstract class WebAPI implements JsonI{
                         return $isValidRequestMethod;
                     }
                 }
-                return true;
             }
             else{
                 $this->actionNotSupported();
