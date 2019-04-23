@@ -11,6 +11,7 @@ It includes inputs feltering and data validation in addion to creating user-defi
     <img src="https://img.shields.io/endpoint.svg?url=https%3A%2F%2Fprogrammingacademia.com%2Fwebfiori%2Fapis%2Fshields-get-dontate-badget">
   </a>
 </p>
+
 ## API Docs
 This library is a part of <a>WebFiori Framework</a>. To access API docs of the library, you can visid the following link: https://programmingacademia.com/webfiori/docs/restEasy .
 
