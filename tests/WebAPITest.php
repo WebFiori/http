@@ -10,10 +10,25 @@ use restEasy\APIAction;
  * @author Eng.Ibrahim
  */
 class WebAPITest extends TestCase{
+    private function clrearVars() {
+        foreach ($_GET as $k => $v){
+            unset($_GET[$k]);
+        }
+        foreach ($_POST as $k => $v){
+            unset($_POST[$k]);
+        }
+        foreach ($_REQUEST as $k => $v){
+            unset($_REQUEST[$k]);
+        }
+        foreach ($_ENV as $k => $v){
+            unset($_ENV[$k]);
+        }
+    }
     /**
      * @test
      */
     public function testConstructor00() {
+        $this->clrearVars();
         $api = new SampleAPI();
         $this->assertEquals('GET',$api->getRequestMethod());
         $this->assertNull($api->getAction());
@@ -40,6 +55,7 @@ class WebAPITest extends TestCase{
      * @test
      */
     public function testActionAPIInfo00() {
+        $this->clrearVars();
         $_GET['action'] = 'api-info';
         $_GET['pass'] = '123';
         $api = new SampleAPI();
@@ -66,8 +82,8 @@ class WebAPITest extends TestCase{
                 . '"description":null, '
                 . '"is-optional":false, '
                 . '"default-value":null, '
-                . '"min-val":-2147483648, '
-                . '"max-val":2147483647}], '
+                . '"min-val":'.~PHP_INT_MAX.', '
+                . '"max-val":'.PHP_INT_MAX.'}], '
                 . '"responses":[]}], '
                 . '"auth-actions":['
                 . '{"name":"api-info", '
@@ -100,8 +116,8 @@ class WebAPITest extends TestCase{
                 . '"description":null, '
                 . '"is-optional":false, '
                 . '"default-value":null, '
-                . '"min-val":-2147483648, '
-                . '"max-val":2147483647}], '
+                . '"min-val":'.~PHP_INT_MAX.', '
+                . '"max-val":'.PHP_INT_MAX.'}], '
                 . '"responses":[]}, '
                 . '{"name":"do-nothing", '
                 . '"since":"1.0.0", '
@@ -113,6 +129,7 @@ class WebAPITest extends TestCase{
      * @test
      */
     public function testActionAPIInfo01() {
+        $this->clrearVars();
         $_GET['action'] = 'api-info';
         $api = new SampleAPI();
         $api->process();
@@ -122,6 +139,7 @@ class WebAPITest extends TestCase{
      * @test
      */
     public function testSumTwoIntegers00() {
+        $this->clrearVars();
         $_GET['first-number'] = '100';
         $_GET['second-number'] = '300';
         $_GET['action'] = 'add-two-integers';
@@ -133,6 +151,7 @@ class WebAPITest extends TestCase{
      * @test
      */
     public function testSumTwoIntegers01() {
+        $this->clrearVars();
         $_GET['first-number'] = '-100';
         $_GET['second-number'] = '300';
         $_GET['action'] = 'add-two-integers';
@@ -144,6 +163,7 @@ class WebAPITest extends TestCase{
      * @test
      */
     public function testSumTwoIntegers02() {
+        $this->clrearVars();
         $_GET['first-number'] = '1.8.89';
         $_GET['second-number'] = '300';
         $_GET['action'] = 'add-two-integers';
@@ -155,6 +175,7 @@ class WebAPITest extends TestCase{
      * @test
      */
     public function testSumTwoIntegers03() {
+        $this->clrearVars();
         $_GET['first-number'] = 'one';
         $_GET['second-number'] = 'two';
         $_GET['action'] = 'add-two-integers';
@@ -166,6 +187,7 @@ class WebAPITest extends TestCase{
      * @test
      */
     public function testSumTwoIntegers04() {
+        $this->clrearVars();
         $_GET['action'] = 'add-two-integers';
         $api = new SampleAPI();
         $api->process();
@@ -175,6 +197,7 @@ class WebAPITest extends TestCase{
      * @test
      */
     public function testSumTwoIntegers05() {
+        $this->clrearVars();
         $_GET['first-number'] = '-1.8.89';
         $_GET['second-number'] = '300';
         $_GET['action'] = 'add-two-integers';
@@ -186,6 +209,7 @@ class WebAPITest extends TestCase{
      * @test
      */
     public function testSumTwoIntegers06() {
+        $this->clrearVars();
         $_GET['first-number'] = '-1.8-8.89';
         $_GET['second-number'] = '300';
         $_GET['action'] = 'add-two-integers';
@@ -197,6 +221,7 @@ class WebAPITest extends TestCase{
      * @test
      */
     public function testSumArray00() {
+        $this->clrearVars();
         $_GET['action'] = 'sum-array';
         $api = new SampleAPI();
         $api->process();
@@ -206,6 +231,7 @@ class WebAPITest extends TestCase{
      * @test
      */
     public function testSumArray01() {
+        $this->clrearVars();
         putenv('REQUEST_METHOD=POST');
         $_POST['action'] = 'sum-array';
         $_POST['numbers'] = '[m v b]';
