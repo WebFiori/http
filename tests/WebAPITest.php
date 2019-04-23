@@ -32,7 +32,7 @@ class WebAPITest extends TestCase{
         $api = new SampleAPI();
         $this->assertEquals('GET',$api->getRequestMethod());
         $this->assertNull($api->getAction());
-        $this->assertEquals('1.0.0',$api->getVersion());
+        $this->assertEquals('1.0.1',$api->getVersion());
         $this->assertEquals('NO DESCRIPTION',$api->getDescription());
         $api->setDescription('Test API.');
         $this->assertEquals(1,count($api->getActions()));
@@ -61,7 +61,7 @@ class WebAPITest extends TestCase{
         $api = new SampleAPI();
         $api->process();
         $this->expectOutputString('{'
-                . '"api-version":"1.0.0", '
+                . '"api-version":"1.0.1", '
                 . '"description":"NO DESCRIPTION", '
                 . '"actions":['
                 . '{'
@@ -98,7 +98,7 @@ class WebAPITest extends TestCase{
                 . '"min-val":null, "max-val":null}], '
                 . '"responses":[]}, '
                 . '{"name":"sum-array", '
-                . '"since":"1.0.0", '
+                . '"since":"1.0.1", '
                 . '"description":"Returns a JSON string that has the sum of array of numbers.", '
                 . '"request-methods":["POST", "GET"], '
                 . '"parameters":[{"name":"numbers", '
@@ -108,7 +108,7 @@ class WebAPITest extends TestCase{
                 . '"default-value":null, '
                 . '"min-val":null, "max-val":null}], "responses":[]}, '
                 . '{"name":"get-user-profile", '
-                . '"since":"1.0.0", '
+                . '"since":"1.0.1", '
                 . '"description":"Returns a JSON string that has user profile info.", '
                 . '"request-methods":["POST"], '
                 . '"parameters":[{"name":"user-id", '
@@ -120,7 +120,7 @@ class WebAPITest extends TestCase{
                 . '"max-val":'.PHP_INT_MAX.'}], '
                 . '"responses":[]}, '
                 . '{"name":"do-nothing", '
-                . '"since":"1.0.0", '
+                . '"since":"1.0.1", '
                 . '"description":null, '
                 . '"request-methods":["GET", "POST", "PUT", "DELETE"], '
                 . '"parameters":[], "responses":[]}]}');
@@ -138,8 +138,66 @@ class WebAPITest extends TestCase{
     /**
      * @test
      */
+    public function testActionAPIInfo02() {
+        $this->clrearVars();
+        $_GET['action'] = 'api-info';
+        $_GET['pass'] = '123';
+        $_GET['version'] = '1.0.1';
+        $api = new SampleAPI();
+        $api->process();
+        $this->expectOutputString('{'
+                . '"api-version":"1.0.1", '
+                . '"description":"NO DESCRIPTION", '
+                . '"actions":[], '
+                . '"auth-actions":['
+                . '{"name":"sum-array", '
+                . '"since":"1.0.1", '
+                . '"description":"Returns a JSON string that has the sum of array of numbers.", '
+                . '"request-methods":["POST", "GET"], '
+                . '"parameters":[{"name":"numbers", '
+                . '"type":"array", '
+                . '"description":null, '
+                . '"is-optional":false, '
+                . '"default-value":null, '
+                . '"min-val":null, "max-val":null}], "responses":[]}, '
+                . '{"name":"get-user-profile", '
+                . '"since":"1.0.1", '
+                . '"description":"Returns a JSON string that has user profile info.", '
+                . '"request-methods":["POST"], '
+                . '"parameters":[{"name":"user-id", '
+                . '"type":"integer", '
+                . '"description":null, '
+                . '"is-optional":false, '
+                . '"default-value":null, '
+                . '"min-val":'.~PHP_INT_MAX.', '
+                . '"max-val":'.PHP_INT_MAX.'}], '
+                . '"responses":[]}, '
+                . '{"name":"do-nothing", '
+                . '"since":"1.0.1", '
+                . '"description":null, '
+                . '"request-methods":["GET", "POST", "PUT", "DELETE"], '
+                . '"parameters":[], "responses":[]}]}');
+    }
+    /**
+     * @test
+     */
+    public function testActionAPIInfo03() {
+        $this->clrearVars();
+        putenv('REQUEST_METHOD=POST');
+        $_SERVER['CONTENT_TYPE'] = 'application/x-www-form-urlencoded';
+        $_POST['action'] = 'api-info';
+        $_POST['pass'] = '123';
+        $_POST['version'] = '1.0.1';
+        $api = new SampleAPI();
+        $api->process();
+        $this->expectOutputString('{"message":"Method Not Allowed.", "type":"error", "http-code":405}');
+    }
+    /**
+     * @test
+     */
     public function testSumTwoIntegers00() {
         $this->clrearVars();
+        putenv('REQUEST_METHOD=GET');
         $_GET['first-number'] = '100';
         $_GET['second-number'] = '300';
         $_GET['action'] = 'add-two-integers';
@@ -152,6 +210,7 @@ class WebAPITest extends TestCase{
      */
     public function testSumTwoIntegers01() {
         $this->clrearVars();
+        putenv('REQUEST_METHOD=GET');
         $_GET['first-number'] = '-100';
         $_GET['second-number'] = '300';
         $_GET['action'] = 'add-two-integers';
@@ -164,6 +223,7 @@ class WebAPITest extends TestCase{
      */
     public function testSumTwoIntegers02() {
         $this->clrearVars();
+        putenv('REQUEST_METHOD=GET');
         $_GET['first-number'] = '1.8.89';
         $_GET['second-number'] = '300';
         $_GET['action'] = 'add-two-integers';
@@ -176,6 +236,7 @@ class WebAPITest extends TestCase{
      */
     public function testSumTwoIntegers03() {
         $this->clrearVars();
+        putenv('REQUEST_METHOD=GET');
         $_GET['first-number'] = 'one';
         $_GET['second-number'] = 'two';
         $_GET['action'] = 'add-two-integers';
@@ -188,6 +249,7 @@ class WebAPITest extends TestCase{
      */
     public function testSumTwoIntegers04() {
         $this->clrearVars();
+        putenv('REQUEST_METHOD=GET');
         $_GET['action'] = 'add-two-integers';
         $api = new SampleAPI();
         $api->process();
@@ -198,6 +260,7 @@ class WebAPITest extends TestCase{
      */
     public function testSumTwoIntegers05() {
         $this->clrearVars();
+        putenv('REQUEST_METHOD=GET');
         $_GET['first-number'] = '-1.8.89';
         $_GET['second-number'] = '300';
         $_GET['action'] = 'add-two-integers';
@@ -210,6 +273,7 @@ class WebAPITest extends TestCase{
      */
     public function testSumTwoIntegers06() {
         $this->clrearVars();
+        putenv('REQUEST_METHOD=GET');
         $_GET['first-number'] = '-1.8-8.89';
         $_GET['second-number'] = '300';
         $_GET['action'] = 'add-two-integers';
@@ -222,6 +286,7 @@ class WebAPITest extends TestCase{
      */
     public function testSumArray00() {
         $this->clrearVars();
+        putenv('REQUEST_METHOD=GET');
         $_GET['action'] = 'sum-array';
         $api = new SampleAPI();
         $api->process();
@@ -233,10 +298,127 @@ class WebAPITest extends TestCase{
     public function testSumArray01() {
         $this->clrearVars();
         putenv('REQUEST_METHOD=POST');
+        $_SERVER['CONTENT_TYPE'] = 'application/x-www-form-urlencoded';
         $_POST['action'] = 'sum-array';
         $_POST['numbers'] = '[m v b]';
         $api = new SampleAPI();
         $api->process();
         $this->expectOutputString('{"message":"The following parameter(s) has invalid values: \'numbers\'.", "type":"error", "http-code":404}');
+    }
+    /**
+     * @test
+     */
+    public function testSumArray02() {
+        $this->clrearVars();
+        putenv('REQUEST_METHOD=POST');
+        $_SERVER['CONTENT_TYPE'] = 'application/x-www-form-urlencoded';
+        $_POST['action'] = 'sum-array';
+        $_POST['numbers'] = '[1,2,"as",1.9,\'hello\',10]';
+        $api = new SampleAPI();
+        $api->process();
+        $this->expectOutputString('{"message":"Not authorized.", "type":"error", "http-code":401}');
+    }
+    /**
+     * @test
+     */
+    public function testSumArray03() {
+        $this->clrearVars();
+        putenv('REQUEST_METHOD=POST');
+        $_SERVER['CONTENT_TYPE'] = 'application/x-www-form-urlencoded';
+        $_POST['action'] = 'sum-array';
+        $_POST['numbers'] = '[1,2,"as",1.9,\'hello\',10]';
+        $_POST['pass'] = '123';
+        $api = new SampleAPI();
+        $api->process();
+        $this->expectOutputString('{"sum":14.9}');
+    }
+    /**
+     * @test
+     */
+    public function testGetUser00() {
+        $this->clrearVars();
+        putenv('REQUEST_METHOD=GET');
+        $_GET['action'] = 'get-user-profile';
+        $_GET['user-id'] = '-9';
+        $_GET['pass'] = '123';
+        $api = new SampleAPI();
+        $api->process();
+        $this->expectOutputString('{"message":"Method Not Allowed.", "type":"error", "http-code":405}');
+    }
+    /**
+     * @test
+     */
+    public function testGetUser01() {
+        $this->clrearVars();
+        putenv('REQUEST_METHOD=POST');
+        $_SERVER['CONTENT_TYPE'] = 'application/x-www-form-urlencoded';
+        $_POST['action'] = 'get-user-profile';
+        $_POST['user-id'] = '-9';
+        $_POST['pass'] = '123';
+        $api = new SampleAPI();
+        $api->process();
+        $this->expectOutputString('{"message":"Database Error.", "type":"error", "http-code":500, "more-info":""}');
+    }
+    /**
+     * @test
+     */
+    public function testGetUser02() {
+        $this->clrearVars();
+        putenv('REQUEST_METHOD=POST');
+        $_SERVER['CONTENT_TYPE'] = 'application/x-www-form-urlencoded';
+        $_POST['action'] = 'get-user-profile';
+        $_POST['user-id'] = '99';
+        $_POST['pass'] = '123';
+        $api = new SampleAPI();
+        $api->process();
+        $this->expectOutputString('{"user-name":"Ibrahim", "bio":"A software engineer who is ready to help anyone in need."}');
+    }
+    /**
+     * @test
+     */
+    public function testGetUser03() {
+        $this->clrearVars();
+        putenv('REQUEST_METHOD=POST');
+        $_SERVER['CONTENT_TYPE'] = 'application/json';
+        $_POST['action'] = 'get-user-profile';
+        $_POST['user-id'] = '99';
+        $_POST['pass'] = '123';
+        $api = new SampleAPI();
+        $api->process();
+        $this->expectOutputString('{"message":"Content type not supported.", "type":"error", "http-code":404, "more-info":{"request-content-type":"application\/json"}}');
+    }
+    /**
+     * @test
+     */
+    public function testDoNothing00() {
+        $this->clrearVars();
+        putenv('REQUEST_METHOD=DELETE');
+        $_GET['action'] = 'do-nothing';
+        $_GET['pass'] = '123';
+        $api = new SampleAPI();
+        $api->process();
+        $this->expectOutputString('{"message":"Action not implemented.", "type":"error", "http-code":404}');
+    }
+    /**
+     * @test
+     */
+    public function testNoActionInAPI() {
+        $this->clrearVars();
+        putenv('REQUEST_METHOD=DELETE');
+        $_GET['action'] = 'does-not-exist';
+        $api = new SampleAPI();
+        $api->process();
+        $this->expectOutputString('{"message":"Action not supported.", "type":"error", "http-code":404}');
+    }
+    /**
+     * @test
+     */
+    public function testSetVersion00() {
+        $api = new SampleAPI();
+        $this->assertTrue($api->setVersion('1065430.9000000009.10000087'));
+        $this->assertEquals('1065430.9000000009.10000087',$api->getVersion());
+        $this->assertFalse($api->setVersion('6Y.00o0.76T'));
+        $this->assertEquals('1065430.9000000009.10000087',$api->getVersion());
+        $this->assertFalse($api->setVersion('1.0.9.0.8'));
     }
 }
