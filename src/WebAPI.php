@@ -225,7 +225,9 @@ abstract class WebAPI implements JsonI{
      * @since 1.1
      */
     public function contentTypeNotSupported($cType=''){
-        $this->sendResponse('Content type not supported.', 'error', 404,'"request-content-type":"'.$cType.'"');
+        $j = new JsonX();
+        $j->add('request-content-type', $cType);
+        $this->sendResponse('Content type not supported.', 'error', 404,$j);
     }
     /**
      * Sends a response message to indicate that request method is not supported.
@@ -465,14 +467,9 @@ abstract class WebAPI implements JsonI{
         $json = new JsonX();
         $json->add('api-version', $this->getVersion());
         $json->add('description', $this->getDescription());
-        $reqMeth = $this->getRequestMethod();
-        if($reqMeth == 'GET' || $reqMeth == 'DELETE' || $reqMeth == 'PUT'){
-            $vNum = filter_input(INPUT_GET, 'version');
-        }
-        else if($reqMeth == 'POST'){
-            $vNum = filter_input(INPUT_POST, 'version');
-        }
-        if($vNum == null || $vNum == false){
+        $i = $this->getInputs();
+        $vNum = isset($i['version']) ? $i['version'] : null;
+        if($vNum === null || $vNum == false){
             $json->add('actions', $this->getActions());
             $json->add('auth-actions', $this->getAuthActions());
         }
@@ -523,19 +520,19 @@ abstract class WebAPI implements JsonI{
      * @since 1.1
      */
     public final function getContentType(){
-        $c = filter_input(INPUT_SERVER, 'CONTENT_TYPE');
+        $c = isset($_SERVER['CONTENT_TYPE']) ? filter_var($_SERVER['CONTENT_TYPE']) : null;
         if($c != null && $c != false){
-            return strtok($c, ';');
+            return $c;
         }
         return null;
     }
     /**
      * Checks if request content type is supported by the API or not (For 'POST' 
      * and PUT requests only).
-     * @return boolean Returns true in case the 'content-type' header is not 
-     * set or the request method is not 'POST'. Also the method will return 
-     * true if the content type is supported. Other than that, the method 
-     * will return false
+     * @return boolean Returns false in case the 'content-type' header is not 
+     * set and the request method is 'POST' or 'PUT'. If content type is supported (for 
+     * PUT and POST), the method will return true, false if not. Other than that, the method 
+     * will return true.
      * @since 1.1
      */
     public final function isContentTypeSupported(){
@@ -543,6 +540,9 @@ abstract class WebAPI implements JsonI{
         $rm = $this->getRequestMethod();
         if($c != null && $rm == 'POST' || $rm == 'PUT'){
             return in_array($c, self::POST_CONTENT_TYPES);
+        }
+        else if($c === null && $rm == 'POST' || $rm == 'PUT'){
+            return false;
         }
         return true;
     }
@@ -669,7 +669,11 @@ abstract class WebAPI implements JsonI{
                     $this->filter->addRequestParameter($param);
                 }
                 $reqMeth = $this->getRequestMethod();
-                if($reqMeth == 'GET' || $reqMeth == 'DELETE' || $reqMeth == 'PUT'){
+                if($reqMeth == 'GET' || 
+                    $reqMeth == 'DELETE' || 
+                    $reqMeth == 'PUT' || 
+                    $reqMeth == 'OPTIONS' || 
+                    $reqMeth == 'PATCH'){
                     $this->filter->filterGET();
                 }
                 else if($reqMeth == 'POST'){
