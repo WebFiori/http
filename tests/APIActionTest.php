@@ -187,7 +187,6 @@ class APIActionTest extends TestCase{
         $action->setDescription('Adds new user profile to the system.');
         $action->addResponseDescription('If the user is added, a 201 HTTP response is send with a JSON string that contains user ID.');
         $action->addResponseDescription('If a user is already exist wich has the given email, a 404 code is sent back.');
-        print_r($action.'');
         $this->assertEquals("APIAction[\n"
                 . "    Name => 'add-user',\n"
                 . "    Description => 'Adds new user profile to the system.',\n"
