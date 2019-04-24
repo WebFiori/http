@@ -20,6 +20,24 @@ The idea of the library is as follows, when a client performs a request to a web
 
 An end point is represented as the class <a href="https://programmingacademia.com/webfiori/docs/restEasy/APIAction">APIAction</a> and a web service is represented by the class <a href="https://programmingacademia.com/webfiori/docs/restEasy/WebAPI">WebAPI</a>. Also, body parameters represented by the class <a href="https://programmingacademia.com/webfiori/docs/restEasy/RequestParameter">RequestParameter</a>.
 
+## Features
+* Full support for creating REST services using JSON notation.
+* Support for basic data filtering and validation.
+* The ability to create custom filters based on the need.
+
+## Supported PHP Versions
+The library support all versions starting from version 5.6 up to version 7.3.
+
+## Installation
+If you are using composer to collect your dependencies, you can simply run the following command to install the library:
+
+```
+composer require webfiori/rest-easy
+```
+Note that the <a href="https://github.com/usernane/jsonx">JsonX</a> library will be included with the installation files as this library is depending on it. 
+
+Another option is to download the latest release manually from <a href="https://github.com/usernane/restEasy/releases">Release</a>. The latest stable release of the laibrary is <a href="https://github.com/usernane/restEasy/releases/tag/v1.4.5">v1.4.5</a>
+
 ## Usage
 The first step is to include the requierd classes. There are basically 3 classes that you need:
 * <a href="https://programmingacademia.com/webfiori/docs/restEasy/RequestParameter">RequestParameter</a>
