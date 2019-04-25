@@ -1,2 +1,5 @@
 /nbproject
 test.*
+/vendor/
+composer.lock
+clover.xml
