@@ -8,7 +8,7 @@ require_once '../WebAPI.php';
 require_once '../APIAction.php';
 require_once '../APIFilter.php';
 require_once '../RequestParameter.php';
-use restEasy\WebAPI;
+use restEasy\WebServices;
 use restEasy\APIAction;
 use restEasy\RequestParameter;
 /*
@@ -19,7 +19,7 @@ use restEasy\RequestParameter;
  * 4- Create an instance of the class.
  * 5- Call the function 'process()'.
  */
-class MyAPI extends WebAPI{
+class MyAPI extends WebServices{
     
     public function __construct() {
         parent::__construct();

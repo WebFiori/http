@@ -2,13 +2,13 @@
 namespace restEasy\tests;
 use restEasy\RequestParameter;
 use restEasy\APIAction;
-use restEasy\WebAPI;
+use restEasy\WebServices;
 /**
  * Description of SampleAPI
  *
  * @author Eng.Ibrahim
  */
-class SampleAPI extends WebAPI{
+class SampleAPI extends WebServices{
     public function __construct() {
         parent::__construct();
         $a00 = new APIAction('add-two-integers');

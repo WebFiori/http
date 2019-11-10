@@ -27,7 +27,11 @@ namespace restEasy;
 use jsonx\JsonI;
 use jsonx\JsonX;
 /**
- * A class that represents API action.
+ * A class that represents one web service.
+ * A web service is simply an action that is performed by a web 
+ * server to do something. For example, It is possible to have a web service 
+ * which is responsible for creating new user profile. Think of it as an 
+ * action taken to perform specific task.
  * @author Ibrahim
  * @version 1.3.1
  */
@@ -64,13 +68,13 @@ class APIAction implements JsonI{
      * @var array
      * @since 1.1 
      */
-    private $reqMethods = array();
+    private $reqMethods = [];
     /**
      * An array that holds an objects of type RequestParameter.
      * @var array
      * @since 1.0 
      */
-    private $parameters = array();
+    private $parameters = [];
     /**
      * An optional description for the action.
      * @var sting
@@ -347,7 +351,7 @@ class APIAction implements JsonI{
      * @return array an array that contains an objects of type RequestParameter.
      * @since 1.0
      */
-    public final function &getParameters(){
+    public final function getParameters(){
         return $this->parameters;
     }
     /**
@@ -357,7 +361,7 @@ class APIAction implements JsonI{
      * a parameter with the given name was found. null if nothing is found.
      * @since 1.2
      */
-    public final function &getParameterByName($paramName) {
+    public final function getParameterByName($paramName) {
         $trimmed = trim($paramName);
         if(strlen($trimmed) != 0){
             foreach ($this->parameters as $param){
