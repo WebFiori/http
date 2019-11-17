@@ -40,7 +40,7 @@ If you are using composer to collect your dependencies, you can simply include t
 ```
 Note that the <a href="https://github.com/usernane/jsonx">JsonX</a> library will be included with the installation files as this library is depending on it. 
 
-Another option is to download the latest release manually from <a href="https://github.com/usernane/restEasy/releases">Release</a>. The latest stable release of the laibrary is <a href="https://github.com/usernane/restEasy/releases/tag/v1.4.5">v1.4.5</a>
+Another option is to download the latest release manually from <a href="https://github.com/usernane/restEasy/releases">Release</a>. The latest stable release of the laibrary is <a href="https://github.com/usernane/restEasy/releases/tag/v1.4.6">v1.4.6</a>
 
 ## Usage
 The first step is to include the requierd classes. There are basically 3 classes that you need:
