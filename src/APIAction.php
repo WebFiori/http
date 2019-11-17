@@ -351,7 +351,7 @@ class APIAction implements JsonI{
      * @return array an array that contains an objects of type RequestParameter.
      * @since 1.0
      */
-    public final function getParameters(){
+    public final function &getParameters(){
         return $this->parameters;
     }
     /**
