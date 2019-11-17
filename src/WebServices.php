@@ -26,7 +26,7 @@ namespace restEasy;
 use jsonx\JsonI;
 use jsonx\JsonX;
 /**
- * A class that represents a set of web services service.
+ * A class that represents a set of web services.
  * This class is used to create web services.
  * In order to create a simple web service, the developer must 
  * follow the following steps:
@@ -34,11 +34,11 @@ use jsonx\JsonX;
  * <li>Extend this class.</li>
  * <li>Create API actions using the class APIAction. Each action will 
  * represent one service (end point).</li>
- * <li>Implement the abstract method <a href="#isAuthorized">WebAPI::isAuthorized()</a> 
- * and the method <a href="#processRequest">WebAPI::processRequest()</a></li>
+ * <li>Implement the abstract method <a href="#isAuthorized">WebServices::isAuthorized()</a> 
+ * and the method <a href="#processRequest">WebServices::processRequest()</a></li>
  * </li>
  * When a request is made to the API, An instance of the child class must be created 
- * and the method WebAPI::process() must be called.
+ * and the method <a href="#process">WebServices::process()</a> must be called.
  * @version 1.4.3
  */
 abstract class WebServices implements JsonI{

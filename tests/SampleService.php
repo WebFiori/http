@@ -8,7 +8,7 @@ use restEasy\WebServices;
  *
  * @author Eng.Ibrahim
  */
-class SampleAPI extends WebServices{
+class SampleService extends WebServices{
     public function __construct() {
         parent::__construct();
         $a00 = new APIAction('add-two-integers');
