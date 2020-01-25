@@ -46,11 +46,11 @@ Another option is to download the latest release manually from <a href="https://
 The first step is to include the requierd classes. There are basically 3 classes that you need:
 * <a href="https://programmingacademia.com/webfiori/docs/restEasy/RequestParameter">RequestParameter</a>
 * <a href="https://programmingacademia.com/webfiori/docs/restEasy/APIAction">APIAction</a>
-* <a href="https://programmingacademia.com/webfiori/docs/restEasy/WebAPI">WebAPI</a>
+* <a href="https://programmingacademia.com/webfiori/docs/restEasy/WebServices">WebServices</a>
 
 After that, you need to extend the class 'WebAPI' and implement two methods:
-* <a href="https://programmingacademia.com/webfiori/docs#isAuthorized">WebAPI::isAuthorized()</a>
-* <a href="https://programmingacademia.com/webfiori/docs#processRequest">WebAPI::processRequest()</a>
+* <a href="https://programmingacademia.com/webfiori/docs/restEasy/WebServices#isAuthorized">WebServices::isAuthorized()</a>
+* <a href="https://programmingacademia.com/webfiori/docs/restEasy/WebServices#processRequest">WebServices::processRequest()</a>
 
 The implementation of the first method will determine if the cliend who is calling the API is authorized to call it. It only applyies to the actions which require permissions. The method must be implemented in a way that it makes it return true if the user is authorized to access a specific end point.
 
@@ -61,22 +61,22 @@ The following code sample shows how to create a simple web API.
 ```php
 require_once '../jsonx/JsonX.php';
 require_once '../jsonx/JsonI.php';
-require_once '../WebAPI.php';
+require_once '../WebServices.php';
 require_once '../APIAction.php';
 require_once '../APIFilter.php';
 require_once '../RequestParameter.php';
-use restEasy\WebAPI;
+use restEasy\WebServices;
 use restEasy\APIAction;
 use restEasy\RequestParameter;
 /*
  * Steps for creating new API:
  * 1- Create a class that extends the class 'API'.
- * 2- Implement 'isAuthorized()' function.
- * 3- Implement 'processRequest()' function.
+ * 2- Implement 'isAuthorized()' method.
+ * 3- Implement 'processRequest()' method.
  * 4- Create an instance of the class.
  * 5- Call the function 'process()'.
  */
-class MyAPI extends WebAPI{
+class MyAPI extends WebServices{
     
     public function __construct() {
         parent::__construct();
