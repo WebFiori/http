@@ -26,7 +26,7 @@ An end point is represented as the class <a href="https://programmingacademia.co
 * The ability to create custom filters based on the need.
 
 ## Supported PHP Versions
-The library support all versions starting from version 5.6 up to version 7.3.
+The library support all versions starting from version 5.6 up to version 7.4.
 
 ## Installation
 If you are using composer to collect your dependencies, you can simply include the following entry in your 'composer.json' file:
