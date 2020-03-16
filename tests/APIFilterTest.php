@@ -1,14 +1,15 @@
 <?php
 namespace restEasy\tests;
+
 use PHPUnit\Framework\TestCase;
-use restEasy\RequestParameter;
 use restEasy\APIFilter;
+use restEasy\RequestParameter;
 /**
  * Description of APIFilterTest
  *
  * @author Eng.Ibrahim
  */
-class APIFilterTest extends TestCase{
+class APIFilterTest extends TestCase {
     /**
      *
      * @var APIFilter 
@@ -214,7 +215,6 @@ class APIFilterTest extends TestCase{
 //            $this->assertEquals('Admin',$nonFiltered['first-number']);
 //            $this->assertFalse(isset($nonFiltered['second-number']));
 //        }
-        
     }
     /**
      * @test
@@ -236,7 +236,7 @@ class APIFilterTest extends TestCase{
         $this->assertEquals('INV',$filtered['first-number']);
         $this->assertTrue(isset($filtered['second-number']));
         $this->assertEquals(1000,$filtered['second-number']);
-        
+
         $nonFiltered = $this->apiFilter->getNonFiltered();
         $this->assertTrue(isset($nonFiltered['first-number']));
         $this->assertEquals('Admin',$nonFiltered['first-number']);
@@ -264,7 +264,7 @@ class APIFilterTest extends TestCase{
         $this->assertTrue($filtered['first-number'] === null);
         $this->assertTrue(isset($filtered['second-number']));
         $this->assertEquals(100076800,$filtered['second-number']);
-        
+
         $nonFiltered = $this->apiFilter->getNonFiltered();
         $this->assertNull($nonFiltered['first-number']);
         $this->assertTrue(isset($nonFiltered['second-number']));
@@ -385,8 +385,10 @@ class APIFilterTest extends TestCase{
     public function testFilterGet19() {
         $this->apiFilter = new APIFilter();
         $param00 = new RequestParameter('send-to', 'email');
-        $param00->setCustomFilterFunction(function($val,$reqParam){
+        $param00->setCustomFilterFunction(function($val,$reqParam)
+        {
             $original = $val['basic-filter-result'];
+
             return 'Email to: '.$original;
         });
         $this->apiFilter->addRequestParameter($param00);
@@ -395,6 +397,71 @@ class APIFilterTest extends TestCase{
         $filtered = $this->apiFilter->getInputs();
         $this->assertEquals(1,count($filtered));
         $this->assertEquals('Email to: admin@example.com',$filtered['send-to']);
+    }
+    /**
+     * @test
+     */
+    public function testFilterPost01() {
+        $this->apiFilter = new APIFilter();
+        $param00 = new RequestParameter('array', 'array');
+        $this->apiFilter->addRequestParameter($param00);
+        $_POST['array'] = '["hello"]';
+        $this->apiFilter->filterPOST();
+        $filtered = $this->apiFilter->getInputs();
+        $this->assertEquals(1,count($filtered));
+        $this->assertEquals(["hello"],$filtered['array']);
+    }
+    /**
+     * @test
+     */
+    public function testFilterPost02() {
+        $this->apiFilter = new APIFilter();
+        $param00 = new RequestParameter('array', 'array');
+        $this->apiFilter->addRequestParameter($param00);
+        $_POST['array'] = '[1,2,6.9,8.9,99,-80]';
+        $this->apiFilter->filterPOST();
+        $filtered = $this->apiFilter->getInputs();
+        $this->assertEquals(1,count($filtered));
+        $this->assertEquals([1,2,6.9,8.9,99,-80],$filtered['array']);
+    }
+    /**
+     * @test
+     */
+    public function testFilterPost03() {
+        $this->apiFilter = new APIFilter();
+        $param00 = new RequestParameter('array', 'array');
+        $this->apiFilter->addRequestParameter($param00);
+        $_POST['array'] = '[true,false,null,"A , string"]';
+        $this->apiFilter->filterPOST();
+        $filtered = $this->apiFilter->getInputs();
+        $this->assertEquals(1,count($filtered));
+        $this->assertEquals([true,false,null,"A , string"],$filtered['array']);
+    }
+    /**
+     * @test
+     */
+    public function testFilterPost04() {
+        $this->apiFilter = new APIFilter();
+        $param00 = new RequestParameter('array', 'array');
+        $this->apiFilter->addRequestParameter($param00);
+        $_POST['array'] = "['Ooooh! it feels good!',-9986.8,true,779,false,\"A,Wrld, Is 55 imes, good. Is't\",null,-88.9,90,\"A , string\"]";
+        $this->apiFilter->filterPOST();
+        $filtered = $this->apiFilter->getInputs();
+        $this->assertEquals(1,count($filtered));
+        $this->assertEquals(["Ooooh! it feels good!",-9986.8,true,779,false,"A,Wrld, Is 55 imes, good. Is't",null,-88.9,90,"A , string"],$filtered['array']);
+    }
+    /**
+     * @test
+     */
+    public function testFilterPost05() {
+        $this->apiFilter = new APIFilter();
+        $param00 = new RequestParameter('array', 'array');
+        $this->apiFilter->addRequestParameter($param00);
+        $_POST['array'] = "['Ooooh! it feels good!',-9986.8,true,779,false,\"A,Wrld, <script>alert('Hello')</script> Is 55 imes, good. Is't\",null,-88.9,90,\"A , string\"]";
+        $this->apiFilter->filterPOST();
+        $filtered = $this->apiFilter->getInputs();
+        $this->assertEquals(1,count($filtered));
+        $this->assertEquals(["Ooooh! it feels good!",-9986.8,true,779,false,"A,Wrld, alert('Hello') Is 55 imes, good. Is't",null,-88.9,90,"A , string"],$filtered['array']);
     }
     /**
      * @test
@@ -433,70 +500,5 @@ class APIFilterTest extends TestCase{
         $filtered = $this->apiFilter->getInputs();
         $this->assertEquals(1,count($filtered));
         $this->assertFalse($filtered['boolean']);
-    }
-    /**
-     * @test
-     */
-    public function testFilterPost01() {
-        $this->apiFilter = new APIFilter();
-        $param00 = new RequestParameter('array', 'array');
-        $this->apiFilter->addRequestParameter($param00);
-        $_POST['array'] = '["hello"]';
-        $this->apiFilter->filterPOST();
-        $filtered = $this->apiFilter->getInputs();
-        $this->assertEquals(1,count($filtered));
-        $this->assertEquals(array("hello"),$filtered['array']);
-    }
-    /**
-     * @test
-     */
-    public function testFilterPost02() {
-        $this->apiFilter = new APIFilter();
-        $param00 = new RequestParameter('array', 'array');
-        $this->apiFilter->addRequestParameter($param00);
-        $_POST['array'] = '[1,2,6.9,8.9,99,-80]';
-        $this->apiFilter->filterPOST();
-        $filtered = $this->apiFilter->getInputs();
-        $this->assertEquals(1,count($filtered));
-        $this->assertEquals(array(1,2,6.9,8.9,99,-80),$filtered['array']);
-    }
-    /**
-     * @test
-     */
-    public function testFilterPost03() {
-        $this->apiFilter = new APIFilter();
-        $param00 = new RequestParameter('array', 'array');
-        $this->apiFilter->addRequestParameter($param00);
-        $_POST['array'] = '[true,false,null,"A , string"]';
-        $this->apiFilter->filterPOST();
-        $filtered = $this->apiFilter->getInputs();
-        $this->assertEquals(1,count($filtered));
-        $this->assertEquals(array(true,false,null,"A , string"),$filtered['array']);
-    }
-    /**
-     * @test
-     */
-    public function testFilterPost04() {
-        $this->apiFilter = new APIFilter();
-        $param00 = new RequestParameter('array', 'array');
-        $this->apiFilter->addRequestParameter($param00);
-        $_POST['array'] = "['Ooooh! it feels good!',-9986.8,true,779,false,\"A,Wrld, Is 55 imes, good. Is't\",null,-88.9,90,\"A , string\"]";
-        $this->apiFilter->filterPOST();
-        $filtered = $this->apiFilter->getInputs();
-        $this->assertEquals(1,count($filtered));
-        $this->assertEquals(array("Ooooh! it feels good!",-9986.8,true,779,false,"A,Wrld, Is 55 imes, good. Is't",null,-88.9,90,"A , string"),$filtered['array']);
-    }
-    /**
-     * @test
-     */
-    public function testFilterPost05() {
-        $this->apiFilter = new APIFilter();
-        $param00 = new RequestParameter('array', 'array');
-        $this->apiFilter->addRequestParameter($param00);
-        $_POST['array'] = "['Ooooh! it feels good!',-9986.8,true,779,false,\"A,Wrld, <script>alert('Hello')</script> Is 55 imes, good. Is't\",null,-88.9,90,\"A , string\"]";
-        $this->apiFilter->filterPOST();
-        $filtered = $this->apiFilter->getInputs();
-        $this->assertEquals(1,count($filtered));
-        $this->assertEquals(array("Ooooh! it feels good!",-9986.8,true,779,false,"A,Wrld, alert('Hello') Is 55 imes, good. Is't",null,-88.9,90,"A , string"),$filtered['array']);
     }
 }
