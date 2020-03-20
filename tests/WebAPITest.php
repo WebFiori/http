@@ -171,6 +171,7 @@ class WebAPITest extends TestCase {
      */
     public function testConstructor00() {
         $this->clrearVars();
+        putenv('REQUEST_METHOD=GET');
         $api = new SampleService();
         $this->assertEquals('GET',$api->getRequestMethod());
         $this->assertNull($api->getAction());
