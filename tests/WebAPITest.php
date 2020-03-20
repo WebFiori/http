@@ -295,6 +295,9 @@ class WebAPITest extends TestCase {
      * @depends testConstructor00
      */
     public function testProcess00($api) {
+        echo 'Action = \''.$api->getAction().'\''."\n";
+        var_dump($api->getAction());
+        echo "\n";
         $api->process();
         
         $this->expectOutputString('{"message":"Action is not set.", "type":"error", "http-code":404}');
