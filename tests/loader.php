@@ -41,8 +41,8 @@ if (explode($DS, $rootDirTrimmed)[0] == 'home') {
 }
 define('ROOT', $rootDir);
 fwrite($stderr,'Root Directory: \''.$rootDir.'\'.'."\n");
-require_once $rootDir.'src'.$DS.'jsonx'.$DS.'JsonX.php';
-require_once $rootDir.'src'.$DS.'jsonx'.$DS.'JsonI.php';
+require_once $rootDir.'vendor'.$DS.'jsonx'.$DS.'jsonx'.$DS.'src'.$DS.'JsonI.php';
+require_once $rootDir.'vendor'.$DS.'jsonx'.$DS.'jsonx'.$DS.'src'.$DS.'JsonX.php';
 require_once $rootDir.'src'.$DS.'APIAction.php';
 require_once $rootDir.'src'.$DS.'APIFilter.php';
 require_once $rootDir.'src'.$DS.'RequestParameter.php';
