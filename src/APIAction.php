@@ -160,54 +160,40 @@ class APIAction implements JsonI {
         $reqMethodsStr .= "    ],\n";
         $retVal .= "    Request Methods => $reqMethodsStr";
         $paramsStr = "[\n";
-
+        $comma = ',';
         for ($x = 0 , $count = count($this->getParameters()); $x < $count ; $x++) {
             $param = $this->getParameters()[$x];
-
-            if ($x + 1 == $count) {
-                $paramsStr .= "        ".$param->getName()." => [\n";
-                $paramsStr .= "            Type => '".$param->getType()."',\n";
-                $descStr = $param->getDescription() === null ? 'null' : $param->getDescription();
-                $paramsStr .= "            Description => '$descStr',\n";
-                $isOptional = $param->isOptional() ? 'true' : 'false';
-                $paramsStr .= "            Is Optional => '$isOptional',\n";
-                $defaultStr = $param->getDefault() === null ? 'null' : $param->getDefault();
-                $paramsStr .= "            Default => '$defaultStr',\n";
-                $min = $param->getMinVal() === null ? 'null' : $param->getMinVal();
-                $paramsStr .= "            Minimum Value => '$min',\n";
-                $max = $param->getMaxVal() === null ? 'null' : $param->getMaxVal();
-                $paramsStr .= "            Maximum Value => '$max'\n        ]\n";
-            } else {
-                $paramsStr .= "        ".$param->getName()." => [\n";
-                $paramsStr .= "            Type => '".$param->getType()."',\n";
-                $descStr = $param->getDescription() === null ? 'null' : $param->getDescription();
-                $paramsStr .= "            Description => '$descStr',\n";
-                $isOptional = $param->isOptional() ? 'true' : 'false';
-                $paramsStr .= "            Is Optional => '$isOptional',\n";
-                $defaultStr = $param->getDefault() === null ? 'null' : $param->getDefault();
-                $paramsStr .= "            Default => '$defaultStr',\n";
-                $min = $param->getMinVal() === null ? 'null' : $param->getMinVal();
-                $paramsStr .= "            Minimum Value => '$min',\n";
-                $max = $param->getMaxVal() === null ? 'null' : $param->getMaxVal();
-                $paramsStr .= "            Maximum Value => '$max'\n        ],\n";
+            $paramsStr .= "        ".$param->getName()." => [\n";
+            $paramsStr .= "            Type => '".$param->getType()."',\n";
+            $descStr = $param->getDescription() === null ? 'null' : $param->getDescription();
+            $paramsStr .= "            Description => '$descStr',\n";
+            $isOptional = $param->isOptional() ? 'true' : 'false';
+            $paramsStr .= "            Is Optional => '$isOptional',\n";
+            $defaultStr = $param->getDefault() === null ? 'null' : $param->getDefault();
+            $paramsStr .= "            Default => '$defaultStr',\n";
+            $min = $param->getMinVal() === null ? 'null' : $param->getMinVal();
+            $paramsStr .= "            Minimum Value => '$min',\n";
+            $max = $param->getMaxVal() === null ? 'null' : $param->getMaxVal();
+            $paramsStr .= "            Maximum Value => '$max'\n        ]$comma\n";
+            if($x + 1 == $count){
+                $comma = '';
             }
         }
         $paramsStr .= "    ],\n";
         $retVal .= "    Parameters => $paramsStr";
-        $responses = "[\n";
+        $responsesStr = "[\n";
         $count = count($this->getResponsesDescriptions());
 
         for ($x = 0 ; $x < $count ; $x++) {
             if ($x + 1 == $count) {
-                $responses .= "        Response #$x => '".$this->getResponsesDescriptions()[$x]."'\n";
+                $responsesStr .= "        Response #$x => '".$this->getResponsesDescriptions()[$x]."'\n";
             } else {
-                $responses .= "        Response #$x => '".$this->getResponsesDescriptions()[$x]."',\n";
+                $responsesStr .= "        Response #$x => '".$this->getResponsesDescriptions()[$x]."',\n";
             }
         }
-        $responses .= "    ]\n";
-        $retVal .= "    Responses Descriptions => $responses]\n";
-
-        return $retVal;
+        $responsesStr .= "    ]\n";
+        
+        return "    Responses Descriptions => $responsesStr]\n";
     }
     /**
      * Adds new request parameter for the action.
@@ -220,12 +206,10 @@ class APIAction implements JsonI {
      * @since 1.0
      */
     public function addParameter($param) {
-        if ($param instanceof RequestParameter) {
-            if (!$this->hasParameter($param->getName())) {
-                $this->parameters[] = $param;
+        if ($param instanceof RequestParameter && !$this->hasParameter($param->getName())) {
+            $this->parameters[] = $param;
 
-                return true;
-            }
+            return true;
         }
 
         return false;
@@ -244,12 +228,10 @@ class APIAction implements JsonI {
     public final function addRequestMethod($method) {
         $uMethod = strtoupper(trim($method));
 
-        if (in_array($uMethod, self::METHODS)) {
-            if (!in_array($uMethod, $this->reqMethods)) {
-                $this->reqMethods[] = $uMethod;
+        if (in_array($uMethod, self::METHODS) && !in_array($uMethod, $this->reqMethods)) {
+            $this->reqMethods[] = $uMethod;
 
-                return true;
-            }
+            return true;
         }
 
         return false;
@@ -303,9 +285,8 @@ class APIAction implements JsonI {
                 }
             }
         }
-        $null = null;
 
-        return $null;
+        return null;
     }
     /**
      * Returns an indexed array that contains information about possible responses.
@@ -452,8 +433,8 @@ class APIAction implements JsonI {
             for ($x = 0 ; $x < $len ; $x++) {
                 $ch = $trimmedName[$x];
 
-                if ($ch == '_' || $ch == '-' || ($ch >= 'a' && $ch <= 'z') || ($ch >= 'A' && $ch <= 'Z') || ($ch >= '0' && $ch <= '9')) {
-                } else {
+                if (!($ch == '_' || $ch == '-' || ($ch >= 'a' && $ch <= 'z') || ($ch >= 'A' && $ch <= 'Z') || ($ch >= '0' && $ch <= '9'))) {
+                
                     return false;
                 }
             }
