@@ -147,19 +147,19 @@ class APIAction implements JsonI {
         $since = $this->getSince() === null ? 'null' : $this->getSince();
         $retVal .= "    Since => '$since',\n";
         $reqMethodsStr = "[\n";
-
+        $comma = ',';
         for ($x = 0,  $count = count($this->getActionMethods()) ; $x < $count ; $x++) {
             $meth = $this->getActionMethods()[$x];
 
             if ($x + 1 == $count) {
-                $reqMethodsStr .= "        $meth\n";
-            } else {
-                $reqMethodsStr .= "        $meth,\n";
+                $comma = '';
             }
+            $reqMethodsStr .= "        $meth$comma\n";
         }
         $reqMethodsStr .= "    ],\n";
         $retVal .= "    Request Methods => $reqMethodsStr";
         $paramsStr = "[\n";
+        
         $comma = ',';
         for ($x = 0 , $count = count($this->getParameters()); $x < $count ; $x++) {
             $param = $this->getParameters()[$x];
@@ -174,26 +174,25 @@ class APIAction implements JsonI {
             $min = $param->getMinVal() === null ? 'null' : $param->getMinVal();
             $paramsStr .= "            Minimum Value => '$min',\n";
             $max = $param->getMaxVal() === null ? 'null' : $param->getMaxVal();
-            $paramsStr .= "            Maximum Value => '$max'\n        ]$comma\n";
             if($x + 1 == $count){
                 $comma = '';
             }
+            $paramsStr .= "            Maximum Value => '$max'\n        ]$comma\n";
+            
         }
         $paramsStr .= "    ],\n";
         $retVal .= "    Parameters => $paramsStr";
         $responsesStr = "[\n";
         $count = count($this->getResponsesDescriptions());
-
+        $comma = ',';
         for ($x = 0 ; $x < $count ; $x++) {
-            if ($x + 1 == $count) {
-                $responsesStr .= "        Response #$x => '".$this->getResponsesDescriptions()[$x]."'\n";
-            } else {
-                $responsesStr .= "        Response #$x => '".$this->getResponsesDescriptions()[$x]."',\n";
+            if($x + 1 == $count){
+                $comma = '';
             }
+            $responsesStr .= "        Response #$x => '".$this->getResponsesDescriptions()[$x]."'".$comma."\n";
         }
         $responsesStr .= "    ]\n";
-        
-        return "    Responses Descriptions => $responsesStr]\n";
+        return $retVal."    Responses Descriptions => $responsesStr]\n";
     }
     /**
      * Adds new request parameter for the action.
