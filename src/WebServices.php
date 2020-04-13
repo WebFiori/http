@@ -553,55 +553,57 @@ abstract class WebServices implements JsonI {
         $this->invParamsArr = [];
         $this->missingParamsArr = [];
 
-        if ($this->isContentTypeSupported() && $this->_checkAction()) {
-            $actionObj = $this->getActionByName($this->getAction());
-            $params = $actionObj->getParameters();
-            $this->filter->clearParametersDef();
-            $this->filter->clearInputs();
+        if ($this->isContentTypeSupported()) {
+            if($this->_checkAction()){
+                $actionObj = $this->getActionByName($this->getAction());
+                $params = $actionObj->getParameters();
+                $this->filter->clearParametersDef();
+                $this->filter->clearInputs();
 
-            foreach ($params as $param) {
-                $this->filter->addRequestParameter($param);
-            }
-            $reqMeth = $this->getRequestMethod();
-
-            if ($reqMeth == 'GET' || 
-                $reqMeth == 'DELETE' || 
-                $reqMeth == 'PUT' || 
-                $reqMeth == 'OPTIONS' || 
-                $reqMeth == 'PATCH') {
-                $this->filter->filterGET();
-            } else if ($reqMeth == 'POST') {
-                $this->filter->filterPOST();
-            }
-            $i = $this->getInputs();
-            $processReq = true;
-
-            foreach ($params as $param) {
-                if (!$param->isOptional() && !isset($i[$param->getName()])) {
-                    array_push($this->missingParamsArr, $param->getName());
-                    $processReq = false;
+                foreach ($params as $param) {
+                    $this->filter->addRequestParameter($param);
                 }
+                $reqMeth = $this->getRequestMethod();
 
-                if (isset($i[$param->getName()]) && $i[$param->getName()] === 'INV') {
-                    array_push($this->invParamsArr, $param->getName());
-                    $processReq = false;
+                if ($reqMeth == 'GET' || 
+                    $reqMeth == 'DELETE' || 
+                    $reqMeth == 'PUT' || 
+                    $reqMeth == 'OPTIONS' || 
+                    $reqMeth == 'PATCH') {
+                    $this->filter->filterGET();
+                } else if ($reqMeth == 'POST') {
+                    $this->filter->filterPOST();
                 }
-            }
+                $i = $this->getInputs();
+                $processReq = true;
 
-            if ($processReq) {
-                if ($this->_isAuthorizedAction()) {
-                    if ($this->getAction() == 'api-info') {
-                        $this->send('application/json', $this->toJSON());
-                    } else {
-                        $this->processRequest();
+                foreach ($params as $param) {
+                    if (!$param->isOptional() && !isset($i[$param->getName()])) {
+                        array_push($this->missingParamsArr, $param->getName());
+                        $processReq = false;
                     }
-                } else {
-                    $this->notAuth();
+
+                    if (isset($i[$param->getName()]) && $i[$param->getName()] === 'INV') {
+                        array_push($this->invParamsArr, $param->getName());
+                        $processReq = false;
+                    }
                 }
-            } else if (count($this->missingParamsArr) != 0) {
-                $this->missingParams();
-            } else if (count($this->invParamsArr) != 0) {
-                $this->invParams();
+
+                if ($processReq) {
+                    if ($this->_isAuthorizedAction()) {
+                        if ($this->getAction() == 'api-info') {
+                            $this->send('application/json', $this->toJSON());
+                        } else {
+                            $this->processRequest();
+                        }
+                    } else {
+                        $this->notAuth();
+                    }
+                } else if (count($this->missingParamsArr) != 0) {
+                    $this->missingParams();
+                } else if (count($this->invParamsArr) != 0) {
+                    $this->invParams();
+                }
             }
         } else {
             $this->contentTypeNotSupported($this->getContentType());
