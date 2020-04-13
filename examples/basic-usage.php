@@ -3,12 +3,15 @@
 ini_set('display_startup_errors', 1);
 ini_set('display_errors', 1);
 error_reporting(-1);
-require_once '../jsonx/JsonX.php';
-require_once '../jsonx/JsonI.php';
-require_once '../WebAPI.php';
-require_once '../APIAction.php';
-require_once '../APIFilter.php';
-require_once '../RequestParameter.php';
+require_once '../vendor/webfiori/jsonx/src/JsonI.php';
+require_once '../vendor/webfiori/jsonx/src/JsonX.php';
+require_once '../src/APIAction.php';
+require_once '../src/APIFilter.php';
+require_once '../src/RequestParameter.php';
+require_once '../src/WebServices.php';
+
+use jsonx\JsonI;
+use jsonx\JsonX;
 use restEasy\APIAction;
 use restEasy\RequestParameter;
 use restEasy\WebServices;
@@ -100,7 +103,7 @@ $a = new MyAPI();
  * in a folder which has the name 'restEasy/examples', You can perform the 
  * following GET requests to the API:
  * 
- * 1- http://localhost/restEasy/src/examples/basic-usage.php
+ * 1- http://localhost/restEasy/examples/basic-usage.php
  * This will output the following JSON:
  * {
  *     "message":"Action is not set.",
@@ -108,13 +111,13 @@ $a = new MyAPI();
  *     "http-code":404
  * }
  * 
- * 2- http://localhost/restEasy/src/examples/basic-usage.php?action=my-action
+ * 2- http://localhost/restEasy/examples/basic-usage.php?action=my-action
  * This will output the following string: ""my-param" is not set".
  * 
- * 3- http://localhost/restEasy/src/examples/basic-usage.php?action=my-action&my-param=hello%20world
+ * 3- http://localhost/restEasy/examples/basic-usage.php?action=my-action&my-param=hello%20world
  * This will output the following string: ""my-param" = hello world".
  * 
- * 4- http://localhost/restEasy/src/examples/basic-usage.php?action=auth-action
+ * 4- http://localhost/restEasy/examples/basic-usage.php?action=auth-action
  * This will output the following JSON:
  * {
  *     "message":"The following required parameter(s) where missing from the request body: 'name'.",
@@ -122,7 +125,7 @@ $a = new MyAPI();
  *     "http-code":404
  * }
  * 
- * 5- http://localhost/restEasy/src/examples/basic-usage.php?action=auth-action&name=Ibrahim
+ * 5- http://localhost/restEasy/examples/basic-usage.php?action=auth-action&name=Ibrahim
  * This will output the following JSON:
  * {
  *     "message":"Not authorized.",
@@ -130,7 +133,7 @@ $a = new MyAPI();
  *     "http-code":401
  * }
  * 
- * 6- http://localhost/restEasy/src/examples/basic-usage.php?action=auth-action&name=Ibrahim&pass=1234
+ * 6- http://localhost/restEasy/examples/basic-usage.php?action=auth-action&name=Ibrahim&pass=1234
  * This will output the following JSON:
  * {
  *     "message":"Not authorized.",
@@ -138,6 +141,6 @@ $a = new MyAPI();
  *     "http-code":401
  * }
  * 
- * 7- http://localhost/restEasy/src/examples/basic-usage.php?action=auth-action&name=Ibrahim&pass=123
+ * 7- http://localhost/restEasy/examples/basic-usage.php?action=auth-action&name=Ibrahim&pass=123
  * This will output the following string: "Dear Ibrahim, you are authorized to access the API."
  */
