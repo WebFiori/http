@@ -369,6 +369,7 @@ class APIFilter {
 
                     if ($number != self::INVALID) {
                         $arrayValues[] = $number;
+                        continue;
                     } else {
                         return $retVal;
                     }
@@ -387,6 +388,7 @@ class APIFilter {
 
                             if ($number != self::INVALID) {
                                 $arrayValues[] = $number;
+                                continue;
                             } else {
                                 return $retVal;
                             }
