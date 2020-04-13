@@ -684,7 +684,6 @@ abstract class WebServices implements JsonI {
         http_response_code($code);
         $json = new JsonX();
         $json->add('message', $message);
-        $json->add('type', self::I);
         $typeTrimmed = trim($type);
 
         if (strlen($typeTrimmed) !== 0) {
