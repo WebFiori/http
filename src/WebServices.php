@@ -40,9 +40,19 @@ use jsonx\JsonX;
  * </li>
  * When a request is made to the API, An instance of the child class must be created 
  * and the method <a href="#process">WebServices::process()</a> must be called.
- * @version 1.4.3
+ * @version 1.4.4
  */
 abstract class WebServices implements JsonI {
+    /**
+     * A constant which is used to indicate that the message that will be 
+     * sent is of type error
+     */
+    const E = 'error';
+    /**
+     * A constant which is used to indicate that the message that will be 
+     * sent is of type info
+     */
+    const I = 'info';
     /**
      * An array that contains the supported 'POST' request content types.
      * This array has the following values:
@@ -154,7 +164,7 @@ abstract class WebServices implements JsonI {
      * @since 1.0
      */
     public function actionNotImpl() {
-        $this->sendResponse('Action not implemented.', 'error', 404);
+        $this->sendResponse('Action not implemented.', self::E, 404);
     }
     /**
      * Sends a response message to indicate that an action is not supported by the API.
@@ -169,7 +179,7 @@ abstract class WebServices implements JsonI {
      * @since 1.0
      */
     public function actionNotSupported() {
-        $this->sendResponse('Action not supported.', 'error', 404);
+        $this->sendResponse('Action not supported.', self::E, 404);
     }
     /**
      * Adds new action to the set of API actions.
@@ -180,18 +190,16 @@ abstract class WebServices implements JsonI {
      * @since 1.0
      */
     public function addAction($action,$reqPermissions = false) {
-        if ($action instanceof APIAction) {
-            if (!in_array($action, $this->getActions()) && !in_array($action, $this->getAuthActions())) {
-                $action->setSince($this->getVersion());
+        if ($action instanceof APIAction && (!in_array($action, $this->getActions()) && !in_array($action, $this->getAuthActions()))) {
+            $action->setSince($this->getVersion());
 
-                if ($reqPermissions == true) {
-                    array_push($this->authActions, $action);
-                } else {
-                    array_push($this->actions, $action);
-                }
-
-                return true;
+            if ($reqPermissions === true) {
+                array_push($this->authActions, $action);
+            } else {
+                array_push($this->actions, $action);
             }
+
+            return true;
         }
 
         return false;
@@ -215,7 +223,7 @@ abstract class WebServices implements JsonI {
     public function contentTypeNotSupported($cType = '') {
         $j = new JsonX();
         $j->add('request-content-type', $cType);
-        $this->sendResponse('Content type not supported.', 'error', 404,$j);
+        $this->sendResponse('Content type not supported.', self::E, 404,$j);
     }
     /**
      * Sends a response message to indicate that a database error has occur.
@@ -235,7 +243,7 @@ abstract class WebServices implements JsonI {
      * @since 1.0
      */
     public function databaseErr($info = '') {
-        $this->sendResponse('Database Error.', 'error', 500, $info);
+        $this->sendResponse('Database Error.', self::E, 500, $info);
     }
     /**
      * Returns the action that was requested to perform.
@@ -248,20 +256,14 @@ abstract class WebServices implements JsonI {
      */
     public function getAction() {
         $reqMeth = $this->getRequestMethod();
-
-        if ($reqMeth == 'GET' || 
+        $apiActionIdx = 'action';
+        if (($reqMeth == 'GET' || 
            $reqMeth == 'DELETE' ||  
            $reqMeth == 'OPTIONS' || 
-           $reqMeth == 'PATCH') {
-            if (isset($_GET['action'])) {
-                return filter_var($_GET['action']);
-            }
-        } else {
-            if ($reqMeth == 'POST' || $reqMeth == 'PUT') {
-                if (isset($_POST['action'])) {
-                    return filter_var($_POST['action']);
-                }
-            }
+           $reqMeth == 'PATCH') && isset($_GET[$apiActionIdx])) {
+            return filter_var($_GET[$apiActionIdx]);
+        } else if (($reqMeth == 'POST' || $reqMeth == 'PUT') && isset($_POST[$apiActionIdx])) {
+            return filter_var($_POST[$apiActionIdx]);
         }
 
         return null;
@@ -290,9 +292,8 @@ abstract class WebServices implements JsonI {
                 }
             }
         }
-        $null = null;
 
-        return $null;
+        return null;
     }
     /**
      * Returns an array that contains all added actions.
@@ -321,7 +322,7 @@ abstract class WebServices implements JsonI {
     public final function getContentType() {
         $c = isset($_SERVER['CONTENT_TYPE']) ? filter_var($_SERVER['CONTENT_TYPE']) : null;
 
-        if ($c != null && $c != false) {
+        if ($c !== null && $c !== false) {
             return trim(explode(';', $c)[0]);
         }
 
@@ -425,7 +426,7 @@ abstract class WebServices implements JsonI {
             }
             $i++;
         }
-        $this->sendResponse('The following parameter(s) has invalid values: '.$val.'.', 'error', 404);
+        $this->sendResponse('The following parameter(s) has invalid values: '.$val.'.', self::E, 404);
     }
     /**
      * Checks if the action that is used to fetch the API is supported or not.
@@ -472,7 +473,7 @@ abstract class WebServices implements JsonI {
         $c = $this->getContentType();
         $rm = $this->getRequestMethod();
 
-        if ($c != null && $rm == 'POST' || $rm == 'PUT') {
+        if ($c !== null && $rm == 'POST' || $rm == 'PUT') {
             return in_array($c, self::POST_CONTENT_TYPES);
         } else {
             if ($c === null && $rm == 'POST' || $rm == 'PUT') {
@@ -496,7 +497,7 @@ abstract class WebServices implements JsonI {
      * @since 1.3.1
      */
     public function missingAPIAction() {
-        $this->sendResponse('Action is not set.', 'error', 404);
+        $this->sendResponse('Action is not set.', self::E, 404);
     }
     /**
      * Sends a response message to indicate that a request parameter or parameters are missing.
@@ -524,7 +525,7 @@ abstract class WebServices implements JsonI {
             }
             $i++;
         }
-        $this->sendResponse('The following required parameter(s) where missing from the request body: '.$val.'.', 'error', 404);
+        $this->sendResponse('The following required parameter(s) where missing from the request body: '.$val.'.', self::E, 404);
     }
     /**
      * Sends a response message to indicate that a user is not authorized to 
@@ -540,7 +541,7 @@ abstract class WebServices implements JsonI {
      * @since 1.0
      */
     public function notAuth() {
-        $this->sendResponse('Not authorized.', 'error', 401);
+        $this->sendResponse('Not authorized.', self::E, 401);
     }
     /**
      * Process user request. 
@@ -552,65 +553,55 @@ abstract class WebServices implements JsonI {
         $this->invParamsArr = [];
         $this->missingParamsArr = [];
 
-        if ($this->isContentTypeSupported()) {
-            if ($this->_checkAction()) {
-                $actionObj = $this->getActionByName($this->getAction());
-                $params = $actionObj->getParameters();
-                $this->filter->clearParametersDef();
-                $this->filter->clearInputs();
+        if ($this->isContentTypeSupported() && $this->_checkAction()) {
+            $actionObj = $this->getActionByName($this->getAction());
+            $params = $actionObj->getParameters();
+            $this->filter->clearParametersDef();
+            $this->filter->clearInputs();
 
-                foreach ($params as $param) {
-                    $this->filter->addRequestParameter($param);
-                }
-                $reqMeth = $this->getRequestMethod();
+            foreach ($params as $param) {
+                $this->filter->addRequestParameter($param);
+            }
+            $reqMeth = $this->getRequestMethod();
 
-                if ($reqMeth == 'GET' || 
-                    $reqMeth == 'DELETE' || 
-                    $reqMeth == 'PUT' || 
-                    $reqMeth == 'OPTIONS' || 
-                    $reqMeth == 'PATCH') {
-                    $this->filter->filterGET();
-                } else {
-                    if ($reqMeth == 'POST') {
-                        $this->filter->filterPOST();
-                    }
-                }
-                $i = $this->getInputs();
-                $processReq = true;
+            if ($reqMeth == 'GET' || 
+                $reqMeth == 'DELETE' || 
+                $reqMeth == 'PUT' || 
+                $reqMeth == 'OPTIONS' || 
+                $reqMeth == 'PATCH') {
+                $this->filter->filterGET();
+            } else if ($reqMeth == 'POST') {
+                $this->filter->filterPOST();
+            }
+            $i = $this->getInputs();
+            $processReq = true;
 
-                foreach ($params as $param) {
-                    if (!$param->isOptional()) {
-                        if (!isset($i[$param->getName()])) {
-                            array_push($this->missingParamsArr, $param->getName());
-                            $processReq = false;
-                        }
-                    }
-
-                    if (isset($i[$param->getName()]) && $i[$param->getName()] === 'INV') {
-                        array_push($this->invParamsArr, $param->getName());
-                        $processReq = false;
-                    }
+            foreach ($params as $param) {
+                if (!$param->isOptional() && !isset($i[$param->getName()])) {
+                    array_push($this->missingParamsArr, $param->getName());
+                    $processReq = false;
                 }
 
-                if ($processReq) {
-                    if ($this->_isAuthorizedAction()) {
-                        if ($this->getAction() == 'api-info') {
-                            $this->send('application/json', $this->toJSON());
-                        } else {
-                            $this->processRequest();
-                        }
+                if (isset($i[$param->getName()]) && $i[$param->getName()] === 'INV') {
+                    array_push($this->invParamsArr, $param->getName());
+                    $processReq = false;
+                }
+            }
+
+            if ($processReq) {
+                if ($this->_isAuthorizedAction()) {
+                    if ($this->getAction() == 'api-info') {
+                        $this->send('application/json', $this->toJSON());
                     } else {
-                        $this->notAuth();
+                        $this->processRequest();
                     }
                 } else {
-                    if (count($this->missingParamsArr) != 0) {
-                        $this->missingParams();
-                    } else {
-                        if (count($this->invParamsArr) != 0) {
-                            $this->invParams();
-                        }
-                    }
+                    $this->notAuth();
                 }
+            } else if (count($this->missingParamsArr) != 0) {
+                $this->missingParams();
+            } else if (count($this->invParamsArr) != 0) {
+                $this->invParams();
             }
         } else {
             $this->contentTypeNotSupported($this->getContentType());
@@ -634,7 +625,7 @@ abstract class WebServices implements JsonI {
      * @since 1.0
      */
     public function requestMethodNotAllowed() {
-        $this->sendResponse('Method Not Allowed.', 'error', 405);
+        $this->sendResponse('Method Not Allowed.', self::E, 405);
     }
     /**
      * Sends Back a data using specific content type using specific response code.
@@ -648,7 +639,6 @@ abstract class WebServices implements JsonI {
         http_response_code($code);
         header('content-type:'.$conentType);
         echo $data;
-        //die();
     }
     /**
      * Sends back multiple HTTP headers to the client.
@@ -692,6 +682,7 @@ abstract class WebServices implements JsonI {
         http_response_code($code);
         $json = new JsonX();
         $json->add('message', $message);
+        $json->add('type', self::I);
         $typeTrimmed = trim($type);
 
         if (strlen($typeTrimmed) !== 0) {
@@ -703,7 +694,6 @@ abstract class WebServices implements JsonI {
             $json->add('more-info', $otherInfo);
         }
         echo $json;
-        //die();
     }
     /**
      * Sets the description of the API.
@@ -757,22 +747,22 @@ abstract class WebServices implements JsonI {
             $json->add('actions', $this->getActions());
             $json->add('auth-actions', $this->getAuthActions());
         } else {
-            $actions = [];
+            $actionsArr = [];
 
             foreach ($this->getActions() as $a) {
                 if ($a->getSince() == $vNum) {
-                    array_push($actions, $a);
+                    array_push($actionsArr, $a);
                 }
             }
-            $authActions = [];
+            $authActionsArr = [];
 
             foreach ($this->getAuthActions() as $a) {
                 if ($a->getSince() == $vNum) {
-                    array_push($authActions, $a);
+                    array_push($authActionsArr, $a);
                 }
             }
-            $json->add('actions', $actions);
-            $json->add('auth-actions', $authActions);
+            $json->add('actions', $actionsArr);
+            $json->add('auth-actions', $authActionsArr);
         }
 
         return $json;

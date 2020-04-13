@@ -160,16 +160,15 @@ class RequestParameter implements JsonI {
         $retVal .= "    Type => '".$this->getType()."',\n";
         $descStr = $this->getDescription() === null ? 'null' : $this->getDescription();
         $retVal .= "    Description => '$descStr',\n";
-        $isOptional = $this->isOptional() ? 'true' : 'false';
-        $retVal .= "    Is Optional => '$isOptional',\n";
+        $isOptionalStr = $this->isOptional() ? 'true' : 'false';
+        $retVal .= "    Is Optional => '$isOptionalStr',\n";
         $defaultStr = $this->getDefault() === null ? 'null' : $this->getDefault();
         $retVal .= "    Default => '$defaultStr',\n";
         $min = $this->getMinVal() === null ? 'null' : $this->getMinVal();
         $retVal .= "    Minimum Value => '$min',\n";
         $max = $this->getMaxVal() === null ? 'null' : $this->getMaxVal();
-        $retVal .= "    Maximum Value => '$max'\n]\n";
-
-        return $retVal;
+        
+        return $retVal . "    Maximum Value => '$max'\n]\n";
     }
     /**
      * Checks if we need to apply basic filter or not 
@@ -326,11 +325,11 @@ class RequestParameter implements JsonI {
     public function setDefault($val) {
         $valType = gettype($val);
         $RPType = $this->getType();
-
+        $T = APIFilter::TYPES;
         if ($valType == $RPType || 
-          ($RPType == 'float' && $valType == 'double') || 
-          ($valType == 'string' && ($RPType == 'url' || $RPType == 'email')) || 
-          ($valType == 'integer' && $RPType == 'float')) {
+          ($RPType == $T[3] && $valType == 'double') || 
+          ($valType == $T[0] && ($RPType == $T[4] || $RPType == $T[2])) || 
+          ($valType == $T[1] && $RPType == $T[3])) {
             $this->default = $val;
 
             return true;
@@ -359,7 +358,7 @@ class RequestParameter implements JsonI {
      * @since 1.2.1
      */
     public function setIsEmptyStringAllowed($bool) {
-        if ($this->getType() == 'string') {
+        if ($this->getType() == APIFilter::TYPES[0]) {
             $this->isEmptStrAllowed = $bool === true ? true : false;
 
             return true;
@@ -393,8 +392,8 @@ class RequestParameter implements JsonI {
         $type = $this->getType();
         $valType = gettype($val);
 
-        if (($type == 'integer' && $valType == 'integer') || 
-            ($type == 'float' && ($valType == 'double' || $valType == 'integer'))) {
+        if (($type == APIFilter::TYPES[1] && $valType == APIFilter::TYPES[1]) || 
+            ($type == APIFilter::TYPES[3] && ($valType == 'double' || $valType == APIFilter::TYPES[1]))) {
             $min = $this->getMinVal();
 
             if ($min !== null && $val > $min) {
@@ -423,8 +422,8 @@ class RequestParameter implements JsonI {
         $type = $this->getType();
         $valType = gettype($val);
 
-        if (($type == 'integer' && $valType == 'integer') || 
-            ($type == 'float' && ($valType == 'double' || $valType == 'integer'))) {
+        if (($type == APIFilter::TYPES[1] && $valType == APIFilter::TYPES[1]) || 
+            ($type == APIFilter::TYPES[3] && ($valType == 'double' || $valType == APIFilter::TYPES[1]))) {
             $max = $this->getMaxVal();
 
             if ($max !== null && $val < $max) {
@@ -459,8 +458,8 @@ class RequestParameter implements JsonI {
             for ($x = 0 ; $x < $len ; $x++) {
                 $ch = $nameTrimmed[$x];
 
-                if ($ch == '_' || $ch == '-' || ($ch >= 'a' && $ch <= 'z') || ($ch >= 'A' && $ch <= 'Z') || ($ch >= '0' && $ch <= '9')) {
-                } else {
+                if (!($ch == '_' || $ch == '-' || ($ch >= 'a' && $ch <= 'z') || ($ch >= 'A' && $ch <= 'Z') || ($ch >= '0' && $ch <= '9'))) {
+                    
                     return false;
                 }
             }
@@ -485,22 +484,18 @@ class RequestParameter implements JsonI {
         if (in_array($sType, APIFilter::TYPES)) {
             $this->type = $sType;
 
-            if ($sType == 'integer' || ($sType == 'float' && PHP_MAJOR_VERSION <= 7 && PHP_MINOR_VERSION < 2)) {
+            if ($sType == APIFilter::TYPES[1] || ($sType == APIFilter::TYPES[3] && PHP_MAJOR_VERSION <= 7 && PHP_MINOR_VERSION < 2)) {
+                $this->minVal = defined('PHP_INT_MIN') ? PHP_INT_MIN : ~PHP_INT_MAX;
+                $this->maxVal = PHP_INT_MAX;
+            } else if ($sType == APIFilter::TYPES[3] && PHP_MAJOR_VERSION >= 7 && PHP_MINOR_VERSION >= 2) {
+                $this->maxVal = PHP_FLOAT_MAX;
+                $this->minVal = PHP_FLOAT_MIN;
+            } else if ($sType == APIFilter::TYPES[1] || $sType == APIFilter::TYPES[3]) {
                 $this->minVal = defined('PHP_INT_MIN') ? PHP_INT_MIN : ~PHP_INT_MAX;
                 $this->maxVal = PHP_INT_MAX;
             } else {
-                if ($sType == 'float' && PHP_MAJOR_VERSION >= 7 && PHP_MINOR_VERSION >= 2) {
-                    $this->maxVal = PHP_FLOAT_MAX;
-                    $this->minVal = PHP_FLOAT_MIN;
-                } else {
-                    if ($sType == 'integer' || $sType == 'float') {
-                        $this->minVal = defined('PHP_INT_MIN') ? PHP_INT_MIN : ~PHP_INT_MAX;
-                        $this->maxVal = PHP_INT_MAX;
-                    } else {
-                        $this->maxVal = null;
-                        $this->minVal = null;
-                    }
-                }
+                $this->maxVal = null;
+                $this->minVal = null;
             }
 
             return true;

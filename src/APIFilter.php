@@ -172,9 +172,11 @@ class APIFilter {
      * @since 1.2.2
      */
     public static function filter($apiFilter,$arr) {
+        $filteredIdx = 'filtered';
+        $noFIdx = 'non-filtered';
         $retVal = [
-            'filtered' => [],
-            'non-filtered' => []
+            $filteredIdx => [],
+            $noFIdx => []
         ];
         $paramIdx = 'parameter';
         $filterIdx = 'filters';
@@ -189,7 +191,7 @@ class APIFilter {
 
                 if (isset($arr[$name])) {
                     $toBeFiltered = $arr[$name];
-                    $retVal['non-filtered'][$name] = $arr[$name];
+                    $retVal[$noFIdx][$name] = $arr[$name];
 
                     if (isset($def[$optIdx]['filter-func'])) {
                         $filteredValue = '';
@@ -202,86 +204,79 @@ class APIFilter {
 
                             if ($paramType == self::TYPES[5]) {
                                 $filteredValue = self::_filterBoolean(filter_var($toBeFiltered));
+                            } else if ($paramType == self::TYPES[6]) {
+                                $filteredValue = self::_filterArray(filter_var($toBeFiltered));
                             } else {
-                                if ($paramType == self::TYPES[6]) {
-                                    $filteredValue = self::_filterArray(filter_var($toBeFiltered));
-                                } else {
-                                    $filteredValue = filter_var($toBeFiltered);
+                                $filteredValue = filter_var($toBeFiltered);
 
-                                    foreach ($def[$filterIdx] as $val) {
-                                        $filteredValue = filter_var($filteredValue, $val, $def[$optIdx]);
-                                    }
+                                foreach ($def[$filterIdx] as $val) {
+                                    $filteredValue = filter_var($filteredValue, $val, $def[$optIdx]);
+                                }
 
-                                    if ($filteredValue === false) {
-                                        $filteredValue = self::INVALID;
-                                    }
+                                if ($filteredValue === false) {
+                                    $filteredValue = self::INVALID;
+                                }
 
-                                    if ($paramType == self::TYPES[0] &&
-                                        $filteredValue != self::INVALID &&
-                                        strlen($filteredValue) == 0 && 
-                                        $def[$optIdx][$optIdx]['allow-empty'] === false) {
-                                        $retVal['filtered'][$name] = self::INVALID;
-                                    }
+                                if ($paramType == self::TYPES[0] &&
+                                    $filteredValue != self::INVALID &&
+                                    strlen($filteredValue) == 0 && 
+                                    $def[$optIdx][$optIdx]['allow-empty'] === false) {
+                                    $retVal[$filteredIdx][$name] = self::INVALID;
                                 }
                             }
                             $arrToPass['basic-filter-result'] = $filteredValue;
                         } else {
-                            $filteredValue = self::INVALID;
                             $arrToPass['basic-filter-result'] = 'NOT_APLICABLE';
                         }
                         $r = call_user_func($def[$optIdx]['filter-func'],$arrToPass,$def[$paramIdx]);
 
                         if ($r === null) {
-                            $retVal['filtered'][$name] = false;
+                            $retVal[$filteredIdx][$name] = false;
                         } else {
-                            $retVal['filtered'][$name] = $r;
+                            $retVal[$filteredIdx][$name] = $r;
                         }
 
-                        if ($retVal['filtered'][$name] === false && $paramType != self::TYPES[5]) {
-                            $retVal['filtered'][$name] = self::INVALID;
+                        if ($retVal[$filteredIdx][$name] === false && $paramType != self::TYPES[5]) {
+                            $retVal[$filteredIdx][$name] = self::INVALID;
                         }
                     } else {
                         $toBeFiltered = strip_tags($toBeFiltered);
 
                         if ($paramType == self::TYPES[5]) {
-                            $retVal['filtered'][$name] = self::_filterBoolean(filter_var($toBeFiltered));
+                            $retVal[$filteredIdx][$name] = self::_filterBoolean(filter_var($toBeFiltered));
+                        } else if ($paramType == self::TYPES[6]) {
+                            $retVal[$filteredIdx][$name] = self::_filterArray(filter_var($toBeFiltered));
                         } else {
-                            if ($paramType == self::TYPES[6]) {
-                                $retVal['filtered'][$name] = self::_filterArray(filter_var($toBeFiltered));
-                            } else {
-                                $retVal['filtered'][$name] = filter_var($toBeFiltered);
+                            $retVal[$filteredIdx][$name] = filter_var($toBeFiltered);
 
-                                foreach ($def[$filterIdx] as $val) {
-                                    $retVal['filtered'][$name] = filter_var($retVal['filtered'][$name], $val, $def[$optIdx]);
-                                }
+                            foreach ($def[$filterIdx] as $val) {
+                                $retVal[$filteredIdx][$name] = filter_var($retVal[$filteredIdx][$name], $val, $def[$optIdx]);
+                            }
 
-                                if ($retVal['filtered'][$name] === false || 
-                                    (($paramType == self::TYPES[1] || $paramType == self::TYPES[3]) && strlen($retVal['filtered'][$name]) == 0)) {
-                                    $retVal['filtered'][$name] = self::INVALID;
-                                }
+                            if ($retVal[$filteredIdx][$name] === false || 
+                                (($paramType == self::TYPES[1] || $paramType == self::TYPES[3]) && strlen($retVal[$filteredIdx][$name]) == 0)) {
+                                $retVal[$filteredIdx][$name] = self::INVALID;
+                            }
 
-                                if ($paramType == self::TYPES[0] &&
-                                    $retVal['filtered'][$name] != self::INVALID &&
-                                    strlen($retVal['filtered'][$name]) == 0 && 
-                                    $def[$optIdx][$optIdx]['allow-empty'] === false) {
-                                    $retVal['filtered'][$name] = self::INVALID;
-                                }
+                            if ($paramType == self::TYPES[0] &&
+                                $retVal[$filteredIdx][$name] != self::INVALID &&
+                                strlen($retVal[$filteredIdx][$name]) == 0 && 
+                                $def[$optIdx][$optIdx]['allow-empty'] === false) {
+                                $retVal[$filteredIdx][$name] = self::INVALID;
                             }
                         }
                     }
 
-                    if ($retVal['filtered'][$name] == self::INVALID && $defaultVal !== null) {
-                        $retVal['filtered'][$name] = $defaultVal;
+                    if ($retVal[$filteredIdx][$name] == self::INVALID && $defaultVal !== null) {
+                        $retVal[$filteredIdx][$name] = $defaultVal;
                     }
-                } else {
-                    if ($def[$paramIdx]->isOptional()) {
-                        if ($defaultVal !== null) {
-                            $retVal['filtered'][$name] = $defaultVal;
-                            $retVal['non-filtered'][$name] = $defaultVal;
-                        } else {
-                            $retVal['filtered'][$name] = null;
-                            $retVal['non-filtered'][$name] = null;
-                        }
+                } else if ($def[$paramIdx]->isOptional()) {
+                    if ($defaultVal !== null) {
+                        $retVal[$filteredIdx][$name] = $defaultVal;
+                        $retVal[$noFIdx][$name] = $defaultVal;
+                    } else {
+                        $retVal[$filteredIdx][$name] = null;
+                        $retVal[$noFIdx][$name] = null;
                     }
                 }
             }
@@ -362,15 +357,64 @@ class APIFilter {
         $retVal = self::INVALID;
         $arrayValues = [];
 
-        if ($len >= 2) {
-            if ($array[0] == '[' && $array[$len - 1] == ']') {
-                $tmpArrValue = '';
+        if ($len >= 2 && ($array[0] == '[' && $array[$len - 1] == ']')) {
+            $tmpArrValue = '';
 
-                for ($x = 1 ; $x < $len - 1 ; $x++) {
-                    $char = $array[$x];
+            for ($x = 1 ; $x < $len - 1 ; $x++) {
+                $char = $array[$x];
 
-                    if ($x + 1 == $len - 1) {
-                        $tmpArrValue .= $char;
+                if ($x + 1 == $len - 1) {
+                    $tmpArrValue .= $char;
+                    $number = self::checkIsNumber($tmpArrValue);
+
+                    if ($number != self::INVALID) {
+                        $arrayValues[] = $number;
+                    } else {
+                        return $retVal;
+                    }
+                } else if ($char == '"' || $char == "'") {
+                    $tmpArrValue = strtolower(trim($tmpArrValue));
+
+                    if (strlen($tmpArrValue) != 0) {
+                        if ($tmpArrValue == 'true') {
+                            $arrayValues[] = true;
+                        } else if ($tmpArrValue == 'false') {
+                            $arrayValues[] = false;
+                        } else if ($tmpArrValue == 'null') {
+                            $arrayValues[] = null;
+                        } else {
+                            $number = self::checkIsNumber($tmpArrValue);
+
+                            if ($number != self::INVALID) {
+                                $arrayValues[] = $number;
+                            } else {
+                                return $retVal;
+                            }
+                        }
+                    } else {
+                        $result = self::_parseStringFromArray($array, $x + 1, $len - 1, $char);
+
+                        if ($result['parsed'] === true) {
+                            $x = $result['end'];
+                            $arrayValues[] = filter_var(strip_tags($result[self::TYPES[0]]));
+                            $tmpArrValue = '';
+                            continue;
+                        } else {
+                            return $retVal;
+                        }
+                    }
+                }
+
+                if ($char == ',') {
+                    $tmpArrValue = strtolower(trim($tmpArrValue));
+
+                    if ($tmpArrValue == 'true') {
+                        $arrayValues[] = true;
+                    } else if ($tmpArrValue == 'false') {
+                        $arrayValues[] = false;
+                    } else if ($tmpArrValue == 'null') {
+                        $arrayValues[] = null;
+                    } else {
                         $number = self::checkIsNumber($tmpArrValue);
 
                         if ($number != self::INVALID) {
@@ -378,78 +422,15 @@ class APIFilter {
                         } else {
                             return $retVal;
                         }
-                    } else {
-                        if ($char == '"' || $char == "'") {
-                            $tmpArrValue = strtolower(trim($tmpArrValue));
-
-                            if (strlen($tmpArrValue) != 0) {
-                                if ($tmpArrValue == 'true') {
-                                    $arrayValues[] = true;
-                                } else {
-                                    if ($tmpArrValue == 'false') {
-                                        $arrayValues[] = false;
-                                    } else {
-                                        if ($tmpArrValue == 'null') {
-                                            $arrayValues[] = null;
-                                        } else {
-                                            $number = self::checkIsNumber($tmpArrValue);
-
-                                            if ($number != self::INVALID) {
-                                                $arrayValues[] = $number;
-                                            } else {
-                                                return $retVal;
-                                            }
-                                        }
-                                    }
-                                }
-                            } else {
-                                $result = self::_parseStringFromArray($array, $x + 1, $len - 1, $char);
-
-                                if ($result['parsed'] == true) {
-                                    $x = $result['end'];
-                                    $arrayValues[] = filter_var(strip_tags($result[self::TYPES[0]]));
-                                    $tmpArrValue = '';
-                                    continue;
-                                } else {
-                                    return $retVal;
-                                }
-                            }
-                        }
-
-                        if ($char == ',') {
-                            $tmpArrValue = strtolower(trim($tmpArrValue));
-
-                            if ($tmpArrValue == 'true') {
-                                $arrayValues[] = true;
-                            } else {
-                                if ($tmpArrValue == 'false') {
-                                    $arrayValues[] = false;
-                                } else {
-                                    if ($tmpArrValue == 'null') {
-                                        $arrayValues[] = null;
-                                    } else {
-                                        $number = self::checkIsNumber($tmpArrValue);
-
-                                        if ($number != self::INVALID) {
-                                            $arrayValues[] = $number;
-                                        } else {
-                                            return $retVal;
-                                        }
-                                    }
-                                }
-                            }
-                            $tmpArrValue = '';
-                        } else {
-                            if ($x + 1 == $len - 1) {
-                                $arrayValues[] = $tmpArrValue.$char;
-                            } else {
-                                $tmpArrValue .= $char;
-                            }
-                        }
                     }
+                    $tmpArrValue = '';
+                } else if ($x + 1 == $len - 1) {
+                    $arrayValues[] = $tmpArrValue.$char;
+                } else {
+                    $tmpArrValue .= $char;
                 }
-                $retVal = $arrayValues;
             }
+            $retVal = $arrayValues;
         }
 
         return $retVal;
@@ -510,19 +491,17 @@ class APIFilter {
                 $retVal['string'] = $str;
                 $retVal['parsed'] = true;
                 break;
-            } else {
-                if ($ch == '\\') {
-                    $x++;
-                    $nextCh = $arr[$x];
+            } else if ($ch == '\\') {
+                $x++;
+                $nextCh = $arr[$x];
 
-                    if ($ch != ' ') {
-                        $str .= '\\'.$nextCh;
-                    } else {
-                        $str .= '\\ ';
-                    }
+                if ($ch != ' ') {
+                    $str .= '\\'.$nextCh;
                 } else {
-                    $str .= $ch;
+                    $str .= '\\ ';
                 }
+            } else {
+                $str .= $ch;
             }
         }
 
@@ -533,11 +512,9 @@ class APIFilter {
                 $retVal['parsed'] = true;
                 $retVal['end'] = $x;
                 break;
-            } else {
-                if ($ch != ' ') {
-                    $retVal['parsed'] = false;
-                    break;
-                }
+            } else if ($ch != ' ') {
+                $retVal['parsed'] = false;
+                break;
             }
         }
 
@@ -565,16 +542,11 @@ class APIFilter {
 
             if ($char == '.' && !$isFloat) {
                 $isFloat = true;
-            } else {
-                if ($char == '-' && $y == 0) {
-                } else {
-                    if ($char == '.' && $isFloat) {
-                        return $retVal;
-                    } else {
-                        if (!($char <= '9' && $char >= '0')) {
-                            return $retVal;
-                        }
-                    }
+            } else if (!($char == '-' && $y == 0)) {
+                if ($char == '.' && $isFloat) {
+                    return $retVal;
+                } else if (!($char <= '9' && $char >= '0')) {
+                    return $retVal;
                 }
             }
         }
