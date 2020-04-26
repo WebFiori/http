@@ -33,7 +33,7 @@ use jsonx\JsonX;
  * GET and DELETE calls and in request body in case of 
  * PUT or POST requests
  * @author Ibrahim
- * @version 1.2.2
+ * @version 1.2.3
  */
 class RequestParameter implements JsonI {
     /**
@@ -167,8 +167,8 @@ class RequestParameter implements JsonI {
         $min = $this->getMinVal() === null ? 'null' : $this->getMinVal();
         $retVal .= "    Minimum Value => '$min',\n";
         $max = $this->getMaxVal() === null ? 'null' : $this->getMaxVal();
-        
-        return $retVal . "    Maximum Value => '$max'\n]\n";
+
+        return $retVal."    Maximum Value => '$max'\n]\n";
     }
     /**
      * Checks if we need to apply basic filter or not 
@@ -180,6 +180,46 @@ class RequestParameter implements JsonI {
      */
     public function applyBasicFilter() {
         return $this->applyBasicFilter;
+    }
+    /**
+     * Creates an object of the class given an associative array of options.
+     * @param array $options An associative array of 
+     * options. The array can have the following indices:
+     * <ul>
+     * <li><b>name</b>: The name of the parameter. If invalid name is provided, 
+     * the value 'a-parameter' is used. If it is not provided, no 
+     * parameter will be created.</li>
+     * <li><b>type</b>: The datatype of the parameter. If not provided, 'string' is used.</li>
+     * <li><b>optional</b>: A boolean. If set to true, it means the parameter is 
+     * optional. If not provided, 'false' is used.</li>
+     * <li><b>min</b>: Minimum value of the parameter. Applicable only for 
+     * numeric types.</li>
+     * <li><b>max</b>: Maximum value of the parameter. Applicable only for 
+     * numeric types.</li>
+     * <li><b>allow-empty</b>: A boolean. If the type of the parameter is string or string-like 
+     * type and this is set to true, then empty strings will be allowed. If 
+     * not provided, 'false' is used.</li>
+     * <li><b>custom-filter</b>: A PHP function that can be used to filter the 
+     * parameter even further</li>
+     * <li><b>default</b>: An optional default value to use if the parameter is 
+     * not provided and is optional.</li>
+     * <li><b>description</b>: The description of the attribute.</li>
+     * </ul>
+     * @return null|RequestParameter If the given request parameter is created,
+     *  the method will return an object of type 'RequestParameter'. 
+     * If it was not created for any reason, the method will return null.
+     * @since 1.2.3
+     */
+    public static function createParam($options) {
+        if (isset($options['name'])) {
+            $paramType = isset($options['type']) ? $options['type'] : 'string';
+            $param = new RequestParameter($options['name'], $paramType);
+            self::_checkParamAttrs($param, $options);
+
+            return $param;
+        }
+
+        return null;
     }
     /**
      * Returns the function that is used as a custom filter 
@@ -326,6 +366,7 @@ class RequestParameter implements JsonI {
         $valType = gettype($val);
         $RPType = $this->getType();
         $T = APIFilter::TYPES;
+
         if ($valType == $RPType || 
           ($RPType == $T[3] && $valType == 'double') || 
           ($valType == $T[0] && ($RPType == $T[4] || $RPType == $T[2])) || 
@@ -459,7 +500,6 @@ class RequestParameter implements JsonI {
                 $ch = $nameTrimmed[$x];
 
                 if (!($ch == '_' || $ch == '-' || ($ch >= 'a' && $ch <= 'z') || ($ch >= 'A' && $ch <= 'Z') || ($ch >= '0' && $ch <= '9'))) {
-                    
                     return false;
                 }
             }
@@ -484,15 +524,12 @@ class RequestParameter implements JsonI {
         if (in_array($sType, APIFilter::TYPES)) {
             $this->type = $sType;
 
-            if ($sType == APIFilter::TYPES[1] || ($sType == APIFilter::TYPES[3] && PHP_MAJOR_VERSION <= 7 && PHP_MINOR_VERSION < 2)) {
+            if ($sType == APIFilter::TYPES[1] || $sType == APIFilter::TYPES[3]) {
                 $this->minVal = defined('PHP_INT_MIN') ? PHP_INT_MIN : ~PHP_INT_MAX;
                 $this->maxVal = PHP_INT_MAX;
             } else if ($sType == APIFilter::TYPES[3] && PHP_MAJOR_VERSION >= 7 && PHP_MINOR_VERSION >= 2) {
                 $this->maxVal = PHP_FLOAT_MAX;
                 $this->minVal = PHP_FLOAT_MIN;
-            } else if ($sType == APIFilter::TYPES[1] || $sType == APIFilter::TYPES[3]) {
-                $this->minVal = defined('PHP_INT_MIN') ? PHP_INT_MIN : ~PHP_INT_MAX;
-                $this->maxVal = PHP_INT_MAX;
             } else {
                 $this->maxVal = null;
                 $this->minVal = null;
@@ -533,5 +570,38 @@ class RequestParameter implements JsonI {
         $json->add('max-val', $this->getMaxVal());
 
         return $json;
+    }
+    /**
+     * 
+     * @param RequestParameter $param
+     * @param array $options
+     */
+    private static function _checkParamAttrs($param, $options) {
+        $isOptional = isset($options['optional']) ? $options['optional'] : false;
+        $param->setIsOptional($isOptional);
+
+        if (isset($options['min'])) {
+            $param->setMaxVal($options['min']);
+        }
+
+        if (isset($options['max'])) {
+            $param->setMaxVal($options['max']);
+        }
+
+        if (isset($options['allow-empty'])) {
+            $param->setIsEmptyStringAllowed($options['allow-empty']);
+        }
+
+        if (isset($options['custom-filter'])) {
+            $param->setCustomFilterFunction($options['custom-filter']);
+        }
+
+        if (isset($options['default'])) {
+            $param->setDefault($options['default']);
+        }
+
+        if (isset($options['description'])) {
+            $param->setDefault($options['description']);
+        }
     }
 }
