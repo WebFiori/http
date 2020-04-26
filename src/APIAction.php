@@ -34,7 +34,7 @@ use jsonx\JsonX;
  * which is responsible for creating new user profile. Think of it as an 
  * action taken to perform specific task.
  * @author Ibrahim
- * @version 1.3.1
+ * @version 1.3.3
  */
 class APIAction implements JsonI {
     /**
@@ -55,8 +55,15 @@ class APIAction implements JsonI {
      * @since 1.1
      */
     const METHODS = [
-        'GET','HEAD','POST','PUT','DELETE','TRACE',
-        'OPTIONS','PATCH','CONNECT'
+        'GET',
+        'HEAD',
+        'POST',
+        'PUT',
+        'DELETE',
+        'TRACE',
+        'OPTIONS',
+        'PATCH',
+        'CONNECT'
     ];
     /**
      * An optional description for the action.
@@ -148,6 +155,7 @@ class APIAction implements JsonI {
         $retVal .= "    Since => '$since',\n";
         $reqMethodsStr = "[\n";
         $comma = ',';
+
         for ($x = 0,  $count = count($this->getActionMethods()) ; $x < $count ; $x++) {
             $meth = $this->getActionMethods()[$x];
 
@@ -159,8 +167,9 @@ class APIAction implements JsonI {
         $reqMethodsStr .= "    ],\n";
         $retVal .= "    Request Methods => $reqMethodsStr";
         $paramsStr = "[\n";
-        
+
         $comma = ',';
+
         for ($x = 0 , $count = count($this->getParameters()); $x < $count ; $x++) {
             $param = $this->getParameters()[$x];
             $paramsStr .= "        ".$param->getName()." => [\n";
@@ -174,37 +183,63 @@ class APIAction implements JsonI {
             $min = $param->getMinVal() === null ? 'null' : $param->getMinVal();
             $paramsStr .= "            Minimum Value => '$min',\n";
             $max = $param->getMaxVal() === null ? 'null' : $param->getMaxVal();
-            if($x + 1 == $count){
+
+            if ($x + 1 == $count) {
                 $comma = '';
             }
             $paramsStr .= "            Maximum Value => '$max'\n        ]$comma\n";
-            
         }
         $paramsStr .= "    ],\n";
         $retVal .= "    Parameters => $paramsStr";
         $responsesStr = "[\n";
         $count = count($this->getResponsesDescriptions());
         $comma = ',';
+
         for ($x = 0 ; $x < $count ; $x++) {
-            if($x + 1 == $count){
+            if ($x + 1 == $count) {
                 $comma = '';
             }
             $responsesStr .= "        Response #$x => '".$this->getResponsesDescriptions()[$x]."'".$comma."\n";
         }
         $responsesStr .= "    ]\n";
+
         return $retVal."    Responses Descriptions => $responsesStr]\n";
     }
     /**
      * Adds new request parameter for the action.
      * The parameter will only be added if no parameter which has the same 
      * name as the given one is added before.
-     * @param RequestParameter $param The action that will be added.
+     * @param RequestParameter|array $param The parameter that will be added. It 
+     * can be an object of type 'RequestParameter' or an associative array of 
+     * options. The array can have the following indices:
+     * <ul>
+     * <li><b>name</b>: The name of the parameter. It must be provided.</li>
+     * <li><b>type</b>: The datatype of the parameter. If not provided, 'string' is used.</li>
+     * <li><b>optional</b>: A boolean. If set to true, it means the parameter is 
+     * optional. If not provided, 'false' is used.</li>
+     * <li><b>min</b>: Minimum value of the parameter. Applicable only for 
+     * numeric types.</li>
+     * <li><b>max</b>: Maximum value of the parameter. Applicable only for 
+     * numeric types.</li>
+     * <li><b>allow-empty</b>: A boolean. If the type of the parameter is string or string-like 
+     * type and this is set to true, then empty strings will be allowed. If 
+     * not provided, 'false' is used.</li>
+     * <li><b>custom-filter</b>: A PHP function that can be used to filter the 
+     * parameter even further</li>
+     * <li><b>default</b>: An optional default value to use if the parameter is 
+     * not provided and is optional.</li>
+     * <li><b>description</b>: The description of the attribute.</li>
+     * </ul>
      * @return boolean If the given request parameter is added, the method will 
      * return true. If it was not added for any reason, the method will return 
      * false.
      * @since 1.0
      */
     public function addParameter($param) {
+        if (gettype($param) == 'array') {
+            $param = RequestParameter::createParam($param);
+        }
+
         if ($param instanceof RequestParameter && !$this->hasParameter($param->getName())) {
             $this->parameters[] = $param;
 
@@ -251,6 +286,54 @@ class APIAction implements JsonI {
         }
     }
     /**
+     * A factory method for creating one web service.
+     * @param array $options An associative array of options. The array 
+     * can have the following options:
+     * <ul>
+     * <li><b>name</b>: The name of the web service. If invalid name is given, the 
+     * value 'an-action' is used. If not provided, the 
+     * service will not be created.</li>
+     * <li><b>request-methods</b>: An indexed array that contains the request 
+     * methods at which the service can be called with.</li>
+     * <li><b>parameters</b>: An indexed array that can have objects of type 
+     * 'RequestParameter' or sub arrays of options that will be used to create 
+     * a request parameter object. For supported options, see APIAction::addParameter()</li>
+     * <li><b>responses</b>: An optional array that contains strings that describes the 
+     * possible responses of calling the web service.</li>
+     * </ul>
+     * @return APIAction|null If the service is created, the method will return 
+     * an object of type 'APIAction' that represent the service. If not created, 
+     * the method will return null.
+     * @since 1.3.2
+     */
+    public static function createService($options) {
+        if (isset($options['name'])) {
+            $service = new APIAction($options['name']);
+
+            if (isset($options['parameters']) && gettype($options['parameters']) == 'array') {
+                foreach ($options['parameters'] as $paramOpt) {
+                    $service->addParameter($paramOpt);
+                }
+            }
+
+            if (isset($options['request-methods']) && gettype($options['request-methods']) == 'array') {
+                foreach ($options['request-methods'] as $requMeth) {
+                    $service->addRequestMethod($requMeth);
+                }
+            }
+
+            if (isset($options['responses']) && gettype($options['responses']) == 'array') {
+                foreach ($options['responses'] as $responseDesc) {
+                    $service->addResponseDescription($responseDesc);
+                }
+            }
+
+            return $service;
+        }
+
+        return null;
+    }
+    /**
      * Returns the description of the action.
      * @return string|null The description of the action. If the description is 
      * not set, the method will return null.
@@ -286,6 +369,18 @@ class APIAction implements JsonI {
         }
 
         return null;
+    }
+    /**
+     * Returns an array that contains all possible requests methods at which the 
+     * service can be called with.
+     * The array will contains strings like 'GET' or 'POST'. If no request methods 
+     * where added, the array will be empty.
+     * @return array An array that contains all possible requests methods at which the 
+     * service can be called using.
+     * @since 1.3.2
+     */
+    public function getRequestMethods() {
+        return $this->reqMethods;
     }
     /**
      * Returns an indexed array that contains information about possible responses.
@@ -433,7 +528,6 @@ class APIAction implements JsonI {
                 $ch = $trimmedName[$x];
 
                 if (!($ch == '_' || $ch == '-' || ($ch >= 'a' && $ch <= 'z') || ($ch >= 'A' && $ch <= 'Z') || ($ch >= '0' && $ch <= '9'))) {
-                
                     return false;
                 }
             }
