@@ -524,8 +524,7 @@ class RequestParameter implements JsonI {
         if (in_array($sType, APIFilter::TYPES)) {
             $this->type = $sType;
 
-            if ($sType == APIFilter::TYPES[1] || $sType == APIFilter::TYPES[3]) {
-                $this->minVal = defined('PHP_INT_MIN') ? PHP_INT_MIN : ~PHP_INT_MAX;
+            if ($sType == APIFilter::TYPES[1] || ($sType == APIFilter::TYPES[3] && PHP_MAJOR_VERSION <= 7 && PHP_MINOR_VERSION < 2)) {    $this->minVal = defined('PHP_INT_MIN') ? PHP_INT_MIN : ~PHP_INT_MAX;
                 $this->maxVal = PHP_INT_MAX;
             } else if ($sType == APIFilter::TYPES[3] && PHP_MAJOR_VERSION >= 7 && PHP_MINOR_VERSION >= 2) {
                 $this->maxVal = PHP_FLOAT_MAX;
