@@ -8,6 +8,57 @@ class APIActionTest extends TestCase {
     /**
      * @test
      */
+    public function testCreateService00() {
+        $service = APIAction::createService([]);
+        $this->assertNull($service);
+    }
+    /**
+     * @test
+     */
+    public function testCreateService01() {
+        $service = APIAction::createService([
+            'name'=>'say-hello'
+        ]);
+        $this->assertNotNull($service);
+        $this->assertEquals('say-hello',$service->getName());
+    }
+    /**
+     * @test
+     */
+    public function testCreateService02() {
+        $service = APIAction::createService([
+            'name'=>'say hello',
+            'parameters'=>[
+                new RequestParameter('param-1'),
+                new RequestParameter('password', 'integer'),
+                [
+                    'name'=>'arr-param',
+                    'optional'=>true,
+                    'default'=>'Hi',
+                    'description'=>'An optional param.'
+                ]
+            ],
+            'request-methods'=>['post'],
+            'responses'=>[
+                'R1','R2','R3'
+            ]
+        ]);
+        $this->assertEquals('an-action',$service->getName());
+        $param = $service->getParameterByName('param-1');
+        $this->assertNotNull($param);
+        $param = $service->getParameterByName('password');
+        $this->assertNotNull($param);
+        $param = $service->getParameterByName('arr-param');
+        $this->assertNotNull($param);
+        $this->assertTrue($param->isOptional());
+        $this->assertEquals('An optional param.',$param->getDescription());
+        $this->assertEquals('Hi',$param->getDefault());
+        $this->assertEquals(['POST'], $service->getRequestMethods());
+        $this->assertEquals(['R1', 'R2', 'R3'], $service->getResponsesDescriptions());
+    }
+    /**
+     * @test
+     */
     public function testAddParameter00() {
         $action = new APIAction('add-user');
         $rp00 = new RequestParameter('name');
