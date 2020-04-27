@@ -600,7 +600,7 @@ class RequestParameter implements JsonI {
         }
 
         if (isset($options['description'])) {
-            $param->setDefault($options['description']);
+            $param->setDescription($options['description']);
         }
     }
 }
