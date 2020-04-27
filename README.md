@@ -7,6 +7,7 @@ It includes inputs feltering and data validation in addion to creating user-defi
   <a href="https://codecov.io/gh/usernane/restEasy" target="_blank">
     <img src="https://codecov.io/gh/usernane/restEasy/branch/master/graph/badge.svg" />
   </a>
+  <img src="https://sonarcloud.io/api/project_badges/measure?project=usernane_restEasy&metric=alert_status">
   <img src="https://img.shields.io/packagist/dt/webfiori/rest-easy?color=light-green">
   <a href="https://paypal.me/IbrahimBinAlshikh" target="_blank">
     <img src="https://img.shields.io/endpoint.svg?url=https%3A%2F%2Fprogrammingacademia.com%2Fwebfiori%2Fapis%2Fshields-get-dontate-badget">
@@ -14,12 +15,12 @@ It includes inputs feltering and data validation in addion to creating user-defi
 </p>
 
 ## API Docs
-This library is a part of <a>WebFiori Framework</a>. To access API docs of the library, you can visid the following link: https://programmingacademia.com/webfiori/docs/restEasy .
+This library is a part of <a>WebFiori Framework</a>. To access API docs of the library, you can visid the following link: https://webfiori.com/webfiori/docs/restEasy .
 
 ## The Idea
 The idea of the library is as follows, when a client performs a request to a web service, he is usually intersted in performing specific action. One web service can have multiple actions. An action can be considered as API end point. The client can pass arguments (or parameters) to the end point in request body or as a query string.
 
-An end point is represented as the class <a href="https://programmingacademia.com/webfiori/docs/restEasy/APIAction">APIAction</a> and a web service is represented by the class <a href="https://programmingacademia.com/webfiori/docs/restEasy/WebAPI">WebAPI</a>. Also, body parameters represented by the class <a href="https://programmingacademia.com/webfiori/docs/restEasy/RequestParameter">RequestParameter</a>.
+An end point is represented as the class <a href="https://webfiori.com/docs/restEasy/APIAction">APIAction</a> and a set of web service (or end ponts) are represented by the class <a href="https://webfiori.com/docs/restEasy/WebServices">WebServices</a>. Also, body parameters represented by the class <a href="https://webfiori.com/docs/restEasy/RequestParameter">RequestParameter</a>.
 
 ## Features
 * Full support for creating REST services using JSON notation.
@@ -30,28 +31,28 @@ An end point is represented as the class <a href="https://programmingacademia.co
 The library support all versions starting from version 5.6 up to version 7.4.
 
 ## Installation
-If you are using composer to collect your dependencies, you can simply include the following entry in your 'composer.json' file:
+If you are using composer to collect your dependencies, you can simply include the following entry in your 'composer.json' file to get the latest release of the library:
 
 ``` json
 {
     "require": {
-        "webfiori/rest-easy":"1.4.5"
+        "webfiori/rest-easy":"*"
     }
 }
 ```
 Note that the <a href="https://github.com/usernane/jsonx">JsonX</a> library will be included with the installation files as this library is depending on it. 
 
-Another option is to download the latest release manually from <a href="https://github.com/usernane/restEasy/releases">Release</a>. The latest stable release of the laibrary is <a href="https://github.com/usernane/restEasy/releases/tag/v1.4.6">v1.4.6</a>
+Another option is to download the latest release manually from <a href="https://github.com/usernane/restEasy/releases">Release</a>.
 
 ## Usage
 The first step is to include the requierd classes. There are basically 3 classes that you need:
-* <a href="https://programmingacademia.com/webfiori/docs/restEasy/RequestParameter">RequestParameter</a>
-* <a href="https://programmingacademia.com/webfiori/docs/restEasy/APIAction">APIAction</a>
-* <a href="https://programmingacademia.com/webfiori/docs/restEasy/WebServices">WebServices</a>
+* <a href="https://webfiori.com/docs/restEasy/RequestParameter">RequestParameter</a>
+* <a href="https://webfiori.com/docs/restEasy/APIAction">APIAction</a>
+* <a href="https://webfiori.com/docs/restEasy/WebServices">WebServices</a>
 
 After that, you need to extend the class 'WebAPI' and implement two methods:
-* <a href="https://programmingacademia.com/webfiori/docs/restEasy/WebServices#isAuthorized">WebServices::isAuthorized()</a>
-* <a href="https://programmingacademia.com/webfiori/docs/restEasy/WebServices#processRequest">WebServices::processRequest()</a>
+* <a href="https://webfiori.com/docs/restEasy/WebServices#isAuthorized">WebServices::isAuthorized()</a>
+* <a href="https://webfiori.com/docs/restEasy/WebServices#processRequest">WebServices::processRequest()</a>
 
 The implementation of the first method will determine if the cliend who is calling the API is authorized to call it. It only applyies to the actions which require permissions. The method must be implemented in a way that it makes it return true if the user is authorized to access a specific end point.
 
