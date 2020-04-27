@@ -132,17 +132,6 @@ class APIAction implements JsonI {
         return $this->parameters;
     }
     /**
-     * Returns an array that contains all action request methods.
-     * Request methods can be added using the method APIAction::addRequestMethod().
-     * @return array An array that contains all action request methods.
-     * @see APIAction::addRequestMethod($method)
-     * @since 1.1
-     * 
-     */
-    public final function &getActionMethods() {
-        return $this->reqMethods;
-    }
-    /**
      * 
      * @return string
      * @since 1.3.1
@@ -156,8 +145,8 @@ class APIAction implements JsonI {
         $reqMethodsStr = "[\n";
         $comma = ',';
 
-        for ($x = 0,  $count = count($this->getActionMethods()) ; $x < $count ; $x++) {
-            $meth = $this->getActionMethods()[$x];
+        for ($x = 0,  $count = count($this->getRequestMethods()) ; $x < $count ; $x++) {
+            $meth = $this->getRequestMethods()[$x];
 
             if ($x + 1 == $count) {
                 $comma = '';
@@ -379,7 +368,7 @@ class APIAction implements JsonI {
      * service can be called using.
      * @since 1.3.2
      */
-    public function getRequestMethods() {
+    public function &getRequestMethods() {
         return $this->reqMethods;
     }
     /**
@@ -471,14 +460,14 @@ class APIAction implements JsonI {
      */
     public function removeRequestMethod($method) {
         $uMethod = strtoupper(trim($method));
-        $actionMethods = &$this->getActionMethods();
+        $actionMethods = &$this->getRequestMethods();
 
         if (in_array($uMethod, $actionMethods)) {
             $count = count($actionMethods);
             $methodIndex = -1;
 
             for ($x = 0 ; $x < $count ; $x++) {
-                if ($this->getActionMethods()[$x] == $uMethod) {
+                if ($this->getRequestMethods()[$x] == $uMethod) {
                     $methodIndex = $x;
                     break;
                 }

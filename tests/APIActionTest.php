@@ -83,7 +83,7 @@ class APIActionTest extends TestCase {
         $this->assertTrue($action->addRequestMethod('   DeLete'));
         $this->assertTrue($action->addRequestMethod('   options'));
         $this->assertFalse($action->addRequestMethod(' Random meth'));
-        $requestMethods = $action->getActionMethods();
+        $requestMethods = $action->getRequestMethods();
         $this->assertEquals('GET',$requestMethods[0]);
         $this->assertEquals('POST',$requestMethods[1]);
         $this->assertEquals('DELETE',$requestMethods[2]);
@@ -195,7 +195,7 @@ class APIActionTest extends TestCase {
         $this->assertFalse($action->removeRequestMethod('random'));
         $this->assertTrue($action->removeRequestMethod('options'));
         $this->assertTrue($action->removeRequestMethod('delete'));
-        $this->assertEquals(0,count($action->getActionMethods()));
+        $this->assertEquals(0,count($action->getRequestMethods()));
     }
     /**
      * @test
