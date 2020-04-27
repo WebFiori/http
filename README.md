@@ -15,7 +15,7 @@ It includes inputs feltering and data validation in addion to creating user-defi
 </p>
 
 ## API Docs
-This library is a part of <a>WebFiori Framework</a>. To access API docs of the library, you can visid the following link: https://webfiori.com/webfiori/docs/restEasy .
+This library is a part of <a>WebFiori Framework</a>. To access API docs of the library, you can visid the following link: https://webfiori.com/docs/restEasy .
 
 ## The Idea
 The idea of the library is as follows, when a client performs a request to a web service, he is usually intersted in performing specific action. One web service can have multiple actions. An action can be considered as API end point. The client can pass arguments (or parameters) to the end point in request body or as a query string.
