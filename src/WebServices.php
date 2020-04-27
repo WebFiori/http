@@ -257,6 +257,7 @@ abstract class WebServices implements JsonI {
     public function getAction() {
         $reqMeth = $this->getRequestMethod();
         $apiActionIdx = 'action';
+
         if (($reqMeth == 'GET' || 
            $reqMeth == 'DELETE' ||  
            $reqMeth == 'OPTIONS' || 
@@ -554,7 +555,7 @@ abstract class WebServices implements JsonI {
         $this->missingParamsArr = [];
 
         if ($this->isContentTypeSupported()) {
-            if($this->_checkAction()){
+            if ($this->_checkAction()) {
                 $actionObj = $this->getActionByName($this->getAction());
                 $params = $actionObj->getParameters();
                 $this->filter->clearParametersDef();
@@ -791,7 +792,7 @@ abstract class WebServices implements JsonI {
 
                 foreach ($this->getAuthActions() as $val) {
                     if ($val->getName() == $action) {
-                        $reqMethods = $val->getActionMethods();
+                        $reqMethods = $val->getRequestMethods();
 
                         foreach ($reqMethods as $method) {
                             if ($method == $this->getRequestMethod()) {
@@ -809,7 +810,7 @@ abstract class WebServices implements JsonI {
 
                 foreach ($this->getActions() as $val) {
                     if ($val->getName() == $action) {
-                        $reqMethods = $val->getActionMethods();
+                        $reqMethods = $val->getRequestMethods();
 
                         foreach ($reqMethods as $method) {
                             if ($method == $this->getRequestMethod()) {
