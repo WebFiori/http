@@ -154,16 +154,6 @@ abstract class WebServices implements JsonI {
         $this->missingParamsArr = [];
     }
     /**
-     * Removes all added web services.
-     * This method will simply re-initialize the arrays that holds all web 
-     * services.
-     * @since 1.4.5
-     */
-    public function removeServices() {
-        $this->authActions = [];
-        $this->actions = [];
-    }
-    /**
      * Sends a response message to indicate that an action is not implemented.
      * This method will send back a JSON string in the following format:
      * <p>
@@ -627,6 +617,16 @@ abstract class WebServices implements JsonI {
      * @since 1.1
      */
     public abstract function processRequest();
+    /**
+     * Removes all added web services.
+     * This method will simply re-initialize the arrays that holds all web 
+     * services.
+     * @since 1.4.5
+     */
+    public function removeServices() {
+        $this->authActions = [];
+        $this->actions = [];
+    }
     /**
      * Sends a response message to indicate that request method is not supported.
      * This method will send back a JSON string in the following format:

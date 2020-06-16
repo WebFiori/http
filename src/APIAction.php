@@ -124,6 +124,18 @@ class APIAction implements JsonI {
         $this->responses = [];
     }
     /**
+     * Returns an array that contains all possible requests methods at which the 
+     * service can be called with.
+     * The array will contains strings like 'GET' or 'POST'. If no request methods 
+     * where added, the array will be empty.
+     * @return array An array that contains all possible requests methods at which the 
+     * service can be called using.
+     * @since 1.3.2
+     */
+    public function &getRequestMethods() {
+        return $this->reqMethods;
+    }
+    /**
      * Returns an array that contains an objects of type RequestParameter.
      * @return array an array that contains an objects of type RequestParameter.
      * @since 1.0
@@ -358,18 +370,6 @@ class APIAction implements JsonI {
         }
 
         return null;
-    }
-    /**
-     * Returns an array that contains all possible requests methods at which the 
-     * service can be called with.
-     * The array will contains strings like 'GET' or 'POST'. If no request methods 
-     * where added, the array will be empty.
-     * @return array An array that contains all possible requests methods at which the 
-     * service can be called using.
-     * @since 1.3.2
-     */
-    public function &getRequestMethods() {
-        return $this->reqMethods;
     }
     /**
      * Returns an indexed array that contains information about possible responses.

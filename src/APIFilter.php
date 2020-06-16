@@ -181,6 +181,7 @@ class APIFilter {
         $paramIdx = 'parameter';
         $filterIdx = 'filters';
         $optIdx = 'options';
+
         if ($apiFilter instanceof APIFilter && gettype($arr) == self::TYPES[6]) {
             $filterDef = $apiFilter->getFilterDef();
 

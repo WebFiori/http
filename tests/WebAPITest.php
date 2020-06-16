@@ -297,7 +297,7 @@ class WebAPITest extends TestCase {
     public function testProcess00($api) {
         $this->clrearVars();
         $api->process();
-        
+
         $this->expectOutputString('{"message":"Action is not set.", "type":"error", "http-code":404}');
     }
     /**
