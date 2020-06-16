@@ -40,7 +40,7 @@ use jsonx\JsonX;
  * </li>
  * When a request is made to the API, An instance of the child class must be created 
  * and the method <a href="#process">WebServices::process()</a> must be called.
- * @version 1.4.4
+ * @version 1.4.5
  */
 abstract class WebServices implements JsonI {
     /**
@@ -117,17 +117,19 @@ abstract class WebServices implements JsonI {
     private $requestMethod;
     /**
      * Creates new instance of the class.
-     * By default, the API will have two actions added to it:
+     * By default, the API will have two services added to it:
      * <ul>
      * <li>api-info</li>
      * <li>request-info</li>
      * </ul>
-     * The first action is used to return a JSON string which contains 
+     * The first service is used to return a JSON string which contains 
      * all needed information by the front-end to implement the API. The user 
      * can supply an optional parameter with it which is called 'version' in 
      * order to get information about specific API version. The 
-     * second action is used to get basic info about the request.
-     * @param string $version initial API version. Default is '1.0.0'
+     * second service is used to get basic info about the request.
+     * @param string $version initial API version. Default is '1.0.0' Version 
+     * number must follow the format 'X.X.X' where 'X' is a number between 
+     * 0 and 9 inclusive.
      */
     public function __construct($version = '1.0.0') {
         $this->setVersion($version);
@@ -150,6 +152,16 @@ abstract class WebServices implements JsonI {
         $this->addAction($action,true);
         $this->invParamsArr = [];
         $this->missingParamsArr = [];
+    }
+    /**
+     * Removes all added web services.
+     * This method will simply re-initialize the arrays that holds all web 
+     * services.
+     * @since 1.4.5
+     */
+    public function removeServices() {
+        $this->authActions = [];
+        $this->actions = [];
     }
     /**
      * Sends a response message to indicate that an action is not implemented.
@@ -709,7 +721,8 @@ abstract class WebServices implements JsonI {
     /**
      * Sets API version number.
      * @param string $val Version number (such as 1.0.0). Version number 
-     * must be provided in the form 'x.x.x'.
+     * must be provided in the form 'x.x.x' where 'x' is a number between 
+     * 0 and 9 inclusive.
      * @return boolean true if set. false otherwise.
      * @since 1.0
      */
