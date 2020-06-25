@@ -40,7 +40,7 @@ use jsonx\JsonX;
  * </li>
  * When a request is made to the API, An instance of the child class must be created 
  * and the method <a href="#process">WebServices::process()</a> must be called.
- * @version 1.4.5
+ * @version 1.4.6
  */
 abstract class WebServices implements JsonI {
     /**
@@ -136,13 +136,13 @@ abstract class WebServices implements JsonI {
         $this->setDescription('NO DESCRIPTION');
         $this->requestMethod = filter_var(getenv('REQUEST_METHOD'));
 
-        if (!in_array($this->requestMethod, APIAction::METHODS)) {
+        if (!in_array($this->requestMethod, WebService::METHODS)) {
             $this->requestMethod = 'GET';
         }
         $this->actions = [];
         $this->authActions = [];
         $this->filter = new APIFilter();
-        $action = new APIAction('api-info');
+        $action = new WebService('api-info');
         $action->setDescription('Returns a JSON string that contains all needed information about all end points in the given API.');
         $action->addRequestMethod('get');
         $action->addParameter(new RequestParameter('version', 'string', true));
@@ -184,21 +184,23 @@ abstract class WebServices implements JsonI {
         $this->sendResponse('Action not supported.', self::E, 404);
     }
     /**
-     * Adds new action to the set of API actions.
-     * @param APIAction $action The action that will be added.
+     * Adds new web service to the set of web services.
+     * @param WebService $service The web service that will be added.
      * @param boolean $reqPermissions Set to true if the action require user login or 
-     * any additional permissions. Default is false.
+     * any additional permissions. Default is false. If this one is set to 
+     * true, the method 'Webservices::isAuthorized()' will be called to check 
+     * for permissions.
      * @return boolean true if the action is added. FAlSE otherwise.
      * @since 1.0
      */
-    public function addAction($action,$reqPermissions = false) {
-        if ($action instanceof APIAction && (!in_array($action, $this->getActions()) && !in_array($action, $this->getAuthActions()))) {
-            $action->setSince($this->getVersion());
+    public function addAction($service,$reqPermissions = false) {
+        if ($service instanceof WebService && (!in_array($service, $this->getActions()) && !in_array($service, $this->getAuthActions()))) {
+            $service->setSince($this->getVersion());
 
             if ($reqPermissions === true) {
-                array_push($this->authActions, $action);
+                array_push($this->authActions, $service);
             } else {
-                array_push($this->actions, $action);
+                array_push($this->actions, $service);
             }
 
             return true;
@@ -248,39 +250,56 @@ abstract class WebServices implements JsonI {
         $this->sendResponse('Database Error.', self::E, 500, $info);
     }
     /**
-     * Returns the action that was requested to perform.
-     * API action must be passed in the body of the request for POST and PUT 
-     * request methods (e.g. 'action=do-something'. In case of GET and DELETE, it must be passed as query 
-     * string.
-     * @return string|null The action that was requested to perform. If the action 
-     * is not set, the method will return null. 
+     * Returns the name of the service which is being called.
+     * The name of the service  must be passed in the body of the request for POST and PUT 
+     * request methods (e.g. 'action=do-something' or 'service-name=do-something'). 
+     * In case of GET and DELETE, it must be passed as query string. 
+     * @return string|null The name of the service that was requested. If the name 
+     * of the service is not set, the method will return null. 
      * @since 1.0
+     * @deprecated since version 1.4.6 Use WebServices::getCalledServiceName() instead.
      */
     public function getAction() {
         $reqMeth = $this->getRequestMethod();
-        $apiActionIdx = 'action';
-
-        if (($reqMeth == 'GET' || 
-           $reqMeth == 'DELETE' ||  
-           $reqMeth == 'OPTIONS' || 
-           $reqMeth == 'PATCH') && isset($_GET[$apiActionIdx])) {
-            return filter_var($_GET[$apiActionIdx]);
-        } else if (($reqMeth == 'POST' || $reqMeth == 'PUT') && isset($_POST[$apiActionIdx])) {
-            return filter_var($_POST[$apiActionIdx]);
+        
+        $serviceIdx = ['action', 'service-name'];
+        
+        foreach ($serviceIdx as $serviceNameIndex){
+            if (($reqMeth == 'GET' || 
+               $reqMeth == 'DELETE' ||  
+               $reqMeth == 'OPTIONS' || 
+               $reqMeth == 'PATCH') && isset($_GET[$serviceNameIndex])) {
+                return filter_var($_GET[$serviceNameIndex]);
+            } else if (($reqMeth == 'POST' || $reqMeth == 'PUT') && isset($_POST[$serviceNameIndex])) {
+                return filter_var($_POST[$serviceNameIndex]);
+            }
         }
 
         return null;
     }
     /**
-     * Returns an API action given its name.
-     * @param string $actionName The name of the action.
-     * @return APIAction|null An object of type 'APIAction' 
-     * if the action is found. If no action was found, The method will return 
-     * null.
+     * Returns the name of the service which is being called.
+     * The name of the service  must be passed in the body of the request for POST and PUT 
+     * request methods (e.g. 'action=do-something' or 'service-name=do-something'). 
+     * In case of GET and DELETE, it must be passed as query string. 
+     * @return string|null The name of the service that was requested. If the name 
+     * of the service is not set, the method will return null. 
+     * @since 1.0 
+     * @return type
+     */
+    public function getCalledServiceName() {
+        return $this->getAction();
+    }
+    /**
+     * Returns a web service given its name.
+     * @param string $serviceName The name of the service.
+     * @return WebService|null The method will return an object of type 'APIAction' 
+     * if the service is found. If no service was found which has the given name, 
+     * The method will return null.
      * @since 1.3
      */
-    public function getActionByName($actionName) {
-        $trimmed = trim($actionName);
+    public function getActionByName($serviceName) {
+        $trimmed = trim($serviceName);
 
         if (strlen($trimmed) != 0) {
             foreach ($this->getActions() as $action) {
@@ -299,19 +318,20 @@ abstract class WebServices implements JsonI {
         return null;
     }
     /**
-     * Returns an array that contains all added actions.
+     * Returns an array that contains all added web services that does not require authentication.
      * @return array An array that contains an objects of type APIAction. 
-     * The actions on the returned array does not require authentication.
+     * The services on the returned array does not require authentication.
      * @since 1.0
      */
     public final function getActions() {
         return $this->actions;
     }
     /**
-     * Returns an array that contains all added actions.
+     * Returns an array that contains all added web services that require authentication.
      * @return array An array that contains an objects of type APIAction. 
-     * The array will contains the actions 
-     * that require authentication.
+     * The array will contains the services which require authentication. The 
+     * authentication process is performed in the body of the method 
+     * 'WebServices::isAuthorized()'.
      * @since 1.0
      */
     public final function getAuthActions() {
@@ -332,8 +352,9 @@ abstract class WebServices implements JsonI {
         return null;
     }
     /**
-     * Returns the description of the API.
-     * @return string|null The description of the API. If the description is 
+     * Returns the description of web services set.
+     * @return string|null The description of web services set. The description is 
+     * useful to describe what does the set of services can do. If the description is 
      * not set, the method will return null.
      * @since 1.3
      */
@@ -354,21 +375,17 @@ abstract class WebServices implements JsonI {
         return $this->filter->getInputs();
     }
     /**
-     * Returns an array that contains the names of API 
-     * parameters that has invalid values.
-     * @return array An array that contains the names of API 
-     * parameters that has invalid values 
-     * parameters.
+     * Returns an array that contains the names of request parameters which have invalid values.
+     * @return array An array that contains the names of request parameters which have invalid values.
      * @since 1.4.1
      */
     public function getInvalidParameters() {
         return $this->invParamsArr;
     }
     /**
-     * Returns an array that contains the names of missing required API 
-     * parameters.
-     * @return array An array that contains the names of missing required API 
-     * parameters.
+     * Returns an array that contains the names of missing required parameters. 
+     * If a parameter is optional and not provided, it will not appear in the returned array.
+     * @return array An array that contains the names of missing required parameters.
      * @since 1.4.1
      */
     public function getMissingParameters() {
@@ -388,16 +405,16 @@ abstract class WebServices implements JsonI {
         return $this->filter->getNonFiltered();
     }
     /**
-     * Returns the request method used to fetch the API.
-     * @return string Request method (POST, GET, etc...).
+     * Returns the name of request method which is used to call one of the services in the set.
+     * @return string Request method such as POST, GET, etc....
      * @since 1.0
      */
     public final function getRequestMethod() {
         return $this->requestMethod;
     }
     /**
-     * Returns the version number of the API.
-     * @return string
+     * Returns version number of web services set.
+     * @return string A string in the format 'X.X.X'.
      * @since 1.0
      */
     public final function getVersion() {
@@ -432,10 +449,11 @@ abstract class WebServices implements JsonI {
         $this->sendResponse('The following parameter(s) has invalid values: '.$val.'.', self::E, 404);
     }
     /**
-     * Checks if the action that is used to fetch the API is supported or not.
-     * @return boolean true if the API supports the action. false 
-     * if not or it is not set. The action name must be provided with the request 
-     * as a parameter with the name 'action'.
+     * Checks if the called service exist in the set or not.
+     * @return boolean The method will return true if the requested service exist in 
+     * the set. False if not exist or if no service is called. The name of the service 
+     * must be provided with the request as a parameter with the name 'action' or 
+     * the name 'sevice-name'.
      * @since 1.0
      */
     public final function isActionSupported() {
@@ -456,15 +474,15 @@ abstract class WebServices implements JsonI {
         return false;
     }
     /**
-     * Checks if a user is authorized to perform an action that require authorization.
+     * Checks if a user is authorized to call a srvice that require authorization.
      * @return boolean The method must be implemented by the sub-class in a way 
-     * that makes it return true in case the user is allowed to perform the 
-     * action. If the user is not permitted, the method must return false.
+     * that makes it return true in case the user is allowed to call the 
+     * service. If the user is not permitted, the method must return false.
      * @since 1.1
      */
     public abstract function isAuthorized();
     /**
-     * Checks if request content type is supported by the API or not (For 'POST' 
+     * Checks if request content type is supported by the service or not (For 'POST' 
      * and PUT requests only).
      * @return boolean Returns false in case the 'content-type' header is not 
      * set and the request method is 'POST' or 'PUT'. If content type is supported (for 
@@ -488,11 +506,11 @@ abstract class WebServices implements JsonI {
     }
     /**
      * Sends a response message to tell the front-end that the parameter 
-     * 'action' is missing from request body.
+     * 'action' or 'service-name' is missing from request body.
      * This method will send back a JSON string in the following format:
      * <p>
      * {<br/>
-     * &nbsp;&nbsp;"message":"Action is not set.",<br/>
+     * &nbsp;&nbsp;"message":"Service name is not set.",<br/>
      * &nbsp;&nbsp;"type":"error"<br/>
      * }
      * </p>
@@ -500,7 +518,7 @@ abstract class WebServices implements JsonI {
      * @since 1.3.1
      */
     public function missingAPIAction() {
-        $this->sendResponse('Action is not set.', self::E, 404);
+        $this->sendResponse('Service name is not set.', self::E, 404);
     }
     /**
      * Sends a response message to indicate that a request parameter or parameters are missing.
@@ -531,8 +549,8 @@ abstract class WebServices implements JsonI {
         $this->sendResponse('The following required parameter(s) where missing from the request body: '.$val.'.', self::E, 404);
     }
     /**
-     * Sends a response message to indicate that a user is not authorized to 
-     * do an API call.
+     * Sends a response message to indicate that a user is not authorized call a 
+     * service or a resource.
      * This method will send back a JSON string in the following format:
      * <p>
      * {<br/>
@@ -549,7 +567,7 @@ abstract class WebServices implements JsonI {
     /**
      * Process user request. 
      * This method must be called after creating any 
-     * new instance of the API in order to process user request.
+     * new instance of the class in order to process user request.
      * @since 1.0
      */
     public final function process() {
@@ -613,7 +631,7 @@ abstract class WebServices implements JsonI {
         }
     }
     /**
-     * A method that is used to process the requested action.
+     * A method that is used to process the requested service.
      * @since 1.1
      */
     public abstract function processRequest();
@@ -643,10 +661,9 @@ abstract class WebServices implements JsonI {
         $this->sendResponse('Method Not Allowed.', self::E, 405);
     }
     /**
-     * Sends Back a data using specific content type using specific response code.
+     * Sends Back a data using specific content type and specific response code.
      * @param string $conentType Response content type (such as 'application/json')
-     * @param mixed $data Any data to send back. Mostly, it will be a string of 
-     * data.
+     * @param mixed $data Any data to send back. Mostly, it will be a string.
      * @param int $code HTTP response code that will be used to send the data. 
      * Default is HTTP code 200 - Ok.
      */
@@ -710,16 +727,16 @@ abstract class WebServices implements JsonI {
         echo $json;
     }
     /**
-     * Sets the description of the API.
-     * @param sting $desc Action description. Used to help front-end to identify 
-     * the use of the API.
+     * Sets the description of the web services set.
+     * @param sting $desc Set description. Used to help front-end to identify 
+     * the use of the services set.
      * @since 1.3
      */
     public function setDescription($desc) {
         $this->apiDesc = $desc;
     }
     /**
-     * Sets API version number.
+     * Sets version number of the set.
      * @param string $val Version number (such as 1.0.0). Version number 
      * must be provided in the form 'x.x.x' where 'x' is a number between 
      * 0 and 9 inclusive.
@@ -747,7 +764,7 @@ abstract class WebServices implements JsonI {
         return false;
     }
     /**
-     * Returns JsonX object that represents the API.
+     * Returns JsonX object that represents services set.
      * @return JsonX An object of type JsonX.
      * @since 1.0
      */
@@ -783,12 +800,12 @@ abstract class WebServices implements JsonI {
         return $json;
     }
     /**
-     * Checks the status of the API action.
+     * Checks the status of the called service.
      * This method checks if the following conditions are met:
      * <ul>
-     * <li>The parameter "action" is set in request body.</li>
-     * <li>The action is supported by the API.</li>
-     * <li>Request method of the action is correct.</li>
+     * <li>The parameter "action" or "service-name" is set in request body.</li>
+     * <li>The service is supported by the set.</li>
+     * <li>Request method of the service is correct.</li>
      * </ul>
      * If one of the conditions is not met, the method will return false and 
      * send back a response to indicate the issue.
@@ -848,10 +865,10 @@ abstract class WebServices implements JsonI {
         return false;
     }
     /**
-     * Checks if a client is authorized to call the API using the given 
-     * action in request body.
+     * Checks if a client is authorized to call the service using the given 
+     * service name in request body.
      * @return boolean The method will return true if the client is allowed 
-     * to call the API using the action in request body.
+     * to call the service using the name in request body.
      * @since 1.3.1
      */
     private function _isAuthorizedAction() {
