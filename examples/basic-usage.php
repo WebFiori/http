@@ -12,7 +12,7 @@ require_once '../src/WebServices.php';
 
 use jsonx\JsonI;
 use jsonx\JsonX;
-use restEasy\APIAction;
+use restEasy\WebService;
 use restEasy\RequestParameter;
 use restEasy\WebServices;
 /*
@@ -30,7 +30,7 @@ class MyAPI extends WebServices {
         //add actions, parameters for 'GET' or 'POST' or any other request method.
 
         //create new action
-        $action00 = new APIAction('my-action');
+        $action00 = new WebService('my-action');
         $action00->addRequestMethod('get');
 
         //add parameters for the action
@@ -40,7 +40,7 @@ class MyAPI extends WebServices {
         $this->addAction($action00);
 
         //create another action which requires permissions
-        $action01 = new APIAction('auth-action');
+        $action01 = new WebService('auth-action');
         $action01->addRequestMethod('get');
         $action01->addRequestMethod('post');
         $action01->addParameter(new RequestParameter('name', 'string'));
