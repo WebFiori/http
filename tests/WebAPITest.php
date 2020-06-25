@@ -3,7 +3,7 @@ namespace restEasy\tests;
 
 use jsonx\JsonX;
 use PHPUnit\Framework\TestCase;
-use restEasy\APIAction;
+use restEasy\WebService;
 use restEasy\WebServices;
 /**
  * Description of WebAPITest
@@ -181,7 +181,7 @@ class WebAPITest extends TestCase {
         $this->assertEquals(1,count($api->getActions()));
         $this->assertEquals(4,count($api->getAuthActions()));
         $this->assertEquals('Test API.',$api->getDescription());
-        $this->assertTrue($api->getActionByName('api-info') instanceof APIAction);
+        $this->assertTrue($api->getActionByName('api-info') instanceof WebService);
         $this->assertNull($api->getActionByName('request-info'));
         $this->assertNull($api->getActionByName('api-info-2'));
 
