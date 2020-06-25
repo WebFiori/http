@@ -43,6 +43,7 @@ define('ROOT', $rootDir);
 fwrite($stderr,'Root Directory: \''.$rootDir.'\'.'."\n");
 require_once $rootDir.'vendor'.$DS.'webfiori'.$DS.'jsonx'.$DS.'src'.$DS.'JsonI.php';
 require_once $rootDir.'vendor'.$DS.'webfiori'.$DS.'jsonx'.$DS.'src'.$DS.'JsonX.php';
+require_once $rootDir.'src'.$DS.'WebService.php';
 require_once $rootDir.'src'.$DS.'APIAction.php';
 require_once $rootDir.'src'.$DS.'APIFilter.php';
 require_once $rootDir.'src'.$DS.'RequestParameter.php';

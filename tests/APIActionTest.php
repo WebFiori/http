@@ -2,21 +2,21 @@
 namespace restEasy\tests;
 
 use PHPUnit\Framework\TestCase;
-use restEasy\APIAction;
+use restEasy\WebService;
 use restEasy\RequestParameter;
 class APIActionTest extends TestCase {
     /**
      * @test
      */
     public function testCreateService00() {
-        $service = APIAction::createService([]);
+        $service = WebService::createService([]);
         $this->assertNull($service);
     }
     /**
      * @test
      */
     public function testCreateService01() {
-        $service = APIAction::createService([
+        $service = WebService::createService([
             'name'=>'say-hello'
         ]);
         $this->assertNotNull($service);
@@ -26,7 +26,7 @@ class APIActionTest extends TestCase {
      * @test
      */
     public function testCreateService02() {
-        $service = APIAction::createService([
+        $service = WebService::createService([
             'name'=>'say hello',
             'parameters'=>[
                 new RequestParameter('param-1'),
@@ -60,7 +60,7 @@ class APIActionTest extends TestCase {
      * @test
      */
     public function testAddParameter00() {
-        $action = new APIAction('add-user');
+        $action = new WebService('add-user');
         $rp00 = new RequestParameter('name');
         $this->assertTrue($action->addParameter($rp00));
         $rp01 = new RequestParameter('name');
@@ -73,7 +73,7 @@ class APIActionTest extends TestCase {
     /**
      * @test
      * @depends testConstructor02
-     * @param APIAction $action 
+     * @param WebService $action 
      */
     public function testAddRequestMethod00($action) {
         $this->assertTrue($action->addRequestMethod('get'));
@@ -95,7 +95,7 @@ class APIActionTest extends TestCase {
      * @test
      */
     public function testAddResponseDesc00() {
-        $action = new APIAction('get-user');
+        $action = new WebService('get-user');
         $action->addResponseDescription('');
         $action->addResponseDescription('   ');
         $this->assertEquals(0,count($action->getResponsesDescriptions()));
@@ -107,22 +107,22 @@ class APIActionTest extends TestCase {
      * @test
      */
     public function testConstructor00() {
-        $action = new APIAction('');
+        $action = new WebService('');
         $this->assertEquals('an-action',$action->getName());
     }
     /**
      * @test
      */
     public function testConstructor01() {
-        $action = new APIAction('  ');
+        $action = new WebService('  ');
         $this->assertEquals('an-action',$action->getName());
     }
     /**
      * @test
-     * @return APIAction
+     * @return WebService
      */
     public function testConstructor02() {
-        $action = new APIAction('get-user-info');
+        $action = new WebService('get-user-info');
         $this->assertEquals('get-user-info',$action->getName());
 
         return $action;
@@ -131,14 +131,14 @@ class APIActionTest extends TestCase {
      * @test
      */
     public function testConstructor03() {
-        $action = new APIAction('invalid name');
+        $action = new WebService('invalid name');
         $this->assertEquals('an-action',$action->getName());
     }
     /**
      * @test
      */
     public function testGetParameterByName00() {
-        $action = new APIAction('do-somthing');
+        $action = new WebService('do-somthing');
         $this->assertNull($action->getParameterByName('     '));
         $this->assertNull($action->getParameterByName(''));
         $this->assertNull($action->getParameterByName('username'));
@@ -155,7 +155,7 @@ class APIActionTest extends TestCase {
      * @test
      */
     public function testHasParameter00() {
-        $action = new APIAction('add-user');
+        $action = new WebService('add-user');
         $this->assertFalse($action->hasParameter(''));
         $this->assertFalse($action->hasParameter('name'));
         $rp00 = new RequestParameter('name');
@@ -169,7 +169,7 @@ class APIActionTest extends TestCase {
      * @test
      */
     public function testRemoveParameter00() {
-        $action = new APIAction('hello');
+        $action = new WebService('hello');
         $action->addParameter(new RequestParameter('world'));
         $action->addParameter(new RequestParameter('ibrahim'));
         $action->addParameter(new RequestParameter('ali'));
@@ -184,7 +184,7 @@ class APIActionTest extends TestCase {
     }
     /**
      * @test
-     * @param APIAction $action
+     * @param WebService $action
      * @depends testAddRequestMethod00
      */
     public function testRemoveRequestMethod($action) {
@@ -201,7 +201,7 @@ class APIActionTest extends TestCase {
      * @test
      */
     public function testToJson00() {
-        $action = new APIAction('login');
+        $action = new WebService('login');
         $this->assertEquals(''
                 .'{"name":"login", '
                 .'"since":null, '
@@ -275,7 +275,7 @@ class APIActionTest extends TestCase {
      * @test
      */
     public function testToString00() {
-        $action = new APIAction('get-user');
+        $action = new WebService('get-user');
         $action->addRequestMethod('get');
         $action->addParameter(new RequestParameter('user-id', 'integer'));
         $action->getParameterByName('user-id')->setDescription('The ID of the user.');
@@ -305,7 +305,7 @@ class APIActionTest extends TestCase {
      * @test
      */
     public function testToString01() {
-        $action = new APIAction('add-user');
+        $action = new WebService('add-user');
         $action->addRequestMethod('post');
         $action->addRequestMethod('put');
         $action->addParameter(new RequestParameter('username'));
