@@ -514,7 +514,8 @@ class WebAPITest extends TestCase {
         $stream = fopen(__DIR__.DIRECTORY_SEPARATOR.'hello.txt', 'w');
         $this->assertTrue($api->setOutputStream($stream));
         $this->assertNotNull($api->getOutputStream());
-        $this->assertNull($api->getOutputStreamPath());
+        $this->assertNotNull($api->getOutputStreamPath());
+        $this->assertEquals(__DIR__.DIRECTORY_SEPARATOR.'hello.txt',$api->getOutputStreamPath());
     }
     /**
      * @test
