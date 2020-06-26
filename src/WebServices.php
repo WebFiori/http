@@ -46,9 +46,14 @@ use jsonx\JsonX;
 abstract class WebServices implements JsonI {
     /**
      * The stream at which the output will be sent to.
-     * @var resource 
+     * @var resource|null
      */
     private $outputStream;
+    /**
+     * The path of the stream.
+     * @var string|null 
+     */
+    private $outputStreamPath;
     /**
      * A constant which is used to indicate that the message that will be 
      * sent is of type error
@@ -158,6 +163,56 @@ abstract class WebServices implements JsonI {
         $this->addAction($action,true);
         $this->invParamsArr = [];
         $this->missingParamsArr = [];
+    }
+    /**
+     * Sets a custom output stream.
+     * This method is useful if the developer would like to test the output of a 
+     * web service. Simply set the output stream to a custom one and read the 
+     * content of the stream. Note that if a path is given and the stream does 
+     * not exist, the method will attempt to create it. In addition, if the 
+     * resource already exist and has content, it will be erased.
+     * @param resource|string $stream A resource which was opened by 'fopen()'. Also, 
+     * it can be a string that points to a file.
+     * @since 1.4.7
+     */
+    public function setOutputStream($stream) {
+        $retVal = false;
+        
+        if (is_resource($stream)) {
+            $this->outputStream = $stream;
+            $retVal = true;
+        } 
+        
+        $trimmed = trim($stream);
+        $tempStream = fopen($trimmed, 'w');
+        
+        if (is_resource($tempStream)) {
+            $this->outputStream = $tempStream;
+            $retVal = true;
+        }
+        
+        return $retVal;
+    }
+    /**
+     * Returns a string that represents the path of the custom output stream.
+     * Note that the path of the stream will be set only if it was opened by 
+     * providing its path in the method 'WebServices::setOutputStream()'.
+     * @return string|null A string that represents the path of the custom output stream. 
+     * @since 1.4.7
+     */
+    public function getOutputStreamPath() {
+        return $this->outputStreamPath;
+    }
+    /**
+     * Returns the stream at which the output will be sent to.
+     * @return resource|null If a custom output stream is set using the 
+     * method 'WebServices::setOutputStream()', the method will return a 
+     * resource. The resource will be still open. If no custom stream is set, 
+     * the method will return null.
+     * @since 1.4.7
+     */
+    public function getOutputStream() {
+        return $this->outputStream;
     }
     /**
      * Sends a response message to indicate that an action is not implemented.
@@ -676,7 +731,12 @@ abstract class WebServices implements JsonI {
     public function send($conentType,$data,$code = 200) {
         http_response_code($code);
         header('content-type:'.$conentType);
-        echo $data;
+        if ($this->getOutputStream() !== null) {
+            fwrite($this->getOutputStream(), $data);
+            fclose($this->getOutputStream());
+        } else {
+            echo $data;
+        }
     }
     /**
      * Sends back multiple HTTP headers to the client.
@@ -730,7 +790,13 @@ abstract class WebServices implements JsonI {
         if ($otherInfo !== null) {
             $json->add('more-info', $otherInfo);
         }
-        echo $json;
+        
+        if ($this->getOutputStream() !== null) {
+            fwrite($this->getOutputStream(), $json);
+            fclose($this->getOutputStream());
+        } else {
+            echo $json;
+        }
     }
     /**
      * Sets the description of the web services set.
