@@ -385,11 +385,10 @@ class APIFilterTest extends TestCase {
     public function testFilterGet19() {
         $this->apiFilter = new APIFilter();
         $param00 = new RequestParameter('send-to', 'email');
-        $param00->setCustomFilterFunction(function($val,$reqParam)
+        $param00->setCustomFilterFunction(function($val,$filtered,$reqParam)
         {
-            $original = $val['basic-filter-result'];
 
-            return 'Email to: '.$original;
+            return 'Email to: '.$val;
         });
         $this->apiFilter->addRequestParameter($param00);
         $_GET['send-to'] = 'admin@example.com';
