@@ -642,6 +642,100 @@ class APIFilterTest extends TestCase {
         $this->assertEquals(1,count($filtered));
         $this->assertEquals('Ibrahim BinAlshikh',$filtered['name']);
     }
+    /**
+     * @test
+     */
+    public function testFilterPost12() {
+        $this->apiFilter = new APIFilter();
+        $param00 = new RequestParameter('bool', 'boolean');
+        $param00->setCustomFilterFunction(function ($valNoFilter, $basicFilter, $requestParam) {
+            if ($basicFilter === true) {
+                return false;
+            } else {
+                return true;
+            }
+        });
+        $this->apiFilter->addRequestParameter($param00);
+        $_POST['bool'] = 't';
+        $this->apiFilter->filterPOST();
+        $filtered = $this->apiFilter->getInputs();
+        $this->assertEquals(1,count($filtered));
+        $this->assertFalse($filtered['bool']);
+    }
+    /**
+     * @test
+     */
+    public function testFilterPost13() {
+        $this->apiFilter = new APIFilter();
+        $param00 = new RequestParameter('bool', 'boolean');
+        $param00->setCustomFilterFunction(function ($valNoFilter, $basicFilter, $requestParam) {
+            if ($basicFilter === true) {
+                return false;
+            } else {
+                return true;
+            }
+        });
+        $this->apiFilter->addRequestParameter($param00);
+        $_POST['bool'] = 'f';
+        $this->apiFilter->filterPOST();
+        $filtered = $this->apiFilter->getInputs();
+        $this->assertEquals(1,count($filtered));
+        $this->assertTrue($filtered['bool']);
+    }
+    /**
+     * @test
+     */
+    public function testFilterPost14() {
+        $this->apiFilter = new APIFilter();
+        $param00 = new RequestParameter('bool', 'boolean');
+        $param00->setCustomFilterFunction(function ($valNoFilter, $basicFilter, $requestParam) {
+            if ($basicFilter == 'NOT_APLICABLE') {
+                return true;
+            } else {
+                return true;
+            }
+        }, false);
+        $this->apiFilter->addRequestParameter($param00);
+        $_POST['bool'] = 'f';
+        $this->apiFilter->filterPOST();
+        $filtered = $this->apiFilter->getInputs();
+        $this->assertEquals(1,count($filtered));
+        $this->assertTrue($filtered['bool']);
+    }
+    /**
+     * @test
+     */
+    public function testFilterPost15() {
+        $this->apiFilter = new APIFilter();
+        $param00 = new RequestParameter('str', 'string');
+        $param00->setCustomFilterFunction(function ($valNoFilter, $basicFilter, $requestParam) {
+            return $basicFilter;
+        });
+        $param00->setIsEmptyStringAllowed(true);
+        $this->apiFilter->addRequestParameter($param00);
+        $_POST['str'] = '';
+        $this->apiFilter->filterPOST();
+        $filtered = $this->apiFilter->getInputs();
+        $this->assertEquals(1,count($filtered));
+        $this->assertEquals('', $filtered['str']);
+    }
+    /**
+     * @test
+     */
+    public function testFilterPost16() {
+        $this->apiFilter = new APIFilter();
+        $param00 = new RequestParameter('str', 'string');
+        $param00->setCustomFilterFunction(function ($valNoFilter, $basicFilter, $requestParam) {
+            return $basicFilter;
+        });
+        $param00->setIsEmptyStringAllowed(false);
+        $this->apiFilter->addRequestParameter($param00);
+        $_POST['str'] = '';
+        $this->apiFilter->filterPOST();
+        $filtered = $this->apiFilter->getInputs();
+        $this->assertEquals(1,count($filtered));
+        $this->assertEquals(APIFilter::INVALID, $filtered['str']);
+    }
 }
 
 
