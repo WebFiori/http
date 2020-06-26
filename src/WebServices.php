@@ -176,11 +176,10 @@ abstract class WebServices implements JsonI {
      * @since 1.4.7
      */
     public function setOutputStream($stream) {
-        $retVal = false;
         
         if (is_resource($stream)) {
             $this->outputStream = $stream;
-            $retVal = true;
+            return true;
         } 
         
         $trimmed = trim($stream);
@@ -189,11 +188,11 @@ abstract class WebServices implements JsonI {
         
             if (is_resource($tempStream)) {
                 $this->outputStream = $tempStream;
-                $retVal = true;
+                return true;
             }
         }
         
-        return $retVal;
+        return false;
     }
     /**
      * Returns a string that represents the path of the custom output stream.
