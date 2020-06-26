@@ -1,8 +1,8 @@
 <?php
 namespace restEasy\tests;
 
-use restEasy\WebService;
 use restEasy\RequestParameter;
+use restEasy\WebService;
 use restEasy\WebServices;
 /**
  * Description of SampleAPI

@@ -45,16 +45,6 @@ use jsonx\JsonX;
  */
 abstract class WebServices implements JsonI {
     /**
-     * The stream at which the output will be sent to.
-     * @var resource|null
-     */
-    private $outputStream;
-    /**
-     * The path of the stream.
-     * @var string|null 
-     */
-    private $outputStreamPath;
-    /**
      * A constant which is used to indicate that the message that will be 
      * sent is of type error
      */
@@ -121,6 +111,16 @@ abstract class WebServices implements JsonI {
      */
     private $missingParamsArr;
     /**
+     * The stream at which the output will be sent to.
+     * @var resource|null
+     */
+    private $outputStream;
+    /**
+     * The path of the stream.
+     * @var string|null 
+     */
+    private $outputStreamPath;
+    /**
      * API request method.
      * @var string 
      * @since 1.0
@@ -163,91 +163,6 @@ abstract class WebServices implements JsonI {
         $this->addAction($action,true);
         $this->invParamsArr = [];
         $this->missingParamsArr = [];
-    }
-    /**
-     * Sets a custom output stream.
-     * This method is useful if the developer would like to test the output of a 
-     * web service. Simply set the output stream to a custom one and read the 
-     * content of the stream. Note that  if the 
-     * resource already exist and has content, it will be erased.
-     * @param resource|string $stream A resource which was opened by 'fopen()'. Also, 
-     * it can be a string that points to a file.
-     * @param boolean $new If set to true and the resource does not exist, the 
-     * method will attempt to create it.
-     * @since 1.4.7
-     */
-    public function setOutputStream($stream, $new = false) {
-        
-        if (is_resource($stream)) {
-            $this->outputStream = $stream;
-            $meat = stream_get_meta_data($this->outputStream);
-            $this->outputStreamPath = $meat['uri'];
-            file_put_contents($this->getOutputStreamPath(),'');
-            
-            return true;
-        } 
-        
-        $trimmed = trim($stream);
-        if (strlen($trimmed) > 0) {
-            $create = $new === true;
-            if (is_file($stream)) {
-                
-                return $this->setOutputStreamHelper($trimmed, 'r+');
-            } else if ($create) {
-                
-                return $this->setOutputStreamHelper($trimmed, 'w');
-            }
-        }
-        
-        return false;
-    }
-    private function setOutputStreamHelper($trimmed, $mode) {
-        $tempStream = fopen($trimmed, $mode);
-        
-        if (is_resource($tempStream)) {
-            $this->outputStream = $tempStream;
-            $this->outputStreamPath = $trimmed;
-            file_put_contents($this->getOutputStreamPath(),'');
-            
-            return true;
-        }
-        
-        return false;
-    }
-    /**
-     * Returns a string that represents the path of the custom output stream.
-     * @return string|null A string that represents the path of the custom output stream. 
-     * If no custom output stream is set, the method will return null.
-     * @since 1.4.7
-     */
-    public function getOutputStreamPath() {
-        return $this->outputStreamPath;
-    }
-    /**
-     * Returns the stream at which the output will be sent to.
-     * @return resource|null If a custom output stream is set using the 
-     * method 'WebServices::setOutputStream()', the method will return a 
-     * resource. The resource will be still open. If no custom stream is set, 
-     * the method will return null.
-     * @since 1.4.7
-     */
-    public function getOutputStream() {
-        return $this->outputStream;
-    }
-    /**
-     * Reads the content of output stream.
-     * This method is used to read the content of the custom output stream. The 
-     * method will only read it if it was set using its path.
-     * @return string|null If the content was taken from the stream, the method 
-     * will return it as a string. Other than that, the method will return null.
-     * @since 1.4.7
-     */
-    public function readOutputStream() {
-        $path = $this->getOutputStreamPath();
-        if ($path !== null){
-            $content = file_get_contents($path);
-            return $content;
-        }
     }
     /**
      * Sends a response message to indicate that an action is not implemented.
@@ -357,10 +272,10 @@ abstract class WebServices implements JsonI {
      */
     public function getAction() {
         $reqMeth = $this->getRequestMethod();
-        
+
         $serviceIdx = ['action', 'service-name'];
-        
-        foreach ($serviceIdx as $serviceNameIndex){
+
+        foreach ($serviceIdx as $serviceNameIndex) {
             if (($reqMeth == 'GET' || 
                $reqMeth == 'DELETE' ||  
                $reqMeth == 'OPTIONS' || 
@@ -372,19 +287,6 @@ abstract class WebServices implements JsonI {
         }
 
         return null;
-    }
-    /**
-     * Returns the name of the service which is being called.
-     * The name of the service  must be passed in the body of the request for POST and PUT 
-     * request methods (e.g. 'action=do-something' or 'service-name=do-something'). 
-     * In case of GET and DELETE, it must be passed as query string. 
-     * @return string|null The name of the service that was requested. If the name 
-     * of the service is not set, the method will return null. 
-     * @since 1.0 
-     * @return type
-     */
-    public function getCalledServiceName() {
-        return $this->getAction();
     }
     /**
      * Returns a web service given its name.
@@ -432,6 +334,19 @@ abstract class WebServices implements JsonI {
      */
     public final function getAuthActions() {
         return $this->authActions;
+    }
+    /**
+     * Returns the name of the service which is being called.
+     * The name of the service  must be passed in the body of the request for POST and PUT 
+     * request methods (e.g. 'action=do-something' or 'service-name=do-something'). 
+     * In case of GET and DELETE, it must be passed as query string. 
+     * @return string|null The name of the service that was requested. If the name 
+     * of the service is not set, the method will return null. 
+     * @since 1.0 
+     * @return type
+     */
+    public function getCalledServiceName() {
+        return $this->getAction();
     }
     /**
      * Returns request content type.
@@ -499,6 +414,26 @@ abstract class WebServices implements JsonI {
      */
     public function getNonFiltered() {
         return $this->filter->getNonFiltered();
+    }
+    /**
+     * Returns the stream at which the output will be sent to.
+     * @return resource|null If a custom output stream is set using the 
+     * method 'WebServices::setOutputStream()', the method will return a 
+     * resource. The resource will be still open. If no custom stream is set, 
+     * the method will return null.
+     * @since 1.4.7
+     */
+    public function getOutputStream() {
+        return $this->outputStream;
+    }
+    /**
+     * Returns a string that represents the path of the custom output stream.
+     * @return string|null A string that represents the path of the custom output stream. 
+     * If no custom output stream is set, the method will return null.
+     * @since 1.4.7
+     */
+    public function getOutputStreamPath() {
+        return $this->outputStreamPath;
     }
     /**
      * Returns the name of request method which is used to call one of the services in the set.
@@ -732,6 +667,22 @@ abstract class WebServices implements JsonI {
      */
     public abstract function processRequest();
     /**
+     * Reads the content of output stream.
+     * This method is used to read the content of the custom output stream. The 
+     * method will only read it if it was set using its path.
+     * @return string|null If the content was taken from the stream, the method 
+     * will return it as a string. Other than that, the method will return null.
+     * @since 1.4.7
+     */
+    public function readOutputStream() {
+        $path = $this->getOutputStreamPath();
+
+        if ($path !== null) {
+            
+            return file_get_contents($path);
+        }
+    }
+    /**
      * Removes all added web services.
      * This method will simply re-initialize the arrays that holds all web 
      * services.
@@ -811,7 +762,6 @@ abstract class WebServices implements JsonI {
      * @since 1.0
      */
     public function sendResponse($message,$type = '',$code = 200,$otherInfo = null) {
-        
         $json = new JsonX();
         $json->add('message', $message);
         $typeTrimmed = trim($type);
@@ -824,7 +774,7 @@ abstract class WebServices implements JsonI {
         if ($otherInfo !== null) {
             $json->add('more-info', $otherInfo);
         }
-        
+
         if ($this->getOutputStream() !== null) {
             fwrite($this->getOutputStream(), $json);
             fclose($this->getOutputStream());
@@ -842,6 +792,44 @@ abstract class WebServices implements JsonI {
      */
     public function setDescription($desc) {
         $this->apiDesc = $desc;
+    }
+    /**
+     * Sets a custom output stream.
+     * This method is useful if the developer would like to test the output of a 
+     * web service. Simply set the output stream to a custom one and read the 
+     * content of the stream. Note that  if the 
+     * resource already exist and has content, it will be erased.
+     * @param resource|string $stream A resource which was opened by 'fopen()'. Also, 
+     * it can be a string that points to a file.
+     * @param boolean $new If set to true and the resource does not exist, the 
+     * method will attempt to create it.
+     * @since 1.4.7
+     */
+    public function setOutputStream($stream, $new = false) {
+        if (is_resource($stream)) {
+            $this->outputStream = $stream;
+            $meat = stream_get_meta_data($this->outputStream);
+            $this->outputStreamPath = $meat['uri'];
+            file_put_contents($this->getOutputStreamPath(),'');
+
+            return true;
+        } 
+
+        $trimmed = trim($stream);
+
+        if (strlen($trimmed) > 0) {
+            $create = $new === true;
+
+            if (is_file($stream)) {
+                return $this->setOutputStreamHelper($trimmed, 'r+');
+            } else {
+                if ($create) {
+                    return $this->setOutputStreamHelper($trimmed, 'w');
+                }
+            }
+        }
+
+        return false;
     }
     /**
      * Sets version number of the set.
@@ -989,5 +977,18 @@ abstract class WebServices implements JsonI {
         }
 
         return true;
+    }
+    private function setOutputStreamHelper($trimmed, $mode) {
+        $tempStream = fopen($trimmed, $mode);
+
+        if (is_resource($tempStream)) {
+            $this->outputStream = $tempStream;
+            $this->outputStreamPath = $trimmed;
+            file_put_contents($this->getOutputStreamPath(),'');
+
+            return true;
+        }
+
+        return false;
     }
 }
