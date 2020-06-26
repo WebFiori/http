@@ -20,7 +20,7 @@ This library is a part of <a>WebFiori Framework</a>. To access API docs of the l
 ## The Idea
 The idea of the library is as follows, when a client performs a request to a web service, he is usually intersted in performing specific action. Related actions are kept in one place as a set of web services (e.g. CRUD operations on a reasorce). The client can pass arguments (or parameters) to the end point (the services set) in request body or as a query string.
 
-An end point is represented as the class <a href="https://webfiori.com/docs/restEasy/WebService">WebService</a> and a set of web service (or end ponts) are represented by the class <a href="https://webfiori.com/docs/restEasy/WebServices">WebServices</a>. Also, body parameters represented by the class <a href="https://webfiori.com/docs/restEasy/RequestParameter">RequestParameter</a>.
+An end point is represented as the class <a href="https://webfiori.com/docs/restEasy/WebService">WebService</a> and a set of web service (or end ponts) are represented by the class <a href="https://webfiori.com/docs/restEasy/WebServicesSet">WebServicesSet</a>. Also, body parameters represented by the class <a href="https://webfiori.com/docs/restEasy/RequestParameter">RequestParameter</a>.
 
 ## Features
 * Full support for creating REST services using JSON notation.
@@ -48,7 +48,7 @@ Another option is to download the latest release manually from <a href="https://
 The first step is to include the requierd classes. There are basically 3 classes that you need:
 * <a href="https://webfiori.com/docs/restEasy/RequestParameter">RequestParameter</a>
 * <a href="https://webfiori.com/docs/restEasy/WebService">WebService</a>
-* <a href="https://webfiori.com/docs/restEasy/WebServices">WebServices</a>
+* <a href="https://webfiori.com/docs/restEasy/WebServicesSet">WebServicesSet</a>
 
 After that, you need to extend the class 'WebAPI' and implement two methods:
 * <a href="https://webfiori.com/docs/restEasy/WebServices#isAuthorized">WebServices::isAuthorized()</a>
@@ -63,7 +63,7 @@ The following code sample shows how to create a simple web API.
 ```php
 require_once '../jsonx/JsonX.php';
 require_once '../jsonx/JsonI.php';
-require_once '../WebServices.php';
+require_once '../WebServicesSet.php';
 require_once '../WebService.php';
 require_once '../APIFilter.php';
 require_once '../RequestParameter.php';
@@ -79,7 +79,7 @@ use restEasy\RequestParameter;
  * 5- Create an instance of the class.
  * 6- Call the function 'process()'.
  */
-class MyAPI extends WebServices{
+class MyAPI extends WebServicesSet {
     
     public function __construct() {
         parent::__construct();
