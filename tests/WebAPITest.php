@@ -435,7 +435,7 @@ class WebAPITest extends TestCase {
         $api = new SampleService();
         $api->setOutputStream($this->outputStreamName);
         $api->process();
-        $this->expectOutputString('{"message":"The following parameter(s) has invalid values: \'first-number\', \'second-number\'.", "type":"error", "http-code":404}', $api->readOutputStream());
+        $this->assertEquals('{"message":"The following parameter(s) has invalid values: \'first-number\', \'second-number\'.", "type":"error", "http-code":404}', $api->readOutputStream());
     }
     /**
      * @test
