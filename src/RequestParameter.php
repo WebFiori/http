@@ -408,7 +408,7 @@ class RequestParameter implements JsonI {
      * @since 1.2.2
      */
     public function setIsOptional($bool) {
-        $this->isOptional = $bool === true ? true : false;
+        $this->isOptional = $bool === true;
     }
     /**
      * Sets the maximum value.
@@ -577,7 +577,7 @@ class RequestParameter implements JsonI {
         $param->setIsOptional($isOptional);
 
         if (isset($options['min'])) {
-            $param->setMaxVal($options['min']);
+            $param->setMinVal($options['min']);
         }
 
         if (isset($options['max'])) {
