@@ -11,11 +11,12 @@ use restEasy\WebServices;
  * @author Eng.Ibrahim
  */
 class WebAPITest extends TestCase {
-    private $outputStreamName = 'outputStream.txt';
+    private $outputStreamName = __DIR__.DIRECTORY_SEPARATOR.'outputStream.txt';
     /**
      * @test
      */
     public function testActionAPIInfo00() {
+        
         $this->clrearVars();
         $_GET['action'] = 'api-info';
         $_GET['pass'] = '123';
