@@ -168,14 +168,15 @@ abstract class WebServices implements JsonI {
      * Sets a custom output stream.
      * This method is useful if the developer would like to test the output of a 
      * web service. Simply set the output stream to a custom one and read the 
-     * content of the stream. Note that if a path is given and the stream does 
-     * not exist, the method will attempt to create it. In addition, if the 
+     * content of the stream. Note that  if the 
      * resource already exist and has content, it will be erased.
      * @param resource|string $stream A resource which was opened by 'fopen()'. Also, 
      * it can be a string that points to a file.
+     * @param boolean $new If set to true and the resource does not exist, the 
+     * method will attempt to create it.
      * @since 1.4.7
      */
-    public function setOutputStream($stream) {
+    public function setOutputStream($stream, $new = false) {
         
         if (is_resource($stream)) {
             $this->outputStream = $stream;
@@ -184,14 +185,24 @@ abstract class WebServices implements JsonI {
         
         $trimmed = trim($stream);
         if (strlen($trimmed) > 0) {
-            $tempStream = fopen($trimmed, 'w');
-        
-            if (is_resource($tempStream)) {
-                $this->outputStream = $tempStream;
-                return true;
+            $create = $new === true;
+            if (is_file($stream)) {
+                return $this->setOutputStreamHelper($trimmed, 'r+');
+            } else if ($create) {
+                return $this->setOutputStreamHelper($trimmed, 'w');
             }
         }
         
+        return false;
+    }
+    private function setOutputStreamHelper($trimmed, $mode) {
+        $tempStream = fopen($trimmed, $mode);
+        
+        if (is_resource($tempStream)) {
+            $this->outputStream = $tempStream;
+            $this->outputStreamPath = $trimmed;
+            return true;
+        }
         return false;
     }
     /**
