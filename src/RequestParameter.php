@@ -313,19 +313,13 @@ class RequestParameter implements JsonI {
     }
     /**
      * Sets a callback method to work as a filter for request parameter.
-     * The callback method will have two parameters passed to it:
+     * The callback method will have 3 parameters passed to it:
      * <ul>
-     * <li>An associative array.</li>
+     * <li>Original value without filtering.</li>
+     * <li>The value with basic filtering rules applied to it.</li>
      * <li>An object of type RequestParameter.</li>
      * </ul> 
-     * The associative array will contain the not-filtered value and 
-     * the value filtered using basic filter. The values are contained in two 
-     * indices of the array: 
-     * <ul>
-     * <li>original-value</li>
-     * <li>basic-filter-result</li>
-     * </ul>
-     * <p>If the parameter $applyBasicFilter is set to false, the index 'basic-filter-result' 
+     * <p>If the parameter $applyBasicFilter is set to false, the second parameter 
      * will have the value 'NOT_APLICABLE'.</p>
      * <p>The object of type <b>RequestParameter</b> 
      * will contain original information for the filter.</p> The method 
@@ -408,7 +402,7 @@ class RequestParameter implements JsonI {
         return false;
     }
     /**
-     * Sets the value of the property 'is optional'.
+     * Sets the value of the property 'isOptional'.
      * @param boolean $bool True to make the parameter optional. False to make 
      * it mandatory.
      * @since 1.2.2

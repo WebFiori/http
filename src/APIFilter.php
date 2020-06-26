@@ -26,7 +26,7 @@
 namespace restEasy;
 
 /**
- * A class used to filter request parameters.
+ * A class used to validate and sanitize request parameters.
  * This class is the core class which is used to manage and set request 
  * parameters.
  * @author Ibrahim
@@ -229,7 +229,7 @@ class APIFilter {
                         } else {
                             $arrToPass['basic-filter-result'] = 'NOT_APLICABLE';
                         }
-                        $r = call_user_func($def[$optIdx]['filter-func'],$arrToPass,$def[$paramIdx]);
+                        $r = call_user_func($def[$optIdx]['filter-func'],$arrToPass['original-value'], $arrToPass['basic-filter-result'],$def[$paramIdx]);
 
                         if ($r === null) {
                             $retVal[$filteredIdx][$name] = false;
@@ -286,17 +286,17 @@ class APIFilter {
         return $retVal;
     }
     /**
-     * Filter GET parameters.
+     * Validate and sanitize GET parameters.
      * GET parameters are usually sent when request method is GET or DELETE.
-     * The filtering algorithm will work as follows:
+     * The validation and sanitization algorithm will work as follows:
      * <ul>
      * <li>First, check if $_GET['param-name'] is set.</li>
      * <li>If not set, check if its optional. If optional and default value is 
      * given, then use default value. Else, set the filtered value to null.</li>
      * <li>If $_GET['param-name'] is given, then do the following steps:
      * <ul>
-     * <li>First, apply basic filtering (if applicable).</li>
-     * <li>If custom filter is provided, then apply it.</li>
+     * <li>First, apply basic validation and sanitization (if applicable).</li>
+     * <li>If custom validation and sanitization function is provided, then apply it.</li>
      * </ul>
      * </li>
      * </ul>
@@ -309,8 +309,20 @@ class APIFilter {
         $this->nonFilteredInputs = $filterResult['non-filtered'];
     }
     /**
-     * Filter POST parameters.
+     * Validate and sanitize POST parameters.
      * POST parameters are usually sent when request method is POST or PUT.
+     * The validation and sanitization algorithm will work as follows:
+     * <ul>
+     * <li>First, check if $_POST['param-name'] is set.</li>
+     * <li>If not set, check if its optional. If optional and default value is 
+     * given, then use default value. Else, set the filtered value to null.</li>
+     * <li>If $_POST['param-name'] is given, then do the following steps:
+     * <ul>
+     * <li>First, apply basic validation and sanitization (if applicable).</li>
+     * <li>If custom validation and sanitization function is provided, then apply it.</li>
+     * </ul>
+     * </li>
+     * </ul>
      * @since 1.0
      */
     public final function filterPOST() {
