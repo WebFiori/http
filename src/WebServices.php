@@ -216,9 +216,8 @@ abstract class WebServices implements JsonI {
     }
     /**
      * Returns a string that represents the path of the custom output stream.
-     * Note that the path of the stream will be set only if it was opened by 
-     * providing its path in the method 'WebServices::setOutputStream()'.
      * @return string|null A string that represents the path of the custom output stream. 
+     * If no custom output stream is set, the method will return null.
      * @since 1.4.7
      */
     public function getOutputStreamPath() {
