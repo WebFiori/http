@@ -223,6 +223,7 @@ class APIFilter {
                                     strlen($filteredValue) == 0 && 
                                     $def[$optIdx][$optIdx]['allow-empty'] === false) {
                                     $retVal[$filteredIdx][$name] = self::INVALID;
+                                    $filteredValue = self::INVALID;
                                 }
                             }
                             $arrToPass['basic-filter-result'] = $filteredValue;
