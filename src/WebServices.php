@@ -180,6 +180,10 @@ abstract class WebServices implements JsonI {
         
         if (is_resource($stream)) {
             $this->outputStream = $stream;
+            $meat = stream_get_meta_data($this->outputStream);
+            $this->outputStreamPath = $meat['uri'];
+            file_put_contents($this->getOutputStreamPath(),'');
+            
             return true;
         } 
         
@@ -187,8 +191,10 @@ abstract class WebServices implements JsonI {
         if (strlen($trimmed) > 0) {
             $create = $new === true;
             if (is_file($stream)) {
+                
                 return $this->setOutputStreamHelper($trimmed, 'r+');
             } else if ($create) {
+                
                 return $this->setOutputStreamHelper($trimmed, 'w');
             }
         }
@@ -201,8 +207,11 @@ abstract class WebServices implements JsonI {
         if (is_resource($tempStream)) {
             $this->outputStream = $tempStream;
             $this->outputStreamPath = $trimmed;
+            file_put_contents($this->getOutputStreamPath(),'');
+            
             return true;
         }
+        
         return false;
     }
     /**
@@ -225,6 +234,21 @@ abstract class WebServices implements JsonI {
      */
     public function getOutputStream() {
         return $this->outputStream;
+    }
+    /**
+     * Reads the content of output stream.
+     * This method is used to read the content of the custom output stream. The 
+     * method will only read it if it was set using its path.
+     * @return string|null If the content was taken from the stream, the method 
+     * will return it as a string. Other than that, the method will return null.
+     * @since 1.4.7
+     */
+    public function readOutputStream() {
+        $path = $this->getOutputStreamPath();
+        if ($path !== null){
+            $content = file_get_contents($path);
+            return $content;
+        }
     }
     /**
      * Sends a response message to indicate that an action is not implemented.
@@ -741,12 +765,12 @@ abstract class WebServices implements JsonI {
      * Default is HTTP code 200 - Ok.
      */
     public function send($conentType,$data,$code = 200) {
-        http_response_code($code);
-        header('content-type:'.$conentType);
         if ($this->getOutputStream() !== null) {
             fwrite($this->getOutputStream(), $data);
             fclose($this->getOutputStream());
         } else {
+            http_response_code($code);
+            header('content-type:'.$conentType);
             echo $data;
         }
     }
@@ -788,8 +812,7 @@ abstract class WebServices implements JsonI {
      * @since 1.0
      */
     public function sendResponse($message,$type = '',$code = 200,$otherInfo = null) {
-        header('content-type:application/json');
-        http_response_code($code);
+        
         $json = new JsonX();
         $json->add('message', $message);
         $typeTrimmed = trim($type);
@@ -807,6 +830,8 @@ abstract class WebServices implements JsonI {
             fwrite($this->getOutputStream(), $json);
             fclose($this->getOutputStream());
         } else {
+            header('content-type:application/json');
+            http_response_code($code);
             echo $json;
         }
     }
