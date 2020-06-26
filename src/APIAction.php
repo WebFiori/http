@@ -33,6 +33,7 @@ namespace restEasy;
  * action taken to perform specific task.
  * @author Ibrahim
  * @version 1.3.3
+ * @since 1.0
  * @deprecated since version 1.5.0 Use "WebService" instead.
  */
 class APIAction extends WebService {
