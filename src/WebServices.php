@@ -488,7 +488,7 @@ abstract class WebServices implements JsonI {
      * @since 1.0
      */
     public final function isActionSupported() {
-        $action = $this->getAction();
+        $action = $this->getCalledServiceName();
 
         foreach ($this->getActions() as $val) {
             if ($val->getName() == $action) {
@@ -607,7 +607,7 @@ abstract class WebServices implements JsonI {
 
         if ($this->isContentTypeSupported()) {
             if ($this->_checkAction()) {
-                $actionObj = $this->getActionByName($this->getAction());
+                $actionObj = $this->getActionByName($this->getCalledServiceName());
                 $params = $actionObj->getParameters();
                 $this->filter->clearParametersDef();
                 $this->filter->clearInputs();
@@ -643,7 +643,7 @@ abstract class WebServices implements JsonI {
 
                 if ($processReq) {
                     if ($this->_isAuthorizedAction()) {
-                        if ($this->getAction() == 'api-info') {
+                        if ($this->getCalledServiceName() == 'api-info') {
                             $this->send('application/json', $this->toJSON());
                         } else {
                             $this->processRequest();
@@ -909,7 +909,7 @@ abstract class WebServices implements JsonI {
      * @since 1.0
      */
     private final function _checkAction() {
-        $action = $this->getAction();
+        $action = $this->getCalledServiceName();
         //first, check if action is set and not null
         if ($action != null) {
             //after that, check if action is supported by the API.
@@ -968,7 +968,7 @@ abstract class WebServices implements JsonI {
      * @since 1.3.1
      */
     private function _isAuthorizedAction() {
-        $action = $this->getAction();
+        $action = $this->getCalledServiceName();
 
         foreach ($this->getAuthActions() as $val) {
             if ($val->getName() == $action) {
