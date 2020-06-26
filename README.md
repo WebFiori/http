@@ -18,9 +18,9 @@ It includes inputs feltering and data validation in addion to creating user-defi
 This library is a part of <a>WebFiori Framework</a>. To access API docs of the library, you can visid the following link: https://webfiori.com/docs/restEasy .
 
 ## The Idea
-The idea of the library is as follows, when a client performs a request to a web service, he is usually intersted in performing specific action. One web service can have multiple actions. An action can be considered as API end point. The client can pass arguments (or parameters) to the end point in request body or as a query string.
+The idea of the library is as follows, when a client performs a request to a web service, he is usually intersted in performing specific action. Related actions are kept in one place as a set of web services (e.g. CRUD operations on a reasorce). The client can pass arguments (or parameters) to the end point (the services set) in request body or as a query string.
 
-An end point is represented as the class <a href="https://webfiori.com/docs/restEasy/APIAction">APIAction</a> and a set of web service (or end ponts) are represented by the class <a href="https://webfiori.com/docs/restEasy/WebServices">WebServices</a>. Also, body parameters represented by the class <a href="https://webfiori.com/docs/restEasy/RequestParameter">RequestParameter</a>.
+An end point is represented as the class <a href="https://webfiori.com/docs/restEasy/WebService">WebService</a> and a set of web service (or end ponts) are represented by the class <a href="https://webfiori.com/docs/restEasy/WebServices">WebServices</a>. Also, body parameters represented by the class <a href="https://webfiori.com/docs/restEasy/RequestParameter">RequestParameter</a>.
 
 ## Features
 * Full support for creating REST services using JSON notation.
@@ -47,7 +47,7 @@ Another option is to download the latest release manually from <a href="https://
 ## Usage
 The first step is to include the requierd classes. There are basically 3 classes that you need:
 * <a href="https://webfiori.com/docs/restEasy/RequestParameter">RequestParameter</a>
-* <a href="https://webfiori.com/docs/restEasy/APIAction">APIAction</a>
+* <a href="https://webfiori.com/docs/restEasy/WebService">WebService</a>
 * <a href="https://webfiori.com/docs/restEasy/WebServices">WebServices</a>
 
 After that, you need to extend the class 'WebAPI' and implement two methods:
@@ -64,19 +64,20 @@ The following code sample shows how to create a simple web API.
 require_once '../jsonx/JsonX.php';
 require_once '../jsonx/JsonI.php';
 require_once '../WebServices.php';
-require_once '../APIAction.php';
+require_once '../WebService.php';
 require_once '../APIFilter.php';
 require_once '../RequestParameter.php';
 use restEasy\WebServices;
-use restEasy\APIAction;
+use restEasy\WebService;
 use restEasy\RequestParameter;
 /*
  * Steps for creating new API:
- * 1- Create a class that extends the class 'API'.
- * 2- Implement 'isAuthorized()' method.
- * 3- Implement 'processRequest()' method.
- * 4- Create an instance of the class.
- * 5- Call the function 'process()'.
+ * 1- Create a class that extends the class 'WebServices'.
+ * 2- Add your services to the class.
+ * 3- Implement 'isAuthorized()' method.
+ * 4- Implement 'processRequest()' method.
+ * 5- Create an instance of the class.
+ * 6- Call the function 'process()'.
  */
 class MyAPI extends WebServices{
     
@@ -86,23 +87,23 @@ class MyAPI extends WebServices{
         //add actions, parameters for 'GET' or 'POST' or any other request method.
         
         //create new action
-        $action00 = new APIAction('my-action');
+        $action00 = new WebService('my-action');
         $action00->addRequestMethod('get');
         
         //add parameters for the action
         $action00->addParameter(new RequestParameter('my-param', 'string', true));
         
-        //add the action to the API
+        //add the service to the API set
         $this->addAction($action00);
         
-        //create another action which requires permissions
-        $action01 = new APIAction('auth-action');
+        //create another service which requires permissions
+        $action01 = new WebService('auth-action');
         $action01->addRequestMethod('get');
         $action01->addRequestMethod('post');
         $action01->addParameter(new RequestParameter('name', 'string'));
         $action01->addParameter(new RequestParameter('pass', 'string', true));
         
-        //add the action to the API
+        //add the service to the API set
         //note the 'true' in here. It means the action
         //require authorization.
         $this->addAction($action01,true);
@@ -115,7 +116,7 @@ class MyAPI extends WebServices{
      * The method will return true only if the action is equal to 'my-action'.
      */
     public function isAuthorized(){
-        $action = $this->getAction();
+        $action = $this->getCalledServiceName();
         if($action == 'auth-action'){
             $i = $this->getInputs();
             $pass = isset($i['pass']) ? $i['pass'] : null;
@@ -129,7 +130,7 @@ class MyAPI extends WebServices{
      * Process client request based on the given input.
      */
     public function processRequest(){
-        $action = $this->getAction();
+        $action = $this->getCalledServiceName();
         $inputs = $this->getInputs();
         if($action == 'my-action'){
             header('content-type:text/plain');
