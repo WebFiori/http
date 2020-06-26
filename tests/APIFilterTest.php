@@ -400,6 +400,71 @@ class APIFilterTest extends TestCase {
     /**
      * @test
      */
+    public function testFilterGet20() {
+        $this->apiFilter = new APIFilter();
+        $param00 = new RequestParameter('send-to', 'email');
+        $param00->setCustomFilterFunction(function($val,$filtered,$reqParam)
+        {
+
+            
+        });
+        $this->apiFilter->addRequestParameter($param00);
+        $_GET['send-to'] = 'admin@example.com';
+        $this->apiFilter->filterGET();
+        $filtered = $this->apiFilter->getInputs();
+        $this->assertEquals(1,count($filtered));
+        $this->assertEquals(APIFilter::INVALID,$filtered['send-to']);
+    }
+    /**
+     * @test
+     */
+    public function testFilterGet21() {
+        $this->apiFilter = new APIFilter();
+        $param00 = new RequestParameter('send-to', 'array');
+        $param00->setCustomFilterFunction(function($val,$filtered,$reqParam)
+        {
+            return ['super@duper.com'];
+        });
+        $this->apiFilter->addRequestParameter($param00);
+        $_GET['send-to'] = '["admin@example.com"]';
+        $this->apiFilter->filterGET();
+        $filtered = $this->apiFilter->getInputs();
+        $this->assertEquals(1,count($filtered));
+        $this->assertEquals(['super@duper.com'],$filtered['send-to']);
+    }
+    /**
+     * @test
+     */
+    public function testFilterGet22() {
+        $this->apiFilter = new APIFilter();
+        $param00 = new RequestParameter('send-to', 'array');
+        $param00->setCustomFilterFunction(function($val,$filtered,$reqParam)
+        {
+            return $filtered;
+        });
+        $this->apiFilter->addRequestParameter($param00);
+        $_GET['send-to'] = '["admin@example.com","hello@world.com"]';
+        $this->apiFilter->filterGET();
+        $filtered = $this->apiFilter->getInputs();
+        $this->assertEquals(1,count($filtered));
+        $this->assertEquals(['admin@example.com','hello@world.com'],$filtered['send-to']);
+    }
+    /**
+     * @test
+     */
+    public function testFilterGet23() {
+        $this->apiFilter = new APIFilter();
+        $param00 = new RequestParameter('array', 'array');
+        $this->apiFilter->addRequestParameter($param00);
+        $_GET['array'] = '[false, "Hello", null, "World"]';
+        $this->apiFilter->filterGET();
+        $filtered = $this->apiFilter->getInputs();
+        $this->assertEquals(1,count($filtered));
+        $this->assertEquals([false, "Hello", null, "World"],$filtered['array']);
+    }
+    /**
+     * @test
+     */
     public function testFilterPost01() {
         $this->apiFilter = new APIFilter();
         $param00 = new RequestParameter('array', 'array');
@@ -500,4 +565,87 @@ class APIFilterTest extends TestCase {
         $this->assertEquals(1,count($filtered));
         $this->assertFalse($filtered['boolean']);
     }
+    /**
+     * @test
+     */
+    public function testFilterPost06() {
+        $this->apiFilter = new APIFilter();
+        $param00 = new RequestParameter('bool', 'boolean');
+        $this->apiFilter->addRequestParameter($param00);
+        $_POST['bool'] = "true";
+        $this->apiFilter->filterPOST();
+        $filtered = $this->apiFilter->getInputs();
+        $this->assertEquals(1,count($filtered));
+        $this->assertTrue($filtered['bool']);
+    }
+    /**
+     * @test
+     */
+    public function testFilterPost07() {
+        $this->apiFilter = new APIFilter();
+        $param00 = new RequestParameter('bool', 'boolean');
+        $this->apiFilter->addRequestParameter($param00);
+        $_POST['bool'] = "y";
+        $this->apiFilter->filterPOST();
+        $filtered = $this->apiFilter->getInputs();
+        $this->assertEquals(1,count($filtered));
+        $this->assertTrue($filtered['bool']);
+    }
+    /**
+     * @test
+     */
+    public function testFilterPost08() {
+        $this->apiFilter = new APIFilter();
+        $param00 = new RequestParameter('bool', 'boolean');
+        $this->apiFilter->addRequestParameter($param00);
+        $_POST['bool'] = "n";
+        $this->apiFilter->filterPOST();
+        $filtered = $this->apiFilter->getInputs();
+        $this->assertEquals(1,count($filtered));
+        $this->assertFalse($filtered['bool']);
+    }
+    /**
+     * @test
+     */
+    public function testFilterPost09() {
+        $this->apiFilter = new APIFilter();
+        $param00 = new RequestParameter('bool', 'boolean');
+        $this->apiFilter->addRequestParameter($param00);
+        $_POST['bool'] = "some random val";
+        $this->apiFilter->filterPOST();
+        $filtered = $this->apiFilter->getInputs();
+        $this->assertEquals(1,count($filtered));
+        $this->assertEquals(APIFilter::INVALID, $filtered['bool']);
+    }
+    /**
+     * @test
+     */
+    public function testFilterPost10() {
+        $this->apiFilter = new APIFilter();
+        $param00 = new RequestParameter('name', 'string', true);
+        $this->apiFilter->addRequestParameter($param00);
+        $this->apiFilter->filterPOST();
+        $filtered = $this->apiFilter->getInputs();
+        $this->assertEquals(1,count($filtered));
+        $this->assertNull($filtered['name']);
+    }
+    /**
+     * @test
+     */
+    public function testFilterPost11() {
+        $this->apiFilter = new APIFilter();
+        $param00 = new RequestParameter('name', 'string', true);
+        $param00->setDefault('Ibrahim BinAlshikh');
+        $this->apiFilter->addRequestParameter($param00);
+        $this->apiFilter->filterPOST();
+        $filtered = $this->apiFilter->getInputs();
+        $this->assertEquals(1,count($filtered));
+        $this->assertEquals('Ibrahim BinAlshikh',$filtered['name']);
+    }
 }
+
+
+
+
+
+
