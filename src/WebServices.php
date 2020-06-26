@@ -184,11 +184,13 @@ abstract class WebServices implements JsonI {
         } 
         
         $trimmed = trim($stream);
-        $tempStream = fopen($trimmed, 'w');
+        if (strlen($trimmed) > 0) {
+            $tempStream = fopen($trimmed, 'w');
         
-        if (is_resource($tempStream)) {
-            $this->outputStream = $tempStream;
-            $retVal = true;
+            if (is_resource($tempStream)) {
+                $this->outputStream = $tempStream;
+                $retVal = true;
+            }
         }
         
         return $retVal;
