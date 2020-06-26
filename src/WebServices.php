@@ -28,21 +28,27 @@ use jsonx\JsonI;
 use jsonx\JsonX;
 /**
  * A class that represents a set of web services.
- * This class is used to create web services.
+ * This class is used to keep track of multiple related web services. It 
+ * is used to group related services. For example, if we have create, read, write and 
+ * delete services, they can be added to one instance of this class.
  * In order to create a simple web service, the developer must 
  * follow the following steps:
  * <ul>
  * <li>Extend this class.</li>
- * <li>Create API actions using the class APIAction. Each action will 
- * represent one service (end point).</li>
+ * <li>Create web services using the class WebService.</li>
  * <li>Implement the abstract method <a href="#isAuthorized">WebServices::isAuthorized()</a> 
  * and the method <a href="#processRequest">WebServices::processRequest()</a></li>
  * </li>
- * When a request is made to the API, An instance of the child class must be created 
+ * When a request is made to the services set, An instance of the child class must be created 
  * and the method <a href="#process">WebServices::process()</a> must be called.
- * @version 1.4.6
+ * @version 1.4.7
  */
 abstract class WebServices implements JsonI {
+    /**
+     * The stream at which the output will be sent to.
+     * @var resource 
+     */
+    private $outputStream;
     /**
      * A constant which is used to indicate that the message that will be 
      * sent is of type error
