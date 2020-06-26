@@ -468,6 +468,38 @@ class WebAPITest extends TestCase {
         $api->process();
         $this->expectOutputString('{"message":"Method Not Allowed.", "type":"error", "http-code":405}');
     }
+    /**
+     * @test
+     */
+    public function testSetOutputStream00() {
+        $api = new SampleService();
+        $this->assertFalse($api->setOutputStream(null));
+        $this->assertFalse($api->setOutputStream(''));
+        $this->assertFalse($api->setOutputStream('null'));
+        $this->assertFalse($api->setOutputStream(' X:\server\no'));
+        $this->assertNull($api->getOutputStream());
+        $this->assertNull($api->getOutputStreamPath());
+    }
+    /**
+     * @test
+     */
+    public function testSetOutputStream01() {
+        $api = new SampleService();
+        $stream = fopen(__DIR__.DIRECTORY_SEPARATOR.'hello.txt', 'w');
+        $this->assertTrue($api->setOutputStream($stream));
+        $this->assertNotNull($api->getOutputStream());
+        $this->assertNull($api->getOutputStreamPath());
+    }
+    /**
+     * @test
+     */
+    public function testSetOutputStream02() {
+        $api = new SampleService();
+        $this->assertTrue($api->setOutputStream(__DIR__.DIRECTORY_SEPARATOR.'hello2.txt'));
+        $this->assertNotNull($api->getOutputStream());
+        $this->assertNotNull($api->getOutputStreamPath());
+        $this->assertEquals(__DIR__.DIRECTORY_SEPARATOR.'hello2.txt', $api->getOutputStreamPath());
+    }
     private function clrearVars() {
         foreach ($_GET as $k => $v) {
             unset($_GET[$k]);
