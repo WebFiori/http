@@ -36,11 +36,11 @@ use jsonx\JsonX;
  * <ul>
  * <li>Extend this class.</li>
  * <li>Create web services using the class WebService.</li>
- * <li>Implement the abstract method <a href="#isAuthorized">WebServices::isAuthorized()</a> 
- * and the method <a href="#processRequest">WebServices::processRequest()</a></li>
+ * <li>Implement the abstract method <a href="#isAuthorized">WebServicesSet::isAuthorized()</a> 
+ * and the method <a href="#processRequest">WebServicesSet::processRequest()</a></li>
  * </li>
  * When a request is made to the services set, An instance of the child class must be created 
- * and the method <a href="#process">WebServices::process()</a> must be called.
+ * and the method <a href="#process">WebServicesSet::process()</a> must be called.
  * @version 1.4.7
  */
 abstract class WebServicesSet implements JsonI {
@@ -199,10 +199,11 @@ abstract class WebServicesSet implements JsonI {
      * @param WebService $service The web service that will be added.
      * @param boolean $reqPermissions Set to true if the action require user login or 
      * any additional permissions. Default is false. If this one is set to 
-     * true, the method 'Webservices::isAuthorized()' will be called to check 
+     * true, the method 'WebservicesSet::isAuthorized()' will be called to check 
      * for permissions.
      * @return boolean true if the action is added. FAlSE otherwise.
      * @since 1.0
+     * @deprecated since version 1.4.7 Use WebservicesSet::addService()
      */
     public function addAction($service,$reqPermissions = false) {
         if ($service instanceof WebService && (!in_array($service, $this->getActions()) && !in_array($service, $this->getAuthActions()))) {
@@ -218,6 +219,20 @@ abstract class WebServicesSet implements JsonI {
         }
 
         return false;
+    }
+    /**
+     * Adds new web service to the set of web services.
+     * @param WebService $service The web service that will be added.
+     * @param boolean $reqPermissions Set to true if the action require user login or 
+     * any additional permissions. Default is false. If this one is set to 
+     * true, the method 'WebservicesSet::isAuthorized()' will be called to check 
+     * for permissions.
+     * @return boolean true if the action is added. FAlSE otherwise.
+     * @since 1.0
+     * @deprecated since version 1.4.7 Use WebservicesSet::addService()
+     */
+    public function addService($service, $reqPermissions = false) {
+        return $this->addAction($service, $reqPermissions);
     }
     /**
      * Sends a response message to indicate that request content type is 
@@ -268,7 +283,7 @@ abstract class WebServicesSet implements JsonI {
      * @return string|null The name of the service that was requested. If the name 
      * of the service is not set, the method will return null. 
      * @since 1.0
-     * @deprecated since version 1.4.6 Use WebServices::getCalledServiceName() instead.
+     * @deprecated since version 1.4.6 Use WebServicesSet::getCalledServiceName() instead.
      */
     public function getAction() {
         $reqMeth = $this->getRequestMethod();
@@ -329,7 +344,7 @@ abstract class WebServicesSet implements JsonI {
      * @return array An array that contains an objects of type APIAction. 
      * The array will contains the services which require authentication. The 
      * authentication process is performed in the body of the method 
-     * 'WebServices::isAuthorized()'.
+     * 'WebServicesSet::isAuthorized()'.
      * @since 1.0
      */
     public final function getAuthActions() {
@@ -418,7 +433,7 @@ abstract class WebServicesSet implements JsonI {
     /**
      * Returns the stream at which the output will be sent to.
      * @return resource|null If a custom output stream is set using the 
-     * method 'WebServices::setOutputStream()', the method will return a 
+     * method 'WebServicesSet::setOutputStream()', the method will return a 
      * resource. The resource will be still open. If no custom stream is set, 
      * the method will return null.
      * @since 1.4.7
@@ -623,8 +638,10 @@ abstract class WebServicesSet implements JsonI {
                     $reqMeth == 'OPTIONS' || 
                     $reqMeth == 'PATCH') {
                     $this->filter->filterGET();
-                } else if ($reqMeth == 'POST') {
-                    $this->filter->filterPOST();
+                } else {
+                    if ($reqMeth == 'POST') {
+                        $this->filter->filterPOST();
+                    }
                 }
                 $i = $this->getInputs();
                 $processReq = true;
@@ -678,7 +695,6 @@ abstract class WebServicesSet implements JsonI {
         $path = $this->getOutputStreamPath();
 
         if ($path !== null) {
-            
             return file_get_contents($path);
         }
     }
