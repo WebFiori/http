@@ -495,7 +495,7 @@ class WebAPITest extends TestCase {
      */
     public function testSetOutputStream02() {
         $api = new SampleService();
-        $this->assertTrue($api->setOutputStream(__DIR__.DIRECTORY_SEPARATOR.'hello2.txt'));
+        $this->assertTrue($api->setOutputStream(__DIR__.DIRECTORY_SEPARATOR.'hello2.txt', true));
         $this->assertNotNull($api->getOutputStream());
         $this->assertNotNull($api->getOutputStreamPath());
         $this->assertEquals(__DIR__.DIRECTORY_SEPARATOR.'hello2.txt', $api->getOutputStreamPath());
