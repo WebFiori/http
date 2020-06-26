@@ -29,6 +29,46 @@ class RequestParameterTest extends TestCase {
     /**
      * @test
      */
+    public function testCreateParameter02() {
+        $param = RequestParameter::createParam([
+            'name'=>'hello',
+            'type' => 'integer',
+            'min' => 33,
+            'max' => 100,
+            'custom-filter' => function ($original, $basicFilterResult, $param) {
+                if ($basicFilterResult != \restEasy\APIFilter::INVALID) {
+                    return $basicFilterResult * 100;
+                }
+            }
+        ]);
+        $this->assertNotNull($param);
+        $this->assertEquals('hello', $param->getName());
+        $this->assertEquals('integer', $param->getType());
+        $this->assertEquals(33, $param->getMinVal());
+        $this->assertEquals(100, $param->getMaxVal());
+        $this->assertTrue(is_callable($param->getCustomFilterFunction()));
+    }
+    /**
+     * @test
+     */
+    public function testCreateParameter03() {
+        $param = RequestParameter::createParam([
+            'name'=>'ok',
+            'type' => 'string',
+            'default' => 'Ibrahim',
+            'allow-empty' => true,
+            'description' => 'Super param.'
+        ]);
+        $this->assertNotNull($param);
+        $this->assertEquals('ok', $param->getName());
+        $this->assertEquals('string', $param->getType());
+        $this->assertEquals('Ibrahim', $param->getDefault());
+        $this->assertTrue($param->isEmptyStringAllowed());
+        $this->assertEquals('Super param.', $param->getDescription());
+    }
+    /**
+     * @test
+     */
     public function testConstructor00() {
         $requestParam = new RequestParameter('');
         $this->assertEquals('a-parameter',$requestParam->getName());
