@@ -11,6 +11,7 @@ use restEasy\WebServices;
  * @author Eng.Ibrahim
  */
 class WebAPITest extends TestCase {
+    private $outputStreamName = 'outputStream.txt';
     /**
      * @test
      */
@@ -19,8 +20,9 @@ class WebAPITest extends TestCase {
         $_GET['action'] = 'api-info';
         $_GET['pass'] = '123';
         $api = new SampleService();
+        $this->assertTrue($api->setOutputStream($this->outputStreamName));
         $api->process();
-        $this->expectOutputString('{'
+        $this->assertEquals('{'
                 .'"api-version":"1.0.1", '
                 .'"description":"NO DESCRIPTION", '
                 .'"actions":['
@@ -83,7 +85,7 @@ class WebAPITest extends TestCase {
                 .'"since":"1.0.1", '
                 .'"description":null, '
                 .'"request-methods":["GET", "POST", "PUT", "DELETE"], '
-                .'"parameters":[], "responses":[]}]}');
+                .'"parameters":[], "responses":[]}]}', $api->readOutputStream());
     }
     /**
      * @test
@@ -92,8 +94,9 @@ class WebAPITest extends TestCase {
         $this->clrearVars();
         $_GET['action'] = 'api-info';
         $api = new SampleService();
+        $api->setOutputStream($this->outputStreamName);
         $api->process();
-        $this->expectOutputString('{"message":"Not authorized.", "type":"error", "http-code":401}');
+        $this->assertEquals('{"message":"Not authorized.", "type":"error", "http-code":401}', $api->readOutputStream());
     }
     /**
      * @test
@@ -104,8 +107,9 @@ class WebAPITest extends TestCase {
         $_GET['pass'] = '123';
         $_GET['version'] = '1.0.1';
         $api = new SampleService();
+        $api->setOutputStream($this->outputStreamName);
         $api->process();
-        $this->expectOutputString('{'
+        $this->assertEquals('{'
                 .'"api-version":"1.0.1", '
                 .'"description":"NO DESCRIPTION", '
                 .'"actions":[], '
@@ -136,7 +140,7 @@ class WebAPITest extends TestCase {
                 .'"since":"1.0.1", '
                 .'"description":null, '
                 .'"request-methods":["GET", "POST", "PUT", "DELETE"], '
-                .'"parameters":[], "responses":[]}]}');
+                .'"parameters":[], "responses":[]}]}', $api->readOutputStream());
     }
     /**
      * @test
@@ -149,8 +153,9 @@ class WebAPITest extends TestCase {
         $_POST['pass'] = '123';
         $_POST['version'] = '1.0.1';
         $api = new SampleService();
+        $api->setOutputStream($this->outputStreamName);
         $api->process();
-        $this->expectOutputString('{"message":"Method Not Allowed.", "type":"error", "http-code":405}');
+        $this->assertEquals('{"message":"Method Not Allowed.", "type":"error", "http-code":405}', $api->readOutputStream());
     }
     /**
      * @test
@@ -196,8 +201,9 @@ class WebAPITest extends TestCase {
         $_GET['action'] = 'do-nothing';
         $_GET['pass'] = '123';
         $api = new SampleService();
+        $api->setOutputStream($this->outputStreamName);
         $api->process();
-        $this->expectOutputString('{"message":"Action not implemented.", "type":"error", "http-code":404}');
+        $this->assertEquals('{"message":"Action not implemented.", "type":"error", "http-code":404}', $api->readOutputStream());
     }
     /**
      * @depends testSumTwoIntegers05
@@ -221,8 +227,9 @@ class WebAPITest extends TestCase {
         $_GET['user-id'] = '-9';
         $_GET['pass'] = '123';
         $api = new SampleService();
+        $api->setOutputStream($this->outputStreamName);
         $api->process();
-        $this->expectOutputString('{"message":"Method Not Allowed.", "type":"error", "http-code":405}');
+        $this->assertEquals('{"message":"Method Not Allowed.", "type":"error", "http-code":405}', $api->readOutputStream());
     }
     /**
      * @test
@@ -235,8 +242,9 @@ class WebAPITest extends TestCase {
         $_POST['user-id'] = '-9';
         $_POST['pass'] = '123';
         $api = new SampleService();
+        $api->setOutputStream($this->outputStreamName);
         $api->process();
-        $this->expectOutputString('{"message":"Database Error.", "type":"error", "http-code":500, "more-info":""}');
+        $this->assertEquals('{"message":"Database Error.", "type":"error", "http-code":500, "more-info":""}', $api->readOutputStream());
     }
     /**
      * @test
@@ -249,8 +257,9 @@ class WebAPITest extends TestCase {
         $_POST['user-id'] = '99';
         $_POST['pass'] = '123';
         $api = new SampleService();
+        $api->setOutputStream($this->outputStreamName);
         $api->process();
-        $this->expectOutputString('{"user-name":"Ibrahim", "bio":"A software engineer who is ready to help anyone in need."}');
+        $this->assertEquals('{"user-name":"Ibrahim", "bio":"A software engineer who is ready to help anyone in need."}', $api->readOutputStream());
     }
     /**
      * @test
@@ -263,8 +272,9 @@ class WebAPITest extends TestCase {
         $_POST['user-id'] = '99';
         $_POST['pass'] = '123';
         $api = new SampleService();
+        $api->setOutputStream($this->outputStreamName);
         $api->process();
-        $this->expectOutputString('{"message":"Content type not supported.", "type":"error", "http-code":404, "more-info":{"request-content-type":"application\/json"}}');
+        $this->assertEquals('{"message":"Content type not supported.", "type":"error", "http-code":404, "more-info":{"request-content-type":"application\/json"}}', $api->readOutputStream());
     }
     /**
      * @test
@@ -276,8 +286,9 @@ class WebAPITest extends TestCase {
         $_POST['user-id'] = '99';
         $_POST['pass'] = '123';
         $api = new SampleService();
+        $api->setOutputStream($this->outputStreamName);
         $api->process();
-        $this->expectOutputString('{"message":"Content type not supported.", "type":"error", "http-code":404, "more-info":{"request-content-type":null}}');
+        $this->assertEquals('{"message":"Content type not supported.", "type":"error", "http-code":404, "more-info":{"request-content-type":null}}', $api->readOutputStream());
     }
     /**
      * @test
@@ -287,8 +298,9 @@ class WebAPITest extends TestCase {
         putenv('REQUEST_METHOD=DELETE');
         $_GET['action'] = 'does-not-exist';
         $api = new SampleService();
+        $api->setOutputStream($this->outputStreamName);
         $api->process();
-        $this->expectOutputString('{"message":"Action not supported.", "type":"error", "http-code":404}');
+        $this->assertEquals('{"message":"Action not supported.", "type":"error", "http-code":404}', $api->readOutputStream());
     }
     /**
      * @test
@@ -296,9 +308,10 @@ class WebAPITest extends TestCase {
      */
     public function testProcess00($api) {
         $this->clrearVars();
+        $api->setOutputStream($this->outputStreamName);
         $api->process();
 
-        $this->expectOutputString('{"message":"Service name is not set.", "type":"error", "http-code":404}');
+        $this->assertEquals('{"message":"Service name is not set.", "type":"error", "http-code":404}', $api->readOutputStream());
     }
     /**
      * @test
@@ -319,8 +332,9 @@ class WebAPITest extends TestCase {
         putenv('REQUEST_METHOD=GET');
         $_GET['action'] = 'sum-array';
         $api = new SampleService();
+        $api->setOutputStream($this->outputStreamName);
         $api->process();
-        $this->expectOutputString('{"message":"The following required parameter(s) where missing from the request body: \'numbers\'.", "type":"error", "http-code":404}');
+        $this->assertEquals('{"message":"The following required parameter(s) where missing from the request body: \'numbers\'.", "type":"error", "http-code":404}', $api->readOutputStream());
     }
     /**
      * @test
@@ -332,8 +346,9 @@ class WebAPITest extends TestCase {
         $_POST['action'] = 'sum-array';
         $_POST['numbers'] = '[m v b]';
         $api = new SampleService();
+        $api->setOutputStream($this->outputStreamName);
         $api->process();
-        $this->expectOutputString('{"message":"The following parameter(s) has invalid values: \'numbers\'.", "type":"error", "http-code":404}');
+        $this->assertEquals('{"message":"The following parameter(s) has invalid values: \'numbers\'.", "type":"error", "http-code":404}', $api->readOutputStream());
     }
     /**
      * @test
@@ -345,8 +360,9 @@ class WebAPITest extends TestCase {
         $_POST['action'] = 'sum-array';
         $_POST['numbers'] = '[1,2,"as",1.9,\'hello\',10]';
         $api = new SampleService();
+        $api->setOutputStream($this->outputStreamName);
         $api->process();
-        $this->expectOutputString('{"message":"Not authorized.", "type":"error", "http-code":401}');
+        $this->assertEquals('{"message":"Not authorized.", "type":"error", "http-code":401}', $api->readOutputStream());
     }
     /**
      * @test
@@ -359,8 +375,9 @@ class WebAPITest extends TestCase {
         $_POST['numbers'] = '[1,2,"as",1.9,\'hello\',10]';
         $_POST['pass'] = '123';
         $api = new SampleService();
+        $api->setOutputStream($this->outputStreamName);
         $api->process();
-        $this->expectOutputString('{"sum":14.9}');
+        $this->assertEquals('{"sum":14.9}', $api->readOutputStream());
     }
     /**
      * @test
@@ -372,8 +389,9 @@ class WebAPITest extends TestCase {
         $_GET['second-number'] = '300';
         $_GET['action'] = 'add-two-integers';
         $api = new SampleService();
+        $api->setOutputStream($this->outputStreamName);
         $api->process();
-        $this->expectOutputString('{"message":"The sum of 100 and 300 is 400.", "http-code":200}');
+        $this->assertEquals('{"message":"The sum of 100 and 300 is 400.", "http-code":200}', $api->readOutputStream());
     }
     /**
      * @test
@@ -385,8 +403,9 @@ class WebAPITest extends TestCase {
         $_GET['second-number'] = '300';
         $_GET['action'] = 'add-two-integers';
         $api = new SampleService();
+        $api->setOutputStream($this->outputStreamName);
         $api->process();
-        $this->expectOutputString('{"message":"The sum of -100 and 300 is 200.", "http-code":200}');
+        $this->assertEquals('{"message":"The sum of -100 and 300 is 200.", "http-code":200}', $api->readOutputStream());
     }
 
     /**
@@ -399,8 +418,9 @@ class WebAPITest extends TestCase {
         $_GET['second-number'] = '300';
         $_GET['action'] = 'add-two-integers';
         $api = new SampleService();
+        $api->setOutputStream($this->outputStreamName);
         $api->process();
-        $this->expectOutputString('{"message":"The sum of 1889 and 300 is 2189.", "http-code":200}');
+        $this->assertEquals('{"message":"The sum of 1889 and 300 is 2189.", "http-code":200}', $api->readOutputStream());
     }
     /**
      * @test
@@ -412,8 +432,9 @@ class WebAPITest extends TestCase {
         $_GET['second-number'] = 'two';
         $_GET['action'] = 'add-two-integers';
         $api = new SampleService();
+        $api->setOutputStream($this->outputStreamName);
         $api->process();
-        $this->expectOutputString('{"message":"The following parameter(s) has invalid values: \'first-number\', \'second-number\'.", "type":"error", "http-code":404}');
+        $this->expectOutputString('{"message":"The following parameter(s) has invalid values: \'first-number\', \'second-number\'.", "type":"error", "http-code":404}', $api->readOutputStream());
     }
     /**
      * @test
@@ -423,8 +444,9 @@ class WebAPITest extends TestCase {
         putenv('REQUEST_METHOD=GET');
         $_GET['action'] = 'add-two-integers';
         $api = new SampleService();
+        $api->setOutputStream($this->outputStreamName);
         $api->process();
-        $this->expectOutputString('{"message":"The following required parameter(s) where missing from the request body: \'first-number\', \'second-number\'.", "type":"error", "http-code":404}');
+        $this->assertEquals('{"message":"The following required parameter(s) where missing from the request body: \'first-number\', \'second-number\'.", "type":"error", "http-code":404}', $api->readOutputStream());
     }
     /**
      * @test
@@ -436,8 +458,9 @@ class WebAPITest extends TestCase {
         $_GET['second-number'] = '300';
         $_GET['action'] = 'add-two-integers';
         $api = new SampleService();
+        $api->setOutputStream($this->outputStreamName);
         $api->process();
-        $this->expectOutputString('{"message":"The sum of -1889 and 300 is -1589.", "http-code":200}');
+        $this->assertEquals('{"message":"The sum of -1889 and 300 is -1589.", "http-code":200}', $api->readOutputStream());
 
         return $api;
     }
@@ -451,8 +474,9 @@ class WebAPITest extends TestCase {
         $_GET['second-number'] = '300';
         $_GET['action'] = 'add-two-integers';
         $api = new SampleService();
+        $api->setOutputStream($this->outputStreamName);
         $api->process();
-        $this->expectOutputString('{"message":"The following parameter(s) has invalid values: \'first-number\'.", "type":"error", "http-code":404}');
+        $this->assertEquals('{"message":"The following parameter(s) has invalid values: \'first-number\'.", "type":"error", "http-code":404}', $api->readOutputStream());
     }
     /**
      * @test
@@ -465,8 +489,9 @@ class WebAPITest extends TestCase {
         $_POST['second-number'] = '300';
         $_POST['action'] = 'add-two-integers';
         $api = new SampleService();
+        $api->setOutputStream($this->outputStreamName);
         $api->process();
-        $this->expectOutputString('{"message":"Method Not Allowed.", "type":"error", "http-code":405}');
+        $this->assertEquals('{"message":"Method Not Allowed.", "type":"error", "http-code":405}', $api->readOutputStream());
     }
     /**
      * @test
