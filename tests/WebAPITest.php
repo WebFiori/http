@@ -161,6 +161,21 @@ class WebAPITest extends TestCase {
     /**
      * @test
      */
+    public function testActionAPIInfo04() {
+        $this->clrearVars();
+        putenv('REQUEST_METHOD=POST');
+        $_SERVER['CONTENT_TYPE'] = 'application/x-www-form-urlencoded';
+        $_POST['service-name'] = 'api-info';
+        $_POST['pass'] = '123';
+        $_POST['version'] = '1.0.1';
+        $api = new SampleService();
+        $api->setOutputStream($this->outputStreamName);
+        $api->process();
+        $this->assertEquals('{"message":"Method Not Allowed.", "type":"error", "http-code":405}', $api->readOutputStream());
+    }
+    /**
+     * @test
+     */
     public function testAddAction00() {
         $api = new SampleService();
         $action00 = null;
