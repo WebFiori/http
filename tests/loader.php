@@ -47,6 +47,6 @@ require_once $rootDir.'src'.$DS.'WebService.php';
 require_once $rootDir.'src'.$DS.'APIAction.php';
 require_once $rootDir.'src'.$DS.'APIFilter.php';
 require_once $rootDir.'src'.$DS.'RequestParameter.php';
-require_once $rootDir.'src'.$DS.'WebServices.php';
+require_once $rootDir.'src'.$DS.'WebServicesSet.php';
 require_once $rootDir.'tests'.$DS.'SampleService.php';
 fwrite($stderr,"Classes Loaded.\n");
