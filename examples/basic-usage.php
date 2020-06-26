@@ -14,7 +14,7 @@ use jsonx\JsonI;
 use jsonx\JsonX;
 use restEasy\WebService;
 use restEasy\RequestParameter;
-use restEasy\WebServices;
+use restEasy\WebServicesSet;
 /*
  * Steps for creating new API:
  * 1- Create a class that extends the class 'API'.
@@ -23,7 +23,7 @@ use restEasy\WebServices;
  * 4- Create an instance of the class.
  * 5- Call the function 'process()'.
  */
-class MyAPI extends WebServices {
+class MyAPI extends WebServicesSet {
     public function __construct() {
         parent::__construct();
         //customize the API as you need here.

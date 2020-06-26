@@ -43,7 +43,7 @@ use jsonx\JsonX;
  * and the method <a href="#process">WebServices::process()</a> must be called.
  * @version 1.4.7
  */
-abstract class WebServices implements JsonI {
+abstract class WebServicesSet implements JsonI {
     /**
      * A constant which is used to indicate that the message that will be 
      * sent is of type error

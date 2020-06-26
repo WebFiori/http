@@ -4,7 +4,7 @@ namespace restEasy\tests;
 use jsonx\JsonX;
 use PHPUnit\Framework\TestCase;
 use restEasy\WebService;
-use restEasy\WebServices;
+use restEasy\WebServicesSet;
 /**
  * Description of WebAPITest
  *
@@ -223,7 +223,7 @@ class WebAPITest extends TestCase {
     }
     /**
      * @depends testSumTwoIntegers05
-     * @param WebServices $api
+     * @param WebServicesSet $api
      */
     public function testGetNonFiltered00($api) {
         $nonFiltered = $api->getNonFiltered();

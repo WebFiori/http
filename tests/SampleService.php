@@ -3,13 +3,13 @@ namespace restEasy\tests;
 
 use restEasy\RequestParameter;
 use restEasy\WebService;
-use restEasy\WebServices;
+use restEasy\WebServicesSet;
 /**
  * Description of SampleAPI
  *
  * @author Eng.Ibrahim
  */
-class SampleService extends WebServices {
+class SampleService extends WebServicesSet {
     public function __construct() {
         parent::__construct();
         $a00 = new WebService('add-two-integers');
