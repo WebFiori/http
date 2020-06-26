@@ -76,7 +76,7 @@ class SampleService extends WebServices {
                 }
                 $j = new \jsonx\JsonX();
                 $j->add('sum', $sum);
-                echo $j;
+                $this->send('application/json', $j);
             } else {
                 if ($action == 'get-user-profile') {
                     if ($i['user-id'] <= 0) {
@@ -85,7 +85,7 @@ class SampleService extends WebServices {
                         $j = new \jsonx\JsonX();
                         $j->add('user-name', 'Ibrahim');
                         $j->add('bio', 'A software engineer who is ready to help anyone in need.');
-                        echo $j;
+                        $this->send('application/json', $j);
                     }
                 } else {
                     $this->actionNotImpl();
