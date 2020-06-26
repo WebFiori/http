@@ -500,6 +500,16 @@ class WebAPITest extends TestCase {
         $this->assertNotNull($api->getOutputStreamPath());
         $this->assertEquals(__DIR__.DIRECTORY_SEPARATOR.'hello2.txt', $api->getOutputStreamPath());
     }
+    /**
+     * @test
+     */
+    public function testSetOutputStream03() {
+        $api = new SampleService();
+        $this->assertTrue($api->setOutputStream(__DIR__.DIRECTORY_SEPARATOR.'outputStream.txt', true));
+        $this->assertNotNull($api->getOutputStream());
+        $this->assertNotNull($api->getOutputStreamPath());
+        $this->assertEquals(__DIR__.DIRECTORY_SEPARATOR.'outputStream.txt', $api->getOutputStreamPath());
+    }
     private function clrearVars() {
         foreach ($_GET as $k => $v) {
             unset($_GET[$k]);
