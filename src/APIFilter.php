@@ -268,8 +268,8 @@ class APIFilter {
                             }
                         }
                     }
-
-                    if ($retVal[$filteredIdx][$name] == self::INVALID && $defaultVal !== null) {
+                    $booleanCheck = $paramType == 'boolean' && $retVal[$filteredIdx][$name] === true || $retVal[$filteredIdx][$name] === false;
+                    if (!$booleanCheck && $retVal[$filteredIdx][$name] == self::INVALID && $defaultVal !== null) {
                         $retVal[$filteredIdx][$name] = $defaultVal;
                     }
                 } else if ($def[$paramIdx]->isOptional()) {
