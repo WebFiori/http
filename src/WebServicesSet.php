@@ -227,9 +227,8 @@ abstract class WebServicesSet implements JsonI {
      * any additional permissions. Default is false. If this one is set to 
      * true, the method 'WebservicesSet::isAuthorized()' will be called to check 
      * for permissions.
-     * @return boolean true if the action is added. FAlSE otherwise.
+     * @return boolean true if the action is added. false otherwise.
      * @since 1.0
-     * @deprecated since version 1.4.7 Use WebservicesSet::addService()
      */
     public function addService($service, $reqPermissions = false) {
         return $this->addAction($service, $reqPermissions);
