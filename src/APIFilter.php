@@ -27,20 +27,26 @@ namespace restEasy;
 
 /**
  * A class used to validate and sanitize request parameters.
+ * 
  * This class is the core class which is used to manage and set request 
  * parameters.
+ * 
  * @author Ibrahim
+ * 
  * @version 1.2.2
  */
 class APIFilter {
     /**
      * A constant that indicates a given value is invalid.
+     * 
      * @var string A string that indicates a given value is invalid.
+     * 
      * @since 1.2.2
      */
     const INVALID = 'INV';
     /**
      * Supported input types.
+     * 
      * The filter supports the following data types:
      * <ul>
      * <li>string</li>
@@ -51,7 +57,9 @@ class APIFilter {
      * <li>boolean</li>
      * <li>array</li>
      * </ul>
+     * 
      * @var array 
+     * 
      * @since 1.0
      */
     const TYPES = [
@@ -65,25 +73,33 @@ class APIFilter {
     ];
     /**
      * An array that will contains filtered data.
+     * 
      * @var array
+     * 
      * @since 1.0 
      */
     private $inputs = [];
     /**
      * An array that contains non-filtered data (original).
+     * 
      * @var array
+     * 
      * @since 1.2 
      */
     private $nonFilteredInputs = [];
     /**
      * Array that contains filter definitions.
+     * 
      * @var array
+     * 
      * @since 1.0 
      */
     private $paramDefs = [];
     /**
      * Adds a new request parameter to the filter.
+     * 
      * @param RequestParameter $reqParam The request parameter that will be added.
+     * 
      * @since 1.1
      */
     public function addRequestParameter($reqParam) {
@@ -135,6 +151,7 @@ class APIFilter {
     }
     /**
      * Clears the arrays that are used to store filtered and not-filtered variables.
+     * 
      * @since 1.2.2
      */
     public function clearInputs() {
@@ -143,6 +160,7 @@ class APIFilter {
     }
     /**
      * Clears filter parameters. 
+     * 
      * @since 1.1
      */
     public function clearParametersDef() {
@@ -150,6 +168,7 @@ class APIFilter {
     }
     /**
      * Filter the values of an associative array.
+     * 
      * The filtering algorithm will work as follows:
      * <ul>
      * <li>First, check if $arr['param-name'] is set.</li>
@@ -162,13 +181,17 @@ class APIFilter {
      * </ul>
      * </li>
      * </ul>
+     * 
      * @param APIFilter $apiFilter An instance of the class 'APIFilter' that 
      * contains filter constrains.
+     * 
      * @param array $arr An associative array of values which will be filtered.
+     * 
      * @return array The method will return an associative array which has two 
      * indices. The index with key 'filtered' will contain an array which 
      * has all values filtered. The index which has the key 'non-filtered' 
      * will contain the original values.
+     * 
      * @since 1.2.2
      */
     public static function filter($apiFilter,$arr) {
@@ -288,6 +311,7 @@ class APIFilter {
     }
     /**
      * Validate and sanitize GET parameters.
+     * 
      * GET parameters are usually sent when request method is GET or DELETE.
      * The validation and sanitization algorithm will work as follows:
      * <ul>
@@ -301,6 +325,7 @@ class APIFilter {
      * </ul>
      * </li>
      * </ul>
+     * 
      * @since 1.0
      */
     public final function filterGET() {
@@ -311,6 +336,7 @@ class APIFilter {
     }
     /**
      * Validate and sanitize POST parameters.
+     * 
      * POST parameters are usually sent when request method is POST or PUT.
      * The validation and sanitization algorithm will work as follows:
      * <ul>
@@ -324,6 +350,7 @@ class APIFilter {
      * </ul>
      * </li>
      * </ul>
+     * 
      * @since 1.0
      */
     public final function filterPOST() {
@@ -334,7 +361,9 @@ class APIFilter {
     }
     /**
      * Returns an array that contains filter constraints.
+     * 
      * @return array An array that contains filter constraints.
+     * 
      * @since 1.2.2
      */
     public function getFilterDef() {
@@ -342,9 +371,12 @@ class APIFilter {
     }
     /**
      * Returns an associative array that contains request body inputs.
+     * 
      * The data in the array will have the filters applied to.
+     * 
      * @return array|null The array that contains request inputs. If no data was 
      * filtered, the method will return null.
+     * 
      * @since 1.0
      */
     public function getInputs() {
@@ -352,7 +384,9 @@ class APIFilter {
     }
     /**
      * Returns the array that contains request inputs without filters applied.
+     * 
      * @return array The array that contains request inputs.
+     * 
      * @since 1.2
      */
     public final function getNonFiltered() {
@@ -360,10 +394,13 @@ class APIFilter {
     }
     /**
      * Converts a string to an array.
+     * 
      * @param string $array A string in the format '[3,"hello",4.8,"",44,...]'.
+     * 
      * @return string|array If the string has valid array format, an array 
      * which contains the values is returned. If has invalid syntax, the 
      * method will return the string 'APIFilter::INVALID'.
+     * 
      * @since 1.2.1
      */
     private static function _filterArray($array) {
@@ -453,8 +490,11 @@ class APIFilter {
     }
     /**
      * Returns the boolean value of given input.
+     * 
      * @param type $boolean
+     * 
      * @return boolean|string
+     * 
      * @since 1.1
      */
     private static function _filterBoolean($boolean) {
@@ -483,11 +523,17 @@ class APIFilter {
     }
     /**
      * Extract string value from an array that is formed as string.
+     * 
      * It is a helper method that works with the method APIFilter::_parseStringFromArray().
+     * 
      * @param type $arr
+     * 
      * @param type $start
+     * 
      * @param type $len
+     * 
      * @return boolean
+     * 
      * @since 1.2.1
      */
     private static function _parseStringFromArray($arr,$start,$len,$stringEndChar) {
@@ -538,9 +584,12 @@ class APIFilter {
     }
     /**
      * Checks if a given string represents an integer or float value. 
+     * 
      * If the given string represents numeric value, the method will 
      * convert it to its numerical value.
+     * 
      * @param string $str A value such as '1' or '7.0'.
+     * 
      * @return string|int|double If the given string does not represents any 
      * numerical value, the method will return the string 'APIFilter::INVALID'. If the 
      * given string represents an integer, an integer value is returned. 

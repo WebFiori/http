@@ -27,13 +27,18 @@ namespace restEasy;
 
 /**
  * A class that represents one web service.
+ * 
  * A web service is simply an action that is performed by a web 
  * server to do something. For example, It is possible to have a web service 
  * which is responsible for creating new user profile. Think of it as an 
  * action taken to perform specific task.
+ * 
  * @author Ibrahim
+ * 
  * @version 1.3.3
+ * 
  * @since 1.0
+ * 
  * @deprecated since version 1.5.0 Use "WebService" instead.
  */
 class APIAction extends WebService {

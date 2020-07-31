@@ -29,17 +29,22 @@ use jsonx\JsonI;
 use jsonx\JsonX;
 /**
  * A class that represents one web service.
+ * 
  * A web service is simply an action that is performed by a web 
  * server to do something. For example, It is possible to have a web service 
  * which is responsible for creating new user profile. Think of it as an 
  * action taken to perform specific task.
+ * 
  * @author Ibrahim
+ * 
  * @version 1.0
+ * 
  * @since 1.5.0 
  */
 class WebService implements JsonI {
     /**
      * An array that contains the names of request methods.
+     * 
      * This array contains the following strings:
      * <ul>
      * <li>GET</li>
@@ -52,7 +57,9 @@ class WebService implements JsonI {
      * <li>PATCH</li>
      * <li>CONNECT</li>
      * </ul>
+     * 
      * @var array An array that contains the names of request methods.
+     * 
      * @since 1.0
      */
     const METHODS = [
@@ -68,44 +75,57 @@ class WebService implements JsonI {
     ];
     /**
      * An optional description for the action.
+     * 
      * @var sting
+     * 
      * @since 1.0
      */
     private $actionDesc;
     /**
      * The name of the action.
+     * 
      * @var string
+     * 
      * @since 1.0 
      */
     private $name;
     /**
      * An array that holds an objects of type RequestParameter.
+     * 
      * @var array
+     * 
      * @since 1.0 
      */
     private $parameters = [];
     /**
      * An array that contains action request methods.
+     * 
      * @var array
+     * 
      * @since 1.0 
      */
     private $reqMethods = [];
     /**
      * An array that contains descriptions of 
      * possible responses.
+     * 
      * @var array
+     * 
      * @since 1.0
      */
     private $responses;
     /**
      * An attribute that is used to tell since which API version the 
      * action was added.
+     * 
      * @var string
+     * 
      * @since 1.0 
      */
     private $sinceVersion;
     /**
      * Creates new instance of the class.
+     * 
      * The developer can supply an optional action name. 
      * A valid action name must follow the following rules:
      * <ul>
@@ -114,6 +134,7 @@ class WebService implements JsonI {
      * <li>It can have the character '-' and the character '_'.</li>
      * </ul>
      * If The given name is invalid, the name of the action will be set to 'an-action'.
+     * 
      * @param string $name The name of the action. 
      */
     public function __construct($name) {
@@ -127,10 +148,13 @@ class WebService implements JsonI {
     /**
      * Returns an array that contains all possible requests methods at which the 
      * service can be called with.
+     * 
      * The array will contains strings like 'GET' or 'POST'. If no request methods 
      * where added, the array will be empty.
+     * 
      * @return array An array that contains all possible requests methods at which the 
      * service can be called using.
+     * 
      * @since 1.0
      */
     public function &getRequestMethods() {
@@ -138,7 +162,9 @@ class WebService implements JsonI {
     }
     /**
      * Returns an array that contains an objects of type RequestParameter.
+     * 
      * @return array an array that contains an objects of type RequestParameter.
+     * 
      * @since 1.0
      */
     public final function &getParameters() {
@@ -147,6 +173,7 @@ class WebService implements JsonI {
     /**
      * 
      * @return string
+     * 
      * @since 1.0
      */
     public function __toString() {
@@ -209,8 +236,10 @@ class WebService implements JsonI {
     }
     /**
      * Adds new request parameter for the action.
+     * 
      * The parameter will only be added if no parameter which has the same 
      * name as the given one is added before.
+     * 
      * @param RequestParameter|array $param The parameter that will be added. It 
      * can be an object of type 'RequestParameter' or an associative array of 
      * options. The array can have the following indices:
@@ -232,9 +261,11 @@ class WebService implements JsonI {
      * not provided and is optional.</li>
      * <li><b>description</b>: The description of the attribute.</li>
      * </ul>
+     * 
      * @return boolean If the given request parameter is added, the method will 
      * return true. If it was not added for any reason, the method will return 
      * false.
+     * 
      * @since 1.0
      */
     public function addParameter($param) {
@@ -252,13 +283,17 @@ class WebService implements JsonI {
     }
     /**
      * Adds new action request method.
+     * 
      * The value that will be passed to this method can be any string 
      * that represents HTTP request method (e.g. 'get', 'post', 'options' ...). It 
      * can be in upper case or lower case.
+     * 
      * @param string $method The request method.
+     * 
      * @return boolean true in case the request method is added. If the given 
      * request method is already added or the method is unknown, the method 
      * will return false.
+     * 
      * @since 1.0
      */
     public final function addRequestMethod($method) {
@@ -274,10 +309,13 @@ class WebService implements JsonI {
     }
     /**
      * Adds response description.
+     * 
      * It is used to describe the API for front-end developers and help them 
      * identify possible responses if they call the API using the specified action.
+     * 
      * @param string $description A paragraph that describes one of 
      * the possible responses due to performing the action.
+     * 
      * @since 1.0
      */
     public final function addResponseDescription($description) {
@@ -289,6 +327,7 @@ class WebService implements JsonI {
     }
     /**
      * A factory method for creating one web service.
+     * 
      * @param array $options An associative array of options. The array 
      * can have the following options:
      * <ul>
@@ -299,13 +338,33 @@ class WebService implements JsonI {
      * methods at which the service can be called with.</li>
      * <li><b>parameters</b>: An indexed array that can have objects of type 
      * 'RequestParameter' or sub arrays of options that will be used to create 
-     * a request parameter object. For supported options, see APIAction::addParameter()</li>
+     * a request parameter object. The array can have the following indices:
+     * <ul>
+     * <li><b>name</b>: The name of the parameter. It must be provided.</li>
+     * <li><b>type</b>: The datatype of the parameter. If not provided, 'string' is used.</li>
+     * <li><b>optional</b>: A boolean. If set to true, it means the parameter is 
+     * optional. If not provided, 'false' is used.</li>
+     * <li><b>min</b>: Minimum value of the parameter. Applicable only for 
+     * numeric types.</li>
+     * <li><b>max</b>: Maximum value of the parameter. Applicable only for 
+     * numeric types.</li>
+     * <li><b>allow-empty</b>: A boolean. If the type of the parameter is string or string-like 
+     * type and this is set to true, then empty strings will be allowed. If 
+     * not provided, 'false' is used.</li>
+     * <li><b>custom-filter</b>: A PHP function that can be used to filter the 
+     * parameter even further</li>
+     * <li><b>default</b>: An optional default value to use if the parameter is 
+     * not provided and is optional.</li>
+     * <li><b>description</b>: The description of the attribute.</li>
+     * </ul></li>
      * <li><b>responses</b>: An optional array that contains strings that describes the 
      * possible responses of calling the web service.</li>
      * </ul>
+     * 
      * @return WebService|null If the service is created, the method will return 
      * an object of type 'APIAction' that represent the service. If not created, 
      * the method will return null.
+     * 
      * @since 1.0
      */
     public static function createService($options) {
@@ -337,8 +396,10 @@ class WebService implements JsonI {
     }
     /**
      * Returns the description of the action.
+     * 
      * @return string|null The description of the action. If the description is 
      * not set, the method will return null.
+     * 
      * @since 1.0
      */
     public final function getDescription() {
@@ -346,7 +407,9 @@ class WebService implements JsonI {
     }
     /**
      * Returns the name of the action.
+     * 
      * @return string The name of the action.
+     * 
      * @since 1.0
      */
     public final function getName() {
@@ -354,9 +417,12 @@ class WebService implements JsonI {
     }
     /**
      * Returns action parameter given its name.
+     * 
      * @param string $paramName The name of the parameter.
+     * 
      * @return RequestParameter|null Returns an objects of type RequestParameter if 
      * a parameter with the given name was found. null if nothing is found.
+     * 
      * @since 1.0
      */
     public final function getParameterByName($paramName) {
@@ -376,7 +442,9 @@ class WebService implements JsonI {
      * Returns an indexed array that contains information about possible responses.
      * It is used to describe the API for front-end developers and help them 
      * identify possible responses if they call the API using the specified action.
+     * 
      * @return array An array that contains information about possible responses.
+     * 
      * @since 1.0
      */
     public final function getResponsesDescriptions() {
@@ -384,9 +452,12 @@ class WebService implements JsonI {
     }
     /**
      * Returns version number or name at which the action was added to the API.
+     * 
      * Version number is set based on the version number which was set in the 
      * class WebAPI.
+     * 
      * @return string The version number at which the action was added to the API.
+     * 
      * @since 1.0
      */
     public final function getSince() {
@@ -396,10 +467,13 @@ class WebService implements JsonI {
      * Checks if the action has a specific request parameter given its name.
      * Note that the name of the parameter is case sensitive. This means that 
      * 'get-profile' is not the same as 'Get-Profile'.
+     * 
      * @param string $name The name of the parameter.
+     * 
      * @return boolean If a request parameter which has the given name is added 
      * to the action, the method will return true. Otherwise, the method will return 
      * false.
+     * 
      * @since 1.0
      */
     public function hasParameter($name) {
@@ -417,11 +491,14 @@ class WebService implements JsonI {
     }
     /**
      * Removes a request parameter from the action given its name.
+     * 
      * @param string $paramName The name of the parameter (case sensitive).
+     * 
      * @return null|RequestParameter If a parameter which has the given name 
      * was removed, the method will return an object of type 'RequestParameter' 
      * that represents the removed parameter. If nothing is removed, the 
      * method will return null.
+     * 
      * @since 1.0
      */
     public function removeParameter($paramName) {
@@ -453,10 +530,13 @@ class WebService implements JsonI {
     }
     /**
      * Removes a request method from the previously added ones. 
+     * 
      * @param string $method The request method (e.g. 'get', 'post', 'options' ...). It 
      * can be in upper case or lower case.
+     * 
      * @return boolean If the given request method is remove, the method will 
      * return true. Other than that, the method will return true.
+     * 
      * @since 1.0
      */
     public function removeRequestMethod($method) {
@@ -488,8 +568,11 @@ class WebService implements JsonI {
     }
     /**
      * Sets the description of the action.
+     * 
      * Used to help front-end to identify the use of the action.
+     * 
      * @param sting $desc Action description.
+     * 
      * @since 1.0
      */
     public final function setDescription($desc) {
@@ -497,16 +580,20 @@ class WebService implements JsonI {
     }
     /**
      * Sets the name of the action.
+     * 
      * A valid action name must follow the following rules:
      * <ul>
      * <li>It can contain the letters [A-Z] and [a-z].</li>
      * <li>It can contain the numbers [0-9].</li>
      * <li>It can have the character '-' and the character '_'.</li>
      * </ul>
+     * 
      * @param string $name The name of the action.
+     * 
      * @return boolean If the given name is valid, the method will return 
      * true once the name is set. false is returned if the given 
      * name is invalid.
+     * 
      * @since 1.0
      */
     public final function setName($name) {
@@ -530,9 +617,12 @@ class WebService implements JsonI {
     }
     /**
      * Sets version number or name at which the action was added to the API.
+     * 
      * This method is called automatically when an action is added to any object of 
      * type WebAPI. The developer does not have to use this method.
+     * 
      * @param string The version number at which the action was added to the API.
+     * 
      * @since 1.0
      */
     public final function setSince($sinceAPIv) {
@@ -540,6 +630,7 @@ class WebService implements JsonI {
     }
     /**
      * Returns a JsonX object that represents the action.
+     * 
      * The generated JSON string from the returned JsonX object will have 
      * the following format:
      * <p>
@@ -552,7 +643,9 @@ class WebService implements JsonI {
      * &nbsp;&nbsp;"responses":[]<br/>
      * }
      * </p>
+     * 
      * @return JsonX an object of type JsonX.
+     * 
      * @since 1.0
      */
     public function toJSON() {
