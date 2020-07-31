@@ -9,9 +9,6 @@ It includes inputs feltering and data validation in addion to creating user-defi
   </a>
   <img src="https://sonarcloud.io/api/project_badges/measure?project=usernane_restEasy&metric=alert_status">
   <img src="https://img.shields.io/packagist/dt/webfiori/rest-easy?color=light-green">
-  <a href="https://paypal.me/IbrahimBinAlshikh" target="_blank">
-    <img src="https://img.shields.io/endpoint.svg?url=https://webfiori.com/x/apis/shields-get-dontate-badget">
-  </a>
 </p>
 
 ## API Docs
