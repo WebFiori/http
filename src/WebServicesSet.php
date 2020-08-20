@@ -26,6 +26,7 @@ namespace restEasy;
 
 use jsonx\JsonI;
 use jsonx\JsonX;
+use webfiori\entity\Response;
 /**
  * A class that represents a set of web services.
  * 
@@ -840,6 +841,11 @@ abstract class WebServicesSet implements JsonI {
         if ($this->getOutputStream() !== null) {
             fwrite($this->getOutputStream(), $data);
             fclose($this->getOutputStream());
+        } else if (class_exists('webfiori\entity\Response')) {
+            Response::addHeader('content-type', $conentType);
+            Response::append($data);
+            Response::setResponseCode($code);
+            Response::send();
         } else {
             http_response_code($code);
             header('content-type:'.$conentType);
@@ -908,6 +914,11 @@ abstract class WebServicesSet implements JsonI {
         if ($this->getOutputStream() !== null) {
             fwrite($this->getOutputStream(), $json);
             fclose($this->getOutputStream());
+        } else if (class_exists('webfiori\entity\Response')) {
+            Response::addHeader('content-type', 'application/json');
+            Response::append($json);
+            Response::setResponseCode($code);
+            Response::send();
         } else {
             header('content-type:application/json');
             http_response_code($code);
