@@ -844,7 +844,7 @@ abstract class WebServicesSet implements JsonI {
         } else if (class_exists('webfiori\entity\Response')) {
             Response::addHeader('content-type', $conentType);
             Response::append($data);
-            Response::setResponseCode($code);
+            Response::setCode($code);
             Response::send();
         } else {
             http_response_code($code);
@@ -917,7 +917,7 @@ abstract class WebServicesSet implements JsonI {
         } else if (class_exists('webfiori\entity\Response')) {
             Response::addHeader('content-type', 'application/json');
             Response::append($json);
-            Response::setResponseCode($code);
+            Response::setCode($code);
             Response::send();
         } else {
             header('content-type:application/json');
