@@ -417,8 +417,9 @@ class APIFilter {
                 if ($x + 1 == $len - 1) {
                     $tmpArrValue .= $char;
                     $number = self::checkIsNumber($tmpArrValue);
-
-                    if ($number != self::INVALID) {
+                    $numType = gettype($number);
+                    
+                    if ($numType == 'integer' || $numType == 'double') {
                         $arrayValues[] = $number;
                         continue;
                     } else {
@@ -436,8 +437,9 @@ class APIFilter {
                             $arrayValues[] = null;
                         } else {
                             $number = self::checkIsNumber($tmpArrValue);
-
-                            if ($number != self::INVALID) {
+                            $numType = gettype($number);
+                            
+                            if ($numType == 'integer' || $numType == 'double') {
                                 $arrayValues[] = $number;
                                 continue;
                             } else {
@@ -469,8 +471,9 @@ class APIFilter {
                         $arrayValues[] = null;
                     } else {
                         $number = self::checkIsNumber($tmpArrValue);
-
-                        if ($number != self::INVALID) {
+                        $numType = gettype($number);
+                        
+                        if ($numType == 'integer' || $numType == 'double') {
                             $arrayValues[] = $number;
                         } else {
                             return $retVal;
