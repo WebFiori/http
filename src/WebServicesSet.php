@@ -64,6 +64,7 @@ abstract class WebServicesSet implements JsonI {
      * <ul>
      * <li>application/x-www-form-urlencoded</li>
      * <li>multipart/form-data</li>
+     * <li>application/json</li>
      * </ul>
      * 
      * @var array An array that contains the supported 'POST' and 'PUT' request content types.
@@ -72,7 +73,8 @@ abstract class WebServicesSet implements JsonI {
      */
     const POST_CONTENT_TYPES = [
         'application/x-www-form-urlencoded',
-        'multipart/form-data'
+        'multipart/form-data',
+        'application/json'
     ];
     /**
      * An array that contains the action that can be performed by the API.
@@ -466,15 +468,18 @@ abstract class WebServicesSet implements JsonI {
         return $this->apiDesc;
     }
     /**
-     * Returns an associative array of filtered request inputs.
+     * Returns an associative array or an object of type JsonX of filtered request inputs.
      * 
      * The indices of the array will represent request parameters and the 
      * values of each index will represent the value which was set in 
      * request body. The values will be filtered and might not be exactly the same as 
      * the values passed in request body. Note that if a parameter is optional and not 
-     * provided in request body, its value will be set to 'null'.
+     * provided in request body, its value will be set to 'null'. Note that 
+     * if request content type is 'application/json', only basic filtering will 
+     * be applied. Also, parameters in this case don't apply.s
      * 
-     * @return array An array of filtered request inputs.
+     * @return array|JsonX An array of filtered request inputs. This also can 
+     * be an object of type 'JsonX' if request content type was 'application/json'.
      * 
      * @since 1.0
      */
@@ -645,10 +650,8 @@ abstract class WebServicesSet implements JsonI {
 
         if ($c !== null && $rm == 'POST' || $rm == 'PUT') {
             return in_array($c, self::POST_CONTENT_TYPES);
-        } else {
-            if ($c === null && $rm == 'POST' || $rm == 'PUT') {
-                return false;
-            }
+        } else if ($c === null && $rm == 'POST' || $rm == 'PUT') {
+            return false;
         }
 
         return true;
@@ -742,47 +745,48 @@ abstract class WebServicesSet implements JsonI {
                     $this->filter->addRequestParameter($param);
                 }
                 $reqMeth = $this->getRequestMethod();
-
+                
                 if ($reqMeth == 'GET' || 
                     $reqMeth == 'DELETE' || 
                     $reqMeth == 'PUT' || 
                     $reqMeth == 'OPTIONS' || 
                     $reqMeth == 'PATCH') {
                     $this->filter->filterGET();
-                } else {
-                    if ($reqMeth == 'POST') {
-                        $this->filter->filterPOST();
-                    }
+                } else if ($reqMeth == 'POST') {
+                    $this->filter->filterPOST();
                 }
                 $i = $this->getInputs();
                 $processReq = true;
-
-                foreach ($params as $param) {
-                    if (!$param->isOptional() && !isset($i[$param->getName()])) {
-                        array_push($this->missingParamsArr, $param->getName());
-                        $processReq = false;
-                    }
-
-                    if (isset($i[$param->getName()]) && $i[$param->getName()] === 'INV') {
-                        array_push($this->invParamsArr, $param->getName());
-                        $processReq = false;
-                    }
-                }
-
-                if ($processReq) {
-                    if ($this->_isAuthorizedAction()) {
-                        if ($this->getCalledServiceName() == 'api-info') {
-                            $this->send('application/json', $this->toJSON());
-                        } else {
-                            $this->processRequest();
+                if (!($i instanceof JsonX)) {
+                    foreach ($params as $param) {
+                        if (!$param->isOptional() && !isset($i[$param->getName()])) {
+                            array_push($this->missingParamsArr, $param->getName());
+                            $processReq = false;
                         }
-                    } else {
-                        $this->notAuth();
+
+                        if (isset($i[$param->getName()]) && $i[$param->getName()] === 'INV') {
+                            array_push($this->invParamsArr, $param->getName());
+                            $processReq = false;
+                        }
                     }
-                } else if (count($this->missingParamsArr) != 0) {
-                    $this->missingParams();
-                } else if (count($this->invParamsArr) != 0) {
-                    $this->invParams();
+
+                    if ($processReq) {
+                        if ($this->_isAuthorizedAction()) {
+                            if ($this->getCalledServiceName() == 'api-info') {
+                                $this->send('application/json', $this->toJSON());
+                            } else {
+                                $this->processRequest();
+                            }
+                        } else {
+                            $this->notAuth();
+                        }
+                    } else if (count($this->missingParamsArr) != 0) {
+                        $this->missingParams();
+                    } else if (count($this->invParamsArr) != 0) {
+                        $this->invParams();
+                    }
+                } else {
+                    $this->processRequest();
                 }
             }
         } else {
