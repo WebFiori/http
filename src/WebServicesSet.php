@@ -336,7 +336,23 @@ abstract class WebServicesSet implements JsonI {
         $reqMeth = $this->getRequestMethod();
 
         $serviceIdx = ['action', 'service-name'];
-
+        
+        $contentType = $this->getContentType();
+        
+        if ($contentType == 'application/json') {
+            $body = file_get_contents('php://input');
+            $jsonx = JsonX::decode($body);
+            
+            if ($jsonx instanceof JsonX) {
+                foreach ($serviceIdx as $index) {
+                    $serviceName = $jsonx->get($index);
+                    if ($serviceName !== null) {
+                        return filter_var($serviceName);
+                    }
+                }
+            }
+        }
+        
         foreach ($serviceIdx as $serviceNameIndex) {
             if (($reqMeth == 'GET' || 
                $reqMeth == 'DELETE' ||  
