@@ -786,7 +786,28 @@ abstract class WebServicesSet implements JsonI {
                         $this->invParams();
                     }
                 } else {
-                    $this->processRequest();
+                    $paramsNames = $i->getPropsNames();
+                    
+                    foreach ($params as $param) {
+                        if (!$param->isOptional() && !in_array($param->getName(), $paramsNames)) {
+                            array_push($this->missingParamsArr, $param->getName());
+                            $processReq = false;
+                        }
+                    }
+                    
+                    if ($processReq) {
+                        if ($this->_isAuthorizedAction()) {
+                            if ($this->getCalledServiceName() == 'api-info') {
+                                $this->send('application/json', $this->toJSON());
+                            } else {
+                                $this->processRequest();
+                            }
+                        } else {
+                            $this->notAuth();
+                        }
+                    } else if (count($this->missingParamsArr) != 0) {
+                        $this->missingParams();
+                    }
                 }
             }
         } else {
