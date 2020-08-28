@@ -5,10 +5,11 @@ ini_set('display_errors', 1);
 error_reporting(-1);
 require_once '../vendor/webfiori/jsonx/src/JsonI.php';
 require_once '../vendor/webfiori/jsonx/src/JsonX.php';
+require_once '../src/WebService.php';
 require_once '../src/APIAction.php';
 require_once '../src/APIFilter.php';
+require_once '../src/WebServicesSet.php';
 require_once '../src/RequestParameter.php';
-require_once '../src/WebServices.php';
 
 use jsonx\JsonI;
 use jsonx\JsonX;
@@ -32,6 +33,8 @@ class MyAPI extends WebServicesSet {
         //create new action
         $action00 = new WebService('my-action');
         $action00->addRequestMethod('get');
+        $action00->addRequestMethod('post');
+        $action00->addRequestMethod('put');
 
         //add parameters for the action
         $action00->addParameter(new RequestParameter('my-param', 'string', true));
@@ -78,18 +81,27 @@ class MyAPI extends WebServicesSet {
     public function processRequest() {
         $action = $this->getAction();
         $inputs = $this->getInputs();
-
         if ($action == 'my-action') {
             header('content-type:text/plain');
 
-            if (isset($inputs['my-param'])) {
-                echo '"my-param" = '.$inputs['my-param'];
+            if ($inputs instanceof JsonX) {
+                if ($inputs->get('my-param')) {
+                    echo '"my-param" = '.$inputs->get('my-param');
+                } else {
+                    echo '"my-param" is not set';
+                }
             } else {
-                echo '"my-param" is not set';
+                if (isset($inputs['my-param'])) {
+                    echo '"my-param" = '.$inputs['my-param'];
+                } else {
+                    echo '"my-param" is not set';
+                }
             }
-        } else {
-            if ($action == 'auth-action') {
-                header('content-type:text/plain');
+        } else if ($action == 'auth-action') {
+            header('content-type:text/plain');
+            if ($inputs instanceof JsonX) {
+                echo 'Dear '.$inputs->get('name').', you are authorized to access the API.';
+            } else {
                 echo 'Dear '.$inputs['name'].', you are authorized to access the API.';
             }
         }
@@ -97,6 +109,7 @@ class MyAPI extends WebServicesSet {
 }
 //create an instance once a request to the file is made. 
 $a = new MyAPI();
+
 
 /*
  * Assuming that you are testing in 'localhost' and your code is placed 
