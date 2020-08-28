@@ -25,6 +25,7 @@
  */
 namespace restEasy;
 
+use jsonx\JsonX;
 /**
  * A class used to validate and sanitize request parameters.
  * 
@@ -330,9 +331,22 @@ class APIFilter {
      */
     public final function filterGET() {
         $this->clearInputs();
-        $filterResult = $this->filter($this, $_GET);
-        $this->inputs = $filterResult['filtered'];
-        $this->nonFilteredInputs = $filterResult['non-filtered'];
+        $contentTypeHeader = isset($_SERVER['CONTENT_TYPE']) ? filter_var($_SERVER['CONTENT_TYPE']) : null;
+        
+        if ($contentTypeHeader !== null && $contentTypeHeader !== false) {
+            $contentType = trim(explode(';', $contentTypeHeader)[0]);
+        } else {
+            $contentType = null;
+        }
+        
+        if ($contentType == 'application/json') {
+            $body = file_get_contents('php://input');
+            $this->inputs = $this->filterJson(JsonX::decode($body));
+        } else {
+            $filterResult = $this->filter($this, $_POST);
+            $this->inputs = $filterResult['filtered'];
+            $this->nonFilteredInputs = $filterResult['non-filtered'];
+        }
     }
     /**
      * Validate and sanitize POST parameters.
@@ -355,9 +369,66 @@ class APIFilter {
      */
     public final function filterPOST() {
         $this->clearInputs();
-        $filterResult = $this->filter($this, $_POST);
-        $this->inputs = $filterResult['filtered'];
-        $this->nonFilteredInputs = $filterResult['non-filtered'];
+        $contentTypeHeader = isset($_SERVER['CONTENT_TYPE']) ? filter_var($_SERVER['CONTENT_TYPE']) : null;
+
+        if ($contentTypeHeader !== null && $contentTypeHeader !== false) {
+            $contentType = trim(explode(';', $contentTypeHeader)[0]);
+        } else {
+            $contentType = null;
+        }
+
+        if ($contentType == 'application/json') {
+            $body = file_get_contents('php://input');
+            $this->inputs = $this->filterJson(JsonX::decode($body));
+        } else {
+            $filterResult = $this->filter($this, $_POST);
+            $this->inputs = $filterResult['filtered'];
+            $this->nonFilteredInputs = $filterResult['non-filtered'];
+        }
+    }
+    /**
+     * 
+     * @param JsonX $jsonx
+     */
+    private function filterJson($jsonx) {
+        $cleanJson = new JsonX();
+        $props = $jsonx->getPropsNames();
+        
+        foreach ($props as $propName) {
+            $propVal = $jsonx->get($propName);
+            $propType = gettype($propVal);
+            
+            if ($propType == 'string') {
+                $cleanJson->add($propName, filter_var($propVal, FILTER_SANITIZE_STRING));
+            } else if ($propType == 'array') {
+                $cleanJson->add($propName, $this->_cleanJsonArray($propVal));
+            } else if ($propType == 'object') {
+                $cleanJson->add($propName, $this->filterJson($propVal));
+            } else {
+                $cleanJson->add($propName, $propVal);
+            }
+        }
+        
+        return $cleanJson;
+    }
+    private function _cleanJsonArray($arr) {
+        $cleanArr = [];
+        
+        foreach ($arr as $val) {
+            $propType = gettype($val);
+            
+            if ($propType == 'string') {
+                $cleanArr[] = filter_var($val, FILTER_SANITIZE_STRING);
+            } else if ($propType == 'array') {
+                $cleanArr[] = $this->_cleanJsonArray($val);
+            } else if ($propType == 'object') {
+                $cleanArr[] = $this->filterJson($val);
+            } else {
+                $cleanArr[] = $val;
+            }
+        }
+        
+        return $cleanArr;
     }
     /**
      * Returns an array that contains filter constraints.
@@ -370,12 +441,15 @@ class APIFilter {
         return $this->paramDefs;
     }
     /**
-     * Returns an associative array that contains request body inputs.
+     * Returns an associative array or object of type 'JsonX' that contains 
+     * request body inputs.
      * 
      * The data in the array will have the filters applied to.
      * 
-     * @return array|null The array that contains request inputs. If no data was 
-     * filtered, the method will return null.
+     * @return array|null|JsonX The array that contains request inputs. If no data was 
+     * filtered, the method will return null. If the request content type was 
+     * 'application/json', the method will return an instance of the class 
+     * 'JsonX' that has all JSON information.
      * 
      * @since 1.0
      */
