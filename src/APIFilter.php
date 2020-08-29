@@ -26,6 +26,7 @@
 namespace restEasy;
 
 use jsonx\JsonX;
+use restEasy\RequestParameter;
 /**
  * A class used to validate and sanitize request parameters.
  * 
@@ -103,7 +104,7 @@ class APIFilter {
      * 
      * @since 1.1
      */
-    public function addRequestParameter($reqParam) {
+    public function addRequestParameter(RequestParameter $reqParam) {
         if ($reqParam instanceof RequestParameter) {
             $paramIdx = 'parameter';
             $filterIdx = 'filters';
@@ -343,7 +344,7 @@ class APIFilter {
             $body = file_get_contents('php://input');
             $this->inputs = $this->filterJson(JsonX::decode($body));
         } else {
-            $filterResult = $this->filter($this, $_POST);
+            $filterResult = $this->filter($this, $_GET);
             $this->inputs = $filterResult['filtered'];
             $this->nonFilteredInputs = $filterResult['non-filtered'];
         }

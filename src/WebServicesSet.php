@@ -352,6 +352,9 @@ abstract class WebServicesSet implements JsonI {
                         return filter_var($serviceName);
                     }
                 }
+                return null;
+            } else {
+                return null;
             }
         }
         

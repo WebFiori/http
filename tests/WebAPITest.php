@@ -283,14 +283,14 @@ class WebAPITest extends TestCase {
     public function testGetUser03() {
         $this->clrearVars();
         putenv('REQUEST_METHOD=POST');
-        $_SERVER['CONTENT_TYPE'] = 'application/json';
+        $_SERVER['CONTENT_TYPE'] = 'application/xml';
         $_POST['action'] = 'get-user-profile';
         $_POST['user-id'] = '99';
         $_POST['pass'] = '123';
         $api = new SampleService();
         $api->setOutputStream($this->outputStreamName);
         $api->process();
-        $this->assertEquals('{"message":"Content type not supported.", "type":"error", "http-code":404, "more-info":{"request-content-type":"application\/json"}}', $api->readOutputStream());
+        $this->assertEquals('{"message":"Content type not supported.", "type":"error", "http-code":404, "more-info":{"request-content-type":"application\/xml"}}', $api->readOutputStream());
     }
     /**
      * @test
