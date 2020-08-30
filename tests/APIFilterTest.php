@@ -4,6 +4,7 @@ namespace restEasy\tests;
 use PHPUnit\Framework\TestCase;
 use webfiori\restEasy\APIFilter;
 use webfiori\restEasy\RequestParameter;
+use jsonx\JsonX;
 /**
  * Description of APIFilterTest
  *
@@ -757,6 +758,32 @@ class APIFilterTest extends TestCase {
         $filtered = $this->apiFilter->getInputs();
         $this->assertEquals(1,count($filtered));
         $this->assertEquals(APIFilter::INVALID, $filtered['str']);
+    }
+    /**
+     * @test
+     */
+    public function testFilterPost17() {
+        $jsonTestFile = __DIR__.DIRECTORY_SEPARATOR.'json.json';
+        self::setTestJson($jsonTestFile, '{"json-array":[]}');
+        $apiFilter = new APIFilter();
+        $apiFilter->setInputStream($jsonTestFile);
+        $param00 = new RequestParameter('json-array', 'array');
+        $param00->setCustomFilterFunction(function($orgVal, $basicFiltered, RequestParameter $param){
+            var_dump($basicFiltered);
+        });
+        $apiFilter->addRequestParameter($param00);
+        $this->assertEquals('array', $param00->getType());
+        putenv('REQUEST_METHOD=POST');
+        $_SERVER['CONTENT_TYPE'] = 'application/json';
+        $apiFilter->filterPOST();
+        $filtered = $apiFilter->getInputs();
+        $this->assertTrue($filtered instanceof JsonX);
+        
+    }
+    public static function setTestJson($fName, $jsonData) {
+        $stream = fopen($fName, 'w+');
+        fwrite($stream, $jsonData);
+        fclose($stream);
     }
 }
 

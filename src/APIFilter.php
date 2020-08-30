@@ -28,6 +28,7 @@ namespace webfiori\restEasy;
 use jsonx\JsonX;
 use webfiori\restEasy\RequestParameter;
 use webfiori\restEasy\ParamTypes;
+use Exception;
 /**
  * A class used to validate and sanitize request parameters.
  * 
@@ -56,6 +57,7 @@ class APIFilter {
      * @since 1.0 
      */
     private $inputs = [];
+    private $inputStreamPath;
     /**
      * An array that contains non-filtered data (original).
      * 
@@ -124,6 +126,15 @@ class APIFilter {
                 array_push($attribute[$filterIdx], FILTER_DEFAULT);
             }
             array_push($this->paramDefs, $attribute);
+        }
+    }
+    /**
+     * 
+     * @param string $path
+     */
+    public function setInputStream($path) {
+        if (file_exists($path)) {
+            $this->inputStreamPath = $path;
         }
     }
     /**
@@ -317,13 +328,24 @@ class APIFilter {
         }
         
         if ($contentType == 'application/json') {
-            $body = file_get_contents('php://input');
-            $this->inputs = $this->filterJson(JsonX::decode($body));
+            $this->_jsonBody();
         } else {
             $filterResult = $this->filter($this, $_GET);
             $this->inputs = $filterResult['filtered'];
             $this->nonFilteredInputs = $filterResult['non-filtered'];
         }
+    }
+    private function _jsonBody() {
+        if ($this->inputStreamPath !== null) {
+            $body = file_get_contents($this->inputStreamPath);
+        } else {
+            $body = file_get_contents('php://input');
+        }
+        $json = JsonX::decode($body);
+        if (!($json instanceof JsonX)) {
+            throw new Exception('Request body does not contain valid JSON.');
+        }
+        $this->inputs = $this->filterJson($json);
     }
     /**
      * Validate and sanitize POST parameters.
@@ -355,8 +377,7 @@ class APIFilter {
         }
 
         if ($contentType == 'application/json') {
-            $body = file_get_contents('php://input');
-            $this->inputs = $this->filterJson(JsonX::decode($body));
+            $this->_jsonBody();
         } else {
             $filterResult = $this->filter($this, $_POST);
             $this->inputs = $filterResult['filtered'];
@@ -367,7 +388,7 @@ class APIFilter {
      * 
      * @param JsonX $jsonx
      */
-    private function filterJson($jsonx) {
+    private function filterJson(JsonX $jsonx) {
         $cleanJson = new JsonX();
         $props = $jsonx->getPropsNames();
         
@@ -385,8 +406,140 @@ class APIFilter {
                 $cleanJson->add($propName, $propVal);
             }
         }
-        
-        return $cleanJson;
+        $extraClean = new JsonX();
+        $filterDef = $this->getFilterDef();
+        $paramIdx = 'parameter';
+        $filterIdx = 'filters';
+        $optIdx = 'options';
+        foreach ($filterDef as $def) {
+            $requParam = $def[$paramIdx];
+            $requParam instanceof RequestParameter;
+            $name = $requParam->getName();
+            $paramType = $requParam->getType();
+            $defaultVal = $requParam->getDefault();
+            $requParamVal = $this->_getJsonPropVal($cleanJson, $name);
+            
+            if ($requParamVal !== null) {
+                $toBeFiltered = $requParamVal;
+
+                if (isset($def[$optIdx]['filter-func'])) {
+                    $filteredValue = '';
+                    $arrToPass = [
+                        'original-value' => $toBeFiltered,
+                    ];
+
+                    if ($def[$paramIdx]->applyBasicFilter() === true) {
+                        $toBeFiltered = strip_tags($toBeFiltered);
+
+                        if ($paramType == ParamTypes::BOOL) {
+
+                        } else if ($paramType == ParamTypes::ARR) {
+
+                        } else {
+                            $filteredValue = filter_var($toBeFiltered);
+
+                            foreach ($def[$filterIdx] as $val) {
+                                $filteredValue = filter_var($filteredValue, $val, $def[$optIdx]);
+                            }
+
+                            if ($filteredValue === false) {
+                                $filteredValue = self::INVALID;
+                            }
+
+                            if ($paramType == ParamTypes::STRING &&
+                                $filteredValue != self::INVALID &&
+                                strlen($filteredValue) == 0 && 
+                                $def[$optIdx][$optIdx]['allow-empty'] === false) {
+                                $extraClean->add($name, null);
+                                $filteredValue = self::INVALID;
+                            }
+                        }
+                        $arrToPass['basic-filter-result'] = $filteredValue;
+                    } else {
+                        $arrToPass['basic-filter-result'] = 'NOT_APLICABLE';
+                    }
+                    $r = call_user_func($def[$optIdx]['filter-func'],$arrToPass['original-value'], $arrToPass['basic-filter-result'],$def[$paramIdx]);
+
+                    if ($r === null) {
+                        $extraClean->add($name, false);
+                    } else {
+                        $extraClean->add($name, $r);
+                    }
+
+                    if ($extraClean->get($name) === false && $paramType != ParamTypes::BOOL) {
+                        $extraClean->add($name, self::INVALID);
+                    }
+                } else {
+                    $toBeFiltered = strip_tags($toBeFiltered);
+
+                    if ($paramType == ParamTypes::BOOL) {
+
+                    } else if ($paramType == ParamTypes::ARR) {
+
+                    } else {
+                        $extraClean->add($name, filter_var($toBeFiltered));
+
+                        foreach ($def[$filterIdx] as $val) {
+                            $extraClean->add($name, filter_var($extraClean->get($name), $val, $def[$optIdx]));
+                        }
+
+                        if ($extraClean->get($name) === false || 
+                            (($paramType == ParamTypes::URL || $paramType == ParamTypes::EMAIL) && strlen($extraClean->get($name)) == 0) || 
+                            (($paramType == ParamTypes::INT || $paramType == ParamTypes::DOUBLE) && strlen($extraClean->get($name)) == 0)) {
+                            $extraClean->add($name, self::INVALID);
+                        }
+
+                        if ($paramType == ParamTypes::STRING &&
+                            $extraClean->get($name) != self::INVALID &&
+                            strlen($extraClean->get($name)) == 0 && 
+                            $def[$optIdx][$optIdx]['allow-empty'] === false) {
+                            $extraClean->add($name, self::INVALID);
+                        }
+                    }
+                }
+                $booleanCheck = $paramType == 'boolean' && $extraClean->get($name) === true || $extraClean->get($name) === false;
+                if (!$booleanCheck && $extraClean->get($name) == self::INVALID && $defaultVal !== null) {
+                    $extraClean->add($name, $defaultVal);
+                }
+            } else if ($requParam->isOptional()) {
+                if ($defaultVal !== null) {
+                    $extraClean->add($name, $defaultVal);
+                } else {
+                    $extraClean->add($name, null);
+                }
+            }
+        }
+        return $extraClean;
+    }
+    private function _getJsonPropVal(JsonX $jsonx, $propName) {
+        $propVal = $jsonx->get($propName);
+        if ($propVal === null) {
+            $props = $jsonx->getPropsNames();
+            foreach ($props as $propNameX) {
+                $testVal = $jsonx->get($propNameX);
+                if ($testVal instanceof JsonX) {
+                    $propVal = $this->_getJsonPropVal($testVal, $propName);
+                } else if (gettype($testVal) == 'array') {
+                    $propVal = $this->_getJsonPropArr($testVal, $propName);
+                }
+                if ($propVal !== null) {
+                    return $propVal;
+                }
+            }
+        }
+    }
+    private function _getJsonPropArr($arr, $propName) {
+        $retVal = null;
+        foreach ($arr as $val) {
+            if ($val instanceof JsonX) {
+                $retVal = $this->_getJsonPropVal($val, $propName);
+            } else if (gettype($val) == 'array') {
+                $retVal = $this->_getJsonPropArr($val, $propName);
+            }
+            if ($retVal !== null) {
+                return $retVal;
+            }
+        }
     }
     private function _cleanJsonArray($arr) {
         $cleanArr = [];
