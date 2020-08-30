@@ -1,9 +1,9 @@
 <?php
 namespace restEasy\tests;
 
-use restEasy\RequestParameter;
-use restEasy\WebService;
-use restEasy\WebServicesSet;
+use webfiori\restEasy\RequestParameter;
+use webfiori\restEasy\WebService;
+use webfiori\restEasy\WebServicesSet;
 /**
  * Description of SampleAPI
  *

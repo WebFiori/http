@@ -22,7 +22,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-namespace restEasy;
+namespace webfiori\restEasy;
 
 use jsonx\JsonI;
 use jsonx\JsonX;
@@ -796,6 +796,11 @@ abstract class WebServicesSet implements JsonI {
                             array_push($this->missingParamsArr, $param->getName());
                             $processReq = false;
                         }
+                        
+                        if ($i->get($param->getName()) === null) {
+                            array_push($this->invParamsArr, $param->getName());
+                            $processReq = false;
+                        }
                     }
                     
                     if ($processReq) {
@@ -810,6 +815,8 @@ abstract class WebServicesSet implements JsonI {
                         }
                     } else if (count($this->missingParamsArr) != 0) {
                         $this->missingParams();
+                    } else if (count($this->invParamsArr) != 0) {
+                        $this->invParams();
                     }
                 }
             }
@@ -905,9 +912,11 @@ abstract class WebServicesSet implements JsonI {
      * 
      * @since 1.4.3
      */
-    public function sendHeaders($headersArr) {
-        if (gettype($headersArr) == 'array') {
-            foreach ($headersArr as $header => $val) {
+    public function sendHeaders(array $headersArr) {
+        foreach ($headersArr as $header => $val) {
+            if (class_exists('webfiori\entity\Response')) {
+                Response::addHeader($header, $val);
+            } else {
                 header($header.':'.$val);
             }
         }

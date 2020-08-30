@@ -3,8 +3,8 @@ namespace restEasy\tests;
 
 use jsonx\JsonX;
 use PHPUnit\Framework\TestCase;
-use restEasy\WebService;
-use restEasy\WebServicesSet;
+use webfiori\restEasy\WebService;
+use webfiori\restEasy\WebServicesSet;
 /**
  * Description of WebAPITest
  *

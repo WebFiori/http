@@ -2,8 +2,8 @@
 namespace restEasy\tests;
 
 use PHPUnit\Framework\TestCase;
-use restEasy\WebService;
-use restEasy\RequestParameter;
+use webfiori\restEasy\WebService;
+use webfiori\restEasy\RequestParameter;
 class APIActionTest extends TestCase {
     /**
      * @test

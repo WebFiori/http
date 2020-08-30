@@ -2,8 +2,8 @@
 namespace restEasy\tests;
 
 use PHPUnit\Framework\TestCase;
-use restEasy\APIFilter;
-use restEasy\RequestParameter;
+use webfiori\restEasy\APIFilter;
+use webfiori\restEasy\RequestParameter;
 /**
  * Description of APIFilterTest
  *
@@ -158,14 +158,18 @@ class APIFilterTest extends TestCase {
     public function testFilterGet07() {
         $this->apiFilter = new APIFilter();
         $param00 = new RequestParameter('first-number','float');
+        $this->assertEquals('double', $param00->getType());
         $this->apiFilter->addRequestParameter($param00);
         $param01 = new RequestParameter('second-number', 'float');
+        $this->assertEquals('double', $param01->getType());
         $param01->setMinVal(1000000);
         $this->apiFilter->addRequestParameter($param01);
         $_GET['first-number'] = 'Admin';
         $_GET['second-number'] = 'yc with some text<script></script>';
         $this->apiFilter->filterGET();
+        
         $filtered = $this->apiFilter->getInputs();
+        var_dump($filtered);
         $this->assertEquals(2,count($filtered));
         $this->assertTrue(isset($filtered['first-number']));
         $this->assertEquals('INV',$filtered['first-number']);
@@ -223,10 +227,14 @@ class APIFilterTest extends TestCase {
         $this->apiFilter = new APIFilter();
         $param00 = new RequestParameter('first-number','float');
         $this->apiFilter->addRequestParameter($param00);
+        
         $param01 = new RequestParameter('second-number', 'float');
         $param01->setDefault(1000);
+        $this->assertEquals(1000, $param01->getDefault());
         $param01->setMinVal(1000000);
+        
         $this->apiFilter->addRequestParameter($param01);
+        $_GET = [];
         $_GET['first-number'] = 'Admin';
         $_GET['second-number'] = '';
         $this->apiFilter->filterGET();
@@ -316,6 +324,7 @@ class APIFilterTest extends TestCase {
     public function testFilterGet14() {
         $this->apiFilter = new APIFilter();
         $param00 = new RequestParameter('redirect', 'url');
+        $this->assertEquals('url', $param00->getType());
         $this->apiFilter->addRequestParameter($param00);
         $_GET['redirect'] = 'programmingacademia.com';
         $this->apiFilter->filterGET();

@@ -23,10 +23,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-namespace restEasy;
+namespace webfiori\restEasy;
 
 use jsonx\JsonX;
-use restEasy\RequestParameter;
+use webfiori\restEasy\RequestParameter;
+use webfiori\restEasy\ParamTypes;
 /**
  * A class used to validate and sanitize request parameters.
  * 
@@ -46,33 +47,7 @@ class APIFilter {
      * @since 1.2.2
      */
     const INVALID = 'INV';
-    /**
-     * Supported input types.
-     * 
-     * The filter supports the following data types:
-     * <ul>
-     * <li>string</li>
-     * <li>integer</li>
-     * <li>email</li>
-     * <li>float</li>
-     * <li>url</li>
-     * <li>boolean</li>
-     * <li>array</li>
-     * </ul>
-     * 
-     * @var array 
-     * 
-     * @since 1.0
-     */
-    const TYPES = [
-        'string',
-        'integer',
-        'email',
-        'float',
-        'url',
-        'boolean',
-        'array'
-    ];
+    
     /**
      * An array that will contains filtered data.
      * 
@@ -124,7 +99,7 @@ class APIFilter {
             }
             $paramType = $reqParam->getType();
 
-            if ($paramType == self::TYPES[1]) {
+            if ($paramType == ParamTypes::INT) {
                 if ($reqParam->getMaxVal() !== null) {
                     $attribute[$optIdx][$optIdx]['max_range'] = $reqParam->getMaxVal();
                 }
@@ -134,15 +109,15 @@ class APIFilter {
                 }
                 array_push($attribute[$filterIdx], FILTER_SANITIZE_NUMBER_INT);
                 array_push($attribute[$filterIdx], FILTER_VALIDATE_INT);
-            } else if ($paramType == self::TYPES[0]) {
+            } else if ($paramType == ParamTypes::STRING) {
                 $attribute[$optIdx][$optIdx]['allow-empty'] = $reqParam->isEmptyStringAllowed();
                 array_push($attribute[$filterIdx], FILTER_DEFAULT);
-            } else if ($paramType == self::TYPES[3]) {
+            } else if ($paramType == ParamTypes::DOUBLE) {
                 array_push($attribute[$filterIdx], FILTER_SANITIZE_NUMBER_FLOAT);
-            } else if ($paramType == self::TYPES[2]) {
+            } else if ($paramType == ParamTypes::EMAIL) {
                 array_push($attribute[$filterIdx], FILTER_SANITIZE_EMAIL);
                 array_push($attribute[$filterIdx], FILTER_VALIDATE_EMAIL);
-            } else if ($paramType == self::TYPES[4]) {
+            } else if ($paramType == ParamTypes::URL) {
                 array_push($attribute[$filterIdx], FILTER_SANITIZE_URL);
                 array_push($attribute[$filterIdx], FILTER_VALIDATE_URL);
             } else {
@@ -196,7 +171,7 @@ class APIFilter {
      * 
      * @since 1.2.2
      */
-    public static function filter($apiFilter,$arr) {
+    public static function filter(APIFilter $apiFilter, array $arr) {
         $filteredIdx = 'filtered';
         $noFIdx = 'non-filtered';
         $retVal = [
@@ -207,7 +182,7 @@ class APIFilter {
         $filterIdx = 'filters';
         $optIdx = 'options';
 
-        if ($apiFilter instanceof APIFilter && gettype($arr) == self::TYPES[6]) {
+        if ($apiFilter instanceof APIFilter) {
             $filterDef = $apiFilter->getFilterDef();
 
             foreach ($filterDef as $def) {
@@ -228,9 +203,9 @@ class APIFilter {
                         if ($def[$paramIdx]->applyBasicFilter() === true) {
                             $toBeFiltered = strip_tags($toBeFiltered);
 
-                            if ($paramType == self::TYPES[5]) {
+                            if ($paramType == ParamTypes::BOOL) {
                                 $filteredValue = self::_filterBoolean(filter_var($toBeFiltered));
-                            } else if ($paramType == self::TYPES[6]) {
+                            } else if ($paramType == ParamTypes::ARR) {
                                 $filteredValue = self::_filterArray(filter_var($toBeFiltered));
                             } else {
                                 $filteredValue = filter_var($toBeFiltered);
@@ -243,7 +218,7 @@ class APIFilter {
                                     $filteredValue = self::INVALID;
                                 }
 
-                                if ($paramType == self::TYPES[0] &&
+                                if ($paramType == ParamTypes::STRING &&
                                     $filteredValue != self::INVALID &&
                                     strlen($filteredValue) == 0 && 
                                     $def[$optIdx][$optIdx]['allow-empty'] === false) {
@@ -263,15 +238,15 @@ class APIFilter {
                             $retVal[$filteredIdx][$name] = $r;
                         }
 
-                        if ($retVal[$filteredIdx][$name] === false && $paramType != self::TYPES[5]) {
+                        if ($retVal[$filteredIdx][$name] === false && $paramType != ParamTypes::BOOL) {
                             $retVal[$filteredIdx][$name] = self::INVALID;
                         }
                     } else {
                         $toBeFiltered = strip_tags($toBeFiltered);
 
-                        if ($paramType == self::TYPES[5]) {
+                        if ($paramType == ParamTypes::BOOL) {
                             $retVal[$filteredIdx][$name] = self::_filterBoolean(filter_var($toBeFiltered));
-                        } else if ($paramType == self::TYPES[6]) {
+                        } else if ($paramType == ParamTypes::ARR) {
                             $retVal[$filteredIdx][$name] = self::_filterArray(filter_var($toBeFiltered));
                         } else {
                             $retVal[$filteredIdx][$name] = filter_var($toBeFiltered);
@@ -281,11 +256,12 @@ class APIFilter {
                             }
 
                             if ($retVal[$filteredIdx][$name] === false || 
-                                (($paramType == self::TYPES[1] || $paramType == self::TYPES[3]) && strlen($retVal[$filteredIdx][$name]) == 0)) {
+                                (($paramType == ParamTypes::URL || $paramType == ParamTypes::EMAIL) && strlen($retVal[$filteredIdx][$name]) == 0) || 
+                                (($paramType == ParamTypes::INT || $paramType == ParamTypes::DOUBLE) && strlen($retVal[$filteredIdx][$name]) == 0)) {
                                 $retVal[$filteredIdx][$name] = self::INVALID;
                             }
 
-                            if ($paramType == self::TYPES[0] &&
+                            if ($paramType == ParamTypes::STRING &&
                                 $retVal[$filteredIdx][$name] != self::INVALID &&
                                 strlen($retVal[$filteredIdx][$name]) == 0 && 
                                 $def[$optIdx][$optIdx]['allow-empty'] === false) {
@@ -526,7 +502,7 @@ class APIFilter {
 
                         if ($result['parsed'] === true) {
                             $x = $result['end'];
-                            $arrayValues[] = filter_var(strip_tags($result[self::TYPES[0]]));
+                            $arrayValues[] = filter_var(strip_tags($result[ParamTypes::STRING]));
                             $tmpArrValue = '';
                             continue;
                         } else {
