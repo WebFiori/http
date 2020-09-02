@@ -24,8 +24,8 @@
  */
 namespace webfiori\restEasy;
 
-use jsonx\JsonI;
-use jsonx\JsonX;
+use webfiori\json\JsonI;
+use webfiori\json\Json;
 use webfiori\entity\Response;
 /**
  * A class that represents a set of web services.
@@ -293,7 +293,7 @@ abstract class WebServicesSet implements JsonI {
      * @since 1.1
      */
     public function contentTypeNotSupported($cType = '') {
-        $j = new JsonX();
+        $j = new Json();
         $j->add('request-content-type', $cType);
         $this->sendResponse('Content type not supported.', self::E, 404,$j);
     }
@@ -311,8 +311,8 @@ abstract class WebServicesSet implements JsonI {
      * In here, 'OTHER_DATA' can be a basic string or JSON string.
      * Also, The response will sent HTTP code 404 - Not Found.
      * 
-     * @param JsonI|JsonX|string $info An object of type JsonI or 
-     * JsonX that describe the error in more details. Also it can be a simple string 
+     * @param JsonI|Json|string $info An object of type JsonI or 
+     * Json that describe the error in more details. Also it can be a simple string 
      * or JSON string.
      * 
      * @since 1.0
@@ -343,9 +343,9 @@ abstract class WebServicesSet implements JsonI {
         
         if ($contentType == 'application/json') {
             $body = file_get_contents('php://input');
-            $jsonx = JsonX::decode($body);
+            $jsonx = Json::decode($body);
             
-            if ($jsonx instanceof JsonX) {
+            if ($jsonx instanceof Json) {
                 foreach ($serviceIdx as $index) {
                     $serviceName = $jsonx->get($index);
                     if ($serviceName !== null) {
@@ -471,7 +471,7 @@ abstract class WebServicesSet implements JsonI {
         return $this->apiDesc;
     }
     /**
-     * Returns an associative array or an object of type JsonX of filtered request inputs.
+     * Returns an associative array or an object of type Json of filtered request inputs.
      * 
      * The indices of the array will represent request parameters and the 
      * values of each index will represent the value which was set in 
@@ -481,8 +481,8 @@ abstract class WebServicesSet implements JsonI {
      * if request content type is 'application/json', only basic filtering will 
      * be applied. Also, parameters in this case don't apply.s
      * 
-     * @return array|JsonX An array of filtered request inputs. This also can 
-     * be an object of type 'JsonX' if request content type was 'application/json'.
+     * @return array|Json An array of filtered request inputs. This also can 
+     * be an object of type 'Json' if request content type was 'application/json'.
      * 
      * @since 1.0
      */
@@ -760,7 +760,7 @@ abstract class WebServicesSet implements JsonI {
                 }
                 $i = $this->getInputs();
                 $processReq = true;
-                if (!($i instanceof JsonX)) {
+                if (!($i instanceof Json)) {
                     foreach ($params as $param) {
                         if (!$param->isOptional() && !isset($i[$param->getName()])) {
                             array_push($this->missingParamsArr, $param->getName());
@@ -951,7 +951,7 @@ abstract class WebServicesSet implements JsonI {
      * @since 1.0
      */
     public function sendResponse($message,$type = '',$code = 200,$otherInfo = null) {
-        $json = new JsonX();
+        $json = new Json();
         $json->add('message', $message);
         $typeTrimmed = trim($type);
 
@@ -1063,14 +1063,14 @@ abstract class WebServicesSet implements JsonI {
         return false;
     }
     /**
-     * Returns JsonX object that represents services set.
+     * Returns Json object that represents services set.
      * 
-     * @return JsonX An object of type JsonX.
+     * @return Json An object of type Json.
      * 
      * @since 1.0
      */
     public function toJSON() {
-        $json = new JsonX();
+        $json = new Json();
         $json->add('api-version', $this->getVersion());
         $json->add('description', $this->getDescription());
         $i = $this->getInputs();

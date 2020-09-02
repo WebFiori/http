@@ -25,8 +25,8 @@
  */
 namespace webfiori\restEasy;
 
-use jsonx\JsonI;
-use jsonx\JsonX;
+use webfiori\json\JsonI;
+use webfiori\json\Json;
 /**
  * A class that represents one web service.
  * 
@@ -629,9 +629,9 @@ class WebService implements JsonI {
         $this->sinceVersion = $sinceAPIv;
     }
     /**
-     * Returns a JsonX object that represents the action.
+     * Returns a Json object that represents the action.
      * 
-     * The generated JSON string from the returned JsonX object will have 
+     * The generated JSON string from the returned Json object will have 
      * the following format:
      * <p>
      * {<br/>
@@ -644,12 +644,12 @@ class WebService implements JsonI {
      * }
      * </p>
      * 
-     * @return JsonX an object of type JsonX.
+     * @return Json an object of type Json.
      * 
      * @since 1.0
      */
     public function toJSON() {
-        $json = new JsonX();
+        $json = new Json();
         $json->add('name', $this->getName());
         $json->add('since', $this->getSince());
         $json->add('description', $this->getDescription());

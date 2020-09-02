@@ -1,7 +1,7 @@
 <?php
 namespace restEasy\tests;
 
-use jsonx\JsonX;
+use webfiori\json\Json;
 use PHPUnit\Framework\TestCase;
 use webfiori\restEasy\WebService;
 use webfiori\restEasy\WebServicesSet;
@@ -227,7 +227,7 @@ class WebAPITest extends TestCase {
      */
     public function testGetNonFiltered00($api) {
         $nonFiltered = $api->getNonFiltered();
-        $j = new JsonX();
+        $j = new Json();
         $j->add('non-filtered', $nonFiltered);
         $api->sendHeaders(['content-type' => 'application/json']);
         echo $j;

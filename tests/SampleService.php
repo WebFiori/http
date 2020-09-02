@@ -1,6 +1,7 @@
 <?php
 namespace restEasy\tests;
 
+use webfiori\json\Json;
 use webfiori\restEasy\RequestParameter;
 use webfiori\restEasy\WebService;
 use webfiori\restEasy\WebServicesSet;
@@ -74,7 +75,7 @@ class SampleService extends WebServicesSet {
                         $sum += $num;
                     }
                 }
-                $j = new \jsonx\JsonX();
+                $j = new Json();
                 $j->add('sum', $sum);
                 $this->send('application/json', $j);
             } else {
@@ -82,7 +83,7 @@ class SampleService extends WebServicesSet {
                     if ($i['user-id'] <= 0) {
                         $this->databaseErr();
                     } else {
-                        $j = new \jsonx\JsonX();
+                        $j = new Json();
                         $j->add('user-name', 'Ibrahim');
                         $j->add('bio', 'A software engineer who is ready to help anyone in need.');
                         $this->send('application/json', $j);

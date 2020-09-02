@@ -25,7 +25,7 @@
  */
 namespace webfiori\restEasy;
 
-use jsonx\JsonX;
+use webfiori\json\Json;
 use webfiori\restEasy\RequestParameter;
 use webfiori\restEasy\ParamTypes;
 use Exception;
@@ -341,8 +341,8 @@ class APIFilter {
         } else {
             $body = file_get_contents('php://input');
         }
-        $json = JsonX::decode($body);
-        if (!($json instanceof JsonX)) {
+        $json = Json::decode($body);
+        if (!($json instanceof Json)) {
             throw new Exception('Request body does not contain valid JSON.');
         }
         $this->inputs = $this->filterJson($json);
@@ -386,10 +386,10 @@ class APIFilter {
     }
     /**
      * 
-     * @param JsonX $jsonx
+     * @param Json $jsonx
      */
-    private function filterJson(JsonX $jsonx) {
-        $cleanJson = new JsonX();
+    private function filterJson(Json $jsonx) {
+        $cleanJson = new Json();
         $props = $jsonx->getPropsNames();
         
         foreach ($props as $propName) {
@@ -406,7 +406,7 @@ class APIFilter {
                 $cleanJson->add($propName, $propVal);
             }
         }
-        $extraClean = new JsonX();
+        $extraClean = new Json();
         $filterDef = $this->getFilterDef();
         $paramIdx = 'parameter';
         $filterIdx = 'filters';
@@ -511,13 +511,13 @@ class APIFilter {
         }
         return $extraClean;
     }
-    private function _getJsonPropVal(JsonX $jsonx, $propName) {
+    private function _getJsonPropVal(Json $jsonx, $propName) {
         $propVal = $jsonx->get($propName);
         if ($propVal === null) {
             $props = $jsonx->getPropsNames();
             foreach ($props as $propNameX) {
                 $testVal = $jsonx->get($propNameX);
-                if ($testVal instanceof JsonX) {
+                if ($testVal instanceof Json) {
                     $propVal = $this->_getJsonPropVal($testVal, $propName);
                 } else if (gettype($testVal) == 'array') {
                     $propVal = $this->_getJsonPropArr($testVal, $propName);
@@ -531,7 +531,7 @@ class APIFilter {
     private function _getJsonPropArr($arr, $propName) {
         $retVal = null;
         foreach ($arr as $val) {
-            if ($val instanceof JsonX) {
+            if ($val instanceof Json) {
                 $retVal = $this->_getJsonPropVal($val, $propName);
             } else if (gettype($val) == 'array') {
                 $retVal = $this->_getJsonPropArr($val, $propName);
@@ -571,15 +571,15 @@ class APIFilter {
         return $this->paramDefs;
     }
     /**
-     * Returns an associative array or object of type 'JsonX' that contains 
+     * Returns an associative array or object of type 'Json' that contains 
      * request body inputs.
      * 
      * The data in the array will have the filters applied to.
      * 
-     * @return array|null|JsonX The array that contains request inputs. If no data was 
+     * @return array|null|Json The array that contains request inputs. If no data was 
      * filtered, the method will return null. If the request content type was 
      * 'application/json', the method will return an instance of the class 
-     * 'JsonX' that has all JSON information.
+     * 'Json' that has all JSON information.
      * 
      * @since 1.0
      */

@@ -27,8 +27,8 @@ namespace webfiori\restEasy;
 
 use webfiori\restEasy\ParamTypes;
 
-use jsonx\JsonI;
-use jsonx\JsonX;
+use webfiori\json\JsonI;
+use webfiori\json\Json;
 /**
  * A class that represents request parameter.
  * 
@@ -430,7 +430,7 @@ class RequestParameter implements JsonI {
            ($valType == 'integer' && $RPType == ParamTypes::DOUBLE) ||
            ($valType == 'double' && $RPType == ParamTypes::DOUBLE) ||
            (($RPType == ParamTypes::EMAIL || $RPType == ParamTypes::URL) && $valType == ParamTypes::STRING) || 
-           ($val instanceof JsonX && $RPType == 'json-obj')) {
+           ($val instanceof Json && $RPType == 'json-obj')) {
             $this->default = $val;
 
             return true;
@@ -634,7 +634,7 @@ class RequestParameter implements JsonI {
         return false;
     }
     /**
-     * Returns a JsonX object that represents the request parameter.
+     * Returns a Json object that represents the request parameter.
      * 
      * This method is used to help front-end developers in showing the 
      * documentation of the request parameter. The format of JSON string 
@@ -651,12 +651,12 @@ class RequestParameter implements JsonI {
      * }
      * </p>
      * 
-     * @return JsonX An object of type JsonX. 
+     * @return Json An object of type Json. 
      * 
      * @since 1.0
      */
     public function toJSON() {
-        $json = new JsonX();
+        $json = new Json();
         $json->add('name', $this->name);
         $json->add('type', $this->getType());
         $json->add('description', $this->getDescription());
