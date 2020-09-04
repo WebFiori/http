@@ -4,7 +4,7 @@ namespace restEasy\tests;
 use PHPUnit\Framework\TestCase;
 use webfiori\restEasy\APIFilter;
 use webfiori\restEasy\RequestParameter;
-use jsonx\JsonX;
+use webfiori\json\Json;
 /**
  * Description of APIFilterTest
  *
@@ -170,7 +170,6 @@ class APIFilterTest extends TestCase {
         $this->apiFilter->filterGET();
         
         $filtered = $this->apiFilter->getInputs();
-        var_dump($filtered);
         $this->assertEquals(2,count($filtered));
         $this->assertTrue(isset($filtered['first-number']));
         $this->assertEquals('INV',$filtered['first-number']);
@@ -764,11 +763,12 @@ class APIFilterTest extends TestCase {
      */
     public function testFilterPost17() {
         $jsonTestFile = __DIR__.DIRECTORY_SEPARATOR.'json.json';
-        self::setTestJson($jsonTestFile, '{"json-array":[]}');
+        self::setTestJson($jsonTestFile, '{"json-array":[], "another-param":"It should be ignored."}');
         $apiFilter = new APIFilter();
         $apiFilter->setInputStream($jsonTestFile);
         $param00 = new RequestParameter('json-array', 'array');
-        $param00->setCustomFilterFunction(function($orgVal, $basicFiltered, RequestParameter $param){
+        $param00->setCustomFilterFunction(function($basicFiltered, $orgVal, RequestParameter $param){
+            var_dump($orgVal);
             var_dump($basicFiltered);
         });
         $apiFilter->addRequestParameter($param00);
@@ -777,8 +777,9 @@ class APIFilterTest extends TestCase {
         $_SERVER['CONTENT_TYPE'] = 'application/json';
         $apiFilter->filterPOST();
         $filtered = $apiFilter->getInputs();
-        $this->assertTrue($filtered instanceof JsonX);
-        
+        $this->assertTrue($filtered instanceof Json);
+        $this->assertEquals([], $filtered->get('json-array'));
+        $this->assertFalse($filtered->hasKey('another-param'));
     }
     public static function setTestJson($fName, $jsonData) {
         $stream = fopen($fName, 'w+');
