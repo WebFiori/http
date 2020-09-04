@@ -890,7 +890,7 @@ abstract class WebServicesSet implements JsonI {
      */
     public function send($conentType,$data,$code = 200) {
         if ($this->getOutputStream() !== null) {
-            fwrite($this->getOutputStream(), $data);
+            fwrite($this->getOutputStream(), $data.'');
             fclose($this->getOutputStream());
         } else if (class_exists('webfiori\entity\Response')) {
             Response::addHeader('content-type', $conentType);
