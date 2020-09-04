@@ -18,6 +18,7 @@ class WebAPITest extends TestCase {
     public function testActionAPIInfo00() {
         
         $this->clrearVars();
+        putenv('REQUEST_METHOD=GET');
         $_GET['action'] = 'api-info';
         $_GET['pass'] = '123';
         $api = new SampleService();
@@ -93,6 +94,7 @@ class WebAPITest extends TestCase {
      */
     public function testActionAPIInfo01() {
         $this->clrearVars();
+        putenv('REQUEST_METHOD=GET');
         $_GET['action'] = 'api-info';
         $api = new SampleService();
         $api->setOutputStream($this->outputStreamName);
@@ -104,6 +106,7 @@ class WebAPITest extends TestCase {
      */
     public function testActionAPIInfo02() {
         $this->clrearVars();
+        putenv('REQUEST_METHOD=GET');
         $_GET['action'] = 'api-info';
         $_GET['pass'] = '123';
         $_GET['version'] = '1.0.1';
