@@ -340,8 +340,9 @@ abstract class WebServicesSet implements JsonI {
         $serviceIdx = ['action', 'service-name'];
         
         $contentType = $this->getContentType();
-        
+        $retVal = null;
         if ($contentType == 'application/json') {
+            
             $body = file_get_contents('php://input');
             $jsonx = Json::decode($body);
             
@@ -349,13 +350,12 @@ abstract class WebServicesSet implements JsonI {
                 foreach ($serviceIdx as $index) {
                     $serviceName = $jsonx->get($index);
                     if ($serviceName !== null) {
-                        return filter_var($serviceName);
+                        $retVal = filter_var($serviceName);
+                        break;
                     }
                 }
-                return null;
-            } else {
-                return null;
             }
+            return $retVal;
         }
         
         foreach ($serviceIdx as $serviceNameIndex) {
@@ -363,13 +363,13 @@ abstract class WebServicesSet implements JsonI {
                $reqMeth == 'DELETE' ||  
                $reqMeth == 'OPTIONS' || 
                $reqMeth == 'PATCH') && isset($_GET[$serviceNameIndex])) {
-                return filter_var($_GET[$serviceNameIndex]);
+                $retVal = filter_var($_GET[$serviceNameIndex]);
             } else if (($reqMeth == 'POST' || $reqMeth == 'PUT') && isset($_POST[$serviceNameIndex])) {
-                return filter_var($_POST[$serviceNameIndex]);
+                $retVal = filter_var($_POST[$serviceNameIndex]);
             }
         }
 
-        return null;
+        return $retVal;
     }
     /**
      * Returns a web service given its name.
