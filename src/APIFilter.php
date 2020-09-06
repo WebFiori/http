@@ -464,7 +464,9 @@ class APIFilter {
                         $extraClean->add($name, self::INVALID);
                     }
                 } else {
-                    $toBeFiltered = strip_tags($toBeFiltered);
+                    if (gettype($toBeFiltered) == 'string') {
+                        $toBeFiltered = strip_tags($toBeFiltered);
+                    }
 
                     if ($paramType == ParamTypes::BOOL) {
 
