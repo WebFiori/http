@@ -319,21 +319,10 @@ class APIFilter {
      */
     public final function filterGET() {
         $this->clearInputs();
-        $contentTypeHeader = isset($_SERVER['CONTENT_TYPE']) ? filter_var($_SERVER['CONTENT_TYPE']) : null;
         
-        if ($contentTypeHeader !== null && $contentTypeHeader !== false) {
-            $contentType = trim(explode(';', $contentTypeHeader)[0]);
-        } else {
-            $contentType = null;
-        }
-        
-        if ($contentType == 'application/json') {
-            $this->_jsonBody();
-        } else {
-            $filterResult = $this->filter($this, $_GET);
-            $this->inputs = $filterResult['filtered'];
-            $this->nonFilteredInputs = $filterResult['non-filtered'];
-        }
+        $filterResult = $this->filter($this, $_GET);
+        $this->inputs = $filterResult['filtered'];
+        $this->nonFilteredInputs = $filterResult['non-filtered'];
     }
     private function _jsonBody() {
         if ($this->inputStreamPath !== null) {
