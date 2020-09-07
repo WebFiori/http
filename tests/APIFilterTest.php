@@ -768,8 +768,7 @@ class APIFilterTest extends TestCase {
         $apiFilter->setInputStream($jsonTestFile);
         $param00 = new RequestParameter('json-array', 'array');
         $param00->setCustomFilterFunction(function($basicFiltered, $orgVal, RequestParameter $param){
-            var_dump($orgVal);
-            var_dump($basicFiltered);
+            return $basicFiltered;
         });
         $apiFilter->addRequestParameter($param00);
         $this->assertEquals('array', $param00->getType());
@@ -859,6 +858,52 @@ class APIFilterTest extends TestCase {
         $this->assertfalse($json->get('true'));
         $this->assertTrue($json->hasKey('arr'));
         $this->assertEquals(["one"], $json->get('arr'));
+    }
+    /**
+     * @test
+     */
+    public function testFilterPost22() {
+        $jsonTestFile = __DIR__.DIRECTORY_SEPARATOR.'json.json';
+        self::setTestJson($jsonTestFile, ''
+                . '{'
+                . '    "string":" My Super String"'
+                . '}');
+        $param00 = new RequestParameter('string');
+        $param00->setCustomFilterFunction(function() {
+            return '';
+        });
+        $apiFilter = new APIFilter();
+        $apiFilter->addRequestParameter($param00);
+        $apiFilter->setInputStream($jsonTestFile);
+        putenv('REQUEST_METHOD=PUT');
+        $_SERVER['CONTENT_TYPE'] = 'application/json';
+        $apiFilter->filterPOST();
+        $json = $apiFilter->getInputs();
+        $this->assertEquals(1, count($json->getPropsNames()));
+        $this->assertTrue($json->hasKey('string'));
+        $this->assertNull($json->get('string'));
+    }
+    /**
+     * @test
+     */
+    public function testFilterPost23() {
+        $jsonTestFile = __DIR__.DIRECTORY_SEPARATOR.'json.json';
+        self::setTestJson($jsonTestFile, ''
+                . '{'
+                . '    "number":" My Super String"'
+                . '}');
+        $param00 = new RequestParameter('number','integer');
+        $param00->setDefault(500);
+        $apiFilter = new APIFilter();
+        $apiFilter->addRequestParameter($param00);
+        $apiFilter->setInputStream($jsonTestFile);
+        putenv('REQUEST_METHOD=PUT');
+        $_SERVER['CONTENT_TYPE'] = 'application/json';
+        $apiFilter->filterPOST();
+        $json = $apiFilter->getInputs();
+        $this->assertEquals(1, count($json->getPropsNames()));
+        $this->assertTrue($json->hasKey('number'));
+        $this->assertEquals(500, $json->get('number'));
     }
     public static function setTestJson($fName, $jsonData) {
         $stream = fopen($fName, 'w+');
