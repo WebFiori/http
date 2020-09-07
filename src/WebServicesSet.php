@@ -773,21 +773,7 @@ abstract class WebServicesSet implements JsonI {
                         }
                     }
 
-                    if ($processReq) {
-                        if ($this->_isAuthorizedAction()) {
-                            if ($this->getCalledServiceName() == 'api-info') {
-                                $this->send('application/json', $this->toJSON());
-                            } else {
-                                $this->processRequest();
-                            }
-                        } else {
-                            $this->notAuth();
-                        }
-                    } else if (count($this->missingParamsArr) != 0) {
-                        $this->missingParams();
-                    } else if (count($this->invParamsArr) != 0) {
-                        $this->invParams();
-                    }
+                    $this->_AfterParamsCheck($processReq);
                 } else {
                     $paramsNames = $i->getPropsNames();
                     
@@ -803,25 +789,28 @@ abstract class WebServicesSet implements JsonI {
                         }
                     }
                     
-                    if ($processReq) {
-                        if ($this->_isAuthorizedAction()) {
-                            if ($this->getCalledServiceName() == 'api-info') {
-                                $this->send('application/json', $this->toJSON());
-                            } else {
-                                $this->processRequest();
-                            }
-                        } else {
-                            $this->notAuth();
-                        }
-                    } else if (count($this->missingParamsArr) != 0) {
-                        $this->missingParams();
-                    } else if (count($this->invParamsArr) != 0) {
-                        $this->invParams();
-                    }
+                    $this->_AfterParamsCheck($processReq);
                 }
             }
         } else {
             $this->contentTypeNotSupported($this->getContentType());
+        }
+    }
+    private function _AfterParamsCheck($processReq) {
+        if ($processReq) {
+            if ($this->_isAuthorizedAction()) {
+                if ($this->getCalledServiceName() == 'api-info') {
+                    $this->send('application/json', $this->toJSON());
+                } else {
+                    $this->processRequest();
+                }
+            } else {
+                $this->notAuth();
+            }
+        } else if (count($this->missingParamsArr) != 0) {
+            $this->missingParams();
+        } else if (count($this->invParamsArr) != 0) {
+            $this->invParams();
         }
     }
     /**
