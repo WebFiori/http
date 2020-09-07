@@ -28,7 +28,7 @@ namespace webfiori\restEasy;
 use webfiori\json\Json;
 use webfiori\restEasy\RequestParameter;
 use webfiori\restEasy\ParamTypes;
-use JsonException;
+use Exception;
 /**
  * A class used to validate and sanitize request parameters.
  * 
@@ -332,7 +332,7 @@ class APIFilter {
         }
         $json = Json::decode($body);
         if (!($json instanceof Json)) {
-            throw new JsonException('Request body does not contain valid JSON.');
+            throw new Exception('Request body does not contain valid JSON.');
         }
         $this->inputs = $this->filterJson($json);
     }

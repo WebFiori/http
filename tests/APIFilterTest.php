@@ -798,7 +798,7 @@ class APIFilterTest extends TestCase {
         $this->assertEquals('array', $param00->getType());
         putenv('REQUEST_METHOD=POST');
         $_SERVER['CONTENT_TYPE'] = 'application/json';
-        $this->expectException('JsonException');
+        $this->expectException('Exception');
         $apiFilter->filterPOST();
     }
     /**
@@ -814,7 +814,7 @@ class APIFilterTest extends TestCase {
         $this->assertEquals('array', $param00->getType());
         putenv('REQUEST_METHOD=PUT');
         $_SERVER['CONTENT_TYPE'] = 'application/json';
-        $this->expectException('JsonException');
+        $this->expectException('Exception');
         $apiFilter->filterPOST();
     }
     /**
