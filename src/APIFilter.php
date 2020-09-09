@@ -348,7 +348,7 @@ class APIFilter {
         if (!($json instanceof Json)) {
             throw new Exception('Request body does not contain valid JSON.');
         }
-        $this->inputs = $this->filterJson($json);
+        $this->filterJson($json);
     }
     /**
      * Validate and sanitize POST parameters.
@@ -392,7 +392,7 @@ class APIFilter {
      * @param Json $jsonx
      */
     private function filterJson(Json $cleanJson, $applyBasicFiltering = false) {
-        
+        $originalInputs = new Json();
         $extraClean = new Json();
         $filterDef = $this->getFilterDef();
         $paramIdx = 'parameter';
@@ -406,7 +406,7 @@ class APIFilter {
             
             if ($requParamVal !== null) {
                 $toBeFiltered = $requParamVal;
-
+                $originalInputs->add($name, $toBeFiltered);
                 if (isset($def[$optIdx]['filter-func'])) {
                     $filteredValue = self::_applyCustomFilterFunc($def, $toBeFiltered);
                     if ($paramType == ParamTypes::STRING &&
@@ -425,7 +425,11 @@ class APIFilter {
 //                $booleanCheck = $paramType == 'boolean' && $extraClean->get($name) === true || $extraClean->get($name) === false;
                 $extractedVal = $extraClean->get($name);
                 if ($extractedVal === null) {
-                    $extraClean->add($name, $toBeFiltered);
+                    if ($defaultVal !== null) {
+                        $extraClean->add($name, $defaultVal);
+                    } else {
+                        $extraClean->add($name, null);
+                    }
                 }
 //                if (!$booleanCheck && $extractedVal == self::INVALID && $defaultVal !== null) {
 //                    $extraClean->add($name, $defaultVal);
@@ -436,7 +440,8 @@ class APIFilter {
                 $defaultVal !== null ? $extraClean->add($name, $defaultVal) : $extraClean->add($name, null);
             }
         }
-        return $extraClean;
+        $this->inputs = $extraClean;
+        $this->nonFilteredInputs = $originalInputs;
     }
     private function _applyJsonBasicFilter(Json $extraClean, $toBeFiltered, $def) {
         $paramObj = $def['parameter'];
@@ -448,28 +453,25 @@ class APIFilter {
         }
 
         if ($paramType == ParamTypes::BOOL) {
-
-        } else if ($paramType == ParamTypes::ARR) {
-            $toBeFiltered = $this->_cleanJsonArray($toBeFiltered);
-        } else {
+            $extraClean->addBoolean($name, $toBeFiltered);
+        } else if ($paramType == ParamTypes::DOUBLE || $paramType == ParamTypes::INT) {
+            $extraClean->addNumber($name, $toBeFiltered);
+        } else if ($paramType == 'string') {
             $extraClean->add($name, filter_var($toBeFiltered));
-
             foreach ($def['filters'] as $val) {
                 $extraClean->add($name, filter_var($extraClean->get($name), $val, $def['options']));
             }
             $cleaned = $extraClean->get($name);
-            $cleanedType = gettype($cleaned);
-            if ($cleaned === false || 
-                (($paramType == ParamTypes::URL || $paramType == ParamTypes::EMAIL) && strlen($extraClean->get($name)) == 0) || 
-                (($paramType == ParamTypes::INT || $paramType == ParamTypes::DOUBLE) && $cleanedType != $paramType)) {
-                $extraClean->add($name, self::INVALID);
+            if (strlen($cleaned) == 0 && $def['options']['options']['allow-empty'] === false) {
+                $extraClean->add($name, null);
             }
-
-            if ($paramType == ParamTypes::STRING &&
-                $cleaned != self::INVALID &&
-                strlen($cleaned) == 0 && 
-                $def['options']['options']['allow-empty'] === false) {
-                $extraClean->add($name, self::INVALID);
+        } else if ($paramType == ParamTypes::ARR) {
+            $extraClean->addArray($name, $this->_cleanJsonArray($toBeFiltered, true));
+        } else if ($paramType == ParamTypes::JSON_OBJ) {
+            if ($toBeFiltered instanceof Json) {
+                $extraClean->add($name, $toBeFiltered);
+            } else {
+                $extraClean->add($name, null);
             }
         }
     }
@@ -541,7 +543,9 @@ class APIFilter {
      * Returns an associative array or object of type 'Json' that contains 
      * request body inputs.
      * 
-     * The data in the array will have the filters applied to.
+     * The data in the array or the object will have the filters applied to. 
+     * Note that if parameter type is 'json-obj', no basic filtering will 
+     * be applied. Only custom filter.
      * 
      * @return array|null|Json The array that contains request inputs. If no data was 
      * filtered, the method will return null. If the request content type was 
@@ -554,9 +558,12 @@ class APIFilter {
         return $this->inputs;
     }
     /**
-     * Returns the array that contains request inputs without filters applied.
+     * Returns an associative array or 'Json' object that contains request 
+     * inputs without filters applied.
      * 
-     * @return array The array that contains request inputs.
+     * @return array|Json|null The array that contains request inputs. If request content 
+     * type is 'application/json', the method will return an object of type 
+     * 'Json'.
      * 
      * @since 1.2
      */
