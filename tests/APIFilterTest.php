@@ -1013,7 +1013,8 @@ class APIFilterTest extends TestCase {
                 . '        "two":2.5,'
                 . '        "three":true,'
                 . '        "four":["hell","no","<script>not clean</script>"]'
-                . '    }'
+                . '    },'
+                . '    "another-obj":"str"'
                 . '}');
         $apiFilter = new APIFilter();
         $param00 = new RequestParameter('json-obj','json-obj');
@@ -1030,18 +1031,118 @@ class APIFilterTest extends TestCase {
             return $basicFiltered;
         });
         $apiFilter->addRequestParameter($param00);
+        $param01 = new RequestParameter('another-obj','json-obj');
+        $apiFilter->addRequestParameter($param01);
         $apiFilter->setInputStream($jsonTestFile);
         putenv('REQUEST_METHOD=POST');
         $_SERVER['CONTENT_TYPE'] = 'application/json';
         $apiFilter->filterPOST();
         $json = $apiFilter->getInputs();
-        $this->assertEquals(1, count($json->getPropsNames()));
+        $this->assertEquals(2, count($json->getPropsNames()));
+        $this->assertNull($json->get('another-obj'));
         $jsonObj = $json->get('json-obj');
         $this->assertTrue($jsonObj instanceof Json);
         $this->assertEquals(["hell","no","not clean"], $jsonObj->get('four'));
         $this->assertEquals(2, $jsonObj->get('one'));
         $this->assertEquals(5, $jsonObj->get('two'));
         $this->assertFalse($jsonObj->get('three'));
+    }
+    /**
+     * @test
+     */
+    public function testFilterPost27() {
+        $jsonTestFile = __DIR__.DIRECTORY_SEPARATOR.'json.json';
+        self::setTestJson($jsonTestFile, ''
+                . '{'
+                . '    "json-obj":{'
+                . '        "first-string":"<script>Not Safe.<?php",'
+                . '        "two":{'
+                . '            "second-string":"safe",'
+                . '            "third-str":"",'
+                . '            "obj":{'
+                . '                "last-str":""'
+                . '            }'
+                . '        }'
+                . '    }'
+                . '}');
+        $apiFilter = new APIFilter();
+        $param00 = new RequestParameter('first-string');
+        $apiFilter->addRequestParameter($param00);
+        $param01 = new RequestParameter('second-string');
+        $apiFilter->addRequestParameter($param01);
+        $param02 = new RequestParameter('third-str');
+        $apiFilter->addRequestParameter($param02);
+        $param03 = new RequestParameter('last-str');
+        $param03->setIsEmptyStringAllowed(true);
+        $apiFilter->addRequestParameter($param03);
+        
+        $apiFilter->setInputStream($jsonTestFile);
+        putenv('REQUEST_METHOD=POST');
+        $_SERVER['CONTENT_TYPE'] = 'application/json';
+        $apiFilter->filterPOST();
+        $json = $apiFilter->getInputs();
+        $this->assertEquals(4, count($json->getPropsNames()));
+        $this->assertEquals('Not Safe.', $json->get('first-string'));
+        $this->assertEquals('safe', $json->get('second-string'));
+        $this->assertNull($json->get('third-str'));
+        $this->assertEquals('', $json->get('last-str'));
+        
+        $nonClean = $apiFilter->getNonFiltered();
+        $this->assertEquals('<script>Not Safe.<?php', $nonClean->get('first-string'));
+        $this->assertEquals('safe', $nonClean->get('second-string'));
+        $this->assertEquals('',$nonClean->get('third-str'));
+        $this->assertEquals('', $nonClean->get('last-str'));
+    }
+    /**
+     * @test
+     */
+    public function testFilterPost28() {
+        $jsonTestFile = __DIR__.DIRECTORY_SEPARATOR.'json.json';
+        self::setTestJson($jsonTestFile, ''
+                . '{'
+                . '    "json-obj":{'
+                . '        "one":1,'
+                . '        "array-of-arrays":['
+                . '            ['
+                . '                "hello",'
+                . '                {'
+                . '                    "obj":true,'
+                . '                    "string":"<script>not safe"'
+                . '                },'
+                . '                ['
+                . '                    "innerArr",'
+                . '                    {'
+                . '                        "sub-obj":{'
+                . '                            "arr":['
+                . '                                "with arr"'
+                . '                            ]'
+                . '                        }'
+                . '                    },'
+                . '                    [true],'
+                . '                    [false]'
+                . '                ]'
+                . '            ]'
+                . '        ]'
+                . '    }'
+                . '}');
+        $apiFilter = new APIFilter();
+        $param00 = new RequestParameter('array-of-arrays','array');
+        $apiFilter->addRequestParameter($param00);
+        $param01 = new RequestParameter('sub-obj','json-obj');
+        $apiFilter->addRequestParameter($param01);
+        
+        $apiFilter->setInputStream($jsonTestFile);
+        putenv('REQUEST_METHOD=POST');
+        $_SERVER['CONTENT_TYPE'] = 'application/json';
+        $apiFilter->filterPOST();
+        $json = $apiFilter->getInputs();
+        $this->assertEquals(2, count($json->getPropsNames()));
+        $this->assertEquals(1, count($json->get('array-of-arrays')));
+        $this->assertEquals('hello', $json->get('array-of-arrays')[0][0]);
+        $this->assertEquals('{"obj":true, "string":"not safe"}', $json->get('array-of-arrays')[0][1]->toJSONString());
+        $subObj = $json->get('sub-obj');
+        $this->assertTrue($subObj instanceof Json);
+        $this->assertEquals(['with arr'], $subObj->get('arr'));
     }
     public static function setTestJson($fName, $jsonData) {
         $stream = fopen($fName, 'w+');
