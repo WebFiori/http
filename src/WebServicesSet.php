@@ -24,9 +24,9 @@
  */
 namespace webfiori\restEasy;
 
-use webfiori\json\JsonI;
-use webfiori\json\Json;
 use webfiori\entity\Response;
+use webfiori\json\Json;
+use webfiori\json\JsonI;
 /**
  * A class that represents a set of web services.
  * 
@@ -338,26 +338,28 @@ abstract class WebServicesSet implements JsonI {
         $reqMeth = $this->getRequestMethod();
 
         $serviceIdx = ['action','service', 'service-name'];
-        
+
         $contentType = $this->getContentType();
         $retVal = null;
+
         if ($contentType == 'application/json') {
-            
             $body = file_get_contents('php://input');
             $jsonx = Json::decode($body);
-            
+
             if ($jsonx instanceof Json) {
                 foreach ($serviceIdx as $index) {
                     $serviceName = $jsonx->get($index);
+
                     if ($serviceName !== null) {
                         $retVal = filter_var($serviceName);
                         break;
                     }
                 }
             }
+
             return $retVal;
         }
-        
+
         foreach ($serviceIdx as $serviceNameIndex) {
             if (($reqMeth == 'GET' || 
                $reqMeth == 'DELETE' ||  
@@ -749,6 +751,7 @@ abstract class WebServicesSet implements JsonI {
                 }
                 $reqMeth = $this->getRequestMethod();
                 $contentType = $this->getContentType();
+
                 if ($reqMeth == 'GET' || 
                     $reqMeth == 'DELETE' || 
                     ($reqMeth == 'PUT' && $contentType != 'application/json') || 
@@ -760,6 +763,7 @@ abstract class WebServicesSet implements JsonI {
                 }
                 $i = $this->getInputs();
                 $processReq = true;
+
                 if (!($i instanceof Json)) {
                     foreach ($params as $param) {
                         if (!$param->isOptional() && !isset($i[$param->getName()])) {
@@ -775,6 +779,7 @@ abstract class WebServicesSet implements JsonI {
                     $this->_AfterParamsCheck($processReq);
                 } else {
                     $paramsNames = $i->getPropsNames();
+
                     foreach ($params as $param) {
                         if (!$param->isOptional() && !in_array($param->getName(), $paramsNames)) {
                             array_push($this->missingParamsArr, $param->getName());
@@ -791,23 +796,6 @@ abstract class WebServicesSet implements JsonI {
             }
         } else {
             $this->contentTypeNotSupported($this->getContentType());
-        }
-    }
-    private function _AfterParamsCheck($processReq) {
-        if ($processReq) {
-            if ($this->_isAuthorizedAction()) {
-                if ($this->getCalledServiceName() == 'api-info') {
-                    $this->send('application/json', $this->toJSON());
-                } else {
-                    $this->processRequest();
-                }
-            } else {
-                $this->notAuth();
-            }
-        } else if (count($this->missingParamsArr) != 0) {
-            $this->missingParams();
-        } else if (count($this->invParamsArr) != 0) {
-            $this->invParams();
         }
     }
     /**
@@ -1085,6 +1073,27 @@ abstract class WebServicesSet implements JsonI {
         }
 
         return $json;
+    }
+    private function _AfterParamsCheck($processReq) {
+        if ($processReq) {
+            if ($this->_isAuthorizedAction()) {
+                if ($this->getCalledServiceName() == 'api-info') {
+                    $this->send('application/json', $this->toJSON());
+                } else {
+                    $this->processRequest();
+                }
+            } else {
+                $this->notAuth();
+            }
+        } else {
+            if (count($this->missingParamsArr) != 0) {
+                $this->missingParams();
+            } else {
+                if (count($this->invParamsArr) != 0) {
+                    $this->invParams();
+                }
+            }
+        }
     }
     /**
      * Checks the status of the called service.

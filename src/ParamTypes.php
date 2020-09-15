@@ -1,5 +1,4 @@
 <?php
-
 namespace webfiori\restEasy;
 
 /**
@@ -13,23 +12,11 @@ namespace webfiori\restEasy;
  */
 class ParamTypes {
     /**
-     * A constant to indicate that a parameter is of type string.
+     * A constant to indicate that a parameter is of type array.
      * 
      * @since 1.0
      */
-    const STRING = 'string';
-    /**
-     * A constant to indicate that a parameter is of type integer.
-     * 
-     * @since 1.0
-     */
-    const INT = 'integer';
-    /**
-     * A constant to indicate that a parameter is of type float or double.
-     * 
-     * @since 1.0
-     */
-    const DOUBLE = 'double';
+    const ARR = 'array';
     /**
      * A constant to indicate that a parameter is of type boolean.
      * 
@@ -37,29 +24,41 @@ class ParamTypes {
      */
     const BOOL = 'boolean';
     /**
+     * A constant to indicate that a parameter is of type float or double.
+     * 
+     * @since 1.0
+     */
+    const DOUBLE = 'double';
+    /**
      * A constant to indicate that a parameter is of type email.
      * 
      * @since 1.0
      */
     const EMAIL = 'email';
     /**
-     * A constant to indicate that a parameter is of type url.
+     * A constant to indicate that a parameter is of type integer.
      * 
      * @since 1.0
      */
-    const URL = 'url';
-    /**
-     * A constant to indicate that a parameter is of type array.
-     * 
-     * @since 1.0
-     */
-    const ARR = 'array';
+    const INT = 'integer';
     /**
      * A constant to indicate that a parameter is of type JSON object.
      * 
      * @since 1.0
      */
     const JSON_OBJ = 'json-obj';
+    /**
+     * A constant to indicate that a parameter is of type string.
+     * 
+     * @since 1.0
+     */
+    const STRING = 'string';
+    /**
+     * A constant to indicate that a parameter is of type url.
+     * 
+     * @since 1.0
+     */
+    const URL = 'url';
     /**
      * Returns an array that contains all supported parameters types.
      * 

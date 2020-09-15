@@ -25,8 +25,8 @@
  */
 namespace webfiori\restEasy;
 
-use webfiori\json\JsonI;
 use webfiori\json\Json;
+use webfiori\json\JsonI;
 /**
  * A class that represents one web service.
  * 

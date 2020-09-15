@@ -25,10 +25,8 @@
  */
 namespace webfiori\restEasy;
 
-use webfiori\restEasy\ParamTypes;
-
-use webfiori\json\JsonI;
 use webfiori\json\Json;
+use webfiori\json\JsonI;
 /**
  * A class that represents request parameter.
  * 
@@ -606,6 +604,7 @@ class RequestParameter implements JsonI {
      */
     public function setType($type) {
         $sType = strtolower(trim($type));
+
         if ($sType == 'float') {
             $sType = 'double';
         } else if ($sType == 'int') {
