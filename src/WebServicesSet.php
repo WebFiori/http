@@ -337,7 +337,7 @@ abstract class WebServicesSet implements JsonI {
     public function getAction() {
         $reqMeth = $this->getRequestMethod();
 
-        $serviceIdx = ['action', 'service-name'];
+        $serviceIdx = ['action','service', 'service-name'];
         
         $contentType = $this->getContentType();
         $retVal = null;
@@ -748,14 +748,14 @@ abstract class WebServicesSet implements JsonI {
                     $this->filter->addRequestParameter($param);
                 }
                 $reqMeth = $this->getRequestMethod();
-                
+                $contentType = $this->getContentType();
                 if ($reqMeth == 'GET' || 
                     $reqMeth == 'DELETE' || 
-                    $reqMeth == 'PUT' || 
+                    ($reqMeth == 'PUT' && $contentType != 'application/json') || 
                     $reqMeth == 'OPTIONS' || 
                     $reqMeth == 'PATCH') {
                     $this->filter->filterGET();
-                } else if ($reqMeth == 'POST') {
+                } else if ($reqMeth == 'POST' || ($reqMeth == 'PUT' && $contentType == 'application/json')) {
                     $this->filter->filterPOST();
                 }
                 $i = $this->getInputs();
@@ -772,23 +772,20 @@ abstract class WebServicesSet implements JsonI {
                             $processReq = false;
                         }
                     }
-
                     $this->_AfterParamsCheck($processReq);
                 } else {
                     $paramsNames = $i->getPropsNames();
-                    
                     foreach ($params as $param) {
                         if (!$param->isOptional() && !in_array($param->getName(), $paramsNames)) {
                             array_push($this->missingParamsArr, $param->getName());
                             $processReq = false;
                         }
-                        
+
                         if ($i->get($param->getName()) === null) {
                             array_push($this->invParamsArr, $param->getName());
                             $processReq = false;
                         }
                     }
-                    
                     $this->_AfterParamsCheck($processReq);
                 }
             }
