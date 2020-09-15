@@ -1114,6 +1114,7 @@ class APIFilterTest extends TestCase {
         self::setTestJson($jsonTestFile, ''
                 . '{'
                 . '    "json-obj":{'
+                . '        "invalid-param":77,'
                 . '        "one":1,'
                 . '        "array-of-arrays":['
                 . '            ['
@@ -1147,14 +1148,17 @@ class APIFilterTest extends TestCase {
         $param02->setDefault(44);
         $param02->setIsOptional(true);
         $apiFilter->addRequestParameter($param02);
+        $param03 = new RequestParameter('invalid-param');
+        $apiFilter->addRequestParameter($param03);
         
         $apiFilter->setInputStream($jsonTestFile);
         putenv('REQUEST_METHOD=POST');
         $_SERVER['CONTENT_TYPE'] = 'application/json';
         $apiFilter->filterPOST();
         $json = $apiFilter->getInputs();
-        $this->assertEquals(3, count($json->getPropsNames()));
+        $this->assertEquals(4, count($json->getPropsNames()));
         $this->assertEquals(44, $json->get('with-default'));
+        $this->assertNull($json->get('invalid-param'));
         $this->assertEquals(1, count($json->get('array-of-arrays')));
         $this->assertEquals('hello', $json->get('array-of-arrays')[0][0]);
         $this->assertEquals('{"obj":true, "string":"not safe"}', $json->get('array-of-arrays')[0][1]->toJSONString());
