@@ -391,7 +391,7 @@ class APIFilter {
      * 
      * @param Json $jsonx
      */
-    private function filterJson(Json $cleanJson, $applyBasicFiltering = false) {
+    private function filterJson(Json $cleanJson) {
         $originalInputs = new Json();
         $extraClean = new Json();
         $filterDef = $this->getFilterDef();
@@ -422,26 +422,23 @@ class APIFilter {
                 } else {
                     self::_applyJsonBasicFilter($extraClean, $toBeFiltered, $def);
                 }
-//                $booleanCheck = $paramType == 'boolean' && $extraClean->get($name) === true || $extraClean->get($name) === false;
-                $extractedVal = $extraClean->get($name);
-                if ($extractedVal === null) {
-                    if ($defaultVal !== null) {
-                        $extraClean->add($name, $defaultVal);
-                    } else {
-                        $extraClean->add($name, null);
-                    }
-                }
-//                if (!$booleanCheck && $extractedVal == self::INVALID && $defaultVal !== null) {
-//                    $extraClean->add($name, $defaultVal);
-//                } else {
-//                    $extraClean->add($name, $toBeFiltered);
-//                }
+                $this->_checkExtracted($extraClean, $name, $defaultVal);
             } else if ($requParam->isOptional()) {
                 $defaultVal !== null ? $extraClean->add($name, $defaultVal) : $extraClean->add($name, null);
             }
         }
         $this->inputs = $extraClean;
         $this->nonFilteredInputs = $originalInputs;
+    }
+    private function _checkExtracted($extraClean, $name, $defaultVal) {
+        $extractedVal = $extraClean->get($name);
+        if ($extractedVal === null) {
+            if ($defaultVal !== null) {
+                $extraClean->add($name, $defaultVal);
+            } else {
+                $extraClean->add($name, null);
+            }
+        }
     }
     private function _applyJsonBasicFilter(Json $extraClean, $toBeFiltered, $def) {
         $paramObj = $def['parameter'];
@@ -457,14 +454,7 @@ class APIFilter {
         } else if ($paramType == ParamTypes::DOUBLE || $paramType == ParamTypes::INT) {
             $extraClean->addNumber($name, $toBeFiltered);
         } else if ($paramType == 'string') {
-            $extraClean->add($name, filter_var($toBeFiltered));
-            foreach ($def['filters'] as $val) {
-                $extraClean->add($name, filter_var($extraClean->get($name), $val, $def['options']));
-            }
-            $cleaned = $extraClean->get($name);
-            if (strlen($cleaned) == 0 && $def['options']['options']['allow-empty'] === false) {
-                $extraClean->add($name, null);
-            }
+            $this->_cleanJsonStr($extraClean, $def, $toBeFiltered);
         } else if ($paramType == ParamTypes::ARR) {
             $extraClean->addArray($name, $this->_cleanJsonArray($toBeFiltered, true));
         } else if ($paramType == ParamTypes::JSON_OBJ) {
@@ -473,6 +463,17 @@ class APIFilter {
             } else {
                 $extraClean->add($name, null);
             }
+        }
+    }
+    private function _cleanJsonStr($extraClean, $def, $toBeFiltered) {
+        $name = $def['parameter']->getName();
+        $extraClean->add($name, filter_var($toBeFiltered));
+        foreach ($def['filters'] as $val) {
+            $extraClean->add($name, filter_var($extraClean->get($name), $val, $def['options']));
+        }
+        $cleaned = $extraClean->get($name);
+        if (strlen($cleaned) == 0 && $def['options']['options']['allow-empty'] === false) {
+            $extraClean->add($name, null);
         }
     }
     private function _getJsonPropVal(Json $jsonx, $propName) {
