@@ -487,6 +487,19 @@ class APIFilterTest extends TestCase {
     /**
      * @test
      */
+    public function testFilterGet25() {
+        $this->apiFilter = new APIFilter();
+        $param00 = new RequestParameter('array', 'array');
+        $this->apiFilter->addRequestParameter($param00);
+        $_GET['array'] = '["It\'s a wonderful day. \'\' ."]';
+        $this->apiFilter->filterGET();
+        $filtered = $this->apiFilter->getInputs();
+        $this->assertEquals(1,count($filtered));
+        $this->assertEquals(["It's a wonderful day. '' ."], $filtered['array']);
+    }
+    /**
+     * @test
+     */
     public function testFilterPost01() {
         $this->apiFilter = new APIFilter();
         $param00 = new RequestParameter('array', 'array');
@@ -1130,13 +1143,18 @@ class APIFilterTest extends TestCase {
         $apiFilter->addRequestParameter($param00);
         $param01 = new RequestParameter('sub-obj','json-obj');
         $apiFilter->addRequestParameter($param01);
+        $param02 = new RequestParameter('with-default','integer');
+        $param02->setDefault(44);
+        $param02->setIsOptional(true);
+        $apiFilter->addRequestParameter($param02);
         
         $apiFilter->setInputStream($jsonTestFile);
         putenv('REQUEST_METHOD=POST');
         $_SERVER['CONTENT_TYPE'] = 'application/json';
         $apiFilter->filterPOST();
         $json = $apiFilter->getInputs();
-        $this->assertEquals(2, count($json->getPropsNames()));
+        $this->assertEquals(3, count($json->getPropsNames()));
+        $this->assertEquals(44, $json->get('with-default'));
         $this->assertEquals(1, count($json->get('array-of-arrays')));
         $this->assertEquals('hello', $json->get('array-of-arrays')[0][0]);
         $this->assertEquals('{"obj":true, "string":"not safe"}', $json->get('array-of-arrays')[0][1]->toJSONString());
