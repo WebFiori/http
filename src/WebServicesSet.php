@@ -606,7 +606,7 @@ abstract class WebServicesSet implements JsonI {
      * 
      * @return boolean The method will return true if the requested service exist in 
      * the set. False if not exist or if no service is called. The name of the service 
-     * must be provided with the request as a parameter with the name 'action' or 
+     * must be provided with the request as a parameter with the name 'action', 'service' or 
      * the name 'sevice-name'.
      * 
      * @since 1.0
@@ -663,7 +663,7 @@ abstract class WebServicesSet implements JsonI {
     }
     /**
      * Sends a response message to tell the front-end that the parameter 
-     * 'action' or 'service-name' is missing from request body.
+     * 'action', 'service' or 'service-name' is missing from request body.
      * 
      * This method will send back a JSON string in the following format:
      * <p>
