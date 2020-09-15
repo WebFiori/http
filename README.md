@@ -7,8 +7,12 @@ It includes inputs feltering and data validation in addion to creating user-defi
   <a href="https://codecov.io/gh/usernane/restEasy" target="_blank">
     <img src="https://codecov.io/gh/usernane/restEasy/branch/master/graph/badge.svg" />
   </a>
-  <img src="https://sonarcloud.io/api/project_badges/measure?project=usernane_restEasy&metric=alert_status">
-  <img src="https://img.shields.io/packagist/dt/webfiori/rest-easy?color=light-green">
+  <a href="https://sonarcloud.io/dashboard?id=usernane_restEasy">
+    <img src="https://sonarcloud.io/api/project_badges/measure?project=usernane_restEasy&metric=alert_status">
+  </a>
+  <a href="https://packagist.org/packages/webfiori/rest-easy">
+    <img src="https://img.shields.io/packagist/dt/webfiori/rest-easy?color=light-green">
+  </a>
 </p>
 
 ## API Docs
