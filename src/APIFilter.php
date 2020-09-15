@@ -126,7 +126,6 @@ class APIFilter {
             array_push($this->paramDefs, $attribute);
         }
     }
-    }
     /**
      * Clears the arrays that are used to store filtered and not-filtered variables.
      * 
@@ -414,11 +413,6 @@ class APIFilter {
         if (file_exists($path)) {
             $this->inputStreamPath = $path;
         }
-    }
-            }
-        }
-        $this->inputs = $extraClean;
-        $this->nonFilteredInputs = $originalInputs;
     }
     private function _checkExtracted($extraClean, $name, $defaultVal) {
         $extractedVal = $extraClean->get($name);
