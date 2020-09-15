@@ -444,25 +444,28 @@ class APIFilter {
         $paramObj = $def['parameter'];
         $paramType = $paramObj->getType();
         $name = $paramObj->getName();
-        
-        if (gettype($toBeFiltered) == 'string') {
+        $toBeFilteredType = gettype($toBeFiltered);
+        if ($toBeFilteredType == 'string') {
             $toBeFiltered = strip_tags($toBeFiltered);
         }
-
-        if ($paramType == ParamTypes::BOOL) {
-            $extraClean->addBoolean($name, $toBeFiltered);
-        } else if ($paramType == ParamTypes::DOUBLE || $paramType == ParamTypes::INT) {
-            $extraClean->addNumber($name, $toBeFiltered);
-        } else if ($paramType == 'string') {
-            $this->_cleanJsonStr($extraClean, $def, $toBeFiltered);
-        } else if ($paramType == ParamTypes::ARR) {
-            $extraClean->addArray($name, $this->_cleanJsonArray($toBeFiltered, true));
-        } else if ($paramType == ParamTypes::JSON_OBJ) {
-            if ($toBeFiltered instanceof Json) {
-                $extraClean->add($name, $toBeFiltered);
-            } else {
-                $extraClean->add($name, null);
+        if ($paramType == $toBeFilteredType || $toBeFilteredType == 'object' && $paramType == ParamTypes::JSON_OBJ) {
+            if ($paramType == ParamTypes::BOOL) {
+                $extraClean->addBoolean($name, $toBeFiltered);
+            } else if ($paramType == ParamTypes::DOUBLE || $paramType == ParamTypes::INT) {
+                $extraClean->addNumber($name, $toBeFiltered);
+            } else if ($paramType == 'string') {
+                $this->_cleanJsonStr($extraClean, $def, $toBeFiltered);
+            } else if ($paramType == ParamTypes::ARR) {
+                $extraClean->addArray($name, $this->_cleanJsonArray($toBeFiltered, true));
+            } else if ($paramType == ParamTypes::JSON_OBJ) {
+                if ($toBeFiltered instanceof Json) {
+                    $extraClean->add($name, $toBeFiltered);
+                } else {
+                    $extraClean->add($name, null);
+                }
             }
+        } else {
+            $extraClean->add($name, null);
         }
     }
     private function _cleanJsonStr($extraClean, $def, $toBeFiltered) {
