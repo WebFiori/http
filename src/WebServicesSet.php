@@ -22,11 +22,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-namespace restEasy;
+namespace webfiori\restEasy;
 
-use jsonx\JsonI;
-use jsonx\JsonX;
 use webfiori\entity\Response;
+use webfiori\json\Json;
+use webfiori\json\JsonI;
 /**
  * A class that represents a set of web services.
  * 
@@ -64,6 +64,7 @@ abstract class WebServicesSet implements JsonI {
      * <ul>
      * <li>application/x-www-form-urlencoded</li>
      * <li>multipart/form-data</li>
+     * <li>application/json</li>
      * </ul>
      * 
      * @var array An array that contains the supported 'POST' and 'PUT' request content types.
@@ -72,7 +73,8 @@ abstract class WebServicesSet implements JsonI {
      */
     const POST_CONTENT_TYPES = [
         'application/x-www-form-urlencoded',
-        'multipart/form-data'
+        'multipart/form-data',
+        'application/json'
     ];
     /**
      * An array that contains the action that can be performed by the API.
@@ -291,7 +293,7 @@ abstract class WebServicesSet implements JsonI {
      * @since 1.1
      */
     public function contentTypeNotSupported($cType = '') {
-        $j = new JsonX();
+        $j = new Json();
         $j->add('request-content-type', $cType);
         $this->sendResponse('Content type not supported.', self::E, 404,$j);
     }
@@ -309,8 +311,8 @@ abstract class WebServicesSet implements JsonI {
      * In here, 'OTHER_DATA' can be a basic string or JSON string.
      * Also, The response will sent HTTP code 404 - Not Found.
      * 
-     * @param JsonI|JsonX|string $info An object of type JsonI or 
-     * JsonX that describe the error in more details. Also it can be a simple string 
+     * @param JsonI|Json|string $info An object of type JsonI or 
+     * Json that describe the error in more details. Also it can be a simple string 
      * or JSON string.
      * 
      * @since 1.0
@@ -335,20 +337,41 @@ abstract class WebServicesSet implements JsonI {
     public function getAction() {
         $reqMeth = $this->getRequestMethod();
 
-        $serviceIdx = ['action', 'service-name'];
+        $serviceIdx = ['action','service', 'service-name'];
+
+        $contentType = $this->getContentType();
+        $retVal = null;
+
+        if ($contentType == 'application/json') {
+            $body = file_get_contents('php://input');
+            $jsonx = Json::decode($body);
+
+            if ($jsonx instanceof Json) {
+                foreach ($serviceIdx as $index) {
+                    $serviceName = $jsonx->get($index);
+
+                    if ($serviceName !== null) {
+                        $retVal = filter_var($serviceName);
+                        break;
+                    }
+                }
+            }
+
+            return $retVal;
+        }
 
         foreach ($serviceIdx as $serviceNameIndex) {
             if (($reqMeth == 'GET' || 
                $reqMeth == 'DELETE' ||  
                $reqMeth == 'OPTIONS' || 
                $reqMeth == 'PATCH') && isset($_GET[$serviceNameIndex])) {
-                return filter_var($_GET[$serviceNameIndex]);
+                $retVal = filter_var($_GET[$serviceNameIndex]);
             } else if (($reqMeth == 'POST' || $reqMeth == 'PUT') && isset($_POST[$serviceNameIndex])) {
-                return filter_var($_POST[$serviceNameIndex]);
+                $retVal = filter_var($_POST[$serviceNameIndex]);
             }
         }
 
-        return null;
+        return $retVal;
     }
     /**
      * Returns a web service given its name.
@@ -450,15 +473,18 @@ abstract class WebServicesSet implements JsonI {
         return $this->apiDesc;
     }
     /**
-     * Returns an associative array of filtered request inputs.
+     * Returns an associative array or an object of type Json of filtered request inputs.
      * 
      * The indices of the array will represent request parameters and the 
      * values of each index will represent the value which was set in 
      * request body. The values will be filtered and might not be exactly the same as 
      * the values passed in request body. Note that if a parameter is optional and not 
-     * provided in request body, its value will be set to 'null'.
+     * provided in request body, its value will be set to 'null'. Note that 
+     * if request content type is 'application/json', only basic filtering will 
+     * be applied. Also, parameters in this case don't apply.s
      * 
-     * @return array An array of filtered request inputs.
+     * @return array|Json An array of filtered request inputs. This also can 
+     * be an object of type 'Json' if request content type was 'application/json'.
      * 
      * @since 1.0
      */
@@ -629,10 +655,8 @@ abstract class WebServicesSet implements JsonI {
 
         if ($c !== null && $rm == 'POST' || $rm == 'PUT') {
             return in_array($c, self::POST_CONTENT_TYPES);
-        } else {
-            if ($c === null && $rm == 'POST' || $rm == 'PUT') {
-                return false;
-            }
+        } else if ($c === null && $rm == 'POST' || $rm == 'PUT') {
+            return false;
         }
 
         return true;
@@ -726,47 +750,48 @@ abstract class WebServicesSet implements JsonI {
                     $this->filter->addRequestParameter($param);
                 }
                 $reqMeth = $this->getRequestMethod();
+                $contentType = $this->getContentType();
 
                 if ($reqMeth == 'GET' || 
                     $reqMeth == 'DELETE' || 
-                    $reqMeth == 'PUT' || 
+                    ($reqMeth == 'PUT' && $contentType != 'application/json') || 
                     $reqMeth == 'OPTIONS' || 
                     $reqMeth == 'PATCH') {
                     $this->filter->filterGET();
-                } else {
-                    if ($reqMeth == 'POST') {
-                        $this->filter->filterPOST();
-                    }
+                } else if ($reqMeth == 'POST' || ($reqMeth == 'PUT' && $contentType == 'application/json')) {
+                    $this->filter->filterPOST();
                 }
                 $i = $this->getInputs();
                 $processReq = true;
 
-                foreach ($params as $param) {
-                    if (!$param->isOptional() && !isset($i[$param->getName()])) {
-                        array_push($this->missingParamsArr, $param->getName());
-                        $processReq = false;
-                    }
-
-                    if (isset($i[$param->getName()]) && $i[$param->getName()] === 'INV') {
-                        array_push($this->invParamsArr, $param->getName());
-                        $processReq = false;
-                    }
-                }
-
-                if ($processReq) {
-                    if ($this->_isAuthorizedAction()) {
-                        if ($this->getCalledServiceName() == 'api-info') {
-                            $this->send('application/json', $this->toJSON());
-                        } else {
-                            $this->processRequest();
+                if (!($i instanceof Json)) {
+                    foreach ($params as $param) {
+                        if (!$param->isOptional() && !isset($i[$param->getName()])) {
+                            array_push($this->missingParamsArr, $param->getName());
+                            $processReq = false;
                         }
-                    } else {
-                        $this->notAuth();
+
+                        if (isset($i[$param->getName()]) && $i[$param->getName()] === 'INV') {
+                            array_push($this->invParamsArr, $param->getName());
+                            $processReq = false;
+                        }
                     }
-                } else if (count($this->missingParamsArr) != 0) {
-                    $this->missingParams();
-                } else if (count($this->invParamsArr) != 0) {
-                    $this->invParams();
+                    $this->_AfterParamsCheck($processReq);
+                } else {
+                    $paramsNames = $i->getPropsNames();
+
+                    foreach ($params as $param) {
+                        if (!$param->isOptional() && !in_array($param->getName(), $paramsNames)) {
+                            array_push($this->missingParamsArr, $param->getName());
+                            $processReq = false;
+                        }
+
+                        if ($i->get($param->getName()) === null) {
+                            array_push($this->invParamsArr, $param->getName());
+                            $processReq = false;
+                        }
+                    }
+                    $this->_AfterParamsCheck($processReq);
                 }
             }
         } else {
@@ -839,7 +864,7 @@ abstract class WebServicesSet implements JsonI {
      */
     public function send($conentType,$data,$code = 200) {
         if ($this->getOutputStream() !== null) {
-            fwrite($this->getOutputStream(), $data);
+            fwrite($this->getOutputStream(), $data.'');
             fclose($this->getOutputStream());
         } else if (class_exists('webfiori\entity\Response')) {
             Response::addHeader('content-type', $conentType);
@@ -861,9 +886,11 @@ abstract class WebServicesSet implements JsonI {
      * 
      * @since 1.4.3
      */
-    public function sendHeaders($headersArr) {
-        if (gettype($headersArr) == 'array') {
-            foreach ($headersArr as $header => $val) {
+    public function sendHeaders(array $headersArr) {
+        foreach ($headersArr as $header => $val) {
+            if (class_exists('webfiori\entity\Response')) {
+                Response::addHeader($header, $val);
+            } else {
                 header($header.':'.$val);
             }
         }
@@ -898,7 +925,7 @@ abstract class WebServicesSet implements JsonI {
      * @since 1.0
      */
     public function sendResponse($message,$type = '',$code = 200,$otherInfo = null) {
-        $json = new JsonX();
+        $json = new Json();
         $json->add('message', $message);
         $typeTrimmed = trim($type);
 
@@ -1010,14 +1037,14 @@ abstract class WebServicesSet implements JsonI {
         return false;
     }
     /**
-     * Returns JsonX object that represents services set.
+     * Returns Json object that represents services set.
      * 
-     * @return JsonX An object of type JsonX.
+     * @return Json An object of type Json.
      * 
      * @since 1.0
      */
     public function toJSON() {
-        $json = new JsonX();
+        $json = new Json();
         $json->add('api-version', $this->getVersion());
         $json->add('description', $this->getDescription());
         $i = $this->getInputs();
@@ -1046,6 +1073,27 @@ abstract class WebServicesSet implements JsonI {
         }
 
         return $json;
+    }
+    private function _AfterParamsCheck($processReq) {
+        if ($processReq) {
+            if ($this->_isAuthorizedAction()) {
+                if ($this->getCalledServiceName() == 'api-info') {
+                    $this->send('application/json', $this->toJSON());
+                } else {
+                    $this->processRequest();
+                }
+            } else {
+                $this->notAuth();
+            }
+        } else {
+            if (count($this->missingParamsArr) != 0) {
+                $this->missingParams();
+            } else {
+                if (count($this->invParamsArr) != 0) {
+                    $this->invParams();
+                }
+            }
+        }
     }
     /**
      * Checks the status of the called service.

@@ -23,10 +23,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-namespace restEasy;
+namespace webfiori\restEasy;
 
-use jsonx\JsonI;
-use jsonx\JsonX;
+use webfiori\json\Json;
+use webfiori\json\JsonI;
 /**
  * A class that represents request parameter.
  * 
@@ -144,6 +144,7 @@ class RequestParameter implements JsonI {
      * <li>url</li>
      * <li>boolean</li>
      * <li>array</li>
+     * <li>json-obj</li>
      * </ul> 
      * If invalid type is given or no type is provided, 'string' will be used by 
      * default.
@@ -422,12 +423,12 @@ class RequestParameter implements JsonI {
     public function setDefault($val) {
         $valType = gettype($val);
         $RPType = $this->getType();
-        $T = APIFilter::TYPES;
 
         if ($valType == $RPType || 
-          ($RPType == $T[3] && $valType == 'double') || 
-          ($valType == $T[0] && ($RPType == $T[4] || $RPType == $T[2])) || 
-          ($valType == $T[1] && $RPType == $T[3])) {
+           ($valType == 'integer' && $RPType == ParamTypes::DOUBLE) ||
+           ($valType == 'double' && $RPType == ParamTypes::DOUBLE) ||
+           (($RPType == ParamTypes::EMAIL || $RPType == ParamTypes::URL) && $valType == ParamTypes::STRING) || 
+           ($val instanceof Json && $RPType == 'json-obj')) {
             $this->default = $val;
 
             return true;
@@ -463,7 +464,9 @@ class RequestParameter implements JsonI {
      * @since 1.2.1
      */
     public function setIsEmptyStringAllowed($bool) {
-        if ($this->getType() == APIFilter::TYPES[0]) {
+        if ($this->getType() == ParamTypes::STRING) {
+            //in php 5.6, premitive type hinting is not allowed.
+            //this will resulve the issue.
             $this->isEmptStrAllowed = $bool === true ? true : false;
 
             return true;
@@ -503,8 +506,8 @@ class RequestParameter implements JsonI {
         $type = $this->getType();
         $valType = gettype($val);
 
-        if (($type == APIFilter::TYPES[1] && $valType == APIFilter::TYPES[1]) || 
-            ($type == APIFilter::TYPES[3] && ($valType == 'double' || $valType == APIFilter::TYPES[1]))) {
+        if (($type == ParamTypes::INT && $valType == ParamTypes::INT) || 
+            ($type == ParamTypes::DOUBLE && ($valType == 'double' || $valType == 'integer'))) {
             $min = $this->getMinVal();
 
             if ($min !== null && $val > $min) {
@@ -537,8 +540,8 @@ class RequestParameter implements JsonI {
         $type = $this->getType();
         $valType = gettype($val);
 
-        if (($type == APIFilter::TYPES[1] && $valType == APIFilter::TYPES[1]) || 
-            ($type == APIFilter::TYPES[3] && ($valType == 'double' || $valType == APIFilter::TYPES[1]))) {
+        if (($type == ParamTypes::INT && $valType == ParamTypes::INT) || 
+            ($type == ParamTypes::DOUBLE && ($valType == 'double') || $valType == 'integer')) {
             $max = $this->getMaxVal();
 
             if ($max !== null && $val < $max) {
@@ -592,7 +595,7 @@ class RequestParameter implements JsonI {
      * Sets the type of the parameter.
      * 
      * @param string $type The type of the parameter. It must be a value 
-     * form the array APIFilter::TYPES.
+     * form the contats which exist in the class 'ParamTypes'.
      * 
      * @return boolean true is returned if the type is updated. false 
      * if not.
@@ -602,15 +605,21 @@ class RequestParameter implements JsonI {
     public function setType($type) {
         $sType = strtolower(trim($type));
 
-        if (in_array($sType, APIFilter::TYPES)) {
+        if ($sType == 'float') {
+            $sType = 'double';
+        } else if ($sType == 'int') {
+            $sType = 'integer';
+        }
+        if (in_array($sType, ParamTypes::getTypes())) {
             $this->type = $sType;
 
-            if ($sType == APIFilter::TYPES[1] || ($sType == APIFilter::TYPES[3] && PHP_MAJOR_VERSION <= 7 && PHP_MINOR_VERSION < 2)) {    $this->minVal = defined('PHP_INT_MIN') ? PHP_INT_MIN : ~PHP_INT_MAX;
+            if ($sType == ParamTypes::INT || ($sType == ParamTypes::DOUBLE && PHP_MAJOR_VERSION <= 7 && PHP_MINOR_VERSION < 2)) {    
+                $this->minVal = defined('PHP_INT_MIN') ? PHP_INT_MIN : ~PHP_INT_MAX;
                 $this->maxVal = PHP_INT_MAX;
-            } else if ($sType == APIFilter::TYPES[3] && PHP_MAJOR_VERSION >= 7 && PHP_MINOR_VERSION >= 2) {
+            } else if ($sType == ParamTypes::DOUBLE && PHP_MAJOR_VERSION >= 7 && PHP_MINOR_VERSION >= 2) {
                 $this->maxVal = PHP_FLOAT_MAX;
                 $this->minVal = PHP_FLOAT_MIN;
-            } else if ($sType == APIFilter::TYPES[1] || $sType == APIFilter::TYPES[3]) {
+            } else if ($sType == ParamTypes::INT || $sType == ParamTypes::DOUBLE) {
                 $this->minVal = defined('PHP_INT_MIN') ? PHP_INT_MIN : ~PHP_INT_MAX;
                 $this->maxVal = PHP_INT_MAX;
             } else {
@@ -624,7 +633,7 @@ class RequestParameter implements JsonI {
         return false;
     }
     /**
-     * Returns a JsonX object that represents the request parameter.
+     * Returns a Json object that represents the request parameter.
      * 
      * This method is used to help front-end developers in showing the 
      * documentation of the request parameter. The format of JSON string 
@@ -641,12 +650,12 @@ class RequestParameter implements JsonI {
      * }
      * </p>
      * 
-     * @return JsonX An object of type JsonX. 
+     * @return Json An object of type Json. 
      * 
      * @since 1.0
      */
     public function toJSON() {
-        $json = new JsonX();
+        $json = new Json();
         $json->add('name', $this->name);
         $json->add('type', $this->getType());
         $json->add('description', $this->getDescription());

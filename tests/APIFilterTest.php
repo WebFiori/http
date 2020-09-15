@@ -2,8 +2,9 @@
 namespace restEasy\tests;
 
 use PHPUnit\Framework\TestCase;
-use restEasy\APIFilter;
-use restEasy\RequestParameter;
+use webfiori\restEasy\APIFilter;
+use webfiori\restEasy\RequestParameter;
+use webfiori\json\Json;
 /**
  * Description of APIFilterTest
  *
@@ -158,13 +159,16 @@ class APIFilterTest extends TestCase {
     public function testFilterGet07() {
         $this->apiFilter = new APIFilter();
         $param00 = new RequestParameter('first-number','float');
+        $this->assertEquals('double', $param00->getType());
         $this->apiFilter->addRequestParameter($param00);
         $param01 = new RequestParameter('second-number', 'float');
+        $this->assertEquals('double', $param01->getType());
         $param01->setMinVal(1000000);
         $this->apiFilter->addRequestParameter($param01);
         $_GET['first-number'] = 'Admin';
         $_GET['second-number'] = 'yc with some text<script></script>';
         $this->apiFilter->filterGET();
+        
         $filtered = $this->apiFilter->getInputs();
         $this->assertEquals(2,count($filtered));
         $this->assertTrue(isset($filtered['first-number']));
@@ -223,10 +227,14 @@ class APIFilterTest extends TestCase {
         $this->apiFilter = new APIFilter();
         $param00 = new RequestParameter('first-number','float');
         $this->apiFilter->addRequestParameter($param00);
+        
         $param01 = new RequestParameter('second-number', 'float');
         $param01->setDefault(1000);
+        $this->assertEquals(1000, $param01->getDefault());
         $param01->setMinVal(1000000);
+        
         $this->apiFilter->addRequestParameter($param01);
+        $_GET = [];
         $_GET['first-number'] = 'Admin';
         $_GET['second-number'] = '';
         $this->apiFilter->filterGET();
@@ -316,6 +324,7 @@ class APIFilterTest extends TestCase {
     public function testFilterGet14() {
         $this->apiFilter = new APIFilter();
         $param00 = new RequestParameter('redirect', 'url');
+        $this->assertEquals('url', $param00->getType());
         $this->apiFilter->addRequestParameter($param00);
         $_GET['redirect'] = 'programmingacademia.com';
         $this->apiFilter->filterGET();
@@ -474,6 +483,19 @@ class APIFilterTest extends TestCase {
         $filtered = $this->apiFilter->getInputs();
         $this->assertEquals(1,count($filtered));
         $this->assertEquals([false, "Hello", null, "World", 0, 1, -1, 1.5, -8.9, 0],$filtered['array']);
+    }
+    /**
+     * @test
+     */
+    public function testFilterGet25() {
+        $this->apiFilter = new APIFilter();
+        $param00 = new RequestParameter('array', 'array');
+        $this->apiFilter->addRequestParameter($param00);
+        $_GET['array'] = '["It\'s a wonderful day. \'\' ."]';
+        $this->apiFilter->filterGET();
+        $filtered = $this->apiFilter->getInputs();
+        $this->assertEquals(1,count($filtered));
+        $this->assertEquals(["It's a wonderful day. '' ."], $filtered['array']);
     }
     /**
      * @test
@@ -748,6 +770,406 @@ class APIFilterTest extends TestCase {
         $filtered = $this->apiFilter->getInputs();
         $this->assertEquals(1,count($filtered));
         $this->assertEquals(APIFilter::INVALID, $filtered['str']);
+    }
+    /**
+     * @test
+     */
+    public function testFilterPost17() {
+        $jsonTestFile = __DIR__.DIRECTORY_SEPARATOR.'json.json';
+        self::setTestJson($jsonTestFile, '{"json-array":[], "another-param":"It should be ignored."}');
+        $apiFilter = new APIFilter();
+        $apiFilter->setInputStream($jsonTestFile);
+        $param00 = new RequestParameter('json-array', 'array');
+        $param00->setCustomFilterFunction(function($basicFiltered, $orgVal, RequestParameter $param){
+            return $basicFiltered;
+        });
+        $apiFilter->addRequestParameter($param00);
+        $this->assertEquals('array', $param00->getType());
+        putenv('REQUEST_METHOD=POST');
+        $_SERVER['CONTENT_TYPE'] = 'application/json';
+        $apiFilter->filterPOST();
+        $filtered = $apiFilter->getInputs();
+        $this->assertTrue($filtered instanceof Json);
+        $this->assertEquals([], $filtered->get('json-array'));
+        $this->assertFalse($filtered->hasKey('another-param'));
+    }
+    /**
+     * @test
+     */
+    public function testFilterPost18() {
+        $jsonTestFile = __DIR__.DIRECTORY_SEPARATOR.'json.json';
+        self::setTestJson($jsonTestFile, '{"json-array":[], "another-param":');
+        $apiFilter = new APIFilter();
+        $apiFilter->setInputStream($jsonTestFile);
+        $param00 = new RequestParameter('json-array', 'array');
+        $param00->setCustomFilterFunction(function($basicFiltered, $orgVal, RequestParameter $param){
+            var_dump($orgVal);
+            var_dump($basicFiltered);
+        });
+        $apiFilter->addRequestParameter($param00);
+        $this->assertEquals('array', $param00->getType());
+        putenv('REQUEST_METHOD=POST');
+        $_SERVER['CONTENT_TYPE'] = 'application/json';
+        $this->expectException('Exception');
+        $apiFilter->filterPOST();
+    }
+    /**
+     * @test
+     */
+    public function testFilterPost19() {
+        $jsonTestFile = __DIR__.DIRECTORY_SEPARATOR.'json.json';
+        self::setTestJson($jsonTestFile, '{"json-array":[], "another-param":');
+        $apiFilter = new APIFilter();
+        $apiFilter->setInputStream($jsonTestFile);
+        $param00 = new RequestParameter('json-array', 'array');
+        $apiFilter->addRequestParameter($param00);
+        $this->assertEquals('array', $param00->getType());
+        putenv('REQUEST_METHOD=PUT');
+        $_SERVER['CONTENT_TYPE'] = 'application/json';
+        $this->expectException('Exception');
+        $apiFilter->filterPOST();
+    }
+    /**
+     * @test
+     */
+    public function testFilterPost21() {
+        $jsonTestFile = __DIR__.DIRECTORY_SEPARATOR.'json.json';
+        self::setTestJson($jsonTestFile, ''
+                . '{'
+                . '    "json-array":['
+                . '        "hello",'
+                . '        {'
+                . '            "obj":true,'
+                . '            "true":false'
+                . '        }'
+                . '    ],'
+                . '    "another-arr":['
+                . '        "sub-array",'
+                . '        true,'
+                . '        null'
+                . '    ], '
+                . '    "another-param":{'
+                . '        "o":true,'
+                . '        "arr":["one"]'
+                . '    }'
+                . '}');
+        $apiFilter = new APIFilter();
+        $apiFilter->setInputStream($jsonTestFile);
+        $param00 = new RequestParameter('json-array', 'array');
+        $apiFilter->addRequestParameter($param00);
+        $param01 = new RequestParameter('true', 'boolean');
+        $apiFilter->addRequestParameter($param01);
+        $param02 = new RequestParameter('arr', 'array');
+        $apiFilter->addRequestParameter($param02);
+        putenv('REQUEST_METHOD=PUT');
+        $_SERVER['CONTENT_TYPE'] = 'application/json';
+        $apiFilter->filterPOST();
+        $json = $apiFilter->getInputs();
+        $this->assertEquals(3, count($json->getPropsNames()));
+        $this->assertTrue($json->hasKey('json-array'));
+        $this->assertTrue($json->hasKey('true'));
+        $this->assertfalse($json->get('true'));
+        $this->assertTrue($json->hasKey('arr'));
+        $this->assertEquals(["one"], $json->get('arr'));
+    }
+    /**
+     * @test
+     */
+    public function testFilterPost22() {
+        $jsonTestFile = __DIR__.DIRECTORY_SEPARATOR.'json.json';
+        self::setTestJson($jsonTestFile, ''
+                . '{'
+                . '    "string":" My Super String"'
+                . '}');
+        $param00 = new RequestParameter('string');
+        $param00->setCustomFilterFunction(function() {
+            return '';
+        });
+        $apiFilter = new APIFilter();
+        $apiFilter->addRequestParameter($param00);
+        $apiFilter->setInputStream($jsonTestFile);
+        putenv('REQUEST_METHOD=PUT');
+        $_SERVER['CONTENT_TYPE'] = 'application/json';
+        $apiFilter->filterPOST();
+        $json = $apiFilter->getInputs();
+        $this->assertEquals(1, count($json->getPropsNames()));
+        $this->assertTrue($json->hasKey('string'));
+        $this->assertNull($json->get('string'));
+    }
+    /**
+     * @test
+     */
+    public function testFilterPost23() {
+        $jsonTestFile = __DIR__.DIRECTORY_SEPARATOR.'json.json';
+        self::setTestJson($jsonTestFile, ''
+                . '{'
+                . '    "number":" My Super String"'
+                . '}');
+        $param00 = new RequestParameter('number','integer');
+        $param00->setDefault(500);
+        $apiFilter = new APIFilter();
+        $apiFilter->addRequestParameter($param00);
+        $apiFilter->setInputStream($jsonTestFile);
+        putenv('REQUEST_METHOD=PUT');
+        $_SERVER['CONTENT_TYPE'] = 'application/json';
+        $apiFilter->filterPOST();
+        $json = $apiFilter->getInputs();
+        $this->assertEquals(1, count($json->getPropsNames()));
+        $this->assertTrue($json->hasKey('number'));
+        $this->assertEquals(500, $json->get('number'));
+    }
+    /**
+     * @test
+     */
+    public function testFilterPost24() {
+        $jsonTestFile = __DIR__.DIRECTORY_SEPARATOR.'json.json';
+        self::setTestJson($jsonTestFile, ''
+                . '{'
+                . '    "number":1,'
+                . '    "another-number":1.5,'
+                . '    "bool-true":true,'
+                . '    "bool-false":false,'
+                . '    "null-val":null,'
+                . '    "sub-obj":{'
+                . '        "array":["one","<script>Two</script>"]'
+                . '    }'
+                . '}');
+        $apiFilter = new APIFilter();
+        $param00 = new RequestParameter('number','integer');
+        $apiFilter->addRequestParameter($param00);
+        $param01= new RequestParameter('another-number','float');
+        $apiFilter->addRequestParameter($param01);
+        $param02 = new RequestParameter('bool-true','boolean');
+        $apiFilter->addRequestParameter($param02);
+        $param03 = new RequestParameter('bool-false','boolean');
+        $apiFilter->addRequestParameter($param03);
+        $param04 = new RequestParameter('array','array');
+        $apiFilter->addRequestParameter($param04);
+        $apiFilter->setInputStream($jsonTestFile);
+        putenv('REQUEST_METHOD=POST');
+        $_SERVER['CONTENT_TYPE'] = 'application/json';
+        $apiFilter->filterPOST();
+        $json = $apiFilter->getInputs();
+        $this->assertEquals(5, count($json->getPropsNames()));
+        $this->assertTrue($json->hasKey('number'));
+        $this->assertEquals(1, $json->get('number'));
+        $this->assertEquals(1.5, $json->get('another-number'));
+        $this->assertTrue($json->get('bool-true'));
+        $this->assertFalse($json->get('bool-false'));
+        $this->assertEquals(["one","Two"], $json->get('array'));
+        $this->assertEquals(["one","<script>Two</script>"], $apiFilter->getNonFiltered()->get('array'));
+    }
+    /**
+     * @test
+     */
+    public function testFilterPost25() {
+        $jsonTestFile = __DIR__.DIRECTORY_SEPARATOR.'json.json';
+        self::setTestJson($jsonTestFile, ''
+                . '{'
+                . '    "obj-00":{'
+                . '        "deep-obj":{'
+                . '            "number":1'
+                . '        }'
+                . '    },'
+                . '    "another-number":1.5,'
+                . '    "bool-true":true,'
+                . '    "bool-false":false,'
+                . '    "null-val":null,'
+                . '    "sub-obj":{'
+                . '        "array":["one","<script>Two</script>", true, false, null, 1]'
+                . '    },'
+                . '    "json-obj":{'
+                . '        "one":1,'
+                . '        "two":2.5,'
+                . '        "three":true,'
+                . '        "four":["hell","no","<script>not clean</script>"]'
+                . '    }'
+                . '}');
+        $apiFilter = new APIFilter();
+        $param00 = new RequestParameter('number','integer');
+        $apiFilter->addRequestParameter($param00);
+        $param01= new RequestParameter('another-number','float');
+        $apiFilter->addRequestParameter($param01);
+        $param02 = new RequestParameter('bool-true','boolean');
+        $apiFilter->addRequestParameter($param02);
+        $param03 = new RequestParameter('bool-false','boolean');
+        $apiFilter->addRequestParameter($param03);
+        $param04 = new RequestParameter('array','array');
+        $apiFilter->addRequestParameter($param04);
+        $param05 = new RequestParameter('json-obj','json-obj');
+        $apiFilter->addRequestParameter($param05);
+        $apiFilter->setInputStream($jsonTestFile);
+        putenv('REQUEST_METHOD=POST');
+        $_SERVER['CONTENT_TYPE'] = 'application/json';
+        $apiFilter->filterPOST();
+        $json = $apiFilter->getInputs();
+        $this->assertEquals(6, count($json->getPropsNames()));
+        $this->assertTrue($json->hasKey('number'));
+        $this->assertEquals(1, $json->get('number'));
+        $this->assertEquals(1.5, $json->get('another-number'));
+        $this->assertTrue($json->get('bool-true'));
+        $this->assertFalse($json->get('bool-false'));
+        $this->assertEquals(["one","Two", true, false, null, 1], $json->get('array'));
+        $jsonObj = $json->get('json-obj');
+        $this->assertTrue($jsonObj instanceof Json);
+        $this->assertEquals(["hell","no","<script>not clean</script>"], $jsonObj->get('four'));
+    }
+    /**
+     * @test
+     */
+    public function testFilterPost26() {
+        $jsonTestFile = __DIR__.DIRECTORY_SEPARATOR.'json.json';
+        self::setTestJson($jsonTestFile, ''
+                . '{'
+                . '    "json-obj":{'
+                . '        "one":1,'
+                . '        "two":2.5,'
+                . '        "three":true,'
+                . '        "four":["hell","no","<script>not clean</script>"]'
+                . '    },'
+                . '    "another-obj":"str"'
+                . '}');
+        $apiFilter = new APIFilter();
+        $param00 = new RequestParameter('json-obj','json-obj');
+        $param00->setCustomFilterFunction(function(Json $basicFiltered){
+            $arr = $basicFiltered->get('four');
+            $clean = [];
+            foreach ($arr as $val) {
+                $clean[] = strip_tags($val);
+            }
+            $basicFiltered->add('four', $clean);
+            $basicFiltered->add('one', $basicFiltered->get('one')*2);
+            $basicFiltered->add('two', $basicFiltered->get('two')*2);
+            $basicFiltered->add('three', false);
+            return $basicFiltered;
+        });
+        $apiFilter->addRequestParameter($param00);
+        $param01 = new RequestParameter('another-obj','json-obj');
+        $apiFilter->addRequestParameter($param01);
+        $apiFilter->setInputStream($jsonTestFile);
+        putenv('REQUEST_METHOD=POST');
+        $_SERVER['CONTENT_TYPE'] = 'application/json';
+        $apiFilter->filterPOST();
+        $json = $apiFilter->getInputs();
+        $this->assertEquals(2, count($json->getPropsNames()));
+        $this->assertNull($json->get('another-obj'));
+        $jsonObj = $json->get('json-obj');
+        $this->assertTrue($jsonObj instanceof Json);
+        $this->assertEquals(["hell","no","not clean"], $jsonObj->get('four'));
+        $this->assertEquals(2, $jsonObj->get('one'));
+        $this->assertEquals(5, $jsonObj->get('two'));
+        $this->assertFalse($jsonObj->get('three'));
+    }
+    /**
+     * @test
+     */
+    public function testFilterPost27() {
+        $jsonTestFile = __DIR__.DIRECTORY_SEPARATOR.'json.json';
+        self::setTestJson($jsonTestFile, ''
+                . '{'
+                . '    "json-obj":{'
+                . '        "first-string":"<script>Not Safe.<?php",'
+                . '        "two":{'
+                . '            "second-string":"safe",'
+                . '            "third-str":"",'
+                . '            "obj":{'
+                . '                "last-str":""'
+                . '            }'
+                . '        }'
+                . '    }'
+                . '}');
+        $apiFilter = new APIFilter();
+        $param00 = new RequestParameter('first-string');
+        $apiFilter->addRequestParameter($param00);
+        $param01 = new RequestParameter('second-string');
+        $apiFilter->addRequestParameter($param01);
+        $param02 = new RequestParameter('third-str');
+        $apiFilter->addRequestParameter($param02);
+        $param03 = new RequestParameter('last-str');
+        $param03->setIsEmptyStringAllowed(true);
+        $apiFilter->addRequestParameter($param03);
+        
+        $apiFilter->setInputStream($jsonTestFile);
+        putenv('REQUEST_METHOD=POST');
+        $_SERVER['CONTENT_TYPE'] = 'application/json';
+        $apiFilter->filterPOST();
+        $json = $apiFilter->getInputs();
+        $this->assertEquals(4, count($json->getPropsNames()));
+        $this->assertEquals('Not Safe.', $json->get('first-string'));
+        $this->assertEquals('safe', $json->get('second-string'));
+        $this->assertNull($json->get('third-str'));
+        $this->assertEquals('', $json->get('last-str'));
+        
+        $nonClean = $apiFilter->getNonFiltered();
+        $this->assertEquals('<script>Not Safe.<?php', $nonClean->get('first-string'));
+        $this->assertEquals('safe', $nonClean->get('second-string'));
+        $this->assertEquals('',$nonClean->get('third-str'));
+        $this->assertEquals('', $nonClean->get('last-str'));
+    }
+    /**
+     * @test
+     */
+    public function testFilterPost28() {
+        $jsonTestFile = __DIR__.DIRECTORY_SEPARATOR.'json.json';
+        self::setTestJson($jsonTestFile, ''
+                . '{'
+                . '    "json-obj":{'
+                . '        "invalid-param":77,'
+                . '        "one":1,'
+                . '        "array-of-arrays":['
+                . '            ['
+                . '                "hello",'
+                . '                {'
+                . '                    "obj":true,'
+                . '                    "string":"<script>not safe"'
+                . '                },'
+                . '                ['
+                . '                    "innerArr",'
+                . '                    {'
+                . '                        "sub-obj":{'
+                . '                            "arr":['
+                . '                                "with arr"'
+                . '                            ]'
+                . '                        }'
+                . '                    },'
+                . '                    [true],'
+                . '                    [false]'
+                . '                ]'
+                . '            ]'
+                . '        ]'
+                . '    }'
+                . '}');
+        $apiFilter = new APIFilter();
+        $param00 = new RequestParameter('array-of-arrays','array');
+        $apiFilter->addRequestParameter($param00);
+        $param01 = new RequestParameter('sub-obj','json-obj');
+        $apiFilter->addRequestParameter($param01);
+        $param02 = new RequestParameter('with-default','integer');
+        $param02->setDefault(44);
+        $param02->setIsOptional(true);
+        $apiFilter->addRequestParameter($param02);
+        $param03 = new RequestParameter('invalid-param');
+        $apiFilter->addRequestParameter($param03);
+        
+        $apiFilter->setInputStream($jsonTestFile);
+        putenv('REQUEST_METHOD=POST');
+        $_SERVER['CONTENT_TYPE'] = 'application/json';
+        $apiFilter->filterPOST();
+        $json = $apiFilter->getInputs();
+        $this->assertEquals(4, count($json->getPropsNames()));
+        $this->assertEquals(44, $json->get('with-default'));
+        $this->assertNull($json->get('invalid-param'));
+        $this->assertEquals(1, count($json->get('array-of-arrays')));
+        $this->assertEquals('hello', $json->get('array-of-arrays')[0][0]);
+        $this->assertEquals('{"obj":true, "string":"not safe"}', $json->get('array-of-arrays')[0][1]->toJSONString());
+        $subObj = $json->get('sub-obj');
+        $this->assertTrue($subObj instanceof Json);
+        $this->assertEquals(['with arr'], $subObj->get('arr'));
+    }
+    public static function setTestJson($fName, $jsonData) {
+        $stream = fopen($fName, 'w+');
+        fwrite($stream, $jsonData);
+        fclose($stream);
     }
 }
 

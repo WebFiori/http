@@ -4,17 +4,20 @@ ini_set('display_startup_errors', 1);
 ini_set('display_errors', 1);
 error_reporting(-1);
 require_once '../vendor/webfiori/jsonx/src/JsonI.php';
-require_once '../vendor/webfiori/jsonx/src/JsonX.php';
+require_once '../vendor/webfiori/jsonx/src/JsonTypes.php';
+require_once '../vendor/webfiori/jsonx/src/Json.php';
+require_once '../src/ParamTypes.php';
+require_once '../src/WebService.php';
 require_once '../src/APIAction.php';
 require_once '../src/APIFilter.php';
+require_once '../src/WebServicesSet.php';
 require_once '../src/RequestParameter.php';
-require_once '../src/WebServices.php';
 
-use jsonx\JsonI;
-use jsonx\JsonX;
-use restEasy\WebService;
-use restEasy\RequestParameter;
-use restEasy\WebServicesSet;
+use webfiori\json\JsonI;
+use webfiori\json\Json;
+use webfiori\restEasy\WebService;
+use webfiori\restEasy\RequestParameter;
+use webfiori\restEasy\WebServicesSet;
 /*
  * Steps for creating new API:
  * 1- Create a class that extends the class 'API'.
@@ -32,19 +35,32 @@ class MyAPI extends WebServicesSet {
         //create new action
         $action00 = new WebService('my-action');
         $action00->addRequestMethod('get');
+        $action00->addRequestMethod('post');
+        $action00->addRequestMethod('put');
 
         //add parameters for the action
         $action00->addParameter(new RequestParameter('my-param', 'string', true));
-
+        $action00->addParameter(new RequestParameter('my-param-2', 'string'));
+        
         //add the action to the API
         $this->addAction($action00);
 
         //create another action which requires permissions
-        $action01 = new WebService('auth-action');
-        $action01->addRequestMethod('get');
-        $action01->addRequestMethod('post');
-        $action01->addParameter(new RequestParameter('name', 'string'));
-        $action01->addParameter(new RequestParameter('pass', 'string', true));
+        $action01 = WebService::createService([
+            'name' => 'auth-action',
+            'request-methods' => [
+                'get','post'
+            ],
+            'parameters' => [
+                [
+                    'name' => 'your-name',
+                ],
+                [
+                    'name' => 'pass',
+                    'optional' => true
+                ]
+            ]
+        ]);
 
         //add the action to the API
         //note the 'true' in here. It means the action
@@ -56,11 +72,10 @@ class MyAPI extends WebServicesSet {
     }
     /**
      * Checks if the user is authorized to perform specific action.
-     * The method will return true only if the action is equal to 'my-action'.
      */
     public function isAuthorized() {
-        $action = $this->getAction();
-
+        $action = $this->getCalledServiceName();
+ 
         if ($action == 'auth-action') {
             $i = $this->getInputs();
             $pass = isset($i['pass']) ? $i['pass'] : null;
@@ -78,25 +93,40 @@ class MyAPI extends WebServicesSet {
     public function processRequest() {
         $action = $this->getAction();
         $inputs = $this->getInputs();
-
         if ($action == 'my-action') {
             header('content-type:text/plain');
 
-            if (isset($inputs['my-param'])) {
-                echo '"my-param" = '.$inputs['my-param'];
+            if ($inputs instanceof Json) {
+                if ($inputs->get('my-param')) {
+                    echo '"my-param" = '.$inputs->get('my-param');
+                } else {
+                    echo '"my-param" is not set';
+                }
             } else {
-                echo '"my-param" is not set';
+                if ($inputs instanceof Json) {
+                    $val = $inputs->get('my-param');
+                    echo '"my-param" = '.$val;
+                } else {
+                    if (isset($inputs['my-param'])) {
+                        echo '"my-param" = '.$inputs['my-param'];
+                    } else {
+                        echo '"my-param" is not set';
+                    }
+                }
             }
-        } else {
-            if ($action == 'auth-action') {
-                header('content-type:text/plain');
-                echo 'Dear '.$inputs['name'].', you are authorized to access the API.';
+        } else if ($action == 'auth-action') {
+            header('content-type:text/plain');
+            if ($inputs instanceof Json) {
+                echo 'Dear '.$inputs->get('your-name').', you are authorized to access the API.';
+            } else {
+                echo 'Dear '.$inputs['your-name'].', you are authorized to access the API.';
             }
         }
     }
 }
 //create an instance once a request to the file is made. 
 $a = new MyAPI();
+
 
 /*
  * Assuming that you are testing in 'localhost' and your code is placed 
@@ -111,10 +141,10 @@ $a = new MyAPI();
  *     "http-code":404
  * }
  * 
- * 2- http://localhost/restEasy/examples/basic-usage.php?action=my-action
+ * 2- http://localhost/restEasy/examples/basic-usage.php?service=my-action
  * This will output the following string: ""my-param" is not set".
  * 
- * 3- http://localhost/restEasy/examples/basic-usage.php?action=my-action&my-param=hello%20world
+ * 3- http://localhost/restEasy/examples/basic-usage.php?service=my-action&my-param=hello%20world
  * This will output the following string: ""my-param" = hello world".
  * 
  * 4- http://localhost/restEasy/examples/basic-usage.php?action=auth-action
@@ -125,7 +155,7 @@ $a = new MyAPI();
  *     "http-code":404
  * }
  * 
- * 5- http://localhost/restEasy/examples/basic-usage.php?action=auth-action&name=Ibrahim
+ * 5- http://localhost/restEasy/examples/basic-usage.php?service-name=auth-action&name=Ibrahim
  * This will output the following JSON:
  * {
  *     "message":"Not authorized.",

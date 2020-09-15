@@ -1,10 +1,10 @@
 <?php
 namespace restEasy\tests;
 
-use jsonx\JsonX;
+use webfiori\json\Json;
 use PHPUnit\Framework\TestCase;
-use restEasy\WebService;
-use restEasy\WebServicesSet;
+use webfiori\restEasy\WebService;
+use webfiori\restEasy\WebServicesSet;
 /**
  * Description of WebAPITest
  *
@@ -18,6 +18,7 @@ class WebAPITest extends TestCase {
     public function testActionAPIInfo00() {
         
         $this->clrearVars();
+        putenv('REQUEST_METHOD=GET');
         $_GET['action'] = 'api-info';
         $_GET['pass'] = '123';
         $api = new SampleService();
@@ -93,6 +94,7 @@ class WebAPITest extends TestCase {
      */
     public function testActionAPIInfo01() {
         $this->clrearVars();
+        putenv('REQUEST_METHOD=GET');
         $_GET['action'] = 'api-info';
         $api = new SampleService();
         $api->setOutputStream($this->outputStreamName);
@@ -104,6 +106,7 @@ class WebAPITest extends TestCase {
      */
     public function testActionAPIInfo02() {
         $this->clrearVars();
+        putenv('REQUEST_METHOD=GET');
         $_GET['action'] = 'api-info';
         $_GET['pass'] = '123';
         $_GET['version'] = '1.0.1';
@@ -227,7 +230,7 @@ class WebAPITest extends TestCase {
      */
     public function testGetNonFiltered00($api) {
         $nonFiltered = $api->getNonFiltered();
-        $j = new JsonX();
+        $j = new Json();
         $j->add('non-filtered', $nonFiltered);
         $api->sendHeaders(['content-type' => 'application/json']);
         echo $j;
@@ -283,14 +286,14 @@ class WebAPITest extends TestCase {
     public function testGetUser03() {
         $this->clrearVars();
         putenv('REQUEST_METHOD=POST');
-        $_SERVER['CONTENT_TYPE'] = 'application/json';
+        $_SERVER['CONTENT_TYPE'] = 'application/xml';
         $_POST['action'] = 'get-user-profile';
         $_POST['user-id'] = '99';
         $_POST['pass'] = '123';
         $api = new SampleService();
         $api->setOutputStream($this->outputStreamName);
         $api->process();
-        $this->assertEquals('{"message":"Content type not supported.", "type":"error", "http-code":404, "more-info":{"request-content-type":"application\/json"}}', $api->readOutputStream());
+        $this->assertEquals('{"message":"Content type not supported.", "type":"error", "http-code":404, "more-info":{"request-content-type":"application\/xml"}}', $api->readOutputStream());
     }
     /**
      * @test

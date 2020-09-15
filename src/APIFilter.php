@@ -23,8 +23,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-namespace restEasy;
+namespace webfiori\restEasy;
 
+use Exception;
+use webfiori\json\Json;
 /**
  * A class used to validate and sanitize request parameters.
  * 
@@ -44,33 +46,7 @@ class APIFilter {
      * @since 1.2.2
      */
     const INVALID = 'INV';
-    /**
-     * Supported input types.
-     * 
-     * The filter supports the following data types:
-     * <ul>
-     * <li>string</li>
-     * <li>integer</li>
-     * <li>email</li>
-     * <li>float</li>
-     * <li>url</li>
-     * <li>boolean</li>
-     * <li>array</li>
-     * </ul>
-     * 
-     * @var array 
-     * 
-     * @since 1.0
-     */
-    const TYPES = [
-        'string',
-        'integer',
-        'email',
-        'float',
-        'url',
-        'boolean',
-        'array'
-    ];
+
     /**
      * An array that will contains filtered data.
      * 
@@ -79,6 +55,7 @@ class APIFilter {
      * @since 1.0 
      */
     private $inputs = [];
+    private $inputStreamPath;
     /**
      * An array that contains non-filtered data (original).
      * 
@@ -102,7 +79,7 @@ class APIFilter {
      * 
      * @since 1.1
      */
-    public function addRequestParameter($reqParam) {
+    public function addRequestParameter(RequestParameter $reqParam) {
         if ($reqParam instanceof RequestParameter) {
             $paramIdx = 'parameter';
             $filterIdx = 'filters';
@@ -122,7 +99,7 @@ class APIFilter {
             }
             $paramType = $reqParam->getType();
 
-            if ($paramType == self::TYPES[1]) {
+            if ($paramType == ParamTypes::INT) {
                 if ($reqParam->getMaxVal() !== null) {
                     $attribute[$optIdx][$optIdx]['max_range'] = $reqParam->getMaxVal();
                 }
@@ -132,15 +109,15 @@ class APIFilter {
                 }
                 array_push($attribute[$filterIdx], FILTER_SANITIZE_NUMBER_INT);
                 array_push($attribute[$filterIdx], FILTER_VALIDATE_INT);
-            } else if ($paramType == self::TYPES[0]) {
+            } else if ($paramType == ParamTypes::STRING) {
                 $attribute[$optIdx][$optIdx]['allow-empty'] = $reqParam->isEmptyStringAllowed();
                 array_push($attribute[$filterIdx], FILTER_DEFAULT);
-            } else if ($paramType == self::TYPES[3]) {
+            } else if ($paramType == ParamTypes::DOUBLE) {
                 array_push($attribute[$filterIdx], FILTER_SANITIZE_NUMBER_FLOAT);
-            } else if ($paramType == self::TYPES[2]) {
+            } else if ($paramType == ParamTypes::EMAIL) {
                 array_push($attribute[$filterIdx], FILTER_SANITIZE_EMAIL);
                 array_push($attribute[$filterIdx], FILTER_VALIDATE_EMAIL);
-            } else if ($paramType == self::TYPES[4]) {
+            } else if ($paramType == ParamTypes::URL) {
                 array_push($attribute[$filterIdx], FILTER_SANITIZE_URL);
                 array_push($attribute[$filterIdx], FILTER_VALIDATE_URL);
             } else {
@@ -194,7 +171,7 @@ class APIFilter {
      * 
      * @since 1.2.2
      */
-    public static function filter($apiFilter,$arr) {
+    public static function filter(APIFilter $apiFilter, array $arr) {
         $filteredIdx = 'filtered';
         $noFIdx = 'non-filtered';
         $retVal = [
@@ -202,112 +179,127 @@ class APIFilter {
             $noFIdx => []
         ];
         $paramIdx = 'parameter';
-        $filterIdx = 'filters';
         $optIdx = 'options';
 
-        if ($apiFilter instanceof APIFilter && gettype($arr) == self::TYPES[6]) {
-            $filterDef = $apiFilter->getFilterDef();
+        $filterDef = $apiFilter->getFilterDef();
 
-            foreach ($filterDef as $def) {
-                $name = $def[$paramIdx]->getName();
-                $paramType = $def[$paramIdx]->getType();
-                $defaultVal = $def[$paramIdx]->getDefault();
+        foreach ($filterDef as $def) {
+            $name = $def[$paramIdx]->getName();
+            $paramType = $def[$paramIdx]->getType();
+            $defaultVal = $def[$paramIdx]->getDefault();
 
-                if (isset($arr[$name])) {
-                    $toBeFiltered = $arr[$name];
-                    $retVal[$noFIdx][$name] = $arr[$name];
+            if (isset($arr[$name])) {
+                $toBeFiltered = $arr[$name];
+                $retVal[$noFIdx][$name] = $arr[$name];
 
-                    if (isset($def[$optIdx]['filter-func'])) {
-                        $filteredValue = '';
-                        $arrToPass = [
-                            'original-value' => $toBeFiltered,
-                        ];
-
-                        if ($def[$paramIdx]->applyBasicFilter() === true) {
-                            $toBeFiltered = strip_tags($toBeFiltered);
-
-                            if ($paramType == self::TYPES[5]) {
-                                $filteredValue = self::_filterBoolean(filter_var($toBeFiltered));
-                            } else if ($paramType == self::TYPES[6]) {
-                                $filteredValue = self::_filterArray(filter_var($toBeFiltered));
-                            } else {
-                                $filteredValue = filter_var($toBeFiltered);
-
-                                foreach ($def[$filterIdx] as $val) {
-                                    $filteredValue = filter_var($filteredValue, $val, $def[$optIdx]);
-                                }
-
-                                if ($filteredValue === false) {
-                                    $filteredValue = self::INVALID;
-                                }
-
-                                if ($paramType == self::TYPES[0] &&
-                                    $filteredValue != self::INVALID &&
-                                    strlen($filteredValue) == 0 && 
-                                    $def[$optIdx][$optIdx]['allow-empty'] === false) {
-                                    $retVal[$filteredIdx][$name] = self::INVALID;
-                                    $filteredValue = self::INVALID;
-                                }
-                            }
-                            $arrToPass['basic-filter-result'] = $filteredValue;
-                        } else {
-                            $arrToPass['basic-filter-result'] = 'NOT_APLICABLE';
-                        }
-                        $r = call_user_func($def[$optIdx]['filter-func'],$arrToPass['original-value'], $arrToPass['basic-filter-result'],$def[$paramIdx]);
-
-                        if ($r === null) {
-                            $retVal[$filteredIdx][$name] = false;
-                        } else {
-                            $retVal[$filteredIdx][$name] = $r;
-                        }
-
-                        if ($retVal[$filteredIdx][$name] === false && $paramType != self::TYPES[5]) {
-                            $retVal[$filteredIdx][$name] = self::INVALID;
-                        }
-                    } else {
-                        $toBeFiltered = strip_tags($toBeFiltered);
-
-                        if ($paramType == self::TYPES[5]) {
-                            $retVal[$filteredIdx][$name] = self::_filterBoolean(filter_var($toBeFiltered));
-                        } else if ($paramType == self::TYPES[6]) {
-                            $retVal[$filteredIdx][$name] = self::_filterArray(filter_var($toBeFiltered));
-                        } else {
-                            $retVal[$filteredIdx][$name] = filter_var($toBeFiltered);
-
-                            foreach ($def[$filterIdx] as $val) {
-                                $retVal[$filteredIdx][$name] = filter_var($retVal[$filteredIdx][$name], $val, $def[$optIdx]);
-                            }
-
-                            if ($retVal[$filteredIdx][$name] === false || 
-                                (($paramType == self::TYPES[1] || $paramType == self::TYPES[3]) && strlen($retVal[$filteredIdx][$name]) == 0)) {
-                                $retVal[$filteredIdx][$name] = self::INVALID;
-                            }
-
-                            if ($paramType == self::TYPES[0] &&
-                                $retVal[$filteredIdx][$name] != self::INVALID &&
-                                strlen($retVal[$filteredIdx][$name]) == 0 && 
-                                $def[$optIdx][$optIdx]['allow-empty'] === false) {
-                                $retVal[$filteredIdx][$name] = self::INVALID;
-                            }
-                        }
-                    }
-                    $booleanCheck = $paramType == 'boolean' && $retVal[$filteredIdx][$name] === true || $retVal[$filteredIdx][$name] === false;
-                    if (!$booleanCheck && $retVal[$filteredIdx][$name] == self::INVALID && $defaultVal !== null) {
-                        $retVal[$filteredIdx][$name] = $defaultVal;
-                    }
-                } else if ($def[$paramIdx]->isOptional()) {
-                    if ($defaultVal !== null) {
-                        $retVal[$filteredIdx][$name] = $defaultVal;
-                        $retVal[$noFIdx][$name] = $defaultVal;
-                    } else {
-                        $retVal[$filteredIdx][$name] = null;
-                        $retVal[$noFIdx][$name] = null;
-                    }
+                if (isset($def[$optIdx]['filter-func'])) {
+                    $retVal[$filteredIdx][$name] = self::_applyCustomFilterFunc($def, $toBeFiltered);
+                } else {
+                    $retVal[$filteredIdx][$name] = self::_applyBasicFilterOnly($def, $toBeFiltered);
+                }
+                $booleanCheck = $paramType == 'boolean' && $retVal[$filteredIdx][$name] === true || $retVal[$filteredIdx][$name] === false;
+                if (!$booleanCheck && $retVal[$filteredIdx][$name] == self::INVALID && $defaultVal !== null) {
+                    $retVal[$filteredIdx][$name] = $defaultVal;
+                }
+            } else if ($def[$paramIdx]->isOptional()) {
+                if ($defaultVal !== null) {
+                    $retVal[$filteredIdx][$name] = $defaultVal;
+                    $retVal[$noFIdx][$name] = $defaultVal;
+                } else {
+                    $retVal[$filteredIdx][$name] = null;
+                    $retVal[$noFIdx][$name] = null;
                 }
             }
         }
 
         return $retVal;
+    }
+    private static function _applyCustomFilterFunc($def, $toBeFiltered) {
+        $arrToPass = [
+            'original-value' => $toBeFiltered,
+        ];
+        $paramObj = $def['parameter'];
+        
+        if ($paramObj->applyBasicFilter() === true) {
+            $arrToPass['basic-filter-result'] = self::_getBasicFilterResultForCustomFilter($def, $toBeFiltered);
+        } else {
+            $arrToPass['basic-filter-result'] = 'NOT_APLICABLE';
+        }
+        $filterFuncResult = call_user_func($def['options']['filter-func'],$arrToPass['original-value'], $arrToPass['basic-filter-result'],$paramObj);
+
+        if ($filterFuncResult === null) {
+            $returnVal = false;
+        } else {
+            $returnVal = $filterFuncResult;
+        }
+
+        if ($returnVal === false && $paramObj->getType() != ParamTypes::BOOL) {
+            $returnVal = self::INVALID;
+        }
+        return $returnVal;
+    }
+    private static function _applyBasicFilterOnly($def,$toBeFiltered) {
+        $toBeFiltered = strip_tags($toBeFiltered);
+        
+        $paramObj = $def['parameter'];
+        $paramType = $paramObj->getType();
+        $optIdx = 'options'; 
+        
+        if ($paramType == ParamTypes::BOOL) {
+            $returnVal = self::_filterBoolean($toBeFiltered);
+        } else if ($paramType == ParamTypes::ARR) {
+            $returnVal = self::_filterArray(filter_var($toBeFiltered));
+        } else {
+            $returnVal = filter_var($toBeFiltered);
+
+            foreach ($def['filters'] as $val) {
+                $returnVal = filter_var($returnVal, $val, $def[$optIdx]);
+            }
+
+            if ($returnVal === false || 
+                (($paramType == ParamTypes::URL || $paramType == ParamTypes::EMAIL) && strlen($returnVal) == 0) || 
+                (($paramType == ParamTypes::INT || $paramType == ParamTypes::DOUBLE) && strlen($returnVal) == 0)) {
+                $returnVal = self::INVALID;
+            }
+
+            if ($paramType == ParamTypes::STRING &&
+                $returnVal != self::INVALID &&
+                strlen($returnVal) == 0 && 
+                $def['options']['options']['allow-empty'] === false) {
+                $returnVal = self::INVALID;
+            }
+        }
+        return $returnVal;
+    }
+    private static function _getBasicFilterResultForCustomFilter($def, $toBeFiltered) {
+        if (gettype($toBeFiltered) == 'string') {
+            $toBeFiltered = strip_tags($toBeFiltered);
+        }
+        $paramType = $def['parameter']->getType();
+        if ($paramType == ParamTypes::BOOL) {
+            $filteredValue = self::_filterBoolean(filter_var($toBeFiltered));
+        } else if ($paramType == ParamTypes::ARR) {
+            $filteredValue = self::_filterArray($toBeFiltered);
+        } else {
+            
+            $filteredValue = filter_var($toBeFiltered);
+
+            foreach ($def['filters'] as $val) {
+                $filteredValue = filter_var($filteredValue, $val, $def['options']);
+            }
+
+            if ($filteredValue === false) {
+                $filteredValue = self::INVALID;
+            }
+
+            if ($paramType == ParamTypes::STRING &&
+                $filteredValue != self::INVALID &&
+                strlen($filteredValue) == 0 && 
+                $def['options']['options']['allow-empty'] === false) {
+                $filteredValue = self::INVALID;
+            }
+        }
+        return $filteredValue;
     }
     /**
      * Validate and sanitize GET parameters.
@@ -330,6 +322,7 @@ class APIFilter {
      */
     public final function filterGET() {
         $this->clearInputs();
+
         $filterResult = $this->filter($this, $_GET);
         $this->inputs = $filterResult['filtered'];
         $this->nonFilteredInputs = $filterResult['non-filtered'];
@@ -355,9 +348,21 @@ class APIFilter {
      */
     public final function filterPOST() {
         $this->clearInputs();
-        $filterResult = $this->filter($this, $_POST);
-        $this->inputs = $filterResult['filtered'];
-        $this->nonFilteredInputs = $filterResult['non-filtered'];
+        $contentTypeHeader = isset($_SERVER['CONTENT_TYPE']) ? filter_var($_SERVER['CONTENT_TYPE']) : null;
+
+        if ($contentTypeHeader !== null && $contentTypeHeader !== false) {
+            $contentType = trim(explode(';', $contentTypeHeader)[0]);
+        } else {
+            $contentType = null;
+        }
+
+        if ($contentType == 'application/json') {
+            $this->_jsonBody();
+        } else {
+            $filterResult = $this->filter($this, $_POST);
+            $this->inputs = $filterResult['filtered'];
+            $this->nonFilteredInputs = $filterResult['non-filtered'];
+        }
     }
     /**
      * Returns an array that contains filter constraints.
@@ -370,12 +375,17 @@ class APIFilter {
         return $this->paramDefs;
     }
     /**
-     * Returns an associative array that contains request body inputs.
+     * Returns an associative array or object of type 'Json' that contains 
+     * request body inputs.
      * 
-     * The data in the array will have the filters applied to.
+     * The data in the array or the object will have the filters applied to. 
+     * Note that if parameter type is 'json-obj', no basic filtering will 
+     * be applied. Only custom filter.
      * 
-     * @return array|null The array that contains request inputs. If no data was 
-     * filtered, the method will return null.
+     * @return array|null|Json The array that contains request inputs. If no data was 
+     * filtered, the method will return null. If the request content type was 
+     * 'application/json', the method will return an instance of the class 
+     * 'Json' that has all JSON information.
      * 
      * @since 1.0
      */
@@ -383,9 +393,12 @@ class APIFilter {
         return $this->inputs;
     }
     /**
-     * Returns the array that contains request inputs without filters applied.
+     * Returns an associative array or 'Json' object that contains request 
+     * inputs without filters applied.
      * 
-     * @return array The array that contains request inputs.
+     * @return array|Json|null The array that contains request inputs. If request content 
+     * type is 'application/json', the method will return an object of type 
+     * 'Json'.
      * 
      * @since 1.2
      */
@@ -393,9 +406,123 @@ class APIFilter {
         return $this->nonFilteredInputs;
     }
     /**
+     * 
+     * @param string $path
+     */
+    public function setInputStream($path) {
+        if (file_exists($path)) {
+            $this->inputStreamPath = $path;
+        }
+    }
+    private function _checkExtracted($extraClean, $name, $defaultVal) {
+        $extractedVal = $extraClean->get($name);
+        if ($extractedVal === null) {
+            if ($defaultVal !== null) {
+                $extraClean->add($name, $defaultVal);
+            } else {
+                $extraClean->add($name, null);
+            }
+        }
+    }
+    private function _applyJsonBasicFilter(Json $extraClean, $toBeFiltered, $def) {
+        $paramObj = $def['parameter'];
+        $paramType = $paramObj->getType();
+        $name = $paramObj->getName();
+        $toBeFilteredType = gettype($toBeFiltered);
+        if ($toBeFilteredType == 'string') {
+            $toBeFiltered = strip_tags($toBeFiltered);
+        }
+        if ($paramType == $toBeFilteredType || $toBeFilteredType == 'object' && $paramType == ParamTypes::JSON_OBJ) {
+            if ($paramType == ParamTypes::BOOL) {
+                $extraClean->addBoolean($name, $toBeFiltered);
+            } else if ($paramType == ParamTypes::DOUBLE || $paramType == ParamTypes::INT) {
+                $extraClean->addNumber($name, $toBeFiltered);
+            } else if ($paramType == 'string') {
+                $this->_cleanJsonStr($extraClean, $def, $toBeFiltered);
+            } else if ($paramType == ParamTypes::ARR) {
+                $extraClean->addArray($name, $this->_cleanJsonArray($toBeFiltered, true));
+            } else if ($paramType == ParamTypes::JSON_OBJ) {
+                if ($toBeFiltered instanceof Json) {
+                    $extraClean->add($name, $toBeFiltered);
+                } else {
+                    $extraClean->add($name, null);
+                }
+            }
+        } else {
+            $extraClean->add($name, null);
+        }
+    }
+    private function _getJsonPropVal(Json $jsonx, $propName) {
+        $propVal = $jsonx->get($propName);
+        if ($propVal === null) {
+            $props = $jsonx->getPropsNames();
+            foreach ($props as $propNameX) {
+                $testVal = $jsonx->get($propNameX);
+                if ($testVal instanceof Json) {
+                    $propVal = $this->_getJsonPropVal($testVal, $propName);
+                } else if (gettype($testVal) == 'array') {
+                    $propVal = $this->_getJsonPropArr($testVal, $propName);
+                }
+                if ($propVal !== null) {
+                    return $propVal;
+                }
+            }
+        }
+        return $propVal;
+    }
+    private function _getJsonPropArr($arr, $propName) {
+        $retVal = null;
+        foreach ($arr as $val) {
+            if ($val instanceof Json) {
+                $retVal = $this->_getJsonPropVal($val, $propName);
+            } else if (gettype($val) == 'array') {
+                $retVal = $this->_getJsonPropArr($val, $propName);
+            }
+            if ($retVal !== null) {
+                return $retVal;
+            }
+        }
+    }
+    private function _cleanJsonArray(array $arr, $applyBasicFiltering = false) {
+        $cleanArr = [];
+        
+        foreach ($arr as $val) {
+            $propType = gettype($val);
+            
+            if ($propType == 'string') {
+                if ($applyBasicFiltering) {
+                    $cleanArr[] = filter_var($val, FILTER_SANITIZE_STRING);
+                } else {
+                    $cleanArr[] = $val;
+                }
+            } else if ($propType == 'array') {
+                $cleanArr[] = $this->_cleanJsonArray($val, $applyBasicFiltering);
+            } else if ($propType == 'object' && $val instanceof Json) {
+                $cleanArr[] = $this->_jsonBasicClean($val, $applyBasicFiltering);
+            } else {
+                $cleanArr[] = $val;
+            }
+        }
+
+        return $cleanArr;
+    }
+    private function _cleanJsonStr($extraClean, $def, $toBeFiltered) {
+        $name = $def['parameter']->getName();
+        $extraClean->add($name, filter_var($toBeFiltered));
+
+        foreach ($def['filters'] as $val) {
+            $extraClean->add($name, filter_var($extraClean->get($name), $val, $def['options']));
+        }
+        $cleaned = $extraClean->get($name);
+
+        if (strlen($cleaned) == 0 && $def['options']['options']['allow-empty'] === false) {
+            $extraClean->add($name, null);
+        }
+    }
+    /**
      * Converts a string to an array.
      * 
-     * @param string $array A string in the format '[3,"hello",4.8,"",44,...]'.
+     * @param string|array $arr A string in the format '[3,"hello",4.8,"",44,...]'.
      * 
      * @return string|array If the string has valid array format, an array 
      * which contains the values is returned. If has invalid syntax, the 
@@ -403,7 +530,11 @@ class APIFilter {
      * 
      * @since 1.2.1
      */
-    private static function _filterArray($array) {
+    private static function _filterArray($arr) {
+        if (gettype($arr) == 'array') {
+            return $arr;
+        }
+        $array = filter_var($arr);
         $len = strlen($array);
         $retVal = self::INVALID;
         $arrayValues = [];
@@ -418,7 +549,7 @@ class APIFilter {
                     $tmpArrValue .= $char;
                     $number = self::checkIsNumber($tmpArrValue);
                     $numType = gettype($number);
-                    
+
                     if ($numType == 'integer' || $numType == 'double') {
                         $arrayValues[] = $number;
                         continue;
@@ -438,7 +569,7 @@ class APIFilter {
                         } else {
                             $number = self::checkIsNumber($tmpArrValue);
                             $numType = gettype($number);
-                            
+
                             if ($numType == 'integer' || $numType == 'double') {
                                 $arrayValues[] = $number;
                                 continue;
@@ -451,7 +582,7 @@ class APIFilter {
 
                         if ($result['parsed'] === true) {
                             $x = $result['end'];
-                            $arrayValues[] = filter_var(strip_tags($result[self::TYPES[0]]));
+                            $arrayValues[] = filter_var(strip_tags($result[ParamTypes::STRING]));
                             $tmpArrValue = '';
                             continue;
                         } else {
@@ -472,7 +603,7 @@ class APIFilter {
                     } else {
                         $number = self::checkIsNumber($tmpArrValue);
                         $numType = gettype($number);
-                        
+
                         if ($numType == 'integer' || $numType == 'double') {
                             $arrayValues[] = $number;
                         } else {
@@ -501,7 +632,11 @@ class APIFilter {
      * @since 1.1
      */
     private static function _filterBoolean($boolean) {
-        $booleanLwr = strtolower($boolean);
+        if (gettype($boolean) == 'boolean') {
+            return $boolean;
+        }
+
+        $booleanLwr = strtolower(filter_var($boolean));
         $boolTypes = [
             't' => true,
             'f' => false,
@@ -523,6 +658,43 @@ class APIFilter {
         }
 
         return self::INVALID;
+    }
+    private function _jsonBasicClean(Json $val, $applyBasicFiltering) {
+        $cleanJson = new Json();
+
+        foreach ($val->getPropsNames() as $propName) {
+            $propVal = $val->get($propName);
+            $propType = gettype($propVal);
+
+            if ($propType == 'array') {
+                $cleanJson->add($propName, $this->_cleanJsonArray($propVal, $applyBasicFiltering));
+            } else if ($propType == 'object') {
+                $cleanJson->add($propName, $this->_jsonBasicClean($propVal, $applyBasicFiltering));
+            } else if ($propType == 'string') {
+                if ($applyBasicFiltering) {
+                    $cleanJson->add($propName, filter_var($propVal, FILTER_SANITIZE_STRING));
+                } else {
+                    $cleanJson->add($propName, $propVal);
+                }
+            } else {
+                $cleanJson->add($propName, $propVal);
+            }
+        }
+
+        return $cleanJson;
+    }
+    private function _jsonBody() {
+        if ($this->inputStreamPath !== null) {
+            $body = file_get_contents($this->inputStreamPath);
+        } else {
+            $body = file_get_contents('php://input');
+        }
+        $json = Json::decode($body);
+
+        if (!($json instanceof Json)) {
+            throw new Exception('Request body does not contain valid JSON.');
+        }
+        $this->filterJson($json);
     }
     /**
      * Extract string value from an array that is formed as string.
@@ -556,7 +728,7 @@ class APIFilter {
                 $retVal['string'] = $str;
                 $retVal['parsed'] = true;
                 break;
-            } else if ($ch == '\\') {
+            } else  if ($ch == '\\') {
                 $x++;
                 $nextCh = $arr[$x];
 
@@ -577,7 +749,7 @@ class APIFilter {
                 $retVal['parsed'] = true;
                 $retVal['end'] = $x;
                 break;
-            } else if ($ch != ' ') {
+            } else  if ($ch != ' ') {
                 $retVal['parsed'] = false;
                 break;
             }
@@ -626,5 +798,51 @@ class APIFilter {
         }
 
         return $retVal;
+    }
+    /**
+     * 
+     * @param Json $jsonx
+     */
+    private function filterJson(Json $cleanJson) {
+        $originalInputs = new Json();
+        $extraClean = new Json();
+        $filterDef = $this->getFilterDef();
+        $paramIdx = 'parameter';
+        $optIdx = 'options';
+
+        foreach ($filterDef as $def) {
+            $requParam = $def[$paramIdx];
+            $name = $requParam->getName();
+            $paramType = $requParam->getType();
+            $defaultVal = $requParam->getDefault();
+            $requParamVal = $this->_getJsonPropVal($cleanJson, $name);
+
+            if ($requParamVal !== null) {
+                $toBeFiltered = $requParamVal;
+                $originalInputs->add($name, $toBeFiltered);
+
+                if (isset($def[$optIdx]['filter-func'])) {
+                    $filteredValue = self::_applyCustomFilterFunc($def, $toBeFiltered);
+
+                    if ($paramType == ParamTypes::STRING &&
+                        $filteredValue != self::INVALID &&
+                        strlen($filteredValue) == 0 && 
+                        $def[$optIdx][$optIdx]['allow-empty'] === false) {
+                        //Empty not allowed while custom filter function
+                        //returned empty string
+                        $filteredValue = null;
+                    }
+                    $extraClean->add($name, $filteredValue);
+                    continue;
+                } else {
+                    self::_applyJsonBasicFilter($extraClean, $toBeFiltered, $def);
+                }
+                $this->_checkExtracted($extraClean, $name, $defaultVal);
+            } else if ($requParam->isOptional()) {
+                $defaultVal !== null ? $extraClean->add($name, $defaultVal) : $extraClean->add($name, null);
+            }
+        }
+        $this->inputs = $extraClean;
+        $this->nonFilteredInputs = $originalInputs;
     }
 }
