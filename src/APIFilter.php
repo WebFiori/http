@@ -520,14 +520,35 @@ class APIFilter {
                 }
             } else if ($propType == 'array') {
                 $cleanArr[] = $this->_cleanJsonArray($val, $applyBasicFiltering);
-            } else if ($propType == 'object') {
-                $cleanArr[] = $this->filterJson($val, $applyBasicFiltering);
+            } else if ($propType == 'object' && $val instanceof Json) {
+                $cleanArr[] = $this->_jsonBasicClean($val, $applyBasicFiltering);
             } else {
                 $cleanArr[] = $val;
             }
         }
         
         return $cleanArr;
+    }
+    private function _jsonBasicClean(Json $val, $applyBasicFiltering) {
+        $cleanJson = new Json();
+        foreach ($val->getPropsNames() as $propName) {
+            $propVal = $val->get($propName);
+            $propType = gettype($propVal);
+            if ($propType == 'array') {
+                $cleanJson->add($propName, $this->_cleanJsonArray($propVal, $applyBasicFiltering));
+            } else if ($propType == 'object') {
+                $cleanJson->add($propName, $this->_jsonBasicClean($propVal, $applyBasicFiltering));
+            } else if ($propType == 'string') {
+                if ($applyBasicFiltering) {
+                    $cleanJson->add($propName, filter_var($propVal, FILTER_SANITIZE_STRING));
+                } else {
+                    $cleanJson->add($propName, $propVal);
+                }
+            } else {
+                $cleanJson->add($propName, $propVal);
+            }
+        }
+        return $cleanJson;
     }
     /**
      * Returns an array that contains filter constraints.
