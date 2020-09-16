@@ -4,7 +4,7 @@ namespace restEasy\tests;
 use webfiori\json\Json;
 use PHPUnit\Framework\TestCase;
 use webfiori\restEasy\WebService;
-use webfiori\restEasy\WebServicesSet;
+use webfiori\restEasy\WebServicesManager;
 /**
  * Description of WebAPITest
  *
@@ -52,7 +52,9 @@ class WebAPITest extends TestCase {
                 .'"auth-actions":['
                 .'{"name":"api-info", '
                 .'"since":"1.0.0", '
-                .'"description":"Returns a JSON string that contains all needed information about all end points in the given API.", '
+                .'"description":"Returns a JSON string that contains all '
+                . 'needed information about all end points which are registered '
+                . 'under given manager.", '
                 .'"request-methods":["GET"], '
                 .'"parameters":['
                 .'{"name":"version", '
@@ -116,8 +118,7 @@ class WebAPITest extends TestCase {
         $this->assertEquals('{'
                 .'"api-version":"1.0.1", '
                 .'"description":"NO DESCRIPTION", '
-                .'"actions":[], '
-                .'"auth-actions":['
+                .'"actions":['
                 .'{"name":"sum-array", '
                 .'"since":"1.0.1", '
                 .'"description":"Returns a JSON string that has the sum of array of numbers.", '
@@ -202,12 +203,12 @@ class WebAPITest extends TestCase {
         $this->assertEquals('1.0.1',$api->getVersion());
         $this->assertEquals('NO DESCRIPTION',$api->getDescription());
         $api->setDescription('Test API.');
-        $this->assertEquals(1,count($api->getActions()));
+        $this->assertEquals(1,count($api->getServices()));
         $this->assertEquals(4,count($api->getAuthActions()));
         $this->assertEquals('Test API.',$api->getDescription());
-        $this->assertTrue($api->getActionByName('api-info') instanceof WebService);
-        $this->assertNull($api->getActionByName('request-info'));
-        $this->assertNull($api->getActionByName('api-info-2'));
+        $this->assertTrue($api->getServiceByName('api-info') instanceof WebService);
+        $this->assertNull($api->getServiceByName('request-info'));
+        $this->assertNull($api->getServiceByName('api-info-2'));
 
         return $api;
     }
@@ -226,7 +227,7 @@ class WebAPITest extends TestCase {
     }
     /**
      * @depends testSumTwoIntegers05
-     * @param WebServicesSet $api
+     * @param WebServicesManager $api
      */
     public function testGetNonFiltered00($api) {
         $nonFiltered = $api->getNonFiltered();
