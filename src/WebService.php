@@ -37,11 +37,11 @@ use webfiori\json\JsonI;
  * 
  * @author Ibrahim
  * 
- * @version 1.0
+ * @version 1.0.1
  * 
- * @since 1.5.1 
+ * @since 1.5.0 
  */
-class WebService implements JsonI {
+abstract class WebService implements JsonI {
     /**
      * An array that contains the names of request methods.
      * 
@@ -73,6 +73,7 @@ class WebService implements JsonI {
         'PATCH',
         'CONNECT'
     ];
+    private $owner;
     /**
      * An optional description for the action.
      * 
@@ -146,6 +147,26 @@ class WebService implements JsonI {
         $this->responses = [];
     }
     /**
+     * 
+     * @return WebServicesManager|null
+     */
+    public function getManager() {
+        return $this->owner;
+    }
+    /**
+     * 
+     * @param WebServicesManager|null $manager
+     */
+    public function setManager($manager) {
+        if ($manager === null) {
+            $this->owner = null;
+        } else if ($manager instanceof WebServicesManager) {
+            $this->owner = $manager;
+        }
+    }
+    abstract function isAuthorized();
+    abstract function processRequest($inputs);
+    /**
      * Returns an array that contains the value of the header 'authorization'.
      * 
      * 
@@ -155,7 +176,7 @@ class WebService implements JsonI {
      * ('Basic', 'Bearer', 'Digest', etc...). The index 'credentials' will contain 
      * the credentials which can be used to authenticate the client.
      * 
-     *  @since 1.5.1
+     *  @since 1.0.1
      */
     public function getAuthHeader() {
         $retVal = [
@@ -211,6 +232,61 @@ class WebService implements JsonI {
      */
     public final function &getParameters() {
         return $this->parameters;
+    }
+    /**
+     * Sends Back a data using specific content type and specific response code.
+     * 
+     * @param string $conentType Response content type (such as 'application/json')
+     * 
+     * @param mixed $data Any data to send back. Mostly, it will be a string.
+     * 
+     * @param int $code HTTP response code that will be used to send the data. 
+     * Default is HTTP code 200 - Ok.
+     * 
+     * @since 1.0.1
+     */
+    public function send($conentType, $data, $code = 200) {
+        $manager = $this->getManager();
+        
+        if ($manager !== null) {
+            $manager->send($conentType, $data, $code);
+        }
+    }
+    /**
+     * Sends a JSON response to the client.
+     * 
+     * The basic format of the message will be as follows:
+     * <p>
+     * {<br/>
+     * &nbsp;&nbsp;"message":"Action is not set.",<br/>
+     * &nbsp;&nbsp;"type":"error"<br/>
+     * &nbsp;&nbsp;"http-code":404<br/>
+     * &nbsp;&nbsp;"more-info":EXTRA_INFO<br/>
+     * }
+     * </p>
+     * Where EXTRA_INFO can be a simple string or any JSON data.
+     * 
+     * @param string $message The message to send back.
+     * 
+     * @param string $type A string that tells the client what is the type of 
+     * the message. The developer can specify his own message types such as 
+     * 'debug', 'info' or any string. If it is empty string, it will be not 
+     * included in response payload.
+     * 
+     * @param int $code Response code (such as 404 or 200). Default is 200.
+     * 
+     * @param mixed $otherInfo Any other data to send back it can be a simple 
+     * string, an object... . If null is given, the parameter 'more-info' 
+     * will be not included in response. Default is empty string. Default is null.
+     * 
+     * @since 1.0.1
+     */
+    public function sendResponse($message,$type = '',$code = 200,$otherInfo = null) {
+        $manager = $this->getManager();
+        
+        if ($manager !== null) {
+            $manager->sendResponse($message, $type, $code, $otherInfo);
+        }
     }
     /**
      * 
