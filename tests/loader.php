@@ -46,9 +46,10 @@ require_once $rootDir.'vendor'.$DS.'webfiori'.$DS.'jsonx'.$DS.'src'.$DS.'JsonI.p
 require_once $rootDir.'vendor'.$DS.'webfiori'.$DS.'jsonx'.$DS.'src'.$DS.'Json.php';
 require_once $rootDir.'src'.$DS.'ParamTypes.php';
 require_once $rootDir.'src'.$DS.'WebService.php';
-require_once $rootDir.'src'.$DS.'APIAction.php';
 require_once $rootDir.'src'.$DS.'APIFilter.php';
 require_once $rootDir.'src'.$DS.'RequestParameter.php';
-require_once $rootDir.'src'.$DS.'WebServicesSet.php';
+require_once $rootDir.'src'.$DS.'WebServicesManager.php';
+require_once $rootDir.'src'.$DS.'ManagerInfoService.php';
 require_once $rootDir.'tests'.$DS.'SampleService.php';
+require_once $rootDir.'tests'.$DS.'TestServiceObj.php';
 fwrite($stderr,"Classes Loaded.\n");
