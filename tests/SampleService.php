@@ -3,43 +3,42 @@ namespace restEasy\tests;
 
 use webfiori\json\Json;
 use webfiori\restEasy\RequestParameter;
-use webfiori\restEasy\WebService;
-use webfiori\restEasy\WebServicesSet;
+use webfiori\restEasy\WebServicesManager;
 /**
  * Description of SampleAPI
  *
  * @author Eng.Ibrahim
  */
-class SampleService extends WebServicesSet {
+class SampleService extends WebServicesManager {
     public function __construct() {
         parent::__construct();
-        $a00 = new WebService('add-two-integers');
+        $a00 = new TestServiceObj('add-two-integers');
         $a00->setDescription('Returns a JSON string that has the sum of two integers.');
         $a00->addRequestMethod('get');
         $a00->addParameter(new RequestParameter('first-number', 'integer'));
         $a00->addParameter(new RequestParameter('second-number', 'integer'));
-        $this->addAction($a00);
+        $this->addService($a00);
 
         $this->setVersion('1.0.1');
-        $a01 = new WebService('sum-array');
+        $a01 = new TestServiceObj('sum-array');
         $a01->addRequestMethod('post');
         $a01->addRequestMethod('get');
         $a01->setDescription('Returns a JSON string that has the sum of array of numbers.');
         $a01->addParameter(new RequestParameter('numbers', 'array'));
-        $this->addAction($a01,true);
+        $this->addService($a01,true);
 
-        $a02 = new WebService('get-user-profile');
+        $a02 = new TestServiceObj('get-user-profile');
         $a02->addRequestMethod('post');
         $a02->setDescription('Returns a JSON string that has user profile info.');
         $a02->addParameter(new RequestParameter('user-id', 'integer'));
-        $this->addAction($a02,true);
+        $this->addService($a02,true);
 
-        $a03 = new WebService('do-nothing');
+        $a03 = new TestServiceObj('do-nothing');
         $a03->addRequestMethod('get');
         $a03->addRequestMethod('post');
         $a03->addRequestMethod('put');
         $a03->addRequestMethod('delete');
-        $this->addAction($a03,true);
+        $this->addService($a03,true);
     }
     /**
      * 
@@ -89,7 +88,7 @@ class SampleService extends WebServicesSet {
                         $this->send('application/json', $j);
                     }
                 } else {
-                    $this->actionNotImpl();
+                    $this->serviceNotImplemented();
                 }
             }
         }
