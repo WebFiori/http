@@ -39,7 +39,7 @@ use webfiori\json\JsonI;
  * 
  * @version 1.0
  * 
- * @since 1.5.0 
+ * @since 1.5.1 
  */
 class WebService implements JsonI {
     /**
@@ -144,6 +144,48 @@ class WebService implements JsonI {
         $this->reqMethods = [];
         $this->parameters = [];
         $this->responses = [];
+    }
+    /**
+     * Returns an array that contains the value of the header 'authorization'.
+     * 
+     * 
+     * @return array The array will have two indices, the first one with 
+     * name 'scheme' and the second one with name 'credentials'. The index 'scheme' 
+     * will contain the name of the scheme which is used to authenticate 
+     * ('Basic', 'Bearer', 'Digest', etc...). The index 'credentials' will contain 
+     * the credentials which can be used to authenticate the client.
+     * 
+     *  @since 1.5.1
+     */
+    public function getAuthHeader() {
+        $retVal = [
+            'scheme' => '',
+            'credentials' => ''
+        ];
+        $headerVal = '';
+        if (function_exists('apache_request_headers')) {
+            $headers = apache_request_headers();
+            
+            foreach ($headers as $k => $v) {
+                $lowerHeaderName = strtolower($k);
+                if ($lowerHeaderName == 'authorization') {
+                    $headerVal = filter_var($v, FILTER_SANITIZE_STRING);
+                    break;
+                }
+            }
+        } else if (isset($_SERVER) && isset($_SERVER['HTTP_AUTHORIZATION'])) {
+            $headerVal = filter_var($_SERVER['HTTP_AUTHORIZATION'], FILTER_SANITIZE_STRING);
+        }
+        
+        if (strlen($headerVal) != 0) {
+            $split = explode(' ', $headerVal);
+
+            if (count($split) == 2) {
+                $retVal['scheme'] = strtolower($split[0]);
+                $retVal['credentials'] = $split[1];
+            }
+        }
+        return $retVal;
     }
     /**
      * Returns an array that contains all possible requests methods at which the 
