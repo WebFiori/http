@@ -46,7 +46,7 @@ use webfiori\json\JsonI;
  * 
  * @version 1.4.7
  */
-abstract class WebServicesSet implements JsonI {
+class WebServicesManager implements JsonI {
     /**
      * A constant which is used to indicate that the message that will be 
      * sent is of type error
@@ -100,14 +100,6 @@ abstract class WebServicesSet implements JsonI {
      * @since 1.0 
      */
     private $apiVersion;
-    /**
-     * Actions that requires authentication in order to perform.
-     * 
-     * @var array
-     * 
-     * @since 1.0 
-     */
-    private $authActions;
     /**
      * The filter used to sanitize request parameters.
      * 
@@ -178,19 +170,11 @@ abstract class WebServicesSet implements JsonI {
         if (!in_array($this->requestMethod, WebService::METHODS)) {
             $this->requestMethod = 'GET';
         }
-        $this->actions = [];
-        $this->authActions = [];
         $this->filter = new APIFilter();
-        $action = new WebService('api-info');
-        $action->setDescription('Returns a JSON string that contains all needed information about all end points in the given API.');
-        $action->addRequestMethod('get');
-        $action->addParameter(new RequestParameter('version', 'string', true));
-        $action->getParameterByName('version')->setDescription('Optional parameter. '
-                .'If set, the information that will be returned will be specific '
-                .'to the given version number.');
-        $this->addAction($action,true);
+        $this->actions = [];
         $this->invParamsArr = [];
         $this->missingParamsArr = [];
+        $this->addService(new ManagerInfoService());
     }
     /**
      * Sends a response message to indicate that an action is not implemented.
@@ -198,7 +182,7 @@ abstract class WebServicesSet implements JsonI {
      * This method will send back a JSON string in the following format:
      * <p>
      * {<br/>
-     * &nbsp;&nbsp;"message":"Action not implemented.",<br/>
+     * &nbsp;&nbsp;"message":"Service not implemented.",<br/>
      * &nbsp;&nbsp;"type":"error",<br/>
      * }
      * </p>
@@ -206,8 +190,8 @@ abstract class WebServicesSet implements JsonI {
      * 
      * @since 1.0
      */
-    public function actionNotImpl() {
-        $this->sendResponse('Action not implemented.', self::E, 404);
+    public function serviceNotImplemented() {
+        $this->sendResponse('Service not implemented.', self::E, 404);
     }
     /**
      * Sends a response message to indicate that an action is not supported by the API.
@@ -230,48 +214,24 @@ abstract class WebServicesSet implements JsonI {
      * 
      * @param WebService $service The web service that will be added.
      * 
-     * @param boolean $reqPermissions Set to true if the action require user login or 
-     * any additional permissions. Default is false. If this one is set to 
-     * true, the method 'WebservicesSet::isAuthorized()' will be called to check 
-     * for permissions.
-     * 
-     * @return boolean true if the action is added. FAlSE otherwise.
-     * 
      * @since 1.0
      * 
      * @deprecated since version 1.4.7 Use WebservicesSet::addService()
      */
-    public function addAction($service,$reqPermissions = false) {
-        if ($service instanceof WebService && (!in_array($service, $this->getActions()) && !in_array($service, $this->getAuthActions()))) {
-            $service->setSince($this->getVersion());
-
-            if ($reqPermissions === true) {
-                array_push($this->authActions, $service);
-            } else {
-                array_push($this->actions, $service);
-            }
-
-            return true;
-        }
-
-        return false;
+    private function addAction(WebService $service) {
+        $this->actions[$service->getName()] = $service;
+        $service->setManager($this);
     }
     /**
      * Adds new web service to the set of web services.
      * 
      * @param WebService $service The web service that will be added.
      * 
-     * @param boolean $reqPermissions Set to true if the action require user login or 
-     * any additional permissions. Default is false. If this one is set to 
-     * true, the method 'WebservicesSet::isAuthorized()' will be called to check 
-     * for permissions.
-     * 
-     * @return boolean true if the action is added. false otherwise.
      * 
      * @since 1.0
      */
-    public function addService($service, $reqPermissions = false) {
-        return $this->addAction($service, $reqPermissions);
+    public function addService(WebService $service) {
+        $this->addAction($service);
     }
     /**
      * Sends a response message to indicate that request content type is 
@@ -334,7 +294,7 @@ abstract class WebServicesSet implements JsonI {
      * 
      * @deprecated since version 1.4.6 Use WebServicesSet::getCalledServiceName() instead.
      */
-    public function getAction() {
+    private function getAction() {
         $reqMeth = $this->getRequestMethod();
 
         $serviceIdx = ['action','service', 'service-name'];
@@ -378,54 +338,32 @@ abstract class WebServicesSet implements JsonI {
      * 
      * @param string $serviceName The name of the service.
      * 
-     * @return WebService|null The method will return an object of type 'APIAction' 
+     * @return WebService|null The method will return an object of type 'WebService' 
      * if the service is found. If no service was found which has the given name, 
      * The method will return null.
      * 
      * @since 1.3
      */
-    public function getActionByName($serviceName) {
+    public function getServiceByName($serviceName) {
         $trimmed = trim($serviceName);
 
-        if (strlen($trimmed) != 0) {
-            foreach ($this->getActions() as $action) {
-                if ($action->getName() == $trimmed) {
-                    return $action;
-                }
-            }
-
-            foreach ($this->getAuthActions() as $action) {
-                if ($action->getName() == $trimmed) {
-                    return $action;
-                }
-            }
+        if(isset($this->actions[$serviceName])) {
+            return $this->actions[$serviceName];
         }
 
         return null;
     }
     /**
-     * Returns an array that contains all added web services that does not require authentication.
+     * Returns an array that contains all added web services.
      * 
-     * @return array An array that contains an objects of type APIAction. 
-     * The services on the returned array does not require authentication.
+     * @return array An associative array that contains web services as objects. 
+     * The indices of the array are services names and the values are objects 
+     * of type 'WebService'.
      * 
      * @since 1.0
      */
-    public final function getActions() {
+    public final function getServices() {
         return $this->actions;
-    }
-    /**
-     * Returns an array that contains all added web services that require authentication.
-     * 
-     * @return array An array that contains an objects of type APIAction. 
-     * The array will contains the services which require authentication. The 
-     * authentication process is performed in the body of the method 
-     * 'WebServicesSet::isAuthorized()'.
-     * 
-     * @since 1.0
-     */
-    public final function getAuthActions() {
-        return $this->authActions;
     }
     /**
      * Returns the name of the service which is being called.
@@ -614,30 +552,8 @@ abstract class WebServicesSet implements JsonI {
     public final function isActionSupported() {
         $action = $this->getCalledServiceName();
 
-        foreach ($this->getActions() as $val) {
-            if ($val->getName() == $action) {
-                return true;
-            }
-        }
-
-        foreach ($this->getAuthActions() as $val) {
-            if ($val->getName() == $action) {
-                return true;
-            }
-        }
-
-        return false;
+        return $this->getServiceByName($action) !== null;
     }
-    /**
-     * Checks if a user is authorized to call a srvice that require authorization.
-     * 
-     * @return boolean The method must be implemented by the sub-class in a way 
-     * that makes it return true in case the user is allowed to call the 
-     * service. If the user is not permitted, the method must return false.
-     * 
-     * @since 1.1
-     */
-    public abstract function isAuthorized();
     /**
      * Checks if request content type is supported by the service or not (For 'POST' 
      * and PUT requests only).
@@ -741,7 +657,7 @@ abstract class WebServicesSet implements JsonI {
 
         if ($this->isContentTypeSupported()) {
             if ($this->_checkAction()) {
-                $actionObj = $this->getActionByName($this->getCalledServiceName());
+                $actionObj = $this->getServiceByName($this->getCalledServiceName());
                 $params = $actionObj->getParameters();
                 $this->filter->clearParametersDef();
                 $this->filter->clearInputs();
@@ -799,12 +715,6 @@ abstract class WebServicesSet implements JsonI {
         }
     }
     /**
-     * A method that is used to process the requested service.
-     * 
-     * @since 1.1
-     */
-    public abstract function processRequest();
-    /**
      * Reads the content of output stream.
      * 
      * This method is used to read the content of the custom output stream. The 
@@ -831,7 +741,6 @@ abstract class WebServicesSet implements JsonI {
      * @since 1.4.5
      */
     public function removeServices() {
-        $this->authActions = [];
         $this->actions = [];
     }
     /**
@@ -996,10 +905,8 @@ abstract class WebServicesSet implements JsonI {
 
             if (is_file($stream)) {
                 return $this->setOutputStreamHelper($trimmed, 'r+');
-            } else {
-                if ($create) {
-                    return $this->setOutputStreamHelper($trimmed, 'w');
-                }
+            } else if ($create) {
+                return $this->setOutputStreamHelper($trimmed, 'w');
             }
         }
 
@@ -1051,47 +958,34 @@ abstract class WebServicesSet implements JsonI {
         $vNum = isset($i['version']) ? $i['version'] : null;
 
         if ($vNum === null || $vNum == false) {
-            $json->add('actions', $this->getActions());
-            $json->add('auth-actions', $this->getAuthActions());
+            $json->add('actions', $this->getServices());
         } else {
             $actionsArr = [];
 
-            foreach ($this->getActions() as $a) {
+            foreach ($this->getServices() as $a) {
                 if ($a->getSince() == $vNum) {
                     array_push($actionsArr, $a);
                 }
             }
-            $authActionsArr = [];
-
-            foreach ($this->getAuthActions() as $a) {
-                if ($a->getSince() == $vNum) {
-                    array_push($authActionsArr, $a);
-                }
-            }
             $json->add('actions', $actionsArr);
-            $json->add('auth-actions', $authActionsArr);
         }
 
         return $json;
     }
     private function _AfterParamsCheck($processReq) {
         if ($processReq) {
-            if ($this->_isAuthorizedAction()) {
-                if ($this->getCalledServiceName() == 'api-info') {
-                    $this->send('application/json', $this->toJSON());
-                } else {
-                    $this->processRequest();
-                }
+            $service = $this->getServiceByName($this->getCalledServiceName());
+            $isAuth = $service->isAuthorized() === null || $service->isAuthorized();
+            if ($isAuth) {
+                $service->processRequest($this->getInputs());
             } else {
                 $this->notAuth();
             }
         } else {
             if (count($this->missingParamsArr) != 0) {
                 $this->missingParams();
-            } else {
-                if (count($this->invParamsArr) != 0) {
-                    $this->invParams();
-                }
+            } else if (count($this->invParamsArr) != 0) {
+                $this->invParams();
             }
         }
     }
@@ -1115,44 +1009,19 @@ abstract class WebServicesSet implements JsonI {
         $action = $this->getCalledServiceName();
         //first, check if action is set and not null
         if ($action != null) {
+            $calledService = $this->getServiceByName($action);
             //after that, check if action is supported by the API.
-            if ($this->isActionSupported()) {
-                $isValidRequestMethod = false;
-
-                foreach ($this->getAuthActions() as $val) {
-                    if ($val->getName() == $action) {
-                        $reqMethods = $val->getRequestMethods();
-
-                        foreach ($reqMethods as $method) {
-                            if ($method == $this->getRequestMethod()) {
-                                $isValidRequestMethod = true;
-                            }
-                        }
-
-                        if (!$isValidRequestMethod) {
-                            $this->requestMethodNotAllowed();
-                        }
-
-                        return $isValidRequestMethod;
+            if ($action !== null) {
+                $allowedMethods = $calledService->getRequestMethods();
+                if (count($allowedMethods) != 0) {
+                    $isValidRequestMethod = in_array($this->getRequestMethod(), $allowedMethods);
+                    if (!$isValidRequestMethod) {
+                        $this->requestMethodNotAllowed();
+                    } else {
+                        return true;
                     }
-                }
-
-                foreach ($this->getActions() as $val) {
-                    if ($val->getName() == $action) {
-                        $reqMethods = $val->getRequestMethods();
-
-                        foreach ($reqMethods as $method) {
-                            if ($method == $this->getRequestMethod()) {
-                                $isValidRequestMethod = true;
-                            }
-                        }
-
-                        if (!$isValidRequestMethod) {
-                            $this->requestMethodNotAllowed();
-                        }
-
-                        return $isValidRequestMethod;
-                    }
+                } else {
+                    $this->sendResponse('Request methods of the service are not set in code.', self::E, 404);
                 }
             } else {
                 $this->actionNotSupported();
@@ -1163,26 +1032,7 @@ abstract class WebServicesSet implements JsonI {
 
         return false;
     }
-    /**
-     * Checks if a client is authorized to call the service using the given 
-     * service name in request body.
-     * 
-     * @return boolean The method will return true if the client is allowed 
-     * to call the service using the name in request body.
-     * 
-     * @since 1.3.1
-     */
-    private function _isAuthorizedAction() {
-        $action = $this->getCalledServiceName();
 
-        foreach ($this->getAuthActions() as $val) {
-            if ($val->getName() == $action) {
-                return $this->isAuthorized();
-            }
-        }
-
-        return true;
-    }
     private function setOutputStreamHelper($trimmed, $mode) {
         $tempStream = fopen($trimmed, $mode);
 
