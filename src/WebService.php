@@ -147,6 +147,29 @@ abstract class WebService implements JsonI {
         $this->responses = [];
     }
     /**
+     * Returns an associative array or an object of type Json of filtered request inputs.
+     * 
+     * The indices of the array will represent request parameters and the 
+     * values of each index will represent the value which was set in 
+     * request body. The values will be filtered and might not be exactly the same as 
+     * the values passed in request body. Note that if a parameter is optional and not 
+     * provided in request body, its value will be set to 'null'. Note that 
+     * if request content type is 'application/json', only basic filtering will 
+     * be applied. Also, parameters in this case don't apply.
+     * 
+     * @return array|Json|null An array of filtered request inputs. This also can 
+     * be an object of type 'Json' if request content type was 'application/json'. 
+     * If no manager was associated with the service, the method will return null.
+     * 
+     * @since 1.0.1
+     */
+    public function getInputs() {
+        $manager = $this->getManager();
+        if ($manager !== null) {
+            return $manager->getInputs();
+        }
+    }
+    /**
      * 
      * @return WebServicesManager|null
      */
