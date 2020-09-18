@@ -73,7 +73,22 @@ abstract class WebService implements JsonI {
         'PATCH',
         'CONNECT'
     ];
+    /**
+     * This is used to indicate if authentication is required when the service 
+     * is called.
+     * 
+     * @var boolean
+     * 
+     * @since 1.0.1 
+     */
     private $requreAuth;
+    /**
+     * The manager that the service belongs to.
+     * 
+     * @var WebServicesManager
+     * 
+     * @since 1.0.1 
+     */
     private $owner;
     /**
      * An optional description for the action.
@@ -148,9 +163,31 @@ abstract class WebService implements JsonI {
         $this->responses = [];
         $this->requreAuth = true;
     }
+    /**
+     * Sets the value of the property 'requreAuth'.
+     * 
+     * The property is used to tell if the authorization step will be skipped 
+     * or not when the service is called. 
+     * 
+     * @param boolean $bool True to make authorization step required. False to 
+     * skip the authorization step.
+     * 
+     * @since 1.0.1
+     */
     public function setIsAuthRequred($bool) {
         $this->requreAuth = $bool === true;
     }
+    /**
+     * Returns the value of the property 'requreAuth'.
+     * 
+     * The property is used to tell if the authorization step will be skipped 
+     * or not when the service is called. 
+     * 
+     * @return boolean The method will return true if authorization step required. 
+     * False if the authorization step will be skipped. Default return value is true.
+     * 
+     * @since 1.0.1
+     */
     public function isAuthRequred() {
         return $this->requreAuth;
     }
@@ -195,7 +232,29 @@ abstract class WebService implements JsonI {
             $this->owner = $manager;
         }
     }
+    /**
+     * Checks if the client is authorized to use the service or not.
+     * 
+     * The developer should implement this method in a way it returns a boolean. 
+     * If the method returns true, it means the client is allowed to use the service. 
+     * If the method returns false, then he is not authorized and a 401 error 
+     * code will be sent back.
+     * 
+     * @since 1.0.1
+     */
     abstract function isAuthorized();
+    /**
+     * Process client's request.
+     * 
+     * This method must be implemented in a way it sends back a response after 
+     * processing the request.
+     * 
+     * @param array|Json $inputs The inputs which are taken from the request body. 
+     * This can be an array or an object of type 'Json'. If request content type is 
+     * 'application/json', this will be an object of type 'Json'.
+     * 
+     * @since 1.0.1
+     */
     abstract function processRequest($inputs);
     /**
      * Returns an array that contains the value of the header 'authorization'.
