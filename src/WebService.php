@@ -73,6 +73,7 @@ abstract class WebService implements JsonI {
         'PATCH',
         'CONNECT'
     ];
+    private $requreAuth;
     private $owner;
     /**
      * An optional description for the action.
@@ -145,6 +146,13 @@ abstract class WebService implements JsonI {
         $this->reqMethods = [];
         $this->parameters = [];
         $this->responses = [];
+        $this->requreAuth = true;
+    }
+    public function setIsAuthRequred($bool) {
+        $this->requreAuth = $bool === true;
+    }
+    public function isAuthRequred() {
+        return $this->requreAuth;
     }
     /**
      * Returns an associative array or an object of type Json of filtered request inputs.

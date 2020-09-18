@@ -8,6 +8,7 @@
 
 namespace restEasy\tests;
 use webfiori\restEasy\WebService;
+use webfiori\restEasy\RequestParameter;
 
 /**
  * Description of AbstractNumbersService
@@ -15,7 +16,10 @@ use webfiori\restEasy\WebService;
  * @author Ibrahim
  */
 abstract class AbstractNumbersService extends WebService {
-    //put your code here
+    public function __construct($name) {
+        parent::__construct($name);
+        $this->addParameter(new RequestParameter('pass','string'));
+    }
     public function isAuthorized() {
         $inputs = $this->getInputs();
         $pass = isset($inputs['pass']) ? $inputs['pass'] : null;
@@ -32,3 +36,12 @@ abstract class AbstractNumbersService extends WebService {
     }
 
 }
+
+
+
+
+
+
+
+
+

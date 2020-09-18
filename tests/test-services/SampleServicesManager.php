@@ -18,16 +18,7 @@ class SampleServicesManager extends WebServicesManager {
         $this->setVersion('1.0.1');
         
         $this->addService(new SumNumbersService());
-
-        
-        $this->addService($a02,true);
-
-        $a03 = new TestServiceObj('do-nothing');
-        $a03->addRequestMethod('get');
-        $a03->addRequestMethod('post');
-        $a03->addRequestMethod('put');
-        $a03->addRequestMethod('delete');
-        $this->addService($a03,true);
+        $this->addService(new GetUserProfileService());
     }
     /**
      * 
@@ -57,12 +48,10 @@ class SampleServicesManager extends WebServicesManager {
         } else {
             if ($action == 'sum-array') {
                 
+            } else if ($action == 'get-user-profile') {
+
             } else {
-                if ($action == 'get-user-profile') {
-                    
-                } else {
-                    $this->serviceNotImplemented();
-                }
+                $this->serviceNotImplemented();
             }
         }
     }

@@ -9,7 +9,7 @@
 namespace restEasy\tests;
 
 use webfiori\restEasy\RequestParameter;
-
+use webfiori\json\Json;
 /**
  * Description of SumNumbersService
  *

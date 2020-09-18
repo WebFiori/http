@@ -3,6 +3,7 @@
 namespace restEasy\tests;
 
 use webfiori\restEasy\RequestParameter;
+use webfiori\json\Json;
 /**
  * Description of GetUserProfileService
  *
@@ -17,7 +18,7 @@ class GetUserProfileService extends AbstractNumbersService {
     }
     public function processRequest($inputs) {
         if ($inputs['user-id'] <= 0) {
-            $this->databaseErr();
+            $this->getManager()->databaseErr();
         } else {
             $j = new Json();
             $j->add('user-name', 'Ibrahim');

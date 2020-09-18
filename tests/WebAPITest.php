@@ -20,33 +20,18 @@ class WebAPITest extends TestCase {
     /**
      * @test
      */
-    public function testAddAction00() {
-        $api = new SampleServicesManager();
-        $action00 = null;
-        $this->assertFalse($api->addAction($action00));
-        $action01 = 1;
-        $this->assertFalse($api->addAction($action01));
-        $action02 = 'string';
-        $this->assertFalse($api->addAction($action02));
-        $action03 = true;
-        $this->assertFalse($api->addAction($action03));
-    }
-    /**
-     * @test
-     */
     public function testConstructor00() {
         $this->clrearVars();
         putenv('REQUEST_METHOD=GET');
         $api = new SampleServicesManager();
         $this->assertEquals('GET',$api->getRequestMethod());
-        $this->assertNull($api->getAction());
+        $this->assertNull($api->getCalledServiceName());
         $this->assertEquals('1.0.1',$api->getVersion());
         $this->assertEquals('NO DESCRIPTION',$api->getDescription());
         $api->setDescription('Test API.');
-        $this->assertEquals(1,count($api->getServices()));
-        $this->assertEquals(4,count($api->getAuthActions()));
+        $this->assertEquals(3,count($api->getServices()));
         $this->assertEquals('Test API.',$api->getDescription());
-        $this->assertTrue($api->getServiceByName('api-info') instanceof WebService);
+        $this->assertTrue($api->getServiceByName('sum-array') instanceof WebService);
         $this->assertNull($api->getServiceByName('request-info'));
         $this->assertNull($api->getServiceByName('api-info-2'));
 
@@ -63,7 +48,7 @@ class WebAPITest extends TestCase {
         $api = new SampleServicesManager();
         $api->setOutputStream($this->outputStreamName);
         $api->process();
-        $this->assertEquals('{"message":"Action not implemented.", "type":"error", "http-code":404}', $api->readOutputStream());
+        $this->assertEquals('{"message":"Service not supported.", "type":"error", "http-code":404}', $api->readOutputStream());
     }
     /**
      * @depends testSumTwoIntegers05
@@ -160,7 +145,7 @@ class WebAPITest extends TestCase {
         $api = new SampleServicesManager();
         $api->setOutputStream($this->outputStreamName);
         $api->process();
-        $this->assertEquals('{"message":"Action not supported.", "type":"error", "http-code":404}', $api->readOutputStream());
+        $this->assertEquals('{"message":"Service not supported.", "type":"error", "http-code":404}', $api->readOutputStream());
     }
     /**
      * @test
@@ -194,7 +179,7 @@ class WebAPITest extends TestCase {
         $api = new SampleServicesManager();
         $api->setOutputStream($this->outputStreamName);
         $api->process();
-        $this->assertEquals('{"message":"The following required parameter(s) where missing from the request body: \'numbers\'.", "type":"error", "http-code":404}', $api->readOutputStream());
+        $this->assertEquals('{"message":"The following required parameter(s) where missing from the request body: \'pass\', \'numbers\'.", "type":"error", "http-code":404}', $api->readOutputStream());
     }
     /**
      * @test
@@ -205,6 +190,7 @@ class WebAPITest extends TestCase {
         $_SERVER['CONTENT_TYPE'] = 'application/x-www-form-urlencoded';
         $_POST['action'] = 'sum-array';
         $_POST['numbers'] = '[m v b]';
+        $_POST['pass'] = '123';
         $api = new SampleServicesManager();
         $api->setOutputStream($this->outputStreamName);
         $api->process();
@@ -219,6 +205,7 @@ class WebAPITest extends TestCase {
         $_SERVER['CONTENT_TYPE'] = 'application/x-www-form-urlencoded';
         $_POST['action'] = 'sum-array';
         $_POST['numbers'] = '[1,2,"as",1.9,\'hello\',10]';
+        $_POST['pass'] = '1234';
         $api = new SampleServicesManager();
         $api->setOutputStream($this->outputStreamName);
         $api->process();
@@ -248,6 +235,7 @@ class WebAPITest extends TestCase {
         $_GET['first-number'] = '100';
         $_GET['second-number'] = '300';
         $_GET['action'] = 'add-two-integers';
+        $_GET['pass'] = '123';
         $api = new SampleServicesManager();
         $api->setOutputStream($this->outputStreamName);
         $api->process();
@@ -262,6 +250,7 @@ class WebAPITest extends TestCase {
         $_GET['first-number'] = '-100';
         $_GET['second-number'] = '300';
         $_GET['action'] = 'add-two-integers';
+        $_GET['pass'] = '123';
         $api = new SampleServicesManager();
         $api->setOutputStream($this->outputStreamName);
         $api->process();
@@ -277,6 +266,7 @@ class WebAPITest extends TestCase {
         $_GET['first-number'] = '1.8.89';
         $_GET['second-number'] = '300';
         $_GET['action'] = 'add-two-integers';
+        $_GET['pass'] = '123';
         $api = new SampleServicesManager();
         $api->setOutputStream($this->outputStreamName);
         $api->process();
@@ -291,6 +281,7 @@ class WebAPITest extends TestCase {
         $_GET['first-number'] = 'one';
         $_GET['second-number'] = 'two';
         $_GET['action'] = 'add-two-integers';
+        $_GET['pass'] = '123';
         $api = new SampleServicesManager();
         $api->setOutputStream($this->outputStreamName);
         $api->process();
@@ -302,7 +293,8 @@ class WebAPITest extends TestCase {
     public function testSumTwoIntegers04() {
         $this->clrearVars();
         putenv('REQUEST_METHOD=GET');
-        $_GET['action'] = 'add-two-integers';
+        $_GET['service'] = 'add-two-integers';
+        $_GET['pass'] = '123';
         $api = new SampleServicesManager();
         $api->setOutputStream($this->outputStreamName);
         $api->process();
@@ -316,7 +308,8 @@ class WebAPITest extends TestCase {
         putenv('REQUEST_METHOD=GET');
         $_GET['first-number'] = '-1.8.89';
         $_GET['second-number'] = '300';
-        $_GET['action'] = 'add-two-integers';
+        $_GET['pass'] = '123';
+        $_GET['service-name'] = 'add-two-integers';
         $api = new SampleServicesManager();
         $api->setOutputStream($this->outputStreamName);
         $api->process();
@@ -332,6 +325,7 @@ class WebAPITest extends TestCase {
         putenv('REQUEST_METHOD=GET');
         $_GET['first-number'] = '-1.8-8.89';
         $_GET['second-number'] = '300';
+        $_GET['pass'] = '123';
         $_GET['action'] = 'add-two-integers';
         $api = new SampleServicesManager();
         $api->setOutputStream($this->outputStreamName);

@@ -174,7 +174,7 @@ class WebServicesManager implements JsonI {
         $this->actions = [];
         $this->invParamsArr = [];
         $this->missingParamsArr = [];
-        $this->addService(new ManagerInfoService());
+        //$this->addService(new ManagerInfoService());
     }
     /**
      * Sends a response message to indicate that an action is not implemented.
@@ -206,8 +206,8 @@ class WebServicesManager implements JsonI {
      * 
      * @since 1.0
      */
-    public function actionNotSupported() {
-        $this->sendResponse('Action not supported.', self::E, 404);
+    public function serviceNotSupported() {
+        $this->sendResponse('Service not supported.', self::E, 404);
     }
     /**
      * Adds new web service to the set of web services.
@@ -975,7 +975,7 @@ class WebServicesManager implements JsonI {
     private function _AfterParamsCheck($processReq) {
         if ($processReq) {
             $service = $this->getServiceByName($this->getCalledServiceName());
-            $isAuth = $service->isAuthorized() === null || $service->isAuthorized();
+            $isAuth = !$service->isAuthRequred() || $service->isAuthorized() === null || $service->isAuthorized();
             if ($isAuth) {
                 $service->processRequest($this->getInputs());
             } else {
@@ -1011,7 +1011,7 @@ class WebServicesManager implements JsonI {
         if ($action != null) {
             $calledService = $this->getServiceByName($action);
             //after that, check if action is supported by the API.
-            if ($action !== null) {
+            if ($calledService !== null) {
                 $allowedMethods = $calledService->getRequestMethods();
                 if (count($allowedMethods) != 0) {
                     $isValidRequestMethod = in_array($this->getRequestMethod(), $allowedMethods);
@@ -1024,7 +1024,7 @@ class WebServicesManager implements JsonI {
                     $this->sendResponse('Request methods of the service are not set in code.', self::E, 404);
                 }
             } else {
-                $this->actionNotSupported();
+                $this->serviceNotSupported();
             }
         } else {
             $this->missingAPIAction();
