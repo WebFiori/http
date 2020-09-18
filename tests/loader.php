@@ -50,6 +50,12 @@ require_once $rootDir.'src'.$DS.'APIFilter.php';
 require_once $rootDir.'src'.$DS.'RequestParameter.php';
 require_once $rootDir.'src'.$DS.'WebServicesManager.php';
 require_once $rootDir.'src'.$DS.'ManagerInfoService.php';
-require_once $rootDir.'tests'.$DS.'SampleService.php';
+
+
 require_once $rootDir.'tests'.$DS.'TestServiceObj.php';
+require_once $rootDir.'tests'.$DS.'test-services'.$DS.'SampleServicesManager.php';
+require_once $rootDir.'tests'.$DS.'test-services'.$DS.'AbstractNumbersService.php';
+require_once $rootDir.'tests'.$DS.'test-services'.$DS.'AddNubmersService.php';
+require_once $rootDir.'tests'.$DS.'test-services'.$DS.'SumNumbersService.php';
+require_once $rootDir.'tests'.$DS.'test-services'.$DS.'GetUserProfileService.php';
 fwrite($stderr,"Classes Loaded.\n");

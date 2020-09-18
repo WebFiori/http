@@ -9,7 +9,7 @@ use webfiori\restEasy\WebServicesManager;
  *
  * @author Eng.Ibrahim
  */
-class SampleService extends WebServicesManager {
+class SampleServicesManager extends WebServicesManager {
     public function __construct() {
         parent::__construct();
         
@@ -19,10 +19,7 @@ class SampleService extends WebServicesManager {
         
         $this->addService(new SumNumbersService());
 
-        $a02 = new TestServiceObj('get-user-profile');
-        $a02->addRequestMethod('post');
-        $a02->setDescription('Returns a JSON string that has user profile info.');
-        $a02->addParameter(new RequestParameter('user-id', 'integer'));
+        
         $this->addService($a02,true);
 
         $a03 = new TestServiceObj('do-nothing');
@@ -62,14 +59,7 @@ class SampleService extends WebServicesManager {
                 
             } else {
                 if ($action == 'get-user-profile') {
-                    if ($i['user-id'] <= 0) {
-                        $this->databaseErr();
-                    } else {
-                        $j = new Json();
-                        $j->add('user-name', 'Ibrahim');
-                        $j->add('bio', 'A software engineer who is ready to help anyone in need.');
-                        $this->send('application/json', $j);
-                    }
+                    
                 } else {
                     $this->serviceNotImplemented();
                 }
