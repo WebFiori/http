@@ -12,17 +12,12 @@ use webfiori\restEasy\WebServicesManager;
 class SampleService extends WebServicesManager {
     public function __construct() {
         parent::__construct();
-        $a00 = new TestServiceObj('add-two-integers');
         
-        $this->addService($a00);
+        $this->addService(new AddNubmersService());
 
         $this->setVersion('1.0.1');
-        $a01 = new TestServiceObj('sum-array');
-        $a01->addRequestMethod('post');
-        $a01->addRequestMethod('get');
-        $a01->setDescription('Returns a JSON string that has the sum of array of numbers.');
-        $a01->addParameter(new RequestParameter('numbers', 'array'));
-        $this->addService($a01,true);
+        
+        $this->addService(new SumNumbersService());
 
         $a02 = new TestServiceObj('get-user-profile');
         $a02->addRequestMethod('post');
@@ -64,16 +59,7 @@ class SampleService extends WebServicesManager {
             $this->sendResponse('The sum of '.$i['first-number'].' and '.$i['second-number'].' is '.$sum.'.');
         } else {
             if ($action == 'sum-array') {
-                $sum = 0;
-
-                foreach ($i['numbers'] as $num) {
-                    if (gettype($num) == 'integer' || gettype($num) == 'double') {
-                        $sum += $num;
-                    }
-                }
-                $j = new Json();
-                $j->add('sum', $sum);
-                $this->send('application/json', $j);
+                
             } else {
                 if ($action == 'get-user-profile') {
                     if ($i['user-id'] <= 0) {
