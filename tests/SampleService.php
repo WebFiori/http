@@ -13,10 +13,7 @@ class SampleService extends WebServicesManager {
     public function __construct() {
         parent::__construct();
         $a00 = new TestServiceObj('add-two-integers');
-        $a00->setDescription('Returns a JSON string that has the sum of two integers.');
-        $a00->addRequestMethod('get');
-        $a00->addParameter(new RequestParameter('first-number', 'integer'));
-        $a00->addParameter(new RequestParameter('second-number', 'integer'));
+        
         $this->addService($a00);
 
         $this->setVersion('1.0.1');
