@@ -60,7 +60,7 @@ class WebAPITest extends TestCase {
         $j->add('non-filtered', $nonFiltered);
         $api->sendHeaders(['content-type' => 'application/json']);
         echo $j;
-        $this->expectOutputString('{"non-filtered":[{"first-number":"-1.8.89"}, {"second-number":"300"}]}');
+        $this->expectOutputString('{"non-filtered":[{"pass":"123"}, {"first-number":"-1.8.89"}, {"second-number":"300"}]}');
     }
     /**
      * @test
