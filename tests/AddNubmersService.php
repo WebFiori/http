@@ -7,7 +7,7 @@ use webfiori\restEasy\RequestParameter;
  *
  * @author Ibrahim
  */
-class AddNubmersService extends \webfiori\restEasy\WebService {
+class AddNubmersService extends AbstractNumbersService {
     public function __construct() {
         parent::__construct('add-two-integers');
         $this->setDescription('Returns a JSON string that has the sum of two integers.');
@@ -15,21 +15,7 @@ class AddNubmersService extends \webfiori\restEasy\WebService {
         $this->addParameter(new RequestParameter('first-number', 'integer'));
         $this->addParameter(new RequestParameter('second-number', 'integer'));
     }
-    //put your code here
-    public function isAuthorized() {
-        $inputs = $this->getInputs();
-        $pass = isset($inputs['pass']) ? $inputs['pass'] : null;
 
-        if ($pass == null) {
-            $pass = isset($inputs['pass']) ? $inputs['pass'] : null;
-        }
-
-        if ($pass == '123') {
-            return true;
-        }
-
-        return false;
-    }
 
     public function processRequest($inputs) {
         $firstNum = $inputs['first-number'];
