@@ -16,7 +16,27 @@ class WebAPITest extends TestCase {
      * @test
      */
 
-    
+    public function test00() {
+        $manager = new WebServicesManager();
+        $manager->addService(new NoAuthService());
+        $_GET['service'] = 'ok-service';
+        $manager->setOutputStream($this->outputStreamName);
+        $manager->process();
+        $this->assertEquals('{"message":"You are auuthorized.", "http-code":200}', $manager->readOutputStream());
+        return $manager;
+    }
+    /**
+     * 
+     * @param WebServicesManager $manager
+     * @depends test00
+     */
+    public function testRemoveService00(WebServicesManager $manager) {
+        $this->assertNull($manager->removeService('xyz'));
+        $service = $manager->removeService('ok-service');
+        $this->assertTrue($service instanceof WebService);
+        $this->assertEquals(0, count($manager->getServices()));
+        $this->assertNull($service->getManager());
+    }
     /**
      * @test
      */
