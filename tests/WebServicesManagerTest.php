@@ -18,6 +18,7 @@ class WebServicesManagerTest extends TestCase {
 
     public function test00() {
         $this->clrearVars();
+        putenv('REQUEST_METHOD=GET');
         $manager = new WebServicesManager();
         $manager->addService(new NoAuthService());
         $_GET['service'] = 'ok-service';
