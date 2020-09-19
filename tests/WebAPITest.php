@@ -21,7 +21,7 @@ class WebAPITest extends TestCase {
         $manager = new WebServicesManager();
         $manager->addService(new NoAuthService());
         $_GET['service'] = 'ok-service';
-        $manager->setOutputStream($this->outputStreamName);
+        $manager->setOutputStream(fopen($this->outputStreamName,'w'));
         $manager->process();
         $this->assertEquals('{"message":"You are auuthorized.", "http-code":200}', $manager->readOutputStream());
         return $manager;
