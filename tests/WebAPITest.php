@@ -3,7 +3,7 @@ namespace restEasy\tests;
 
 use webfiori\json\Json;
 use PHPUnit\Framework\TestCase;
-use webfiori\restEasy\WebService;
+use webfiori\restEasy\AbstractWebService;
 use webfiori\restEasy\WebServicesManager;
 /**
  * Description of WebAPITest
@@ -33,7 +33,7 @@ class WebAPITest extends TestCase {
     public function testRemoveService00(WebServicesManager $manager) {
         $this->assertNull($manager->removeService('xyz'));
         $service = $manager->removeService('ok-service');
-        $this->assertTrue($service instanceof WebService);
+        $this->assertTrue($service instanceof AbstractWebService);
         $this->assertEquals(0, count($manager->getServices()));
         $this->assertNull($service->getManager());
     }
@@ -51,7 +51,7 @@ class WebAPITest extends TestCase {
         $api->setDescription('Test API.');
         $this->assertEquals(3,count($api->getServices()));
         $this->assertEquals('Test API.',$api->getDescription());
-        $this->assertTrue($api->getServiceByName('sum-array') instanceof WebService);
+        $this->assertTrue($api->getServiceByName('sum-array') instanceof AbstractWebService);
         $this->assertNull($api->getServiceByName('request-info'));
         $this->assertNull($api->getServiceByName('api-info-2'));
 

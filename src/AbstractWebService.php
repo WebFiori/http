@@ -41,7 +41,7 @@ use webfiori\json\JsonI;
  * 
  * @since 1.5.0 
  */
-abstract class WebService implements JsonI {
+abstract class AbstractWebService implements JsonI {
     /**
      * An array that contains the names of request methods.
      * 

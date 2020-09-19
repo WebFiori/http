@@ -7,7 +7,7 @@
  */
 
 namespace restEasy\tests;
-use webfiori\restEasy\WebService;
+use webfiori\restEasy\AbstractWebService;
 use webfiori\restEasy\RequestParameter;
 
 /**
@@ -15,7 +15,7 @@ use webfiori\restEasy\RequestParameter;
  *
  * @author Ibrahim
  */
-abstract class AbstractNumbersService extends WebService {
+abstract class AbstractNumbersService extends AbstractWebService {
     public function __construct($name) {
         parent::__construct($name);
         $this->addParameter(new RequestParameter('pass','string'));

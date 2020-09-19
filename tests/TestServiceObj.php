@@ -2,13 +2,13 @@
 
 namespace restEasy\tests;
 
-use webfiori\restEasy\WebService;
+use webfiori\restEasy\AbstractWebService;
 /**
  * Description of TestServiceObj
  *
  * @author Ibrahim
  */
-class TestServiceObj extends WebService {
+class TestServiceObj extends AbstractWebService {
     public function __construct($name) {
         parent::__construct($name);
     }

@@ -2,13 +2,13 @@
 
 namespace restEasy\tests;
 
-use webfiori\restEasy\WebService;
+use webfiori\restEasy\AbstractWebService;
 /**
  * Description of NoAuthService
  *
  * @author Ibrahim
  */
-class NoAuthService extends WebService {
+class NoAuthService extends AbstractWebService {
     public function __construct() {
         parent::__construct('ok-service');
         $this->setIsAuthRequred(false);

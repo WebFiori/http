@@ -167,7 +167,7 @@ class WebServicesManager implements JsonI {
         $this->setDescription('NO DESCRIPTION');
         $this->requestMethod = filter_var(getenv('REQUEST_METHOD'));
 
-        if (!in_array($this->requestMethod, WebService::METHODS)) {
+        if (!in_array($this->requestMethod, AbstractWebService::METHODS)) {
             $this->requestMethod = 'GET';
         }
         $this->filter = new APIFilter();
@@ -212,25 +212,25 @@ class WebServicesManager implements JsonI {
     /**
      * Adds new web service to the set of web services.
      * 
-     * @param WebService $service The web service that will be added.
+     * @param AbstractWebService $service The web service that will be added.
      * 
      * @since 1.0
      * 
      * @deprecated since version 1.4.7 Use WebservicesSet::addService()
      */
-    private function addAction(WebService $service) {
+    private function addAction(AbstractWebService $service) {
         $this->actions[$service->getName()] = $service;
         $service->setManager($this);
     }
     /**
      * Adds new web service to the set of web services.
      * 
-     * @param WebService $service The web service that will be added.
+     * @param AbstractWebService $service The web service that will be added.
      * 
      * 
      * @since 1.0
      */
-    public function addService(WebService $service) {
+    public function addService(AbstractWebService $service) {
         $this->addAction($service);
     }
     /**
@@ -338,7 +338,7 @@ class WebServicesManager implements JsonI {
      * 
      * @param string $serviceName The name of the service.
      * 
-     * @return WebService|null The method will return an object of type 'WebService' 
+     * @return AbstractWebService|null The method will return an object of type 'WebService' 
      * if the service is found. If no service was found which has the given name, 
      * The method will return null.
      * 
@@ -809,7 +809,7 @@ class WebServicesManager implements JsonI {
      * 
      * @param string $name The name of the service.
      * 
-     * @return WebService|null If a web service which has the given name was found 
+     * @return AbstractWebService|null If a web service which has the given name was found 
      * and removed, the method will return an object that represent the removed 
      * service. Other than that, the method will return null.
      * 

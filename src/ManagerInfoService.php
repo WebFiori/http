@@ -13,7 +13,7 @@ namespace webfiori\restEasy;
  *
  * @author Ibrahim
  */
-class ManagerInfoService extends WebService {
+class ManagerInfoService extends AbstractWebService {
     public function __construct() {
         parent::__construct('api-info');
         $this->setDescription('Returns a JSON string that contains all '
