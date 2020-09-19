@@ -569,9 +569,9 @@ class WebServicesManager implements JsonI {
         $c = $this->getContentType();
         $rm = $this->getRequestMethod();
 
-        if ($c !== null && $rm == 'POST' || $rm == 'PUT') {
+        if ($c !== null && ($rm == 'POST' || $rm == 'PUT')) {
             return in_array($c, self::POST_CONTENT_TYPES);
-        } else if ($c === null && $rm == 'POST' || $rm == 'PUT') {
+        } else if ($c === null && ($rm == 'POST' || $rm == 'PUT')) {
             return false;
         }
 
