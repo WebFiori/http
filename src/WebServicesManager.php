@@ -44,7 +44,7 @@ use webfiori\json\JsonI;
  * When a request is made to the services set, An instance of the child class must be created 
  * and the method <a href="#process">WebServicesSet::process()</a> must be called.
  * 
- * @version 1.4.7
+ * @version 1.4.8
  */
 class WebServicesManager implements JsonI {
     /**
@@ -803,6 +803,26 @@ class WebServicesManager implements JsonI {
                 header($header.':'.$val);
             }
         }
+    }
+    /**
+     * Removes a service from the manager given its name.
+     * 
+     * @param string $name The name of the service.
+     * 
+     * @return WebService|null If a web service which has the given name was found 
+     * and removed, the method will return an object that represent the removed 
+     * service. Other than that, the method will return null.
+     * 
+     * @since 1.4.8
+     */
+    public function removeService($name) {
+        $trimmed = trim($name);
+        $service = $this->getServiceByName($trimmed);
+        if ($service !== null) {
+            $service->setManager(null);
+            unset($this->actions[$trimmed]);
+        }
+        return $service;
     }
     /**
      * Sends a JSON response to the client.
