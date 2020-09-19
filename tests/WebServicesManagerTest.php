@@ -10,7 +10,7 @@ use webfiori\restEasy\WebServicesManager;
  *
  * @author Eng.Ibrahim
  */
-class WebAPITest extends TestCase {
+class WebServicesManagerTest extends TestCase {
     private $outputStreamName = __DIR__.DIRECTORY_SEPARATOR.'outputStream.txt';
     /**
      * @test
@@ -23,7 +23,7 @@ class WebAPITest extends TestCase {
         $_GET['service'] = 'ok-service';
         $manager->setOutputStream(fopen($this->outputStreamName,'w'));
         $manager->process();
-        $this->assertEquals('{"message":"You are auuthorized.", "http-code":200}', $manager->readOutputStream());
+        $this->assertEquals('{"message":"You are authorized.", "http-code":200}', $manager->readOutputStream());
         return $manager;
     }
     /**
