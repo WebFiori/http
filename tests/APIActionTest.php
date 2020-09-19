@@ -4,7 +4,26 @@ namespace restEasy\tests;
 use PHPUnit\Framework\TestCase;
 use restEasy\tests\TestServiceObj;
 use webfiori\restEasy\RequestParameter;
+use restEasy\tests\NoAuthService;
+
 class APIActionTest extends TestCase {
+    /**
+     * 
+     */
+    public function testGetAuthHeaders00() {
+        $service = new TestServiceObj('Hello');
+        $this->assertEquals([
+            'scheme' => '',
+            'credentials' => ''
+        ],$service->getAuthHeader());
+    }
+    /**
+     * @test
+     */
+    public function test00() {
+        $service = new NoAuthService();
+        $this->assertFalse($service->isAuthRequred());
+    }
     /**
      * @test
      */
