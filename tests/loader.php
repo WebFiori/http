@@ -58,4 +58,5 @@ require_once $rootDir.'tests'.$DS.'test-services'.$DS.'AbstractNumbersService.ph
 require_once $rootDir.'tests'.$DS.'test-services'.$DS.'AddNubmersService.php';
 require_once $rootDir.'tests'.$DS.'test-services'.$DS.'SumNumbersService.php';
 require_once $rootDir.'tests'.$DS.'test-services'.$DS.'GetUserProfileService.php';
+require_once $rootDir.'tests'.$DS.'test-services'.$DS.'NoAuthService.php';
 fwrite($stderr,"Classes Loaded.\n");
