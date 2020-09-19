@@ -17,6 +17,7 @@ class WebAPITest extends TestCase {
      */
 
     public function test00() {
+        $this->clrearVars();
         $manager = new WebServicesManager();
         $manager->addService(new NoAuthService());
         $_GET['service'] = 'ok-service';
