@@ -6,7 +6,7 @@ use restEasy\tests\TestServiceObj;
 use webfiori\restEasy\RequestParameter;
 use restEasy\tests\NoAuthService;
 
-class APIActionTest extends TestCase {
+class WebServiceTest extends TestCase {
     /**
      * 
      */
