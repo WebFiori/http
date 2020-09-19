@@ -16,17 +16,18 @@ It includes inputs feltering and data validation in addion to creating user-defi
 </p>
 
 ## API Docs
-This library is a part of <a>WebFiori Framework</a>. To access API docs of the library, you can visid the following link: https://webfiori.com/docs/restEasy .
+This library is a part of <a>WebFiori Framework</a>. To access API docs of the library, you can visid the following link: https://webfiori.com/docs/webfiori/restEasy .
 
 ## The Idea
 The idea of the library is as follows, when a client performs a request to a web service, he is usually intersted in performing specific action. Related actions are kept in one place as a set of web services (e.g. CRUD operations on a reasorce). The client can pass arguments (or parameters) to the end point (the services set) in request body or as a query string.
 
-An end point is represented as the class <a href="https://webfiori.com/docs/restEasy/WebService">WebService</a> and a set of web service (or end ponts) are represented by the class <a href="https://webfiori.com/docs/restEasy/WebServicesSet">WebServicesSet</a>. Also, body parameters represented by the class <a href="https://webfiori.com/docs/restEasy/RequestParameter">RequestParameter</a>.
+An end point is represented by the class [`AbstractWebService`](https://webfiori.com/docs/webfiori/restEasy/AbstractWebService) and a set of web service (or end ponts) are grouped using the class [`WebServicesManager`](https://webfiori.com/docs/webfiori/restEasy/WebServicesManager). Also, body parameters represented by the class [`RequestParameter`](https://webfiori.com/docs/webfiori/restEasy/RequestParameter).
 
 ## Features
-* Full support for creating REST services using JSON notation.
+* Full support for creating REST services that supports JSON as response.
 * Support for basic data filtering and validation.
 * The ability to create custom filters based on the need.
+* Support for `application/json` content type for `POST` and `PUT` request methods.
 
 ## Supported PHP Versions
 The library support all versions starting from version 5.6 up to version 7.4.
@@ -41,161 +42,12 @@ If you are using composer to collect your dependencies, you can simply include t
     }
 }
 ```
-Note that the <a href="https://github.com/usernane/jsonx">JsonX</a> library will be included with the installation files as this library is depending on it. 
+Note that the <a href="https://github.com/usernane/jsonx">WebFiori Json</a> library will be included with the installation files as this library is depending on it. 
 
 Another option is to download the latest release manually from <a href="https://github.com/usernane/restEasy/releases">Release</a>.
 
 ## Usage
-The first step is to include the requierd classes. There are basically 3 classes that you need:
-* <a href="https://webfiori.com/docs/restEasy/RequestParameter">RequestParameter</a>
-* <a href="https://webfiori.com/docs/restEasy/WebService">WebService</a>
-* <a href="https://webfiori.com/docs/restEasy/WebServicesSet">WebServicesSet</a>
-
-After that, you need to extend the class 'WebAPI' and implement two methods:
-* <a href="https://webfiori.com/docs/restEasy/WebServices#isAuthorized">WebServices::isAuthorized()</a>
-* <a href="https://webfiori.com/docs/restEasy/WebServices#processRequest">WebServices::processRequest()</a>
-
-The implementation of the first method will determine if the cliend who is calling the API is authorized to call it. It only applyies to the actions which require permissions. The method must be implemented in a way that it makes it return true if the user is authorized to access a specific end point.
-
-The second method is used to process the call depending on action type (end point).
-
-The following code sample shows how to create a simple web API.
-
-```php
-require_once '../jsonx/JsonX.php';
-require_once '../jsonx/JsonI.php';
-require_once '../WebServicesSet.php';
-require_once '../WebService.php';
-require_once '../APIFilter.php';
-require_once '../RequestParameter.php';
-use restEasy\WebServices;
-use restEasy\WebService;
-use restEasy\RequestParameter;
-/*
- * Steps for creating new API:
- * 1- Create a class that extends the class 'WebServices'.
- * 2- Add your services to the class.
- * 3- Implement 'isAuthorized()' method.
- * 4- Implement 'processRequest()' method.
- * 5- Create an instance of the class.
- * 6- Call the function 'process()'.
- */
-class MyAPI extends WebServicesSet {
-    
-    public function __construct() {
-        parent::__construct();
-        //customize the API as you need here.
-        //add actions, parameters for 'GET' or 'POST' or any other request method.
-        
-        //create new action
-        $action00 = new WebService('my-action');
-        $action00->addRequestMethod('get');
-        
-        //add parameters for the action
-        $action00->addParameter(new RequestParameter('my-param', 'string', true));
-        
-        //add the service to the API set
-        $this->addAction($action00);
-        
-        //create another service which requires permissions
-        $action01 = new WebService('auth-action');
-        $action01->addRequestMethod('get');
-        $action01->addRequestMethod('post');
-        $action01->addParameter(new RequestParameter('name', 'string'));
-        $action01->addParameter(new RequestParameter('pass', 'string', true));
-        
-        //add the service to the API set
-        //note the 'true' in here. It means the action
-        //require authorization.
-        $this->addAction($action01,true);
-        
-        //calling process in the constructor
-        $this->process();
-    }
-    /**
-     * Checks if the user is authorized to perform specific action.
-     * The method will return true only if the action is equal to 'my-action'.
-     */
-    public function isAuthorized(){
-        $action = $this->getCalledServiceName();
-        if($action == 'auth-action'){
-            $i = $this->getInputs();
-            $pass = isset($i['pass']) ? $i['pass'] : null;
-            if($pass == '123'){
-                return true;
-            }
-        }
-        return false;
-    }
-    /**
-     * Process client request based on the given input.
-     */
-    public function processRequest(){
-        $action = $this->getCalledServiceName();
-        $inputs = $this->getInputs();
-        if($action == 'my-action'){
-            header('content-type:text/plain');
-            if(isset($inputs['my-param'])){
-                echo '"my-param" = '.$inputs['my-param'];
-            }
-            else{
-                echo '"my-param" is not set';
-            }
-        }
-        else if($action == 'auth-action'){
-            header('content-type:text/plain');
-            echo 'Dear '.$inputs['name'].', you are authorized to access the API.';
-        }
-    }
-}
-//create an instance once a request to the file is made. 
-$a = new MyAPI();
-
-/*
- * Assuming that you are testing in 'localhost' and your code is placed 
- * in a folder which has the name 'restEasy/examples', You can perform the 
- * following GET requests to the API:
- * 
- * 1- http://localhost/restEasy/src/examples/basic-usage.php
- * This will output the following JSON:
- * {
- *     "message":"Action is not set.",
- *     "type":"error",
- *     "http-code":404
- * }
- * 
- * 2- http://localhost/restEasy/src/examples/basic-usage.php?action=my-action
- * This will output the following string: ""my-param" is not set".
- * 
- * 3- http://localhost/restEasy/src/examples/basic-usage.php?action=my-action&my-param=hello%20world
- * This will output the following string: ""my-param" = hello world".
- * 
- * 4- http://localhost/restEasy/src/examples/basic-usage.php?action=auth-action
- * This will output the following JSON:
- * {
- *     "message":"The following required parameter(s) where missing from the request body: 'name'.",
- *     "type":"error",
- *     "http-code":404
- * }
- * 
- * 5- http://localhost/restEasy/src/examples/basic-usage.php?action=auth-action&name=Ibrahim
- * This will output the following JSON:
- * {
- *     "message":"Not authorized.",
- *     "type":"error",
- *     "http-code":401
- * }
- * 
- * 6- http://localhost/restEasy/src/examples/basic-usage.php?action=auth-action&name=Ibrahim&pass=1234
- * This will output the following JSON:
- * {
- *     "message":"Not authorized.",
- *     "type":"error",
- *     "http-code":401
- * }
- * 
- * 7- http://localhost/restEasy/src/examples/basic-usage.php?action=auth-action&name=Ibrahim&pass=123
- * This will output the following string: "Dear Ibrahim, you are authorized to access the API."
- */
-
-```
+In order to create a basic functional API, we have to do the following steps:
+* Create new PHP class that extend the class [`AbstractWebService`](https://webfiori.com/docs/webfiori/restEasy/AbstractWebService). This will be the actual web service.
+* Create a PHP file which will receive the request. In the file, we create an instance of [`WebServicesManager`](https://webfiori.com/docs/webfiori/restEasy/WebServicesManager) and add the new service to it.
+* Call the method [`WebServicesManager::process()`](https://webfiori.com/docs/webfiori/restEasy/WebServicesManager#process) to process the request.
