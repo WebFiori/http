@@ -18,6 +18,32 @@ class WebServiceTest extends TestCase {
         ],$service->getAuthHeader());
     }
     /**
+     * 
+     */
+    public function testGetAuthHeaders01() {
+        $_SERVER['HTTP_AUTHORIZATION'] = 'Basic';
+        $service = new TestServiceObj('Hello');
+        $this->assertEquals([
+            'scheme' => '',
+            'credentials' => ''
+        ],$service->getAuthHeader());
+    }
+    /**
+     * 
+     */
+    public function testGetAuthHeaders02() {
+        $_SERVER['HTTP_AUTHORIZATION'] = 'Basic XYZ';
+        $service = new TestServiceObj('Hello');
+        if (!function_exists('apache_request_headers')) {
+            $this->assertEquals([
+                'scheme' => 'basic',
+                'credentials' => 'XYZ'
+            ],$service->getAuthHeader());
+        } else {
+            $this->assertTrue(true);
+        }
+    }
+    /**
      * @test
      */
     public function test00() {
@@ -37,6 +63,20 @@ class WebServiceTest extends TestCase {
         $this->assertTrue($action->addParameter($rp02));
         $this->assertFalse($action->addParameter(''));
         $this->assertEquals(2,count($action->getParameters()));
+    }
+    /**
+     * @test
+     */
+    public function testAddParameter01() {
+        $action = new TestServiceObj('add-user');
+        $this->assertTrue($action->addParameter([
+            'name' => 'new-param',
+            'type' => 'boolean'
+        ]));
+        
+        $this->assertEquals(1,count($action->getParameters()));
+        $param = $action->getParameterByName('new-param');
+        $this->assertEquals('boolean', $param->getType());
     }
     /**
      * @test
