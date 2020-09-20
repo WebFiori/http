@@ -540,21 +540,6 @@ class WebServicesManager implements JsonI {
         $this->sendResponse('The following parameter(s) has invalid values: '.$val.'.', self::E, 404);
     }
     /**
-     * Checks if the called service exist in the set or not.
-     * 
-     * @return boolean The method will return true if the requested service exist in 
-     * the set. False if not exist or if no service is called. The name of the service 
-     * must be provided with the request as a parameter with the name 'action', 'service' or 
-     * the name 'sevice-name'.
-     * 
-     * @since 1.0
-     */
-    public final function isActionSupported() {
-        $action = $this->getCalledServiceName();
-
-        return $this->getServiceByName($action) !== null;
-    }
-    /**
      * Checks if request content type is supported by the service or not (For 'POST' 
      * and PUT requests only).
      * 
@@ -592,7 +577,7 @@ class WebServicesManager implements JsonI {
      * 
      * @since 1.3.1
      */
-    public function missingAPIAction() {
+    public function missingServiceName() {
         $this->sendResponse('Service name is not set.', self::E, 404);
     }
     /**
@@ -1026,6 +1011,7 @@ class WebServicesManager implements JsonI {
      * @since 1.0
      */
     private final function _checkAction() {
+        
         $action = $this->getCalledServiceName();
         //first, check if action is set and not null
         if ($action != null) {
@@ -1047,7 +1033,7 @@ class WebServicesManager implements JsonI {
                 $this->serviceNotSupported();
             }
         } else {
-            $this->missingAPIAction();
+            $this->missingServiceName();
         }
 
         return false;

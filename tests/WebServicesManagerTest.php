@@ -5,6 +5,7 @@ use webfiori\json\Json;
 use PHPUnit\Framework\TestCase;
 use webfiori\restEasy\AbstractWebService;
 use webfiori\restEasy\WebServicesManager;
+use restEasy\tests\NotImplService;
 /**
  * Description of WebAPITest
  *
@@ -18,13 +19,28 @@ class WebServicesManagerTest extends TestCase {
 
     public function test00() {
         $this->clrearVars();
-        putenv('REQUEST_METHOD=GET');
         $manager = new WebServicesManager();
         $manager->addService(new NoAuthService());
         $_GET['service'] = 'ok-service';
         $manager->setOutputStream(fopen($this->outputStreamName,'w'));
         $manager->process();
         $this->assertEquals('{"message":"You are authorized.", "http-code":200}', $manager->readOutputStream());
+        return $manager;
+    }
+    /**
+     * @test
+     */
+
+    public function test01() {
+        $this->clrearVars();
+        putenv('REQUEST_METHOD=POST');
+        $manager = new WebServicesManager();
+        $manager->addService(new NotImplService());
+        $_SERVER['CONTENT_TYPE'] = 'multipart/form-data';
+        $_POST['service'] = 'not-implemented';
+        $manager->setOutputStream(fopen($this->outputStreamName,'w'));
+        $manager->process();
+        $this->assertEquals('{"message":"Service not implemented.", "type":"error", "http-code":404}', $manager->readOutputStream());
         return $manager;
     }
     /**
@@ -429,5 +445,6 @@ class WebServicesManagerTest extends TestCase {
             unset($_ENV[$k]);
         }
         unset($_SERVER['CONTENT_TYPE']);
+        putenv('REQUEST_METHOD');
     }
 }
