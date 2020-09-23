@@ -74,23 +74,6 @@ abstract class AbstractWebService implements JsonI {
         'CONNECT'
     ];
     /**
-     * This is used to indicate if authentication is required when the service 
-     * is called.
-     * 
-     * @var boolean
-     * 
-     * @since 1.0.1 
-     */
-    private $requreAuth;
-    /**
-     * The manager that the service belongs to.
-     * 
-     * @var WebServicesManager
-     * 
-     * @since 1.0.1 
-     */
-    private $owner;
-    /**
      * An optional description for the action.
      * 
      * @var sting
@@ -107,6 +90,14 @@ abstract class AbstractWebService implements JsonI {
      */
     private $name;
     /**
+     * The manager that the service belongs to.
+     * 
+     * @var WebServicesManager
+     * 
+     * @since 1.0.1 
+     */
+    private $owner;
+    /**
      * An array that holds an objects of type RequestParameter.
      * 
      * @var array
@@ -122,6 +113,15 @@ abstract class AbstractWebService implements JsonI {
      * @since 1.0 
      */
     private $reqMethods = [];
+    /**
+     * This is used to indicate if authentication is required when the service 
+     * is called.
+     * 
+     * @var boolean
+     * 
+     * @since 1.0.1 
+     */
+    private $requreAuth;
     /**
      * An array that contains descriptions of 
      * possible responses.
@@ -164,141 +164,6 @@ abstract class AbstractWebService implements JsonI {
         $this->requreAuth = true;
     }
     /**
-     * Sets the value of the property 'requreAuth'.
-     * 
-     * The property is used to tell if the authorization step will be skipped 
-     * or not when the service is called. 
-     * 
-     * @param boolean $bool True to make authorization step required. False to 
-     * skip the authorization step.
-     * 
-     * @since 1.0.1
-     */
-    public function setIsAuthRequred($bool) {
-        $this->requreAuth = $bool === true;
-    }
-    /**
-     * Returns the value of the property 'requreAuth'.
-     * 
-     * The property is used to tell if the authorization step will be skipped 
-     * or not when the service is called. 
-     * 
-     * @return boolean The method will return true if authorization step required. 
-     * False if the authorization step will be skipped. Default return value is true.
-     * 
-     * @since 1.0.1
-     */
-    public function isAuthRequred() {
-        return $this->requreAuth;
-    }
-    /**
-     * Returns an associative array or an object of type Json of filtered request inputs.
-     * 
-     * The indices of the array will represent request parameters and the 
-     * values of each index will represent the value which was set in 
-     * request body. The values will be filtered and might not be exactly the same as 
-     * the values passed in request body. Note that if a parameter is optional and not 
-     * provided in request body, its value will be set to 'null'. Note that 
-     * if request content type is 'application/json', only basic filtering will 
-     * be applied. Also, parameters in this case don't apply.
-     * 
-     * @return array|Json|null An array of filtered request inputs. This also can 
-     * be an object of type 'Json' if request content type was 'application/json'. 
-     * If no manager was associated with the service, the method will return null.
-     * 
-     * @since 1.0.1
-     */
-    public function getInputs() {
-        $manager = $this->getManager();
-        if ($manager !== null) {
-            return $manager->getInputs();
-        }
-    }
-    /**
-     * 
-     * @return WebServicesManager|null
-     */
-    public function getManager() {
-        return $this->owner;
-    }
-    /**
-     * 
-     * @param WebServicesManager|null $manager
-     */
-    public function setManager($manager) {
-        if ($manager === null) {
-            $this->owner = null;
-        } else if ($manager instanceof WebServicesManager) {
-            $this->owner = $manager;
-        }
-    }
-    /**
-     * Checks if the client is authorized to use the service or not.
-     * 
-     * The developer should implement this method in a way it returns a boolean. 
-     * If the method returns true, it means the client is allowed to use the service. 
-     * If the method returns false, then he is not authorized and a 401 error 
-     * code will be sent back.
-     * 
-     * @since 1.0.1
-     */
-    abstract function isAuthorized();
-    /**
-     * Process client's request.
-     * 
-     * This method must be implemented in a way it sends back a response after 
-     * processing the request.
-     * 
-     * @param array|Json $inputs The inputs which are taken from the request body. 
-     * This can be an array or an object of type 'Json'. If request content type is 
-     * 'application/json', this will be an object of type 'Json'.
-     * 
-     * @since 1.0.1
-     */
-    abstract function processRequest($inputs);
-    /**
-     * Returns an array that contains the value of the header 'authorization'.
-     * 
-     * 
-     * @return array The array will have two indices, the first one with 
-     * name 'scheme' and the second one with name 'credentials'. The index 'scheme' 
-     * will contain the name of the scheme which is used to authenticate 
-     * ('Basic', 'Bearer', 'Digest', etc...). The index 'credentials' will contain 
-     * the credentials which can be used to authenticate the client.
-     * 
-     *  @since 1.0.1
-     */
-    public function getAuthHeader() {
-        $retVal = [
-            'scheme' => '',
-            'credentials' => ''
-        ];
-        $headerVal = '';
-        if (function_exists('apache_request_headers')) {
-            $headers = apache_request_headers();
-            
-            foreach ($headers as $k => $v) {
-                $lowerHeaderName = strtolower($k);
-                if ($lowerHeaderName == 'authorization') {
-                    $headerVal = filter_var($v, FILTER_SANITIZE_STRING);
-                    break;
-                }
-            }
-        } else if (isset($_SERVER) && isset($_SERVER['HTTP_AUTHORIZATION'])) {
-            $headerVal = filter_var($_SERVER['HTTP_AUTHORIZATION'], FILTER_SANITIZE_STRING);
-        }
-        
-        if (strlen($headerVal) != 0) {
-            $split = explode(' ', $headerVal);
-
-            if (count($split) == 2) {
-                $retVal['scheme'] = strtolower($split[0]);
-                $retVal['credentials'] = $split[1];
-            }
-        }
-        return $retVal;
-    }
-    /**
      * Returns an array that contains all possible requests methods at which the 
      * service can be called with.
      * 
@@ -322,61 +187,6 @@ abstract class AbstractWebService implements JsonI {
      */
     public final function &getParameters() {
         return $this->parameters;
-    }
-    /**
-     * Sends Back a data using specific content type and specific response code.
-     * 
-     * @param string $conentType Response content type (such as 'application/json')
-     * 
-     * @param mixed $data Any data to send back. Mostly, it will be a string.
-     * 
-     * @param int $code HTTP response code that will be used to send the data. 
-     * Default is HTTP code 200 - Ok.
-     * 
-     * @since 1.0.1
-     */
-    public function send($conentType, $data, $code = 200) {
-        $manager = $this->getManager();
-        
-        if ($manager !== null) {
-            $manager->send($conentType, $data, $code);
-        }
-    }
-    /**
-     * Sends a JSON response to the client.
-     * 
-     * The basic format of the message will be as follows:
-     * <p>
-     * {<br/>
-     * &nbsp;&nbsp;"message":"Action is not set.",<br/>
-     * &nbsp;&nbsp;"type":"error"<br/>
-     * &nbsp;&nbsp;"http-code":404<br/>
-     * &nbsp;&nbsp;"more-info":EXTRA_INFO<br/>
-     * }
-     * </p>
-     * Where EXTRA_INFO can be a simple string or any JSON data.
-     * 
-     * @param string $message The message to send back.
-     * 
-     * @param string $type A string that tells the client what is the type of 
-     * the message. The developer can specify his own message types such as 
-     * 'debug', 'info' or any string. If it is empty string, it will be not 
-     * included in response payload.
-     * 
-     * @param int $code Response code (such as 404 or 200). Default is 200.
-     * 
-     * @param mixed $otherInfo Any other data to send back it can be a simple 
-     * string, an object... . If null is given, the parameter 'more-info' 
-     * will be not included in response. Default is empty string. Default is null.
-     * 
-     * @since 1.0.1
-     */
-    public function sendResponse($message,$type = '',$code = 200,$otherInfo = null) {
-        $manager = $this->getManager();
-        
-        if ($manager !== null) {
-            $manager->sendResponse($message, $type, $code, $otherInfo);
-        }
     }
     /**
      * 
@@ -534,6 +344,53 @@ abstract class AbstractWebService implements JsonI {
         }
     }
     /**
+     * Returns an array that contains the value of the header 'authorization'.
+     * 
+     * 
+     * @return array The array will have two indices, the first one with 
+     * name 'scheme' and the second one with name 'credentials'. The index 'scheme' 
+     * will contain the name of the scheme which is used to authenticate 
+     * ('Basic', 'Bearer', 'Digest', etc...). The index 'credentials' will contain 
+     * the credentials which can be used to authenticate the client.
+     * 
+     *  @since 1.0.1
+     */
+    public function getAuthHeader() {
+        $retVal = [
+            'scheme' => '',
+            'credentials' => ''
+        ];
+        $headerVal = '';
+
+        if (function_exists('apache_request_headers')) {
+            $headers = apache_request_headers();
+
+            foreach ($headers as $k => $v) {
+                $lowerHeaderName = strtolower($k);
+
+                if ($lowerHeaderName == 'authorization') {
+                    $headerVal = filter_var($v, FILTER_SANITIZE_STRING);
+                    break;
+                }
+            }
+        } else {
+            if (isset($_SERVER) && isset($_SERVER['HTTP_AUTHORIZATION'])) {
+                $headerVal = filter_var($_SERVER['HTTP_AUTHORIZATION'], FILTER_SANITIZE_STRING);
+            }
+        }
+
+        if (strlen($headerVal) != 0) {
+            $split = explode(' ', $headerVal);
+
+            if (count($split) == 2) {
+                $retVal['scheme'] = strtolower($split[0]);
+                $retVal['credentials'] = $split[1];
+            }
+        }
+
+        return $retVal;
+    }
+    /**
      * Returns the description of the action.
      * 
      * @return string|null The description of the action. If the description is 
@@ -543,6 +400,37 @@ abstract class AbstractWebService implements JsonI {
      */
     public final function getDescription() {
         return $this->actionDesc;
+    }
+    /**
+     * Returns an associative array or an object of type Json of filtered request inputs.
+     * 
+     * The indices of the array will represent request parameters and the 
+     * values of each index will represent the value which was set in 
+     * request body. The values will be filtered and might not be exactly the same as 
+     * the values passed in request body. Note that if a parameter is optional and not 
+     * provided in request body, its value will be set to 'null'. Note that 
+     * if request content type is 'application/json', only basic filtering will 
+     * be applied. Also, parameters in this case don't apply.
+     * 
+     * @return array|Json|null An array of filtered request inputs. This also can 
+     * be an object of type 'Json' if request content type was 'application/json'. 
+     * If no manager was associated with the service, the method will return null.
+     * 
+     * @since 1.0.1
+     */
+    public function getInputs() {
+        $manager = $this->getManager();
+
+        if ($manager !== null) {
+            return $manager->getInputs();
+        }
+    }
+    /**
+     * 
+     * @return WebServicesManager|null
+     */
+    public function getManager() {
+        return $this->owner;
     }
     /**
      * Returns the name of the action.
@@ -629,6 +517,44 @@ abstract class AbstractWebService implements JsonI {
         return false;
     }
     /**
+     * Checks if the client is authorized to use the service or not.
+     * 
+     * The developer should implement this method in a way it returns a boolean. 
+     * If the method returns true, it means the client is allowed to use the service. 
+     * If the method returns false, then he is not authorized and a 401 error 
+     * code will be sent back.
+     * 
+     * @since 1.0.1
+     */
+    abstract function isAuthorized();
+    /**
+     * Returns the value of the property 'requreAuth'.
+     * 
+     * The property is used to tell if the authorization step will be skipped 
+     * or not when the service is called. 
+     * 
+     * @return boolean The method will return true if authorization step required. 
+     * False if the authorization step will be skipped. Default return value is true.
+     * 
+     * @since 1.0.1
+     */
+    public function isAuthRequred() {
+        return $this->requreAuth;
+    }
+    /**
+     * Process client's request.
+     * 
+     * This method must be implemented in a way it sends back a response after 
+     * processing the request.
+     * 
+     * @param array|Json $inputs The inputs which are taken from the request body. 
+     * This can be an array or an object of type 'Json'. If request content type is 
+     * 'application/json', this will be an object of type 'Json'.
+     * 
+     * @since 1.0.1
+     */
+    abstract function processRequest($inputs);
+    /**
      * Removes a request parameter from the action given its name.
      * 
      * @param string $paramName The name of the parameter (case sensitive).
@@ -706,6 +632,61 @@ abstract class AbstractWebService implements JsonI {
         return false;
     }
     /**
+     * Sends Back a data using specific content type and specific response code.
+     * 
+     * @param string $conentType Response content type (such as 'application/json')
+     * 
+     * @param mixed $data Any data to send back. Mostly, it will be a string.
+     * 
+     * @param int $code HTTP response code that will be used to send the data. 
+     * Default is HTTP code 200 - Ok.
+     * 
+     * @since 1.0.1
+     */
+    public function send($conentType, $data, $code = 200) {
+        $manager = $this->getManager();
+
+        if ($manager !== null) {
+            $manager->send($conentType, $data, $code);
+        }
+    }
+    /**
+     * Sends a JSON response to the client.
+     * 
+     * The basic format of the message will be as follows:
+     * <p>
+     * {<br/>
+     * &nbsp;&nbsp;"message":"Action is not set.",<br/>
+     * &nbsp;&nbsp;"type":"error"<br/>
+     * &nbsp;&nbsp;"http-code":404<br/>
+     * &nbsp;&nbsp;"more-info":EXTRA_INFO<br/>
+     * }
+     * </p>
+     * Where EXTRA_INFO can be a simple string or any JSON data.
+     * 
+     * @param string $message The message to send back.
+     * 
+     * @param string $type A string that tells the client what is the type of 
+     * the message. The developer can specify his own message types such as 
+     * 'debug', 'info' or any string. If it is empty string, it will be not 
+     * included in response payload.
+     * 
+     * @param int $code Response code (such as 404 or 200). Default is 200.
+     * 
+     * @param mixed $otherInfo Any other data to send back it can be a simple 
+     * string, an object... . If null is given, the parameter 'more-info' 
+     * will be not included in response. Default is empty string. Default is null.
+     * 
+     * @since 1.0.1
+     */
+    public function sendResponse($message,$type = '',$code = 200,$otherInfo = null) {
+        $manager = $this->getManager();
+
+        if ($manager !== null) {
+            $manager->sendResponse($message, $type, $code, $otherInfo);
+        }
+    }
+    /**
      * Sets the description of the action.
      * 
      * Used to help front-end to identify the use of the action.
@@ -716,6 +697,33 @@ abstract class AbstractWebService implements JsonI {
      */
     public final function setDescription($desc) {
         $this->actionDesc = trim($desc);
+    }
+    /**
+     * Sets the value of the property 'requreAuth'.
+     * 
+     * The property is used to tell if the authorization step will be skipped 
+     * or not when the service is called. 
+     * 
+     * @param boolean $bool True to make authorization step required. False to 
+     * skip the authorization step.
+     * 
+     * @since 1.0.1
+     */
+    public function setIsAuthRequred($bool) {
+        $this->requreAuth = $bool === true;
+    }
+    /**
+     * 
+     * @param WebServicesManager|null $manager
+     */
+    public function setManager($manager) {
+        if ($manager === null) {
+            $this->owner = null;
+        } else {
+            if ($manager instanceof WebServicesManager) {
+                $this->owner = $manager;
+            }
+        }
     }
     /**
      * Sets the name of the action.
