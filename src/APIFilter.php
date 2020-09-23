@@ -35,7 +35,7 @@ use webfiori\json\Json;
  * 
  * @author Ibrahim
  * 
- * @version 1.2.2
+ * @version 1.2.3
  */
 class APIFilter {
     /**
@@ -406,13 +406,54 @@ class APIFilter {
         return $this->nonFilteredInputs;
     }
     /**
+     * Sets the stream at which the filter will use to read the inputs.
      * 
-     * @param string $path
+     * This can be used to test the filter if body content type is 
+     * 'application/json'.
+     * 
+     * @param string|resource $pathOrResource A file that contains JSON or 
+     * a stream which was opened using a function like 'fopen()'.
+     * 
+     * @return boolean If input stream is successfully set, the method will 
+     * return true. False otherwise.
+     * 
+     * @since 1.2.3
      */
-    public function setInputStream($path) {
-        if (file_exists($path)) {
-            $this->inputStreamPath = $path;
+    public function setInputStream($pathOrResource) {
+        if (is_resource($pathOrResource)) {
+            $meat = stream_get_meta_data($pathOrResource);
+            $this->inputStreamPath = $meat['uri'];
+
+            return true;
+        } 
+
+        $trimmed = trim($pathOrResource);
+
+        if (strlen($trimmed) > 0) {
+            return $this->setInputStreamHelper($trimmed, 'r+');
         }
+
+        return false;
+    }
+    /**
+     * Returns a string that represents input stream path.
+     * 
+     * @return string|null
+     * 
+     * @since 1.2.3
+     */
+    public function getInputStreamPath() {
+        return $this->inputStreamPath;
+    }
+    private function setInputStreamHelper($trimmed, $mode) {
+        $tempStream = fopen($trimmed, $mode);
+
+        if (is_resource($tempStream)) {
+            $this->inputStreamPath = $trimmed;
+            return true;
+        }
+
+        return false;
     }
     private function _checkExtracted($extraClean, $name, $defaultVal) {
         $extractedVal = $extraClean->get($name);
