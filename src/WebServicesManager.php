@@ -174,7 +174,6 @@ class WebServicesManager implements JsonI {
         $this->actions = [];
         $this->invParamsArr = [];
         $this->missingParamsArr = [];
-        //$this->addService(new ManagerInfoService());
     }
     /**
      * Sends a response message to indicate that an action is not implemented.
@@ -347,8 +346,8 @@ class WebServicesManager implements JsonI {
     public function getServiceByName($serviceName) {
         $trimmed = trim($serviceName);
 
-        if(isset($this->actions[$serviceName])) {
-            return $this->actions[$serviceName];
+        if(isset($this->actions[$trimmed])) {
+            return $this->actions[$trimmed];
         }
 
         return null;
@@ -650,53 +649,65 @@ class WebServicesManager implements JsonI {
                 foreach ($params as $param) {
                     $this->filter->addRequestParameter($param);
                 }
-                $reqMeth = $this->getRequestMethod();
-                $contentType = $this->getContentType();
-
-                if ($reqMeth == 'GET' || 
-                    $reqMeth == 'DELETE' || 
-                    ($reqMeth == 'PUT' && $contentType != 'application/json') || 
-                    $reqMeth == 'OPTIONS' || 
-                    $reqMeth == 'PATCH') {
-                    $this->filter->filterGET();
-                } else if ($reqMeth == 'POST' || ($reqMeth == 'PUT' && $contentType == 'application/json')) {
-                    $this->filter->filterPOST();
-                }
+                $this->_filterInputs();
                 $i = $this->getInputs();
-                $processReq = true;
-
+                
                 if (!($i instanceof Json)) {
-                    foreach ($params as $param) {
-                        if (!$param->isOptional() && !isset($i[$param->getName()])) {
-                            array_push($this->missingParamsArr, $param->getName());
-                            $processReq = false;
-                        }
-
-                        if (isset($i[$param->getName()]) && $i[$param->getName()] === 'INV') {
-                            array_push($this->invParamsArr, $param->getName());
-                            $processReq = false;
-                        }
-                    }
-                    $this->_AfterParamsCheck($processReq);
+                    $this->_processNonJson($params);
                 } else {
-                    $paramsNames = $i->getPropsNames();
-
-                    foreach ($params as $param) {
-                        if (!$param->isOptional() && !in_array($param->getName(), $paramsNames)) {
-                            array_push($this->missingParamsArr, $param->getName());
-                            $processReq = false;
-                        }
-
-                        if ($i->get($param->getName()) === null) {
-                            array_push($this->invParamsArr, $param->getName());
-                            $processReq = false;
-                        }
-                    }
-                    $this->_AfterParamsCheck($processReq);
+                    $this->_processJson($params);
                 }
             }
         } else {
             $this->contentTypeNotSupported($this->getContentType());
+        }
+    }
+    private function _processJson($params) {
+        $processReq = true;
+        $i = $this->getInputs();
+        $paramsNames = $i->getPropsNames();
+
+        foreach ($params as $param) {
+            if (!$param->isOptional() && !in_array($param->getName(), $paramsNames)) {
+                array_push($this->missingParamsArr, $param->getName());
+                $processReq = false;
+            }
+
+            if ($i->get($param->getName()) === null) {
+                array_push($this->invParamsArr, $param->getName());
+                $processReq = false;
+            }
+        }
+        $this->_AfterParamsCheck($processReq);
+    }
+    private function _processNonJson($params) {
+        $processReq = true;
+        $i = $this->getInputs();
+        foreach ($params as $param) {
+            if (!$param->isOptional() && !isset($i[$param->getName()])) {
+                array_push($this->missingParamsArr, $param->getName());
+                $processReq = false;
+            }
+
+            if (isset($i[$param->getName()]) && $i[$param->getName()] === 'INV') {
+                array_push($this->invParamsArr, $param->getName());
+                $processReq = false;
+            }
+        }
+        $this->_AfterParamsCheck($processReq);
+    }
+    private function _filterInputs() {
+        $reqMeth = $this->getRequestMethod();
+        $contentType = $this->getContentType();
+
+        if ($reqMeth == 'GET' || 
+            $reqMeth == 'DELETE' || 
+            ($reqMeth == 'PUT' && $contentType != 'application/json') || 
+            $reqMeth == 'OPTIONS' || 
+            $reqMeth == 'PATCH') {
+            $this->filter->filterGET();
+        } else if ($reqMeth == 'POST' || ($reqMeth == 'PUT' && $contentType == 'application/json')) {
+            $this->filter->filterPOST();
         }
     }
     /**
@@ -977,10 +988,14 @@ class WebServicesManager implements JsonI {
         $json->add('api-version', $this->getVersion());
         $json->add('description', $this->getDescription());
         $i = $this->getInputs();
-        $vNum = isset($i['version']) ? $i['version'] : null;
+        if ($i instanceof Json) {
+            $vNum = $i->get('version');
+        } else {
+            $vNum = isset($i['version']) ? $i['version'] : null;
+        }
 
-        if ($vNum === null || $vNum == false) {
-            $json->add('actions', $this->getServices());
+        if ($vNum === null || $vNum === false) {
+            $json->add('services', $this->getServices());
         } else {
             $actionsArr = [];
 
@@ -989,7 +1004,7 @@ class WebServicesManager implements JsonI {
                     array_push($actionsArr, $a);
                 }
             }
-            $json->add('actions', $actionsArr);
+            $json->add('services', $actionsArr);
         }
 
         return $json;
