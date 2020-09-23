@@ -27,8 +27,8 @@ class SumNumbersService extends AbstractNumbersService {
 
     public function processRequest($inputs) {
         $sum = 0;
-
-        foreach ($inputs['numbers'] as $num) {
+        $numbersArr = $inputs instanceof Json ? $inputs->get('numbers') : $inputs['numbers'];
+        foreach ($numbersArr as $num) {
             if (gettype($num) == 'integer' || gettype($num) == 'double') {
                 $sum += $num;
             }
