@@ -22,7 +22,11 @@ abstract class AbstractNumbersService extends AbstractWebService {
     }
     public function isAuthorized() {
         $inputs = $this->getInputs();
-        $pass = isset($inputs['pass']) ? $inputs['pass'] : null;
+        if ($inputs instanceof \webfiori\json\Json) {
+            $pass = $inputs->get('pass');
+        } else {
+            $pass = isset($inputs['pass']) ? $inputs['pass'] : null;
+        }
 
         if ($pass == null) {
             $pass = isset($inputs['pass']) ? $inputs['pass'] : null;
