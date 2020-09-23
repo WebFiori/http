@@ -44,8 +44,8 @@ abstract class ManagerInfoService extends AbstractWebService {
     public function __construct() {
         parent::__construct('api-info');
         $this->setDescription('Returns a JSON string that contains all '
-                . 'needed information about all end points which are registered '
-                . 'under given manager.');
+                .'needed information about all end points which are registered '
+                .'under given manager.');
         $this->addParameter([
             'name' => 'version',
             'type' => 'string',
@@ -66,5 +66,4 @@ abstract class ManagerInfoService extends AbstractWebService {
     public function processRequest($inputs) {
         $this->send('application/json', $this->getManager()->toJSON());
     }
-
 }
