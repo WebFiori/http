@@ -4,10 +4,10 @@
     </php>
     <filter>
         <whitelist addUncoveredFilesFromWhitelist="true">
-            <file>./src/WebService.php</file>
+            <file>./src/AbstractWebService.php</file>
             <file>./src/APIFilter.php</file>
             <file>./src/RequestParameter.php</file>
-            <file>./src/WebServices.php</file>
+            <file>./src/WebServicesManager.php</file>
         </whitelist>
     </filter>
     <logging>

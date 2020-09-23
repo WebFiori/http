@@ -69,6 +69,22 @@ class RequestParameterTest extends TestCase {
     /**
      * @test
      */
+    public function testCreateParameter04() {
+        $param = RequestParameter::createParam([
+            'name'=>'ok',
+            'type' => 'int',
+            'default' => 44,
+            'description' => 'Super param.'
+        ]);
+        $this->assertNotNull($param);
+        $this->assertEquals('ok', $param->getName());
+        $this->assertEquals('integer', $param->getType());
+        $this->assertEquals(44, $param->getDefault());
+        $this->assertEquals('Super param.', $param->getDescription());
+    }
+    /**
+     * @test
+     */
     public function testConstructor00() {
         $requestParam = new RequestParameter('');
         $this->assertEquals('a-parameter',$requestParam->getName());
