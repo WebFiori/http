@@ -28,21 +28,14 @@ use webfiori\entity\Response;
 use webfiori\json\Json;
 use webfiori\json\JsonI;
 /**
- * A class that represents a set of web services.
+ * A class that is used to manage multiple web services.
  * 
  * This class is used to keep track of multiple related web services. It 
  * is used to group related services. For example, if we have create, read, write and 
  * delete services, they can be added to one instance of this class.
- * In order to create a simple web service, the developer must 
- * follow the following steps:
- * <ul>
- * <li>Extend this class.</li>
- * <li>Create web services using the class WebService.</li>
- * <li>Implement the abstract method <a href="#isAuthorized">WebServicesSet::isAuthorized()</a> 
- * and the method <a href="#processRequest">WebServicesSet::processRequest()</a></li>
- * </li>
- * When a request is made to the services set, An instance of the child class must be created 
- * and the method <a href="#process">WebServicesSet::process()</a> must be called.
+
+ * When a request is made to the services set, An instance of the class must be created 
+ * and the method <a href="#process">WebServicesManager::process()</a> must be called.
  * 
  * @version 1.4.8
  */
@@ -176,52 +169,6 @@ class WebServicesManager implements JsonI {
         $this->missingParamsArr = [];
     }
     /**
-     * Sends a response message to indicate that an action is not implemented.
-     * 
-     * This method will send back a JSON string in the following format:
-     * <p>
-     * {<br/>
-     * &nbsp;&nbsp;"message":"Service not implemented.",<br/>
-     * &nbsp;&nbsp;"type":"error",<br/>
-     * }
-     * </p>
-     * In addition to the message, The response will sent HTTP code 404 - Not Found.
-     * 
-     * @since 1.0
-     */
-    public function serviceNotImplemented() {
-        $this->sendResponse('Service not implemented.', self::E, 404);
-    }
-    /**
-     * Sends a response message to indicate that an action is not supported by the API.
-     * This method will send back a JSON string in the following format:
-     * <p>
-     * {<br/>
-     * &nbsp;&nbsp;"message":"Action not supported",<br/>
-     * &nbsp;&nbsp;"type":"error"<br/>
-     * }
-     * </p>
-     * In addition to the message, The response will sent HTTP code 404 - Not Found.
-     * 
-     * @since 1.0
-     */
-    public function serviceNotSupported() {
-        $this->sendResponse('Service not supported.', self::E, 404);
-    }
-    /**
-     * Adds new web service to the set of web services.
-     * 
-     * @param AbstractWebService $service The web service that will be added.
-     * 
-     * @since 1.0
-     * 
-     * @deprecated since version 1.4.7 Use WebservicesSet::addService()
-     */
-    private function addAction(AbstractWebService $service) {
-        $this->actions[$service->getName()] = $service;
-        $service->setManager($this);
-    }
-    /**
      * Adds new web service to the set of web services.
      * 
      * @param AbstractWebService $service The web service that will be added.
@@ -278,91 +225,6 @@ class WebServicesManager implements JsonI {
      */
     public function databaseErr($info = '') {
         $this->sendResponse('Database Error.', self::E, 500, $info);
-    }
-    /**
-     * Returns the name of the service which is being called.
-     * 
-     * The name of the service  must be passed in the body of the request for POST and PUT 
-     * request methods (e.g. 'action=do-something' or 'service-name=do-something'). 
-     * In case of GET and DELETE, it must be passed as query string. 
-     * 
-     * @return string|null The name of the service that was requested. If the name 
-     * of the service is not set, the method will return null. 
-     * 
-     * @since 1.0
-     * 
-     * @deprecated since version 1.4.6 Use WebServicesSet::getCalledServiceName() instead.
-     */
-    private function getAction() {
-        $reqMeth = $this->getRequestMethod();
-
-        $serviceIdx = ['action','service', 'service-name'];
-
-        $contentType = $this->getContentType();
-        $retVal = null;
-
-        if ($contentType == 'application/json') {
-            $inputsPath = $this->filter->getInputStreamPath();
-            $streamPath = $inputsPath !== null ? $inputsPath : 'php://input';
-            $body = file_get_contents($streamPath);
-            $jsonx = json_decode($body, true);
-
-            if (gettype($jsonx) == 'array') {
-                foreach ($serviceIdx as $index) {
-                    if (isset($jsonx[$index])) { 
-                        $retVal = filter_var($jsonx[$index]);
-                        break;
-                    }
-                }
-            }
-
-            return $retVal;
-        }
-
-        foreach ($serviceIdx as $serviceNameIndex) {
-            if (($reqMeth == 'GET' || 
-               $reqMeth == 'DELETE' ||  
-               $reqMeth == 'OPTIONS' || 
-               $reqMeth == 'PATCH') && isset($_GET[$serviceNameIndex])) {
-                $retVal = filter_var($_GET[$serviceNameIndex]);
-            } else if (($reqMeth == 'POST' || $reqMeth == 'PUT') && isset($_POST[$serviceNameIndex])) {
-                $retVal = filter_var($_POST[$serviceNameIndex]);
-            }
-        }
-
-        return $retVal;
-    }
-    /**
-     * Returns a web service given its name.
-     * 
-     * @param string $serviceName The name of the service.
-     * 
-     * @return AbstractWebService|null The method will return an object of type 'WebService' 
-     * if the service is found. If no service was found which has the given name, 
-     * The method will return null.
-     * 
-     * @since 1.3
-     */
-    public function getServiceByName($serviceName) {
-        $trimmed = trim($serviceName);
-
-        if(isset($this->actions[$trimmed])) {
-            return $this->actions[$trimmed];
-        }
-
-        return null;
-    }
-    /**
-     * Returns an array that contains all added web services.
-     * 
-     * @return array An associative array that contains web services as objects. 
-     * The indices of the array are services names and the values are objects 
-     * of type 'WebService'.
-     * 
-     * @since 1.0
-     */
-    public final function getServices() {
-        return $this->actions;
     }
     /**
      * Returns the name of the service which is being called.
@@ -499,6 +361,38 @@ class WebServicesManager implements JsonI {
         return $this->requestMethod;
     }
     /**
+     * Returns a web service given its name.
+     * 
+     * @param string $serviceName The name of the service.
+     * 
+     * @return AbstractWebService|null The method will return an object of type 'WebService' 
+     * if the service is found. If no service was found which has the given name, 
+     * The method will return null.
+     * 
+     * @since 1.3
+     */
+    public function getServiceByName($serviceName) {
+        $trimmed = trim($serviceName);
+
+        if (isset($this->actions[$trimmed])) {
+            return $this->actions[$trimmed];
+        }
+
+        return null;
+    }
+    /**
+     * Returns an array that contains all added web services.
+     * 
+     * @return array An associative array that contains web services as objects. 
+     * The indices of the array are services names and the values are objects 
+     * of type 'WebService'.
+     * 
+     * @since 1.0
+     */
+    public final function getServices() {
+        return $this->actions;
+    }
+    /**
      * Returns version number of web services set.
      * 
      * @return string A string in the format 'X.X.X'.
@@ -562,24 +456,6 @@ class WebServicesManager implements JsonI {
         return true;
     }
     /**
-     * Sends a response message to tell the front-end that the parameter 
-     * 'action', 'service' or 'service-name' is missing from request body.
-     * 
-     * This method will send back a JSON string in the following format:
-     * <p>
-     * {<br/>
-     * &nbsp;&nbsp;"message":"Service name is not set.",<br/>
-     * &nbsp;&nbsp;"type":"error"<br/>
-     * }
-     * </p>
-     * In addition to the message, The response will sent HTTP code 404 - Not Found.
-     * 
-     * @since 1.3.1
-     */
-    public function missingServiceName() {
-        $this->sendResponse('Service name is not set.', self::E, 404);
-    }
-    /**
      * Sends a response message to indicate that a request parameter or parameters are missing.
      * 
      * This method will send back a JSON string in the following format:
@@ -608,6 +484,24 @@ class WebServicesManager implements JsonI {
             $i++;
         }
         $this->sendResponse('The following required parameter(s) where missing from the request body: '.$val.'.', self::E, 404);
+    }
+    /**
+     * Sends a response message to tell the front-end that the parameter 
+     * 'action', 'service' or 'service-name' is missing from request body.
+     * 
+     * This method will send back a JSON string in the following format:
+     * <p>
+     * {<br/>
+     * &nbsp;&nbsp;"message":"Service name is not set.",<br/>
+     * &nbsp;&nbsp;"type":"error"<br/>
+     * }
+     * </p>
+     * In addition to the message, The response will sent HTTP code 404 - Not Found.
+     * 
+     * @since 1.3.1
+     */
+    public function missingServiceName() {
+        $this->sendResponse('Service name is not set.', self::E, 404);
     }
     /**
      * Sends a response message to indicate that a user is not authorized call a 
@@ -651,7 +545,7 @@ class WebServicesManager implements JsonI {
                 }
                 $this->_filterInputs();
                 $i = $this->getInputs();
-                
+
                 if (!($i instanceof Json)) {
                     $this->_processNonJson($params);
                 } else {
@@ -660,54 +554,6 @@ class WebServicesManager implements JsonI {
             }
         } else {
             $this->contentTypeNotSupported($this->getContentType());
-        }
-    }
-    private function _processJson($params) {
-        $processReq = true;
-        $i = $this->getInputs();
-        $paramsNames = $i->getPropsNames();
-
-        foreach ($params as $param) {
-            if (!$param->isOptional() && !in_array($param->getName(), $paramsNames)) {
-                array_push($this->missingParamsArr, $param->getName());
-                $processReq = false;
-            }
-
-            if ($i->get($param->getName()) === null) {
-                array_push($this->invParamsArr, $param->getName());
-                $processReq = false;
-            }
-        }
-        $this->_AfterParamsCheck($processReq);
-    }
-    private function _processNonJson($params) {
-        $processReq = true;
-        $i = $this->getInputs();
-        foreach ($params as $param) {
-            if (!$param->isOptional() && !isset($i[$param->getName()])) {
-                array_push($this->missingParamsArr, $param->getName());
-                $processReq = false;
-            }
-
-            if (isset($i[$param->getName()]) && $i[$param->getName()] === 'INV') {
-                array_push($this->invParamsArr, $param->getName());
-                $processReq = false;
-            }
-        }
-        $this->_AfterParamsCheck($processReq);
-    }
-    private function _filterInputs() {
-        $reqMeth = $this->getRequestMethod();
-        $contentType = $this->getContentType();
-
-        if ($reqMeth == 'GET' || 
-            $reqMeth == 'DELETE' || 
-            ($reqMeth == 'PUT' && $contentType != 'application/json') || 
-            $reqMeth == 'OPTIONS' || 
-            $reqMeth == 'PATCH') {
-            $this->filter->filterGET();
-        } else if ($reqMeth == 'POST' || ($reqMeth == 'PUT' && $contentType == 'application/json')) {
-            $this->filter->filterPOST();
         }
     }
     /**
@@ -727,6 +573,28 @@ class WebServicesManager implements JsonI {
         if ($path !== null) {
             return file_get_contents($path);
         }
+    }
+    /**
+     * Removes a service from the manager given its name.
+     * 
+     * @param string $name The name of the service.
+     * 
+     * @return AbstractWebService|null If a web service which has the given name was found 
+     * and removed, the method will return an object that represent the removed 
+     * service. Other than that, the method will return null.
+     * 
+     * @since 1.4.8
+     */
+    public function removeService($name) {
+        $trimmed = trim($name);
+        $service = $this->getServiceByName($trimmed);
+
+        if ($service !== null) {
+            $service->setManager(null);
+            unset($this->actions[$trimmed]);
+        }
+
+        return $service;
     }
     /**
      * Removes all added web services.
@@ -801,26 +669,6 @@ class WebServicesManager implements JsonI {
         }
     }
     /**
-     * Removes a service from the manager given its name.
-     * 
-     * @param string $name The name of the service.
-     * 
-     * @return AbstractWebService|null If a web service which has the given name was found 
-     * and removed, the method will return an object that represent the removed 
-     * service. Other than that, the method will return null.
-     * 
-     * @since 1.4.8
-     */
-    public function removeService($name) {
-        $trimmed = trim($name);
-        $service = $this->getServiceByName($trimmed);
-        if ($service !== null) {
-            $service->setManager(null);
-            unset($this->actions[$trimmed]);
-        }
-        return $service;
-    }
-    /**
      * Sends a JSON response to the client.
      * 
      * The basic format of the message will be as follows:
@@ -876,6 +724,39 @@ class WebServicesManager implements JsonI {
             http_response_code($code);
             echo $json;
         }
+    }
+    /**
+     * Sends a response message to indicate that an action is not implemented.
+     * 
+     * This method will send back a JSON string in the following format:
+     * <p>
+     * {<br/>
+     * &nbsp;&nbsp;"message":"Service not implemented.",<br/>
+     * &nbsp;&nbsp;"type":"error",<br/>
+     * }
+     * </p>
+     * In addition to the message, The response will sent HTTP code 404 - Not Found.
+     * 
+     * @since 1.0
+     */
+    public function serviceNotImplemented() {
+        $this->sendResponse('Service not implemented.', self::E, 404);
+    }
+    /**
+     * Sends a response message to indicate that an action is not supported by the API.
+     * This method will send back a JSON string in the following format:
+     * <p>
+     * {<br/>
+     * &nbsp;&nbsp;"message":"Action not supported",<br/>
+     * &nbsp;&nbsp;"type":"error"<br/>
+     * }
+     * </p>
+     * In addition to the message, The response will sent HTTP code 404 - Not Found.
+     * 
+     * @since 1.0
+     */
+    public function serviceNotSupported() {
+        $this->sendResponse('Service not supported.', self::E, 404);
     }
     /**
      * Sets the description of the web services set.
@@ -988,6 +869,7 @@ class WebServicesManager implements JsonI {
         $json->add('api-version', $this->getVersion());
         $json->add('description', $this->getDescription());
         $i = $this->getInputs();
+
         if ($i instanceof Json) {
             $vNum = $i->get('version');
         } else {
@@ -1013,17 +895,16 @@ class WebServicesManager implements JsonI {
         if ($processReq) {
             $service = $this->getServiceByName($this->getCalledServiceName());
             $isAuth = !$service->isAuthRequred() || $service->isAuthorized() === null || $service->isAuthorized();
+
             if ($isAuth) {
                 $service->processRequest($this->getInputs());
             } else {
                 $this->notAuth();
             }
-        } else {
-            if (count($this->missingParamsArr) != 0) {
-                $this->missingParams();
-            } else if (count($this->invParamsArr) != 0) {
-                $this->invParams();
-            }
+        } else if (count($this->missingParamsArr) != 0) {
+            $this->missingParams();
+        } else if (count($this->invParamsArr) != 0) {
+            $this->invParams();
         }
     }
     /**
@@ -1043,7 +924,6 @@ class WebServicesManager implements JsonI {
      * @since 1.0
      */
     private final function _checkAction() {
-        
         $action = $this->getCalledServiceName();
         //first, check if action is set and not null
         if ($action !== null) {
@@ -1051,8 +931,10 @@ class WebServicesManager implements JsonI {
             //after that, check if action is supported by the API.
             if ($calledService !== null) {
                 $allowedMethods = $calledService->getRequestMethods();
+
                 if (count($allowedMethods) != 0) {
                     $isValidRequestMethod = in_array($this->getRequestMethod(), $allowedMethods);
+
                     if (!$isValidRequestMethod) {
                         $this->requestMethodNotAllowed();
                     } else {
@@ -1069,6 +951,123 @@ class WebServicesManager implements JsonI {
         }
 
         return false;
+    }
+    private function _filterInputs() {
+        $reqMeth = $this->getRequestMethod();
+        $contentType = $this->getContentType();
+
+        if ($reqMeth == 'GET' || 
+            $reqMeth == 'DELETE' || 
+            ($reqMeth == 'PUT' && $contentType != 'application/json') || 
+            $reqMeth == 'OPTIONS' || 
+            $reqMeth == 'PATCH') {
+            $this->filter->filterGET();
+        } else if ($reqMeth == 'POST' || ($reqMeth == 'PUT' && $contentType == 'application/json')) {
+            $this->filter->filterPOST();
+        }
+    }
+    private function _processJson($params) {
+        $processReq = true;
+        $i = $this->getInputs();
+        $paramsNames = $i->getPropsNames();
+
+        foreach ($params as $param) {
+            if (!$param->isOptional() && !in_array($param->getName(), $paramsNames)) {
+                array_push($this->missingParamsArr, $param->getName());
+                $processReq = false;
+            }
+
+            if ($i->get($param->getName()) === null) {
+                array_push($this->invParamsArr, $param->getName());
+                $processReq = false;
+            }
+        }
+        $this->_AfterParamsCheck($processReq);
+    }
+    private function _processNonJson($params) {
+        $processReq = true;
+        $i = $this->getInputs();
+
+        foreach ($params as $param) {
+            if (!$param->isOptional() && !isset($i[$param->getName()])) {
+                array_push($this->missingParamsArr, $param->getName());
+                $processReq = false;
+            }
+
+            if (isset($i[$param->getName()]) && $i[$param->getName()] === 'INV') {
+                array_push($this->invParamsArr, $param->getName());
+                $processReq = false;
+            }
+        }
+        $this->_AfterParamsCheck($processReq);
+    }
+    /**
+     * Adds new web service to the set of web services.
+     * 
+     * @param AbstractWebService $service The web service that will be added.
+     * 
+     * @since 1.0
+     * 
+     * @deprecated since version 1.4.7 Use WebservicesSet::addService()
+     */
+    private function addAction(AbstractWebService $service) {
+        $this->actions[$service->getName()] = $service;
+        $service->setManager($this);
+    }
+    /**
+     * Returns the name of the service which is being called.
+     * 
+     * The name of the service  must be passed in the body of the request for POST and PUT 
+     * request methods (e.g. 'action=do-something' or 'service-name=do-something'). 
+     * In case of GET and DELETE, it must be passed as query string. 
+     * 
+     * @return string|null The name of the service that was requested. If the name 
+     * of the service is not set, the method will return null. 
+     * 
+     * @since 1.0
+     * 
+     * @deprecated since version 1.4.6 Use WebServicesManager::getCalledServiceName() instead.
+     */
+    private function getAction() {
+        $reqMeth = $this->getRequestMethod();
+
+        $serviceIdx = ['action','service', 'service-name'];
+
+        $contentType = $this->getContentType();
+        $retVal = null;
+
+        if ($contentType == 'application/json') {
+            $inputsPath = $this->filter->getInputStreamPath();
+            $streamPath = $inputsPath !== null ? $inputsPath : 'php://input';
+            $body = file_get_contents($streamPath);
+            $jsonx = json_decode($body, true);
+
+            if (gettype($jsonx) == 'array') {
+                foreach ($serviceIdx as $index) {
+                    if (isset($jsonx[$index])) {
+                        $retVal = filter_var($jsonx[$index]);
+                        break;
+                    }
+                }
+            }
+
+            return $retVal;
+        }
+
+        foreach ($serviceIdx as $serviceNameIndex) {
+            if (($reqMeth == 'GET' || 
+               $reqMeth == 'DELETE' ||  
+               $reqMeth == 'OPTIONS' || 
+               $reqMeth == 'PATCH') && isset($_GET[$serviceNameIndex])) {
+                $retVal = filter_var($_GET[$serviceNameIndex]);
+            } else {
+                if (($reqMeth == 'POST' || $reqMeth == 'PUT') && isset($_POST[$serviceNameIndex])) {
+                    $retVal = filter_var($_POST[$serviceNameIndex]);
+                }
+            }
+        }
+
+        return $retVal;
     }
 
     private function setOutputStreamHelper($trimmed, $mode) {
