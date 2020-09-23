@@ -1060,10 +1060,8 @@ class WebServicesManager implements JsonI {
                $reqMeth == 'OPTIONS' || 
                $reqMeth == 'PATCH') && isset($_GET[$serviceNameIndex])) {
                 $retVal = filter_var($_GET[$serviceNameIndex]);
-            } else {
-                if (($reqMeth == 'POST' || $reqMeth == 'PUT') && isset($_POST[$serviceNameIndex])) {
-                    $retVal = filter_var($_POST[$serviceNameIndex]);
-                }
+            } else if (($reqMeth == 'POST' || $reqMeth == 'PUT') && isset($_POST[$serviceNameIndex])) {
+                $retVal = filter_var($_POST[$serviceNameIndex]);
             }
         }
 
