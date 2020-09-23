@@ -44,6 +44,102 @@ class WebServicesManagerTest extends TestCase {
         return $manager;
     }
     /**
+     * @test
+     */
+    public function testJson00() {
+        //Start Setup
+        $this->clrearVars();
+        putenv('REQUEST_METHOD=POST');
+        $_SERVER['CONTENT_TYPE'] = 'application/json';
+        $jsonTestFile = __DIR__.DIRECTORY_SEPARATOR.'json.json';
+        self::setTestJson($jsonTestFile, '{}');
+        $manager = new WebServicesManager();
+        $manager->setInputStream($jsonTestFile);
+        $manager->setOutputStream(fopen($this->outputStreamName,'w'));
+        //End Setup
+        
+        
+        $manager->process();
+        $this->assertEquals('{"message":"Service name is not set.", "type":"error", "http-code":404}', $manager->readOutputStream());
+    }
+    /**
+     * @test
+     */
+    public function testJson01() {
+        //Start Setup
+        $this->clrearVars();
+        putenv('REQUEST_METHOD=POST');
+        $_SERVER['CONTENT_TYPE'] = 'application/json';
+        $jsonTestFile = __DIR__.DIRECTORY_SEPARATOR.'json.json';
+        self::setTestJson($jsonTestFile, '{"service":"not-exist"}');
+        $manager = new WebServicesManager();
+        $manager->setInputStream($jsonTestFile);
+        $manager->setOutputStream(fopen($this->outputStreamName,'w'));
+        //End Setup
+        
+        
+        $manager->process();
+        $this->assertEquals('{"message":"Service not supported.", "type":"error", "http-code":404}', $manager->readOutputStream());
+    }
+    /**
+     * @test
+     */
+    public function testJson02() {
+        //Start Setup
+        $this->clrearVars();
+        putenv('REQUEST_METHOD=POST');
+        $_SERVER['CONTENT_TYPE'] = 'application/json';
+        $jsonTestFile = __DIR__.DIRECTORY_SEPARATOR.'json.json';
+        self::setTestJson($jsonTestFile, '{"service":"not-implemented"}');
+        $manager = new WebServicesManager();
+        $manager->addService(new NotImplService());
+        $manager->setInputStream(fopen($jsonTestFile, 'r'));
+        $manager->setOutputStream(fopen($this->outputStreamName,'w'));
+        //End Setup
+        
+        
+        $manager->process();
+        $this->assertEquals('{"message":"Service not implemented.", "type":"error", "http-code":404}', $manager->readOutputStream());
+    }
+    /**
+     * @test
+     */
+    public function testJson03() {
+        //Start Setup
+        $this->clrearVars();
+        putenv('REQUEST_METHOD=POST');
+        $_SERVER['CONTENT_TYPE'] = 'application/json';
+        $jsonTestFile = __DIR__.DIRECTORY_SEPARATOR.'json.json';
+        self::setTestJson($jsonTestFile, '{"service":"sum-array"}');
+        $manager = new SampleServicesManager();
+        $manager->setInputStream(fopen($jsonTestFile, 'r'));
+        $manager->setOutputStream(fopen($this->outputStreamName,'w'));
+        //End Setup
+        
+        
+        $manager->process();
+        $this->assertEquals('{"message":"The following required parameter(s) where missing from the request body: \'pass\', \'numbers\'.", "type":"error", "http-code":404}', $manager->readOutputStream());
+    }
+    /**
+     * @test
+     */
+    public function testJson04() {
+        //Start Setup
+        $this->clrearVars();
+        putenv('REQUEST_METHOD=POST');
+        $_SERVER['CONTENT_TYPE'] = 'application/json';
+        $jsonTestFile = __DIR__.DIRECTORY_SEPARATOR.'json.json';
+        self::setTestJson($jsonTestFile, '{"service":"sum-array", "pass":"123", "numbers":[1,5,4, 1.5]}');
+        $manager = new SampleServicesManager();
+        $manager->setInputStream(fopen($jsonTestFile, 'r'));
+        $manager->setOutputStream(fopen($this->outputStreamName,'w'));
+        //End Setup
+        
+        
+        $manager->process();
+        $this->assertEquals('{"sum":11.5}', $manager->readOutputStream());
+    }
+    /**
      * 
      * @param WebServicesManager $manager
      * @depends test00
@@ -446,5 +542,10 @@ class WebServicesManagerTest extends TestCase {
         }
         unset($_SERVER['CONTENT_TYPE']);
         putenv('REQUEST_METHOD');
+    }
+    public static function setTestJson($fName, $jsonData) {
+        $stream = fopen($fName, 'w+');
+        fwrite($stream, $jsonData);
+        fclose($stream);
     }
 }
