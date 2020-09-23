@@ -303,15 +303,15 @@ class WebServicesManager implements JsonI {
         $retVal = null;
 
         if ($contentType == 'application/json') {
-            $body = file_get_contents('php://input');
-            $jsonx = Json::decode($body);
+            $inputsPath = $this->filter->getInputStreamPath();
+            $streamPath = $inputsPath !== null ? $inputsPath : 'php://input';
+            $body = file_get_contents($streamPath);
+            $jsonx = json_decode($body, true);
 
-            if ($jsonx instanceof Json) {
+            if (gettype($jsonx) == 'array') {
                 foreach ($serviceIdx as $index) {
-                    $serviceName = $jsonx->get($index);
-
-                    if ($serviceName !== null) {
-                        $retVal = filter_var($serviceName);
+                    if (isset($jsonx[$index])) { 
+                        $retVal = filter_var($jsonx[$index]);
                         break;
                     }
                 }
@@ -469,7 +469,7 @@ class WebServicesManager implements JsonI {
      * Returns the stream at which the output will be sent to.
      * 
      * @return resource|null If a custom output stream is set using the 
-     * method 'WebServicesSet::setOutputStream()', the method will return a 
+     * method 'WebServicesManager::setOutputStream()', the method will return a 
      * resource. The resource will be still open. If no custom stream is set, 
      * the method will return null.
      * 
@@ -878,6 +878,23 @@ class WebServicesManager implements JsonI {
         $this->apiDesc = $desc;
     }
     /**
+     * Sets the stream at which the manager will read the inputs from.
+     * 
+     * This can be used to test the services if body content type is 
+     * 'application/json'.
+     * 
+     * @param string|resource $pathOrResource A file that contains JSON or 
+     * a stream which was opened using a function like 'fopen()'.
+     * 
+     * @return boolean If input stream is successfully set, the method will 
+     * return true. False otherwise.
+     * 
+     * @since 1.4.8
+     */
+    public function setInputStream($pathOrResource) {
+        return $this->filter->setInputStream($pathOrResource);
+    }
+    /**
      * Sets a custom output stream.
      * 
      * This method is useful if the developer would like to test the output of a 
@@ -1014,7 +1031,7 @@ class WebServicesManager implements JsonI {
         
         $action = $this->getCalledServiceName();
         //first, check if action is set and not null
-        if ($action != null) {
+        if ($action !== null) {
             $calledService = $this->getServiceByName($action);
             //after that, check if action is supported by the API.
             if ($calledService !== null) {
