@@ -18,9 +18,8 @@ class AddNubmersService extends AbstractNumbersService {
 
 
     public function processRequest() {
-        $inputs = $this->getInputs();
-        $firstNum = $inputs['first-number'];
-        $secondNumber = $inputs['second-number'];
+        $firstNum = $this->getParamVal('first-number');
+        $secondNumber = $this->getParamVal('second-number');
         $sum = $firstNum+$secondNumber;
         $this->sendResponse('The sum of '.$firstNum.' and '.$secondNumber.' is '.$sum.'.');
     }
