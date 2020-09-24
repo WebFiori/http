@@ -465,6 +465,14 @@ abstract class AbstractWebService implements JsonI {
 
         return null;
     }
+    public function getParamVal($name) {
+        $inputs = $this->getInputs();
+        if ($inputs instanceof Json) {
+            return $inputs->get($name);
+        } else if ($inputs !== null) {
+            return isset($inputs[$name]) ? $inputs[$name] : null;
+        }
+    }
     /**
      * Returns an indexed array that contains information about possible responses.
      * It is used to describe the API for front-end developers and help them 
@@ -547,13 +555,9 @@ abstract class AbstractWebService implements JsonI {
      * This method must be implemented in a way it sends back a response after 
      * processing the request.
      * 
-     * @param array|Json $inputs The inputs which are taken from the request body. 
-     * This can be an array or an object of type 'Json'. If request content type is 
-     * 'application/json', this will be an object of type 'Json'.
-     * 
      * @since 1.0.1
      */
-    abstract function processRequest($inputs);
+    abstract function processRequest();
     /**
      * Removes a request parameter from the action given its name.
      * 

@@ -61,9 +61,8 @@ abstract class ManagerInfoService extends AbstractWebService {
      * Sends back JSON response that contains information about the services 
      * at which the manager which is associated with the instance manages.
      * 
-     * @param array|Json $inputs
      */
-    public function processRequest($inputs) {
+    public function processRequest() {
         $this->send('application/json', $this->getManager()->toJSON());
     }
 }

@@ -18,7 +18,7 @@ class NoAuthService extends AbstractWebService {
         return false;
     }
 
-    public function processRequest($inputs) {
+    public function processRequest() {
         $this->sendResponse('You are authorized.');
     }
 

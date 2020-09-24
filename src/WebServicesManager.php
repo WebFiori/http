@@ -897,7 +897,7 @@ class WebServicesManager implements JsonI {
             $isAuth = !$service->isAuthRequred() || $service->isAuthorized() === null || $service->isAuthorized();
 
             if ($isAuth) {
-                $service->processRequest($this->getInputs());
+                $service->processRequest();
             } else {
                 $this->notAuth();
             }

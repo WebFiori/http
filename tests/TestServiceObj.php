@@ -17,7 +17,7 @@ class TestServiceObj extends AbstractWebService {
         
     }
 
-    public function processRequest($inputs) {
+    public function processRequest() {
         
     }
 

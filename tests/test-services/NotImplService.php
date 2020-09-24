@@ -17,7 +17,7 @@ class NotImplService extends AbstractWebService {
         
     }
 
-    public function processRequest($inputs) {
+    public function processRequest() {
         $this->getManager()->serviceNotImplemented();
     }
 

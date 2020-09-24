@@ -16,7 +16,8 @@ class GetUserProfileService extends AbstractNumbersService {
         $this->setDescription('Returns a JSON string that has user profile info.');
         $this->addParameter(new RequestParameter('user-id', 'integer'));
     }
-    public function processRequest($inputs) {
+    public function processRequest() {
+        $inputs = $this->getInputs();
         if ($inputs['user-id'] <= 0) {
             $this->getManager()->databaseErr();
         } else {

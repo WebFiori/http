@@ -25,7 +25,8 @@ class SumNumbersService extends AbstractNumbersService {
         $this->addParameter(new RequestParameter('numbers', 'array'));
     }
 
-    public function processRequest($inputs) {
+    public function processRequest() {
+        $inputs = $this->getInputs();
         $sum = 0;
         $numbersArr = $inputs instanceof Json ? $inputs->get('numbers') : $inputs['numbers'];
         foreach ($numbersArr as $num) {
