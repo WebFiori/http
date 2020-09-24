@@ -164,6 +164,30 @@ abstract class AbstractWebService implements JsonI {
         $this->requreAuth = true;
     }
     /**
+     * Returns the value of request parameter given its name.
+     * 
+     * @param string $paramName The name of request parameter as specified when 
+     * it was added to the service.
+     * 
+     * @return mixed|null If the parameter is found and its value is set, the 
+     * method will return its value. Other than that, the method will return null.
+     * 
+     * @since 1.0.1
+     */
+    public function getParamVal($paramName) {
+        $inputs = $this->getInputs();
+        $trimmed = trim($paramName);
+        
+        if ($inputs !== null) {
+            
+            if ($inputs instanceof Json) {
+                return $inputs->get($trimmed);
+            } else {
+                return isset($inputs[$trimmed]) ? $inputs[$trimmed] : null;
+            }
+        }
+    }
+    /**
      * Returns an array that contains all possible requests methods at which the 
      * service can be called with.
      * 
