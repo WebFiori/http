@@ -18,7 +18,7 @@ class HelloWorldService extends AbstractWebService {
         
     }
 
-    public function processRequest($inputs) {
+    public function processRequest() {
         $this->getManager()->sendResponse('Hello World!');
     }
 
