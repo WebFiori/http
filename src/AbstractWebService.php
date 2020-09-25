@@ -745,7 +745,7 @@ abstract class AbstractWebService implements JsonI {
      * the service was associated with a manager.
      * 
      */
-    public function setManager(WebServicesManager $manager) {
+    public function setManager($manager) {
         if ($manager === null) {
             $this->owner = null;
         } else if ($manager instanceof WebServicesManager) {

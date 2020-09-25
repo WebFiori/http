@@ -70,13 +70,13 @@ class WebServicesManager implements JsonI {
         'application/json'
     ];
     /**
-     * An array that contains the action that can be performed by the API.
+     * An array that contains the web services that can be performed by the API.
      * 
      * @var array
      * 
      * @since 1.0 
      */
-    private $actions;
+    private $services;
     /**
      * A general description for the API.
      * 
@@ -164,7 +164,7 @@ class WebServicesManager implements JsonI {
             $this->requestMethod = 'GET';
         }
         $this->filter = new APIFilter();
-        $this->actions = [];
+        $this->services = [];
         $this->invParamsArr = [];
         $this->missingParamsArr = [];
     }
@@ -374,8 +374,8 @@ class WebServicesManager implements JsonI {
     public function getServiceByName($serviceName) {
         $trimmed = trim($serviceName);
 
-        if (isset($this->actions[$trimmed])) {
-            return $this->actions[$trimmed];
+        if (isset($this->services[$trimmed])) {
+            return $this->services[$trimmed];
         }
 
         return null;
@@ -390,7 +390,7 @@ class WebServicesManager implements JsonI {
      * @since 1.0
      */
     public final function getServices() {
-        return $this->actions;
+        return $this->services;
     }
     /**
      * Returns version number of web services set.
@@ -591,7 +591,7 @@ class WebServicesManager implements JsonI {
 
         if ($service !== null) {
             $service->setManager(null);
-            unset($this->actions[$trimmed]);
+            unset($this->services[$trimmed]);
         }
 
         return $service;
@@ -605,7 +605,7 @@ class WebServicesManager implements JsonI {
      * @since 1.4.5
      */
     public function removeServices() {
-        $this->actions = [];
+        $this->services = [];
     }
     /**
      * Sends a response message to indicate that request method is not supported.
@@ -726,7 +726,7 @@ class WebServicesManager implements JsonI {
         }
     }
     /**
-     * Sends a response message to indicate that an action is not implemented.
+     * Sends a response message to indicate that web service is not implemented.
      * 
      * This method will send back a JSON string in the following format:
      * <p>
@@ -743,7 +743,8 @@ class WebServicesManager implements JsonI {
         $this->sendResponse('Service not implemented.', self::E, 404);
     }
     /**
-     * Sends a response message to indicate that an action is not supported by the API.
+     * Sends a response message to indicate that called web service is not supported by the API.
+     * 
      * This method will send back a JSON string in the following format:
      * <p>
      * {<br/>
@@ -912,22 +913,22 @@ class WebServicesManager implements JsonI {
      * 
      * This method checks if the following conditions are met:
      * <ul>
-     * <li>The parameter "action" or "service-name" is set in request body.</li>
+     * <li>The parameter "action", "service-name" or "service" is set in request body.</li>
      * <li>The service is supported by the set.</li>
      * <li>Request method of the service is correct.</li>
      * </ul>
      * If one of the conditions is not met, the method will return false and 
      * send back a response to indicate the issue.
      * 
-     * @return boolean true if API action is valid.
+     * @return boolean true if called service is valid.
      * 
      * @since 1.0
      */
     private final function _checkAction() {
-        $action = $this->getCalledServiceName();
+        $serviceName = $this->getCalledServiceName();
         //first, check if action is set and not null
-        if ($action !== null) {
-            $calledService = $this->getServiceByName($action);
+        if ($serviceName !== null) {
+            $calledService = $this->getServiceByName($serviceName);
             //after that, check if action is supported by the API.
             if ($calledService !== null) {
                 $allowedMethods = $calledService->getRequestMethods();
@@ -1011,14 +1012,14 @@ class WebServicesManager implements JsonI {
      * @deprecated since version 1.4.7 Use WebservicesSet::addService()
      */
     private function addAction(AbstractWebService $service) {
-        $this->actions[$service->getName()] = $service;
+        $this->services[$service->getName()] = $service;
         $service->setManager($this);
     }
     /**
      * Returns the name of the service which is being called.
      * 
      * The name of the service  must be passed in the body of the request for POST and PUT 
-     * request methods (e.g. 'action=do-something' or 'service-name=do-something'). 
+     * request methods (e.g. 'action=do-something' or 'service=do-something'). 
      * In case of GET and DELETE, it must be passed as query string. 
      * 
      * @return string|null The name of the service that was requested. If the name 

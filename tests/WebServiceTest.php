@@ -116,14 +116,14 @@ class WebServiceTest extends TestCase {
      */
     public function testConstructor00() {
         $action = new TestServiceObj('');
-        $this->assertEquals('an-action',$action->getName());
+        $this->assertEquals('new-service',$action->getName());
     }
     /**
      * @test
      */
     public function testConstructor01() {
         $action = new TestServiceObj('  ');
-        $this->assertEquals('an-action',$action->getName());
+        $this->assertEquals('new-service',$action->getName());
     }
     /**
      * @test
@@ -140,7 +140,7 @@ class WebServiceTest extends TestCase {
      */
     public function testConstructor03() {
         $action = new TestServiceObj('invalid name');
-        $this->assertEquals('an-action',$action->getName());
+        $this->assertEquals('new-service',$action->getName());
     }
     /**
      * @test
