@@ -47,7 +47,4 @@ Note that the <a href="https://github.com/usernane/jsonx">WebFiori Json</a> libr
 Another option is to download the latest release manually from <a href="https://github.com/usernane/restEasy/releases">Release</a>.
 
 ## Usage
-In order to create a basic functional API, we have to do the following steps:
-* Create new PHP class that extend the class [`AbstractWebService`](https://webfiori.com/docs/webfiori/restEasy/AbstractWebService). This will be the actual web service.
-* Create a PHP file which will receive the request. In the file, we create an instance of [`WebServicesManager`](https://webfiori.com/docs/webfiori/restEasy/WebServicesManager) and add the new service to it.
-* Call the method [`WebServicesManager::process()`](https://webfiori.com/docs/webfiori/restEasy/WebServicesManager#process) to process the request.
+For more information on how to use the library, [check here](https://github.com/usernane/wf-docs/blob/master/web-services.md)
