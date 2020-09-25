@@ -74,15 +74,15 @@ abstract class AbstractWebService implements JsonI {
         'CONNECT'
     ];
     /**
-     * An optional description for the action.
+     * An optional description for the service.
      * 
      * @var sting
      * 
      * @since 1.0
      */
-    private $actionDesc;
+    private $serviceDesc;
     /**
-     * The name of the action.
+     * The name of the service.
      * 
      * @var string
      * 
@@ -106,7 +106,7 @@ abstract class AbstractWebService implements JsonI {
      */
     private $parameters = [];
     /**
-     * An array that contains action request methods.
+     * An array that contains service request methods.
      * 
      * @var array
      * 
@@ -133,7 +133,7 @@ abstract class AbstractWebService implements JsonI {
     private $responses;
     /**
      * An attribute that is used to tell since which API version the 
-     * action was added.
+     * service was added.
      * 
      * @var string
      * 
@@ -143,20 +143,20 @@ abstract class AbstractWebService implements JsonI {
     /**
      * Creates new instance of the class.
      * 
-     * The developer can supply an optional action name. 
-     * A valid action name must follow the following rules:
+     * The developer can supply an optional service name. 
+     * A valid service name must follow the following rules:
      * <ul>
      * <li>It can contain the letters [A-Z] and [a-z].</li>
      * <li>It can contain the numbers [0-9].</li>
      * <li>It can have the character '-' and the character '_'.</li>
      * </ul>
-     * If The given name is invalid, the name of the action will be set to 'an-action'.
+     * If The given name is invalid, the name of the service will be set to 'new-service'.
      * 
-     * @param string $name The name of the action. 
+     * @param string $name The name of the web service. 
      */
     public function __construct($name) {
         if (!$this->setName($name)) {
-            $this->setName('an-action');
+            $this->setName('new-service');
         }
         $this->reqMethods = [];
         $this->parameters = [];
@@ -277,7 +277,7 @@ abstract class AbstractWebService implements JsonI {
         return $retVal."    Responses Descriptions => $responsesStr]\n";
     }
     /**
-     * Adds new request parameter for the action.
+     * Adds new request parameter to the service.
      * 
      * The parameter will only be added if no parameter which has the same 
      * name as the given one is added before.
@@ -324,7 +324,7 @@ abstract class AbstractWebService implements JsonI {
         return false;
     }
     /**
-     * Adds new action request method.
+     * Adds new request method.
      * 
      * The value that will be passed to this method can be any string 
      * that represents HTTP request method (e.g. 'get', 'post', 'options' ...). It 
@@ -353,10 +353,10 @@ abstract class AbstractWebService implements JsonI {
      * Adds response description.
      * 
      * It is used to describe the API for front-end developers and help them 
-     * identify possible responses if they call the API using the specified action.
+     * identify possible responses if they call the API using the specified service.
      * 
      * @param string $description A paragraph that describes one of 
-     * the possible responses due to performing the action.
+     * the possible responses due to calling the service.
      * 
      * @since 1.0
      */
@@ -415,15 +415,15 @@ abstract class AbstractWebService implements JsonI {
         return $retVal;
     }
     /**
-     * Returns the description of the action.
+     * Returns the description of the service.
      * 
-     * @return string|null The description of the action. If the description is 
+     * @return string|null The description of the service. If the description is 
      * not set, the method will return null.
      * 
      * @since 1.0
      */
     public final function getDescription() {
-        return $this->actionDesc;
+        return $this->serviceDesc;
     }
     /**
      * Returns an associative array or an object of type Json of filtered request inputs.
@@ -457,9 +457,9 @@ abstract class AbstractWebService implements JsonI {
         return $this->owner;
     }
     /**
-     * Returns the name of the action.
+     * Returns the name of the service.
      * 
-     * @return string The name of the action.
+     * @return string The name of the service.
      * 
      * @since 1.0
      */
@@ -467,7 +467,7 @@ abstract class AbstractWebService implements JsonI {
         return $this->name;
     }
     /**
-     * Returns action parameter given its name.
+     * Returns one of the parameters of the service given its name.
      * 
      * @param string $paramName The name of the parameter.
      * 
@@ -491,8 +491,9 @@ abstract class AbstractWebService implements JsonI {
     }
     /**
      * Returns an indexed array that contains information about possible responses.
+     * 
      * It is used to describe the API for front-end developers and help them 
-     * identify possible responses if they call the API using the specified action.
+     * identify possible responses if they call the API using the specified service.
      * 
      * @return array An array that contains information about possible responses.
      * 
@@ -502,12 +503,12 @@ abstract class AbstractWebService implements JsonI {
         return $this->responses;
     }
     /**
-     * Returns version number or name at which the action was added to the API.
+     * Returns version number or name at which the service was added to the API.
      * 
      * Version number is set based on the version number which was set in the 
      * class WebAPI.
      * 
-     * @return string The version number at which the action was added to the API.
+     * @return string The version number at which the service was added to the API.
      * 
      * @since 1.0
      */
@@ -515,14 +516,15 @@ abstract class AbstractWebService implements JsonI {
         return $this->sinceVersion;
     }
     /**
-     * Checks if the action has a specific request parameter given its name.
+     * Checks if the service has a specific request parameter given its name.
+     * 
      * Note that the name of the parameter is case sensitive. This means that 
      * 'get-profile' is not the same as 'Get-Profile'.
      * 
      * @param string $name The name of the parameter.
      * 
      * @return boolean If a request parameter which has the given name is added 
-     * to the action, the method will return true. Otherwise, the method will return 
+     * to the service, the method will return true. Otherwise, the method will return 
      * false.
      * 
      * @since 1.0
@@ -575,7 +577,7 @@ abstract class AbstractWebService implements JsonI {
      */
     abstract function processRequest();
     /**
-     * Removes a request parameter from the action given its name.
+     * Removes a request parameter from the service given its name.
      * 
      * @param string $paramName The name of the parameter (case sensitive).
      * 
@@ -626,10 +628,10 @@ abstract class AbstractWebService implements JsonI {
      */
     public function removeRequestMethod($method) {
         $uMethod = strtoupper(trim($method));
-        $actionMethods = &$this->getRequestMethods();
+        $allowedMethods = &$this->getRequestMethods();
 
-        if (in_array($uMethod, $actionMethods)) {
-            $count = count($actionMethods);
+        if (in_array($uMethod, $allowedMethods)) {
+            $count = count($allowedMethods);
             $methodIndex = -1;
 
             for ($x = 0 ; $x < $count ; $x++) {
@@ -640,10 +642,10 @@ abstract class AbstractWebService implements JsonI {
             }
 
             if ($count == 1) {
-                unset($actionMethods[0]);
+                unset($allowedMethods[0]);
             } else {
-                $actionMethods[$methodIndex] = $actionMethods[$count - 1];
-                unset($actionMethods[$count - 1]);
+                $allowedMethods[$methodIndex] = $allowedMethods[$count - 1];
+                unset($allowedMethods[$count - 1]);
             }
 
             return true;
@@ -707,16 +709,16 @@ abstract class AbstractWebService implements JsonI {
         }
     }
     /**
-     * Sets the description of the action.
+     * Sets the description of the service.
      * 
-     * Used to help front-end to identify the use of the action.
+     * Used to help front-end to identify the use of the service.
      * 
      * @param sting $desc Action description.
      * 
      * @since 1.0
      */
     public final function setDescription($desc) {
-        $this->actionDesc = trim($desc);
+        $this->serviceDesc = trim($desc);
     }
     /**
      * Sets the value of the property 'requreAuth'.
@@ -733,29 +735,34 @@ abstract class AbstractWebService implements JsonI {
         $this->requreAuth = $bool === true;
     }
     /**
+     * Associate the web service with a manager.
      * 
-     * @param WebServicesManager|null $manager
+     * The developer does not have to use this method. It is used when a 
+     * service is added to a manager.
+     * 
+     * @param WebServicesManager|null $manager The manager at which the service 
+     * will be associated with. If null is given, the association will be removed if 
+     * the service was associated with a manager.
+     * 
      */
-    public function setManager($manager) {
+    public function setManager(WebServicesManager $manager) {
         if ($manager === null) {
             $this->owner = null;
-        } else {
-            if ($manager instanceof WebServicesManager) {
-                $this->owner = $manager;
-            }
+        } else if ($manager instanceof WebServicesManager) {
+            $this->owner = $manager;
         }
     }
     /**
-     * Sets the name of the action.
+     * Sets the name of the service.
      * 
-     * A valid action name must follow the following rules:
+     * A valid service name must follow the following rules:
      * <ul>
      * <li>It can contain the letters [A-Z] and [a-z].</li>
      * <li>It can contain the numbers [0-9].</li>
      * <li>It can have the character '-' and the character '_'.</li>
      * </ul>
      * 
-     * @param string $name The name of the action.
+     * @param string $name The name of the web service.
      * 
      * @return boolean If the given name is valid, the method will return 
      * true once the name is set. false is returned if the given 
@@ -783,12 +790,12 @@ abstract class AbstractWebService implements JsonI {
         return false;
     }
     /**
-     * Sets version number or name at which the action was added to the API.
+     * Sets version number or name at which the service was added to a manager.
      * 
-     * This method is called automatically when an action is added to any object of 
-     * type WebAPI. The developer does not have to use this method.
+     * This method is called automatically when the service is added to any 
+     * services manager. The developer does not have to use this method.
      * 
-     * @param string The version number at which the action was added to the API.
+     * @param string The version number at which the service was added to the API.
      * 
      * @since 1.0
      */
@@ -796,7 +803,7 @@ abstract class AbstractWebService implements JsonI {
         $this->sinceVersion = $sinceAPIv;
     }
     /**
-     * Returns a Json object that represents the action.
+     * Returns a Json object that represents the service.
      * 
      * The generated JSON string from the returned Json object will have 
      * the following format:
