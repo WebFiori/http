@@ -489,14 +489,6 @@ abstract class AbstractWebService implements JsonI {
 
         return null;
     }
-    public function getParamVal($name) {
-        $inputs = $this->getInputs();
-        if ($inputs instanceof Json) {
-            return $inputs->get($name);
-        } else if ($inputs !== null) {
-            return isset($inputs[$name]) ? $inputs[$name] : null;
-        }
-    }
     /**
      * Returns an indexed array that contains information about possible responses.
      * It is used to describe the API for front-end developers and help them 
