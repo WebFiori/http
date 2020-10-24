@@ -15,8 +15,8 @@ It includes inputs feltering and data validation in addion to creating user-defi
   <a href="https://github.com/WebFiori/restEasy/releases">
       <img src="https://img.shields.io/github/release/WebFiori/restEasy.svg?label=latest" />
   </a>
-  <a href="https://packagist.org/packages/webfiori/rest-easy">
-      <img src="https://img.shields.io/packagist/dt/webfiori/reast-easy?color=light-green">
+  <a href="https://packagist.org/packages/webfiori/rest-easy ">
+      <img src="https://img.shields.io/packagist/dt/webfiori/rest-easy ?color=light-green">
   </a>
 </p>
 
