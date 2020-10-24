@@ -3,15 +3,20 @@ A simple library for creating RESTful web APIs.
 It includes inputs feltering and data validation in addion to creating user-defined inputs filters.
 
 <p align="center">
-  <a href="https://travis-ci.org/usernane/restEasy" target="_blank"><img src="https://travis-ci.org/usernane/restEasy.svg?branch=master"></a>
-  <a href="https://codecov.io/gh/usernane/restEasy" target="_blank">
-    <img src="https://codecov.io/gh/usernane/restEasy/branch/master/graph/badge.svg" />
+  <a href="https://travis-ci.com/github/WebFiori/restEasy">
+    <img src="https://travis-ci.com/WebFiori/restEasy.svg?branch=master">
   </a>
-  <a href="https://sonarcloud.io/dashboard?id=usernane_restEasy">
-    <img src="https://sonarcloud.io/api/project_badges/measure?project=usernane_restEasy&metric=alert_status">
+  <a href="https://codecov.io/gh/WebFiori/restEasy">
+    <img src="https://codecov.io/gh/WebFiori/restEasy/branch/master/graph/badge.svg" />
+  </a>
+  <a href="https://sonarcloud.io/dashboard?id=WebFiori_restEasy">
+      <img src="https://sonarcloud.io/api/project_badges/measure?project=WebFiori_restEasy&metric=alert_status" />
+  </a>
+  <a href="https://github.com/WebFiori/restEasy/releases">
+      <img src="https://img.shields.io/github/release/WebFiori/restEasy.svg?label=latest" />
   </a>
   <a href="https://packagist.org/packages/webfiori/rest-easy">
-    <img src="https://img.shields.io/packagist/dt/webfiori/rest-easy?color=light-green">
+      <img src="https://img.shields.io/packagist/dt/webfiori/reast-easy?color=light-green">
   </a>
 </p>
 
