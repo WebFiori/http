@@ -24,7 +24,7 @@
  */
 namespace webfiori\restEasy;
 
-use webfiori\entity\Response;
+use webfiori\framework\Response;
 use webfiori\json\Json;
 use webfiori\json\JsonI;
 /**
@@ -639,7 +639,7 @@ class WebServicesManager implements JsonI {
         if ($this->getOutputStream() !== null) {
             fwrite($this->getOutputStream(), $data.'');
             fclose($this->getOutputStream());
-        } else if (class_exists('webfiori\entity\Response')) {
+        } else if (class_exists('webfiori\framework\Response')) {
             Response::addHeader('content-type', $conentType);
             Response::append($data);
             Response::setCode($code);
@@ -661,7 +661,7 @@ class WebServicesManager implements JsonI {
      */
     public function sendHeaders(array $headersArr) {
         foreach ($headersArr as $header => $val) {
-            if (class_exists('webfiori\entity\Response')) {
+            if (class_exists('webfiori\framework\Response')) {
                 Response::addHeader($header, $val);
             } else {
                 header($header.':'.$val);
