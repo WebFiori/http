@@ -714,7 +714,7 @@ class WebServicesManager implements JsonI {
         if ($this->getOutputStream() !== null) {
             fwrite($this->getOutputStream(), $json);
             fclose($this->getOutputStream());
-        } else if (class_exists('webfiori\entity\Response')) {
+        } else if (class_exists('webfiori\framework\Response')) {
             Response::addHeader('content-type', 'application/json');
             Response::append($json);
             Response::setCode($code);
