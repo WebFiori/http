@@ -2,7 +2,7 @@
 
 require 'loader.php';
 
-use webfiori\restEasy\AbstractWebService;
+use webfiori\http\AbstractWebService;
 
 /**
  * Description of HelloWorldService

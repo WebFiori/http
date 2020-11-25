@@ -23,7 +23,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-namespace webfiori\restEasy;
+namespace webfiori\http;
 
 /**
  * A service which can be used to display information about services manager.

@@ -2,7 +2,7 @@
 require 'loader.php';
 require 'HelloWorldService.php';
 
-use webfiori\restEasy\WebServicesManager;
+use webfiori\http\WebServicesManager;
 use HelloWorldService;
 
 $manager = new WebServicesManager();

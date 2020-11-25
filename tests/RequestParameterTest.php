@@ -2,7 +2,7 @@
 namespace restEasy\tests;
 
 use PHPUnit\Framework\TestCase;
-use webfiori\restEasy\RequestParameter;
+use webfiori\http\RequestParameter;
 /**
  * Description of RequestParameterTest
  *

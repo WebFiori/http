@@ -7,8 +7,8 @@
  */
 
 namespace restEasy\tests;
-use webfiori\restEasy\AbstractWebService;
-use webfiori\restEasy\RequestParameter;
+use webfiori\http\AbstractWebService;
+use webfiori\http\RequestParameter;
 
 /**
  * Description of AbstractNumbersService

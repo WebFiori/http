@@ -3,7 +3,7 @@ namespace restEasy\tests;
 
 use PHPUnit\Framework\TestCase;
 use restEasy\tests\TestServiceObj;
-use webfiori\restEasy\RequestParameter;
+use webfiori\http\RequestParameter;
 use restEasy\tests\NoAuthService;
 
 class WebServiceTest extends TestCase {

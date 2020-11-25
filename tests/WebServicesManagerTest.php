@@ -3,8 +3,8 @@ namespace restEasy\tests;
 
 use webfiori\json\Json;
 use PHPUnit\Framework\TestCase;
-use webfiori\restEasy\AbstractWebService;
-use webfiori\restEasy\WebServicesManager;
+use webfiori\http\AbstractWebService;
+use webfiori\http\WebServicesManager;
 use restEasy\tests\NotImplService;
 /**
  * Description of WebAPITest

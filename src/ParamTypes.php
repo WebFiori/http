@@ -1,5 +1,5 @@
 <?php
-namespace webfiori\restEasy;
+namespace webfiori\http;
 
 /**
  * A class that contains constants for representing request parameters types.

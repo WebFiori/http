@@ -2,7 +2,7 @@
 
 namespace restEasy\tests;
 
-use webfiori\restEasy\AbstractWebService;
+use webfiori\http\AbstractWebService;
 /**
  * Description of NoAuthService
  *
