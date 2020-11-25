@@ -25,13 +25,101 @@
 namespace webfiori\http;
 
 /**
- * A class that represents HTTP request.
- *
+ * A class that represents HTTP client request.
+ * The developer can use this class to access basic information about a 
+ * request. Note that it does not comply with PSR-7 in all aspects.
  * @author Ibrahim
  * 
  * @version 1.0
  */
 class Request {
+    /**
+     * An array that contains the names of request methods.
+     * 
+     * This array contains the following strings:
+     * <ul>
+     * <li>GET</li>
+     * <li>HEAD</li>
+     * <li>POST</li>
+     * <li>PUT</li>
+     * <li>DELETE</li>
+     * <li>TRACE</li>
+     * <li>OPTIONS</li>
+     * <li>PATCH</li>
+     * <li>CONNECT</li>
+     * </ul>
+     * 
+     * @var array An array that contains the names of request methods.
+     * 
+     * @since 1.0
+     */
+    const METHODS = [
+        'GET',
+        'HEAD',
+        'POST',
+        'PUT',
+        'DELETE',
+        'TRACE',
+        'OPTIONS',
+        'PATCH',
+        'CONNECT'
+    ];
+    private $method;
+    /**
+     *
+     * @var string
+     * 
+     * @since 1.0 
+     */
+    private $requestedUri;
+    private $servicesManager;
+    /**
+     *
+     * @var array
+     * 
+     * @since 1.0 
+     */
+    private $requestHeaders;
+    private function __construct() {
+        $this->requestedUri = self::getRequestedURL();
+        $this->requestHeaders = self::getRequestHeaders();
+        $this->method = filter_var(getenv('REQUEST_METHOD'));
+        if (!in_array($this->method, self::METHODS)) {
+            $this->method = 'GET';
+        }
+    }
+    /**
+     * 
+     * @param WebServicesManager $new
+     * 
+     * @return WebServicesManager
+     */
+    public function servicesManager(WebServicesManager $new = null) {
+        if ($new !== null) {
+            self::get()->servicesManager = $new;
+        }
+        return self::get()->servicesManager;
+    }
+    /**
+     * Returns an object that holds all information about requested URI.
+     * 
+     * @return Uri an object that holds all information about requested URI.
+     * 
+     * @since 1.0
+     */
+    public static function getUri() {
+        return new Uri(self::getRequestedURL());
+    }
+    /**
+     * Returns the name of request method which is used to call one of the services in the set.
+     * 
+     * @return string Request method such as POST, GET, etc....
+     * 
+     * @since 1.0
+     */
+    public static function getMethod() {
+        return self::get()->method;
+    }
     /**
      *
      * @var Response
@@ -42,11 +130,92 @@ class Request {
     /**
      * 
      * @return Request
+     * 
+     * @since 1.0
      */
     private static function get() {
         if (self::$inst === null) {
             self::$inst = new Request();
         }
         return self::$inst;
+    }
+    /**
+     * Returns the URI of the requested resource.
+     * 
+     * @return string The URI of the requested resource. 
+     * 
+     * @since 1.0
+     */
+    public static function getRequestedURL() {
+        if (self::get()->requestedUri !== null) {
+            return self::get()->requestedUri;
+        }
+        $base = Uri::getBaseURL();
+        
+        $requestedURI = trim(filter_var(getenv('REQUEST_URI')),'/');
+        
+        return $base.'/'.$requestedURI;
+    }
+    /**
+     * Returns HTTP request headers.
+     * 
+     * This method will try to extract request headers using two ways, 
+     * first, it will check if the method 'apache_request_headers()' is 
+     * exist or not. If it does, then request headers will be taken from 
+     * there. If it does not exist, it will try to extract request headers 
+     * from the super global $_SERVER.
+     * 
+     * @return array An associative array of request headers. The indices 
+     * will represents the headers and the values are the values of the 
+     * headers. The indices will be all in lower case.
+     * 
+     * @since 1.0
+     */
+    public static function getRequestHeaders() {
+        if (self::get()->requestHeaders !== null) {
+            return self::get()->requestHeaders;
+        }
+        $retVal = [];
+
+        if (function_exists('apache_request_headers')) {
+            $headers = apache_request_headers();
+
+            foreach ($headers as $k => $v) {
+                $retVal[strtolower($k)] = filter_var($v, FILTER_SANITIZE_STRING);
+            }
+        } else if (isset($_SERVER)) {
+            $retVal = self::_getRequestHeadersFromServer();
+        }
+
+        return $retVal;
+    }
+    /**
+     * Collect request headers from the array $_SERVER.
+     * @return array
+     */
+    private static function _getRequestHeadersFromServer() {
+        $retVal = [];
+
+        foreach ($_SERVER as $k => $v) {
+            $split = explode('_', $k);
+
+            if ($split[0] == 'HTTP') {
+                $headerName = '';
+                $count = count($split);
+
+                for ($x = 0 ; $x < $count ; $x++) {
+                    if ($x + 1 == $count && $split[$x] != 'HTTP') {
+                        $headerName = $headerName.$split[$x];
+                    } else if ($x == 1 && $split[$x] != 'HTTP') {
+                        $headerName = $split[$x].'-';
+                    } else if ($split[$x] != 'HTTP') {
+                        $headerName = $headerName.$split[$x].'-';
+                    }
+                }
+                $retVal[strtolower($headerName)] = filter_var($v, FILTER_SANITIZE_STRING);
+            }
+        }
+
+        return $retVal;
     }
 }
