@@ -158,7 +158,7 @@ class WebServicesManagerTest extends TestCase {
         $this->clrearVars();
         putenv('REQUEST_METHOD=GET');
         $api = new SampleServicesManager();
-        $this->assertEquals('GET',$api->getRequestMethod());
+        $this->assertEquals('GET', \webfiori\http\Request::getMethod());
         $this->assertNull($api->getCalledServiceName());
         $this->assertEquals('1.0.1',$api->getVersion());
         $this->assertEquals('NO DESCRIPTION',$api->getDescription());
