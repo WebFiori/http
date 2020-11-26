@@ -1,5 +1,5 @@
-# RESTEasy
-A simple library for creating RESTful web APIs. 
+# WebFiori HTTP
+A simple library for creating RESTful web APIs in aadition to providing the developer with utilities for handling HTTP request and response. 
 It includes inputs feltering and data validation in addion to creating user-defined inputs filters.
 
 <p align="center">
