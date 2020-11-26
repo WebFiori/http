@@ -3,3 +3,7 @@ test.*
 /vendor/
 composer.lock
 clover.xml
+.phpunit.result.cache
+tests/hello.txt
+tests/hello2.txt
+tests/json.json
