@@ -592,4 +592,69 @@ class Uri {
 
         return $retVal;
     }
+    /**
+     * Sets the requested URI.
+     * 
+     * @param string $uri A string that represents requested URI.
+     * 
+     * @return boolean If the requested URI is a match with the original URI which 
+     * is stored in the object, it will be set and the method will return true. 
+     * Other than that, the method will return false.
+     * 
+     * @since 1.0
+     */
+    public function setRequestedUri($uri) {
+        $this->uriBroken['requested-uri'] = self::splitURI($uri);
+
+        if (!$this->_comparePath()) {
+            unset($this->uriBroken['requested-uri']);
+
+            return false;
+        }
+
+        return true;
+    }
+    /**
+     * Validate the path part of original URI and the requested one.
+     * 
+     * @return boolean
+     * 
+     * @since 1.0
+     */
+    private function _comparePath() {
+        $requestedArr = $this->getRequestedUri();
+
+        if ($requestedArr !== null) {
+            $originalPath = $this->getPathArray();
+            $requestedPath = $requestedArr['path'];
+
+            if (count($originalPath) == count($requestedPath)) {
+                return $this->_comparePathHelper($originalPath, $requestedPath);
+            }
+        }
+
+        return false;
+    }
+    private function _comparePathHelper($originalPath, $requestedPath) {
+        $count = count($originalPath);
+
+        for ($x = 0 ; $x < $count ; $x++) {
+            $original = $originalPath[$x];
+
+            if (!($original[0] == '{' && $original[strlen($original) - 1] == '}')) {
+                $requested = $requestedPath[$x];
+
+                if (!$this->isCaseSensitive()) {
+                    $requested = strtolower($requested);
+                    $original = strtolower($original);
+                }
+
+                if ($requested != $original) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
 }
