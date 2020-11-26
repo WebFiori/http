@@ -81,11 +81,41 @@ class Request {
      */
     private $requestHeaders;
     private function __construct() {
-        $this->requestedUri = self::getRequestedURL();
-        $this->requestHeaders = self::getRequestHeaders();
-        $this->method = filter_var(getenv('REQUEST_METHOD'));
-        if (!in_array($this->method, self::METHODS)) {
-            $this->method = 'GET';
+        $this->requestedUri = null;
+        $this->requestHeaders = null;
+        
+    }
+    /**
+     * Returns request content type.
+     * 
+     * @return string|null The value of the header 'content-type' in the request.
+     * 
+     * @since 1.0
+     */
+    public static function getContentType() {
+        $c = isset($_SERVER['CONTENT_TYPE']) ? filter_var($_SERVER['CONTENT_TYPE']) : null;
+
+        if ($c !== null && $c !== false) {
+            return trim(explode(';', $c)[0]);
+        }
+
+        return null;
+    }
+    /**
+     * Returns the IP address of the user who is connected to the server.
+     * 
+     * @return string The IP address of the user who is connected to the server. 
+     * The value is taken from the array $_SERVER at index 'REMOTE_ADDR'.
+     * 
+     * @since 1.0
+     */
+    public static function getClientIP() {
+        $ip = filter_var($_SERVER['REMOTE_ADDR'],FILTER_VALIDATE_IP);
+
+        if ($ip == '::1') {
+            return '127.0.0.1';
+        } else {
+            return $ip;
         }
     }
     /**
@@ -113,12 +143,19 @@ class Request {
     /**
      * Returns the name of request method which is used to call one of the services in the set.
      * 
-     * @return string Request method such as POST, GET, etc....
+     * @return string Request method such as POST, GET, etc.... Default return 
+     * value is 'GET'.
      * 
      * @since 1.0
      */
     public static function getMethod() {
-        return self::get()->method;
+        $method = filter_var(getenv('REQUEST_METHOD'), FILTER_SANITIZE_STRING);
+
+        if (!in_array($method, self::METHODS)) {
+            $method = 'GET';
+        }
+
+        return $method;
     }
     /**
      *
@@ -153,8 +190,9 @@ class Request {
         $base = Uri::getBaseURL();
         
         $requestedURI = trim(filter_var(getenv('REQUEST_URI')),'/');
+        self::get()->requestedUri = $base.'/'.$requestedURI;
         
-        return $base.'/'.$requestedURI;
+        return self::get()->requestedUri;
     }
     /**
      * Returns HTTP request headers.
@@ -175,19 +213,19 @@ class Request {
         if (self::get()->requestHeaders !== null) {
             return self::get()->requestHeaders;
         }
-        $retVal = [];
+        self::get()->requestHeaders = [];
 
         if (function_exists('apache_request_headers')) {
             $headers = apache_request_headers();
 
             foreach ($headers as $k => $v) {
-                $retVal[strtolower($k)] = filter_var($v, FILTER_SANITIZE_STRING);
+                self::get()->requestHeaders[strtolower($k)] = filter_var($v, FILTER_SANITIZE_STRING);
             }
         } else if (isset($_SERVER)) {
-            $retVal = self::_getRequestHeadersFromServer();
+            self::get()->requestHeaders = self::_getRequestHeadersFromServer();
         }
 
-        return $retVal;
+        return self::get()->requestHeaders;
     }
     /**
      * Collect request headers from the array $_SERVER.
