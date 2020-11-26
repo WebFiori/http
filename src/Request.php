@@ -154,7 +154,7 @@ class Request {
             $requestedURI = trim(filter_var(getenv('REQUEST_URI')),'/');
             self::get()->requestedUri = $base.'/'.$requestedURI;
         }
-        
+
 
         return self::get()->requestedUri;
     }
@@ -187,9 +187,45 @@ class Request {
                 self::get()->requestHeaders = self::_getRequestHeadersFromServer();
             }
         }
-        
+
 
         return self::get()->requestHeaders;
+    }
+    /**
+     * Returns an array that contains the value of the header 'authorization'.
+     * 
+     * 
+     * @return array The array will have two indices, the first one with 
+     * name 'scheme' and the second one with name 'credentials'. The index 'scheme' 
+     * will contain the name of the scheme which is used to authenticate 
+     * ('Basic', 'Bearer', 'Digest', etc...). The index 'credentials' will contain 
+     * the credentials which can be used to authenticate the client.
+     * 
+     *  @since 1.0
+     */
+    public static function getAuthHeader() {
+        $retVal = [
+            'scheme' => '',
+            'credentials' => ''
+        ];
+        $headerVal = '';
+        
+        $headers = self::getRequestHeaders();
+        
+        if (isset($headers['authorization'])) {
+            $headerVal = $headers['authorization'];
+        }
+
+        if (strlen($headerVal) != 0) {
+            $split = explode(' ', $headerVal);
+
+            if (count($split) == 2) {
+                $retVal['scheme'] = strtolower($split[0]);
+                $retVal['credentials'] = $split[1];
+            }
+        }
+
+        return $retVal;
     }
     /**
      * Returns an object that holds all information about requested URI.
