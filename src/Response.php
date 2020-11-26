@@ -29,7 +29,8 @@ namespace webfiori\http;
  * 
  * This class can be used to collect server output and send it back to the client.
  * In addition, it can be used to send custom headers to the client. This class 
- * is used to solve the error 'Output already started at XXX'.
+ * is used to solve the error 'Output already started at XXX'. Note that 
+ * this class does not comply with PSR-7 specifications.
  *
  * @author Ibrahim
  * 
