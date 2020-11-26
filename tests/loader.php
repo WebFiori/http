@@ -44,13 +44,16 @@ fwrite($stderr,'Root Directory: \''.$rootDir.'\'.'."\n");
 require_once $rootDir.'vendor'.$DS.'webfiori'.$DS.'jsonx'.$DS.'src'.$DS.'JsonTypes.php';
 require_once $rootDir.'vendor'.$DS.'webfiori'.$DS.'jsonx'.$DS.'src'.$DS.'JsonI.php';
 require_once $rootDir.'vendor'.$DS.'webfiori'.$DS.'jsonx'.$DS.'src'.$DS.'Json.php';
+
 require_once $rootDir.'src'.$DS.'ParamTypes.php';
 require_once $rootDir.'src'.$DS.'AbstractWebService.php';
 require_once $rootDir.'src'.$DS.'APIFilter.php';
 require_once $rootDir.'src'.$DS.'RequestParameter.php';
 require_once $rootDir.'src'.$DS.'WebServicesManager.php';
 require_once $rootDir.'src'.$DS.'ManagerInfoService.php';
-
+require_once $rootDir.'src'.$DS.'Uri.php';
+require_once $rootDir.'src'.$DS.'Request.php';
+require_once $rootDir.'src'.$DS.'Response.php';
 
 require_once $rootDir.'tests'.$DS.'TestServiceObj.php';
 require_once $rootDir.'tests'.$DS.'test-services'.$DS.'SampleServicesManager.php';
