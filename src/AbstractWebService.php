@@ -74,14 +74,6 @@ abstract class AbstractWebService implements JsonI {
         'CONNECT'
     ];
     /**
-     * An optional description for the service.
-     * 
-     * @var sting
-     * 
-     * @since 1.0
-     */
-    private $serviceDesc;
-    /**
      * The name of the service.
      * 
      * @var string
@@ -132,6 +124,14 @@ abstract class AbstractWebService implements JsonI {
      */
     private $responses;
     /**
+     * An optional description for the service.
+     * 
+     * @var sting
+     * 
+     * @since 1.0
+     */
+    private $serviceDesc;
+    /**
      * An attribute that is used to tell since which API version the 
      * service was added.
      * 
@@ -162,30 +162,6 @@ abstract class AbstractWebService implements JsonI {
         $this->parameters = [];
         $this->responses = [];
         $this->requreAuth = true;
-    }
-    /**
-     * Returns the value of request parameter given its name.
-     * 
-     * @param string $paramName The name of request parameter as specified when 
-     * it was added to the service.
-     * 
-     * @return mixed|null If the parameter is found and its value is set, the 
-     * method will return its value. Other than that, the method will return null.
-     * 
-     * @since 1.0.1
-     */
-    public function getParamVal($paramName) {
-        $inputs = $this->getInputs();
-        $trimmed = trim($paramName);
-        
-        if ($inputs !== null) {
-            
-            if ($inputs instanceof Json) {
-                return $inputs->get($trimmed);
-            } else {
-                return isset($inputs[$trimmed]) ? $inputs[$trimmed] : null;
-            }
-        }
     }
     /**
      * Returns an array that contains all possible requests methods at which the 
@@ -490,6 +466,29 @@ abstract class AbstractWebService implements JsonI {
         return null;
     }
     /**
+     * Returns the value of request parameter given its name.
+     * 
+     * @param string $paramName The name of request parameter as specified when 
+     * it was added to the service.
+     * 
+     * @return mixed|null If the parameter is found and its value is set, the 
+     * method will return its value. Other than that, the method will return null.
+     * 
+     * @since 1.0.1
+     */
+    public function getParamVal($paramName) {
+        $inputs = $this->getInputs();
+        $trimmed = trim($paramName);
+
+        if ($inputs !== null) {
+            if ($inputs instanceof Json) {
+                return $inputs->get($trimmed);
+            } else {
+                return isset($inputs[$trimmed]) ? $inputs[$trimmed] : null;
+            }
+        }
+    }
+    /**
      * Returns an indexed array that contains information about possible responses.
      * 
      * It is used to describe the API for front-end developers and help them 
@@ -748,8 +747,10 @@ abstract class AbstractWebService implements JsonI {
     public function setManager($manager) {
         if ($manager === null) {
             $this->owner = null;
-        } else if ($manager instanceof WebServicesManager) {
-            $this->owner = $manager;
+        } else {
+            if ($manager instanceof WebServicesManager) {
+                $this->owner = $manager;
+            }
         }
     }
     /**

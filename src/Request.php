@@ -64,7 +64,13 @@ class Request {
         'PATCH',
         'CONNECT'
     ];
-    private $method;
+    /**
+     *
+     * @var Response
+     * 
+     * @since 1.0 
+     */
+    private static $inst;
     /**
      *
      * @var string
@@ -72,7 +78,6 @@ class Request {
      * @since 1.0 
      */
     private $requestedUri;
-    private $servicesManager;
     /**
      *
      * @var array
@@ -80,26 +85,10 @@ class Request {
      * @since 1.0 
      */
     private $requestHeaders;
+
     private function __construct() {
         $this->requestedUri = null;
         $this->requestHeaders = null;
-        
-    }
-    /**
-     * Returns request content type.
-     * 
-     * @return string|null The value of the header 'content-type' in the request.
-     * 
-     * @since 1.0
-     */
-    public static function getContentType() {
-        $c = isset($_SERVER['CONTENT_TYPE']) ? filter_var($_SERVER['CONTENT_TYPE']) : null;
-
-        if ($c !== null && $c !== false) {
-            return trim(explode(';', $c)[0]);
-        }
-
-        return null;
     }
     /**
      * Returns the IP address of the user who is connected to the server.
@@ -119,26 +108,20 @@ class Request {
         }
     }
     /**
+     * Returns request content type.
      * 
-     * @param WebServicesManager $new
-     * 
-     * @return WebServicesManager
-     */
-    public function servicesManager(WebServicesManager $new = null) {
-        if ($new !== null) {
-            self::get()->servicesManager = $new;
-        }
-        return self::get()->servicesManager;
-    }
-    /**
-     * Returns an object that holds all information about requested URI.
-     * 
-     * @return Uri an object that holds all information about requested URI.
+     * @return string|null The value of the header 'content-type' in the request.
      * 
      * @since 1.0
      */
-    public static function getUri() {
-        return new Uri(self::getRequestedURL());
+    public static function getContentType() {
+        $c = isset($_SERVER['CONTENT_TYPE']) ? filter_var($_SERVER['CONTENT_TYPE']) : null;
+
+        if ($c !== null && $c !== false) {
+            return trim(explode(';', $c)[0]);
+        }
+
+        return null;
     }
     /**
      * Returns the name of request method which is used to call one of the services in the set.
@@ -158,25 +141,6 @@ class Request {
         return $method;
     }
     /**
-     *
-     * @var Response
-     * 
-     * @since 1.0 
-     */
-    private static $inst;
-    /**
-     * 
-     * @return Request
-     * 
-     * @since 1.0
-     */
-    private static function get() {
-        if (self::$inst === null) {
-            self::$inst = new Request();
-        }
-        return self::$inst;
-    }
-    /**
      * Returns the URI of the requested resource.
      * 
      * @return string The URI of the requested resource. 
@@ -184,14 +148,14 @@ class Request {
      * @since 1.0
      */
     public static function getRequestedURL() {
-        if (self::get()->requestedUri !== null) {
-            return self::get()->requestedUri;
+        if (self::get()->requestedUri === null) {
+            $base = Uri::getBaseURL();
+
+            $requestedURI = trim(filter_var(getenv('REQUEST_URI')),'/');
+            self::get()->requestedUri = $base.'/'.$requestedURI;
         }
-        $base = Uri::getBaseURL();
         
-        $requestedURI = trim(filter_var(getenv('REQUEST_URI')),'/');
-        self::get()->requestedUri = $base.'/'.$requestedURI;
-        
+
         return self::get()->requestedUri;
     }
     /**
@@ -210,22 +174,32 @@ class Request {
      * @since 1.0
      */
     public static function getRequestHeaders() {
-        if (self::get()->requestHeaders !== null) {
-            return self::get()->requestHeaders;
-        }
-        self::get()->requestHeaders = [];
+        if (self::get()->requestHeaders === null) {
+            self::get()->requestHeaders = [];
 
-        if (function_exists('apache_request_headers')) {
-            $headers = apache_request_headers();
+            if (function_exists('apache_request_headers')) {
+                $headers = apache_request_headers();
 
-            foreach ($headers as $k => $v) {
-                self::get()->requestHeaders[strtolower($k)] = filter_var($v, FILTER_SANITIZE_STRING);
+                foreach ($headers as $k => $v) {
+                    self::get()->requestHeaders[strtolower($k)] = filter_var($v, FILTER_SANITIZE_STRING);
+                }
+            } else if (isset($_SERVER)) {
+                self::get()->requestHeaders = self::_getRequestHeadersFromServer();
             }
-        } else if (isset($_SERVER)) {
-            self::get()->requestHeaders = self::_getRequestHeadersFromServer();
         }
+        
 
         return self::get()->requestHeaders;
+    }
+    /**
+     * Returns an object that holds all information about requested URI.
+     * 
+     * @return Uri an object that holds all information about requested URI.
+     * 
+     * @since 1.0
+     */
+    public static function getUri() {
+        return new Uri(self::getRequestedURL());
     }
     /**
      * Collect request headers from the array $_SERVER.
@@ -255,5 +229,18 @@ class Request {
         }
 
         return $retVal;
+    }
+    /**
+     * 
+     * @return Request
+     * 
+     * @since 1.0
+     */
+    private static function get() {
+        if (self::$inst === null) {
+            self::$inst = new Request();
+        }
+
+        return self::$inst;
     }
 }

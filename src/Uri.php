@@ -23,7 +23,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 namespace webfiori\http;
 
 use InvalidArgumentException;
@@ -60,9 +59,8 @@ class Uri {
      * @param string $requestedUri The URI such as 'https://www3.webfiori.com:80/{some-var}/hell/{other-var}/?do=dnt&y=#xyz'
      */
     public function __construct($requestedUri) {
-
         $this->uriBroken = self::splitURI($requestedUri);
-        
+
         if (gettype($this->uriBroken) != 'array') {
             throw new InvalidArgumentException('Invalid URI given.');
         }
@@ -114,382 +112,6 @@ class Uri {
         }
     }
     /**
-     * Checks if all URI variables has values or not.
-     * 
-     * @return boolean The method will return true if all URI 
-     * variables have a value other than null.
-     * 
-     * @since 1.0
-     */
-    public function isAllVarsSet() {
-        $canRoute = true;
-        foreach ($this->getUriVars() as $val){
-            $canRoute = $canRoute && $val != null;
-        }
-        return $canRoute;
-    }
-    /**
-     * Returns the query string that was appended to the URI.
-     * 
-     * @return string The query string that was appended to the URI. 
-     * If the URI has no query string, the method will return empty 
-     * string.
-     * 
-     * @since 1.0
-     */
-    public function getQueryString() {
-        return $this->uriBroken['query-string'];
-    }
-    /**
-     * Returns an associative array which contains query string parameters.
-     * 
-     * @return array An associative array which contains query string parameters. 
-     * the keys will be acting as the names of the parameters and the values 
-     * of each parameter will be in its key.
-     * 
-     * @since 1.0
-     */
-    public function getQueryStringVars(){
-        return $this->uriBroken['query-string-vars'];
-    }
-    /**
-     * Returns fragment part of the URI.
-     * 
-     * @return string Fragment part of the URI. The fragment in the URI is 
-     * any string that comes after the character '#'.
-     * 
-     * @since 1.0
-     */
-    public function getFragment() {
-        return $this->uriBroken['fragment'];
-    }
-    /**
-     * Returns port number of the authority part of the URI.
-     * 
-     * @return string Port number of the authority part of the URI. If 
-     * port number was not specified, the method will return empty string.
-     * 
-     * @since 1.0
-     */
-    public function getPort() {
-        return $this->uriBroken['port'];
-    }
-    /**
-     * Returns an array that contains possible values for a URI variable.
-     * 
-     * @param string $varName The name of the variable.
-     * 
-     * @return array The method will return an array that contains all possible 
-     * values for the variable which was added using the method Router::addUriVarValue(). 
-     * If the variable does not exist, the array will be empty.
-     * 
-     * @since 1.3.6
-     */
-    public function getVarValues($varName) {
-        $trimmed = trim($varName);
-
-        if (isset($this->uriBroken['vars-possible-values'][$trimmed])) {
-            return $this->uriBroken['vars-possible-values'][$trimmed];
-        }
-
-        return [];
-    }
-    /**
-     * Returns authority part of the URI.
-     * 
-     * @return string The authority part of the URI. Usually, 
-     * it is a string in the form '//www.example.com:80'.
-     * 
-     * @since 1.0
-     */
-    public function getAuthority() {
-        return $this->uriBroken['authority'];
-    }
-    /**
-     * Returns the scheme part of the URI.
-     * 
-     * @return string The scheme part of the URI. Usually, it is called protocol 
-     * (like http, ftp).
-     * 
-     * @since 1.0
-     */
-    public function getScheme() {
-        return $this->uriBroken['scheme'];
-    }
-    /**
-     * Returns an array which contains the names of URI directories.
-     * 
-     * @return array An array which contains the names of URI directories. 
-     * For example, if the path part of the URI is '/path1/path2', the 
-     * array will contain the value 'path1' at index 0 and 'path2' at index 1.
-     * 
-     * @since 1.0
-     */
-    public function getPathArray() {
-        return $this->uriBroken['path'];
-    }
-    /**
-     * Returns the path part of the URI.
-     * 
-     * @return string A string such as '/path1/path2/path3'.
-     * 
-     * @since 1.0
-     */
-    public function getPath() {
-        $retVal = '';
-        foreach ($this->uriBroken['path'] as $dir){
-            $retVal .= '/'.$dir;
-        }
-        return $retVal;
-    }
-    /**
-     * Returns host name from the host part of the URI.
-     * 
-     * @return string The host name such as 'www.webfiori.com'.
-     * 
-     * @since 1.0
-     */
-    public function getHost() {
-        return $this->uriBroken['host'];
-    }
-    /**
-     * Returns the original requested URI.
-     * 
-     * @param boolean $incQueryStr If set to true, the query string part 
-     * will be included in the URL. Default is false.
-     * 
-     * @param boolean $incFragment If set to true, the fragment part 
-     * will be included in the URL. Default is false.
-     * 
-     * @return string The original requested URI.
-     * 
-     * @since 1.0
-     */
-    public function getUri($incQueryStr=false, $incFragment=false) {
-        $retVal = $this->getScheme().':'.$this->getAuthority().$this->getPath();
-        if($incQueryStr === true && $incFragment == true){
-            $queryStr = $this->getQueryString();
-            if(strlen($queryStr) != 0){
-                $retVal .= '?'.$queryStr;
-            }
-            $fragment = $this->getFragment();
-            if(strlen($fragment) != 0){
-                $retVal .= '#'.$fragment;
-            }
-        }
-        else if($incQueryStr === true && $incFragment == false){
-            $queryStr = $this->getQueryString();
-            if(strlen($queryStr) != 0){
-                $retVal .= '?'.$queryStr;
-            }
-        }
-        else if($incQueryStr === false && $incFragment === true){
-            $fragment = $this->getFragment();
-            if(strlen($fragment) != 0){
-                $retVal .= '#'.$fragment;
-            }
-        }
-        return $retVal;
-    }
-    /**
-     * Checks if the URI has a variable or not given its name.
-     * 
-     * A variable is a string which is defined while creating the route. 
-     * it is name is included between '{}'.
-     * 
-     * @param string $varName The name of the variable.
-     * 
-     * @return boolean If the given variable name is exist, the method will 
-     * return true. Other than that, the method will return false.
-     * 
-     * @since 1.0
-     */
-    public function hasUriVar($varName) {
-        return array_key_exists($varName, $this->uriBroken['uri-vars']);
-    }
-    /**
-     * Sets the value of a URI variable.
-     * 
-     * A variable is a string which is defined while creating the route. 
-     * it is name is included between '{}'.
-     * 
-     * @param string $varName The name of the variable.
-     * 
-     * @param string $value The value of the variable.
-     * 
-     * @return boolean The method will return true if the variable 
-     * was set. If the variable does not exist, the method will return false.
-     * 
-     * @since 1.0
-     */
-    public function setUriVar($varName,$value) {
-        if($this->hasUriVar($varName)){
-            $this->uriBroken['uri-vars'][$varName] = $value;
-            return true;
-        }
-        return false;
-    }
-    /**
-     * Returns the value of URI variable given its name.
-     * 
-     * A variable is a string which is defined while creating the route. 
-     * it is name is included between '{}'.
-     * 
-     * @param string $varName The name of the variable. Note that this value 
-     * must not include braces.
-     * 
-     * @return string|null The method will return the value of the 
-     * variable if found. If the variable is not set or the variable 
-     * does not exist, the method will return null.
-     * 
-     * @since 1.0
-     */
-    public function getUriVar($varName) {
-        if($this->hasUriVar($varName)){
-            return $this->uriBroken['uri-vars'][$varName];
-        }
-        return null;
-    }
-    /**
-     * Checks if the URI has any variables or not.
-     * 
-     * A variable is a string which is defined while creating the route. 
-     * it is name is included between '{}'.
-     * 
-     * @return boolean If the URI has any variables, the method will 
-     * return true.
-     * 
-     * @since 1.0
-     */
-    public function hasVars() {
-        return count($this->getUriVars()) != 0;
-    }
-    /**
-     * Returns an associative array which contains all URI parts.
-     * 
-     * @return array The method will return an associative array that 
-     * contains the components of the URI. The array will have the 
-     * following indices:
-     * <ul>
-     * <li><b>uri</b>: The original URI.</li>
-     * <li><b>port</b>: The port number taken from the authority part.</li>
-     * <li><b>host</b>: Will be always empty string.</li>
-     * <li><b>authority</b>: Authority part of the URI.</li>
-     * <li><b>scheme</b>: Scheme part of the URI (e.g. http or https).</li>
-     * <li><b>query-string</b>: Query string if the URI has any.</li>
-     * <li><b>fragment</b>: Any string that comes after the character '#' in the URI.</li>
-     * <li><b>path</b>: An array that contains the names of path directories</li>
-     * <li><b>query-string-vars</b>: An array that contains query string parameter and values.</li>
-     * <li><b>uri-vars</b>: An array that contains URI path variable and values.</li>
-     * </ul>
-     * 
-     * @since 1.0
-     */
-    public function getComponents() {
-        return $this->uriBroken;
-    }
-    /**
-     * Returns an associative array which contains URI parameters.
-     * @return array An associative array which contains URI parameters. The 
-     * keys will be the names of the variables and the value of each variable will 
-     * be in its index.
-     * @since 1.0
-     */
-    public function getUriVars() {
-        return $this->uriBroken['uri-vars'];
-    }
-    /**
-     * Breaks a URI into its basic components.
-     * 
-     * @param string $uri The URI that will be broken.
-     * 
-     * @return array|boolean If the given URI is not valid, 
-     * the Method will return false. Other than that, The method will return an associative array that 
-     * contains the components of the URI. The array will have the 
-     * following indices:
-     * <ul>
-     * <li><b>uri</b>: The original URI.</li>
-     * <li><b>port</b>: The port number taken from the authority part.</li>
-     * <li><b>host</b>: Will be always empty string.</li>
-     * <li><b>authority</b>: Authority part of the URI.</li>
-     * <li><b>scheme</b>: Scheme part of the URI (e.g. http or https).</li>
-     * <li><b>query-string</b>: Query string if the URI has any.</li>
-     * <li><b>fragment</b>: Any string that comes after the character '#' in the URI.</li>
-     * <li><b>path</b>: An array that contains the names of path directories</li>
-     * <li><b>query-string-vars</b>: An array that contains query string parameter and values.</li>
-     * <li><b>uri-vars</b>: An array that contains URI path variable and values.</li>
-     * </ul>
-     * 
-     * @since 1.0
-     */
-    public static function splitURI($uri) {
-        $validate = filter_var($uri,FILTER_VALIDATE_URL);
-        if($validate === false){
-            return false;
-        }
-        $retVal = array(
-            'uri'=>$uri,
-            'authority'=>'',
-            'host'=>'',
-            'port'=>'',
-            'scheme'=>'',
-            'query-string'=>'',
-            'fragment'=>'',
-            'path'=>array(),
-            'query-string-vars'=>array(
-                
-            ),
-            'uri-vars'=>array(
-                
-            ),
-        );
-        //First step, extract the fragment
-        $split1 = explode('#', $uri);
-        $retVal['fragment'] = isset($split1[1]) ? $split1[1] : '';
-        
-        //after that, extract the query string
-        $split2 = explode('?', $split1[0]);
-        $retVal['query-string'] = isset($split2[1]) ? $split2[1] : '';
-        
-        //next comes the scheme
-        $split3 = explode(':', $split2[0]);
-        $retVal['scheme'] = $split3[0];
-        if(count($split3) == 3){
-            //if 3, this means port number was specifyed in the URI
-            $split3[1] = $split3[1].':'.$split3[2];
-        }
-        //now, break the remaining using / as a delemiter
-        //the authority will be located at index 2 if the URI
-        //follows the standatd
-        $split4 = explode('/', $split3[1]);
-        $retVal['authority'] = '//'.$split4[2];
-        
-        //after that, we create the path from the remaining parts
-        //also we check if the path has variables or not
-        //a variable is a value in the path which is enclosed between {}
-        for($x = 3 ; $x < count($split4) ; $x++){
-            $dirName = $split4[$x];
-            if($dirName != ''){
-                $retVal['path'][] = utf8_decode(urldecode($dirName));
-                if($dirName[0] == '{' && $dirName[strlen($dirName) - 1] == '}'){
-                    $retVal['uri-vars'][trim($split4[$x], '{}')] = null;
-                }
-            }
-        }
-        //now extract port number from the authority (if any)
-        $split5 = explode(':', $retVal['authority']);
-        $retVal['port'] = isset($split5[1]) ? $split5[1] : '';
-        //Also, host can be extracted at this step.
-        $retVal['host'] = trim($split5[0],'//');
-        //finaly, split query string and extract vars
-        $split6 = explode('&', $retVal['query-string']);
-        foreach ($split6 as $param){
-            $split7 = explode('=', $param);
-            $retVal['query-string-vars'][$split7[0]] = isset($split7[1]) ? $split7[1] : '';
-        }
-        return $retVal;
-    }
-    /**
      * Checks if two URIs are equal or not.
      * 
      * Two URIs are considered equal if they have the same authority and the 
@@ -503,25 +125,42 @@ class Uri {
      * @since 1.0
      */
     public function equals(Uri $otherUri) {
-        if($otherUri instanceof Uri){
+        if ($otherUri instanceof Uri) {
             $isEqual = true;
-            if($this->getAuthority() == $otherUri->getAuthority()){
+
+            if ($this->getAuthority() == $otherUri->getAuthority()) {
                 $thisPathNames = $this->getPathArray();
                 $otherPathNames = $otherUri->getPathArray();
-                $boolsArr = array();
-                foreach ($thisPathNames as $path1){
+                $boolsArr = [];
+
+                foreach ($thisPathNames as $path1) {
                     $boolsArr[] = in_array($path1, $otherPathNames);
                 }
-                foreach ($otherPathNames as $path){
+
+                foreach ($otherPathNames as $path) {
                     $boolsArr[] = in_array($path, $thisPathNames);
                 }
-                foreach ($boolsArr as $bool){
+
+                foreach ($boolsArr as $bool) {
                     $isEqual = $isEqual && $bool;
                 }
+
                 return $isEqual;
             }
         }
+
         return false;
+    }
+    /**
+     * Returns authority part of the URI.
+     * 
+     * @return string The authority part of the URI. Usually, 
+     * it is a string in the form '//www.example.com:80'.
+     * 
+     * @since 1.0
+     */
+    public function getAuthority() {
+        return $this->uriBroken['authority'];
     }
     /**
      * Returns the base URL of the framework.
@@ -554,6 +193,7 @@ class Uri {
         }
         $docRoot = filter_var($_SERVER['DOCUMENT_ROOT']);
         $len = strlen($docRoot);
+
         if (!defined(ROOT_DIR)) {
             define('ROOT_DIR', __DIR__);
         }
@@ -563,11 +203,393 @@ class Uri {
             $toAppend = str_replace($_SERVER['HTTP_WEBFIORI_REMOVE_PATH'],'' ,$toAppend);
         }
         $xToAppend = str_replace('\\', '/', $toAppend);
-        
+
         if (strlen($xToAppend) == 0) {
             return $protocol.$host;
         } else {
             return $protocol.$host.'/'.$xToAppend;
         }
+    }
+    /**
+     * Returns an associative array which contains all URI parts.
+     * 
+     * @return array The method will return an associative array that 
+     * contains the components of the URI. The array will have the 
+     * following indices:
+     * <ul>
+     * <li><b>uri</b>: The original URI.</li>
+     * <li><b>port</b>: The port number taken from the authority part.</li>
+     * <li><b>host</b>: Will be always empty string.</li>
+     * <li><b>authority</b>: Authority part of the URI.</li>
+     * <li><b>scheme</b>: Scheme part of the URI (e.g. http or https).</li>
+     * <li><b>query-string</b>: Query string if the URI has any.</li>
+     * <li><b>fragment</b>: Any string that comes after the character '#' in the URI.</li>
+     * <li><b>path</b>: An array that contains the names of path directories</li>
+     * <li><b>query-string-vars</b>: An array that contains query string parameter and values.</li>
+     * <li><b>uri-vars</b>: An array that contains URI path variable and values.</li>
+     * </ul>
+     * 
+     * @since 1.0
+     */
+    public function getComponents() {
+        return $this->uriBroken;
+    }
+    /**
+     * Returns fragment part of the URI.
+     * 
+     * @return string Fragment part of the URI. The fragment in the URI is 
+     * any string that comes after the character '#'.
+     * 
+     * @since 1.0
+     */
+    public function getFragment() {
+        return $this->uriBroken['fragment'];
+    }
+    /**
+     * Returns host name from the host part of the URI.
+     * 
+     * @return string The host name such as 'www.webfiori.com'.
+     * 
+     * @since 1.0
+     */
+    public function getHost() {
+        return $this->uriBroken['host'];
+    }
+    /**
+     * Returns the path part of the URI.
+     * 
+     * @return string A string such as '/path1/path2/path3'.
+     * 
+     * @since 1.0
+     */
+    public function getPath() {
+        $retVal = '';
+
+        foreach ($this->uriBroken['path'] as $dir) {
+            $retVal .= '/'.$dir;
+        }
+
+        return $retVal;
+    }
+    /**
+     * Returns an array which contains the names of URI directories.
+     * 
+     * @return array An array which contains the names of URI directories. 
+     * For example, if the path part of the URI is '/path1/path2', the 
+     * array will contain the value 'path1' at index 0 and 'path2' at index 1.
+     * 
+     * @since 1.0
+     */
+    public function getPathArray() {
+        return $this->uriBroken['path'];
+    }
+    /**
+     * Returns port number of the authority part of the URI.
+     * 
+     * @return string Port number of the authority part of the URI. If 
+     * port number was not specified, the method will return empty string.
+     * 
+     * @since 1.0
+     */
+    public function getPort() {
+        return $this->uriBroken['port'];
+    }
+    /**
+     * Returns the query string that was appended to the URI.
+     * 
+     * @return string The query string that was appended to the URI. 
+     * If the URI has no query string, the method will return empty 
+     * string.
+     * 
+     * @since 1.0
+     */
+    public function getQueryString() {
+        return $this->uriBroken['query-string'];
+    }
+    /**
+     * Returns an associative array which contains query string parameters.
+     * 
+     * @return array An associative array which contains query string parameters. 
+     * the keys will be acting as the names of the parameters and the values 
+     * of each parameter will be in its key.
+     * 
+     * @since 1.0
+     */
+    public function getQueryStringVars() {
+        return $this->uriBroken['query-string-vars'];
+    }
+    /**
+     * Returns the scheme part of the URI.
+     * 
+     * @return string The scheme part of the URI. Usually, it is called protocol 
+     * (like http, ftp).
+     * 
+     * @since 1.0
+     */
+    public function getScheme() {
+        return $this->uriBroken['scheme'];
+    }
+    /**
+     * Returns the original requested URI.
+     * 
+     * @param boolean $incQueryStr If set to true, the query string part 
+     * will be included in the URL. Default is false.
+     * 
+     * @param boolean $incFragment If set to true, the fragment part 
+     * will be included in the URL. Default is false.
+     * 
+     * @return string The original requested URI.
+     * 
+     * @since 1.0
+     */
+    public function getUri($incQueryStr = false, $incFragment = false) {
+        $retVal = $this->getScheme().':'.$this->getAuthority().$this->getPath();
+
+        if ($incQueryStr === true && $incFragment == true) {
+            $queryStr = $this->getQueryString();
+
+            if (strlen($queryStr) != 0) {
+                $retVal .= '?'.$queryStr;
+            }
+            $fragment = $this->getFragment();
+
+            if (strlen($fragment) != 0) {
+                $retVal .= '#'.$fragment;
+            }
+        } else if ($incQueryStr === true && $incFragment == false) {
+            $queryStr = $this->getQueryString();
+
+            if (strlen($queryStr) != 0) {
+                $retVal .= '?'.$queryStr;
+            }
+        } else if ($incQueryStr === false && $incFragment === true) {
+            $fragment = $this->getFragment();
+
+            if (strlen($fragment) != 0) {
+                $retVal .= '#'.$fragment;
+            }
+        }
+
+        return $retVal;
+    }
+    /**
+     * Returns the value of URI variable given its name.
+     * 
+     * A variable is a string which is defined while creating the route. 
+     * it is name is included between '{}'.
+     * 
+     * @param string $varName The name of the variable. Note that this value 
+     * must not include braces.
+     * 
+     * @return string|null The method will return the value of the 
+     * variable if found. If the variable is not set or the variable 
+     * does not exist, the method will return null.
+     * 
+     * @since 1.0
+     */
+    public function getUriVar($varName) {
+        if ($this->hasUriVar($varName)) {
+            return $this->uriBroken['uri-vars'][$varName];
+        }
+
+        return null;
+    }
+    /**
+     * Returns an associative array which contains URI parameters.
+     * @return array An associative array which contains URI parameters. The 
+     * keys will be the names of the variables and the value of each variable will 
+     * be in its index.
+     * @since 1.0
+     */
+    public function getUriVars() {
+        return $this->uriBroken['uri-vars'];
+    }
+    /**
+     * Returns an array that contains possible values for a URI variable.
+     * 
+     * @param string $varName The name of the variable.
+     * 
+     * @return array The method will return an array that contains all possible 
+     * values for the variable which was added using the method Router::addUriVarValue(). 
+     * If the variable does not exist, the array will be empty.
+     * 
+     * @since 1.3.6
+     */
+    public function getVarValues($varName) {
+        $trimmed = trim($varName);
+
+        if (isset($this->uriBroken['vars-possible-values'][$trimmed])) {
+            return $this->uriBroken['vars-possible-values'][$trimmed];
+        }
+
+        return [];
+    }
+    /**
+     * Checks if the URI has a variable or not given its name.
+     * 
+     * A variable is a string which is defined while creating the route. 
+     * it is name is included between '{}'.
+     * 
+     * @param string $varName The name of the variable.
+     * 
+     * @return boolean If the given variable name is exist, the method will 
+     * return true. Other than that, the method will return false.
+     * 
+     * @since 1.0
+     */
+    public function hasUriVar($varName) {
+        return array_key_exists($varName, $this->uriBroken['uri-vars']);
+    }
+    /**
+     * Checks if the URI has any variables or not.
+     * 
+     * A variable is a string which is defined while creating the route. 
+     * it is name is included between '{}'.
+     * 
+     * @return boolean If the URI has any variables, the method will 
+     * return true.
+     * 
+     * @since 1.0
+     */
+    public function hasVars() {
+        return count($this->getUriVars()) != 0;
+    }
+    /**
+     * Checks if all URI variables has values or not.
+     * 
+     * @return boolean The method will return true if all URI 
+     * variables have a value other than null.
+     * 
+     * @since 1.0
+     */
+    public function isAllVarsSet() {
+        $canRoute = true;
+
+        foreach ($this->getUriVars() as $val) {
+            $canRoute = $canRoute && $val != null;
+        }
+
+        return $canRoute;
+    }
+    /**
+     * Sets the value of a URI variable.
+     * 
+     * A variable is a string which is defined while creating the route. 
+     * it is name is included between '{}'.
+     * 
+     * @param string $varName The name of the variable.
+     * 
+     * @param string $value The value of the variable.
+     * 
+     * @return boolean The method will return true if the variable 
+     * was set. If the variable does not exist, the method will return false.
+     * 
+     * @since 1.0
+     */
+    public function setUriVar($varName,$value) {
+        if ($this->hasUriVar($varName)) {
+            $this->uriBroken['uri-vars'][$varName] = $value;
+
+            return true;
+        }
+
+        return false;
+    }
+    /**
+     * Breaks a URI into its basic components.
+     * 
+     * @param string $uri The URI that will be broken.
+     * 
+     * @return array|boolean If the given URI is not valid, 
+     * the Method will return false. Other than that, The method will return an associative array that 
+     * contains the components of the URI. The array will have the 
+     * following indices:
+     * <ul>
+     * <li><b>uri</b>: The original URI.</li>
+     * <li><b>port</b>: The port number taken from the authority part.</li>
+     * <li><b>host</b>: Will be always empty string.</li>
+     * <li><b>authority</b>: Authority part of the URI.</li>
+     * <li><b>scheme</b>: Scheme part of the URI (e.g. http or https).</li>
+     * <li><b>query-string</b>: Query string if the URI has any.</li>
+     * <li><b>fragment</b>: Any string that comes after the character '#' in the URI.</li>
+     * <li><b>path</b>: An array that contains the names of path directories</li>
+     * <li><b>query-string-vars</b>: An array that contains query string parameter and values.</li>
+     * <li><b>uri-vars</b>: An array that contains URI path variable and values.</li>
+     * </ul>
+     * 
+     * @since 1.0
+     */
+    public static function splitURI($uri) {
+        $validate = filter_var($uri,FILTER_VALIDATE_URL);
+
+        if ($validate === false) {
+            return false;
+        }
+        $retVal = [
+            'uri' => $uri,
+            'authority' => '',
+            'host' => '',
+            'port' => '',
+            'scheme' => '',
+            'query-string' => '',
+            'fragment' => '',
+            'path' => [],
+            'query-string-vars' => [
+
+            ],
+            'uri-vars' => [
+
+            ],
+        ];
+        //First step, extract the fragment
+        $split1 = explode('#', $uri);
+        $retVal['fragment'] = isset($split1[1]) ? $split1[1] : '';
+
+        //after that, extract the query string
+        $split2 = explode('?', $split1[0]);
+        $retVal['query-string'] = isset($split2[1]) ? $split2[1] : '';
+
+        //next comes the scheme
+        $split3 = explode(':', $split2[0]);
+        $retVal['scheme'] = $split3[0];
+
+        if (count($split3) == 3) {
+            //if 3, this means port number was specifyed in the URI
+            $split3[1] = $split3[1].':'.$split3[2];
+        }
+        //now, break the remaining using / as a delemiter
+        //the authority will be located at index 2 if the URI
+        //follows the standatd
+        $split4 = explode('/', $split3[1]);
+        $retVal['authority'] = '//'.$split4[2];
+
+        //after that, we create the path from the remaining parts
+        //also we check if the path has variables or not
+        //a variable is a value in the path which is enclosed between {}
+        for ($x = 3 ; $x < count($split4) ; $x++) {
+            $dirName = $split4[$x];
+
+            if ($dirName != '') {
+                $retVal['path'][] = utf8_decode(urldecode($dirName));
+
+                if ($dirName[0] == '{' && $dirName[strlen($dirName) - 1] == '}') {
+                    $retVal['uri-vars'][trim($split4[$x], '{}')] = null;
+                }
+            }
+        }
+        //now extract port number from the authority (if any)
+        $split5 = explode(':', $retVal['authority']);
+        $retVal['port'] = isset($split5[1]) ? $split5[1] : '';
+        //Also, host can be extracted at this step.
+        $retVal['host'] = trim($split5[0],'//');
+        //finaly, split query string and extract vars
+        $split6 = explode('&', $retVal['query-string']);
+
+        foreach ($split6 as $param) {
+            $split7 = explode('=', $param);
+            $retVal['query-string-vars'][$split7[0]] = isset($split7[1]) ? $split7[1] : '';
+        }
+
+        return $retVal;
     }
 }
