@@ -47,6 +47,14 @@ use InvalidArgumentException;
  */
 class Uri {
     /**
+     * A boolean which is set to true if URI is case sensitive.
+     * 
+     * @var boolean 
+     * 
+     * @since 1.0
+     */
+    private $isCS;
+    /**
      * The URI broken into its sub-components (scheme, authority ...) as an associative 
      * array.
      * @var array 
@@ -356,17 +364,21 @@ class Uri {
             if (strlen($fragment) != 0) {
                 $retVal .= '#'.$fragment;
             }
-        } else if ($incQueryStr === true && $incFragment === false) {
-            $queryStr = $this->getQueryString();
+        } else {
+            if ($incQueryStr === true && $incFragment === false) {
+                $queryStr = $this->getQueryString();
 
-            if (strlen($queryStr) != 0) {
-                $retVal .= '?'.$queryStr;
-            }
-        } else if ($incQueryStr === false && $incFragment === true) {
-            $fragment = $this->getFragment();
+                if (strlen($queryStr) != 0) {
+                    $retVal .= '?'.$queryStr;
+                }
+            } else {
+                if ($incQueryStr === false && $incFragment === true) {
+                    $fragment = $this->getFragment();
 
-            if (strlen($fragment) != 0) {
-                $retVal .= '#'.$fragment;
+                    if (strlen($fragment) != 0) {
+                        $retVal .= '#'.$fragment;
+                    }
+                }
             }
         }
 
@@ -470,6 +482,53 @@ class Uri {
         }
 
         return $canRoute;
+    }
+    /**
+     * Returns the value of the property that tells if the URI is case sensitive 
+     * or not.
+     * 
+     * @return boolean  True if URI case sensitive. False if not. Default is false.
+     * 
+     * @since 1.0
+     */
+    public function isCaseSensitive() {
+        return $this->isCS;
+    }
+    /**
+     * Make the URI case sensitive or not.
+     * 
+     * This is mainly used in case the developer would like to use the 
+     * URI in routing.
+     *  
+     * @param boolean $caseSensitive True to make it case sensitive. False to 
+     * not.
+     * 
+     * @since 1.0 
+     */
+    public function setIsCaseSensitive($caseSensitive) {
+        $this->isCS = $caseSensitive === true;
+    }
+    /**
+     * Sets the requested URI.
+     * 
+     * @param string $uri A string that represents requested URI.
+     * 
+     * @return boolean If the requested URI is a match with the original URI which 
+     * is stored in the object, it will be set and the method will return true. 
+     * Other than that, the method will return false.
+     * 
+     * @since 1.0
+     */
+    public function setRequestedUri($uri) {
+        $this->uriBroken['requested-uri'] = self::splitURI($uri);
+
+        if (!$this->_comparePath()) {
+            unset($this->uriBroken['requested-uri']);
+
+            return false;
+        }
+
+        return true;
     }
     /**
      * Sets the value of a URI variable.
@@ -591,28 +650,6 @@ class Uri {
         }
 
         return $retVal;
-    }
-    /**
-     * Sets the requested URI.
-     * 
-     * @param string $uri A string that represents requested URI.
-     * 
-     * @return boolean If the requested URI is a match with the original URI which 
-     * is stored in the object, it will be set and the method will return true. 
-     * Other than that, the method will return false.
-     * 
-     * @since 1.0
-     */
-    public function setRequestedUri($uri) {
-        $this->uriBroken['requested-uri'] = self::splitURI($uri);
-
-        if (!$this->_comparePath()) {
-            unset($this->uriBroken['requested-uri']);
-
-            return false;
-        }
-
-        return true;
     }
     /**
      * Validate the path part of original URI and the requested one.
