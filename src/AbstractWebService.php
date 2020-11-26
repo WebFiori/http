@@ -356,39 +356,7 @@ abstract class AbstractWebService implements JsonI {
      *  @since 1.0.1
      */
     public function getAuthHeader() {
-        $retVal = [
-            'scheme' => '',
-            'credentials' => ''
-        ];
-        $headerVal = '';
-
-        if (function_exists('apache_request_headers')) {
-            $headers = apache_request_headers();
-
-            foreach ($headers as $k => $v) {
-                $lowerHeaderName = strtolower($k);
-
-                if ($lowerHeaderName == 'authorization') {
-                    $headerVal = filter_var($v, FILTER_SANITIZE_STRING);
-                    break;
-                }
-            }
-        } else {
-            if (isset($_SERVER) && isset($_SERVER['HTTP_AUTHORIZATION'])) {
-                $headerVal = filter_var($_SERVER['HTTP_AUTHORIZATION'], FILTER_SANITIZE_STRING);
-            }
-        }
-
-        if (strlen($headerVal) != 0) {
-            $split = explode(' ', $headerVal);
-
-            if (count($split) == 2) {
-                $retVal['scheme'] = strtolower($split[0]);
-                $retVal['credentials'] = $split[1];
-            }
-        }
-
-        return $retVal;
+        return Request::getAuthHeader();
     }
     /**
      * Returns the description of the service.
