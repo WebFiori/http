@@ -174,7 +174,7 @@ class Request {
      * @since 1.0
      */
     public static function getRequestHeaders() {
-        if (self::get()->requestHeaders === null) {
+        if (self::get()->requestHeaders === null || defined('__PHPUNIT_PHAR__')) {
             self::get()->requestHeaders = [];
 
             if (function_exists('apache_request_headers')) {
