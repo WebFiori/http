@@ -345,7 +345,7 @@ class Uri {
     public function getUri($incQueryStr = false, $incFragment = false) {
         $retVal = $this->getScheme().':'.$this->getAuthority().$this->getPath();
 
-        if ($incQueryStr === true && $incFragment == true) {
+        if ($incQueryStr === true && $incFragment === true) {
             $queryStr = $this->getQueryString();
 
             if (strlen($queryStr) != 0) {
@@ -356,7 +356,7 @@ class Uri {
             if (strlen($fragment) != 0) {
                 $retVal .= '#'.$fragment;
             }
-        } else if ($incQueryStr === true && $incFragment == false) {
+        } else if ($incQueryStr === true && $incFragment === false) {
             $queryStr = $this->getQueryString();
 
             if (strlen($queryStr) != 0) {
