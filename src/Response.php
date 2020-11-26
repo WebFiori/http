@@ -134,9 +134,9 @@ class Response {
      * 
      * @since 1.0
      */
-    public function beforeSend($func) {
+    public static function beforeSend($func) {
         if (is_callable($func)) {
-            $this->beforeSend = $func;
+            self::get()->beforeSend = $func;
         }
     }
     /**
