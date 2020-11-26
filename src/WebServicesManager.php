@@ -69,14 +69,6 @@ class WebServicesManager implements JsonI {
         'application/json'
     ];
     /**
-     * An array that contains the web services that can be performed by the API.
-     * 
-     * @var array
-     * 
-     * @since 1.0 
-     */
-    private $services;
-    /**
      * A general description for the API.
      * 
      * @var string
@@ -128,6 +120,14 @@ class WebServicesManager implements JsonI {
      * @var string|null 
      */
     private $outputStreamPath;
+    /**
+     * An array that contains the web services that can be performed by the API.
+     * 
+     * @var array
+     * 
+     * @since 1.0 
+     */
+    private $services;
     /**
      * Creates new instance of the class.
      * 
