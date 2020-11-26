@@ -1,9 +1,9 @@
 {
-    "name": "webfiori/rest-easy",
+    "name": "webfiori/http",
     "type": "library",
     "description": "Basic library that can help in creating RESTful APIs using PHP.",
     "keywords": [
-        "JSON","PHP","API","Web APIs","Library"
+        "JSON","PHP","API","Web APIs","Library","HTTP","PSR-7"
     ],
     "license": "MIT",
     "require": {

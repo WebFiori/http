@@ -3,8 +3,8 @@ namespace restEasy\tests;
 
 use webfiori\json\Json;
 use PHPUnit\Framework\TestCase;
-use webfiori\restEasy\AbstractWebService;
-use webfiori\restEasy\WebServicesManager;
+use webfiori\http\AbstractWebService;
+use webfiori\http\WebServicesManager;
 use restEasy\tests\NotImplService;
 /**
  * Description of WebAPITest
@@ -158,7 +158,7 @@ class WebServicesManagerTest extends TestCase {
         $this->clrearVars();
         putenv('REQUEST_METHOD=GET');
         $api = new SampleServicesManager();
-        $this->assertEquals('GET',$api->getRequestMethod());
+        $this->assertEquals('GET', \webfiori\http\Request::getMethod());
         $this->assertNull($api->getCalledServiceName());
         $this->assertEquals('1.0.1',$api->getVersion());
         $this->assertEquals('NO DESCRIPTION',$api->getDescription());

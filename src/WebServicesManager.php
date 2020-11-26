@@ -22,9 +22,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-namespace webfiori\restEasy;
+namespace webfiori\http;
 
-use webfiori\framework\Response;
 use webfiori\json\Json;
 use webfiori\json\JsonI;
 /**
@@ -33,7 +32,7 @@ use webfiori\json\JsonI;
  * This class is used to keep track of multiple related web services. It 
  * is used to group related services. For example, if we have create, read, write and 
  * delete services, they can be added to one instance of this class.
-
+ * 
  * When a request is made to the services set, An instance of the class must be created 
  * and the method <a href="#process">WebServicesManager::process()</a> must be called.
  * 
@@ -130,14 +129,6 @@ class WebServicesManager implements JsonI {
      */
     private $outputStreamPath;
     /**
-     * API request method.
-     * 
-     * @var string 
-     * 
-     * @since 1.0
-     */
-    private $requestMethod;
-    /**
      * Creates new instance of the class.
      * 
      * By default, the API will have two services added to it:
@@ -158,11 +149,7 @@ class WebServicesManager implements JsonI {
     public function __construct($version = '1.0.0') {
         $this->setVersion($version);
         $this->setDescription('NO DESCRIPTION');
-        $this->requestMethod = filter_var(getenv('REQUEST_METHOD'));
 
-        if (!in_array($this->requestMethod, AbstractWebService::METHODS)) {
-            $this->requestMethod = 'GET';
-        }
         $this->filter = new APIFilter();
         $this->services = [];
         $this->invParamsArr = [];
@@ -242,22 +229,6 @@ class WebServicesManager implements JsonI {
      */
     public function getCalledServiceName() {
         return $this->getAction();
-    }
-    /**
-     * Returns request content type.
-     * 
-     * @return string The value of the header 'content-type' in the request.
-     * 
-     * @since 1.1
-     */
-    public final function getContentType() {
-        $c = isset($_SERVER['CONTENT_TYPE']) ? filter_var($_SERVER['CONTENT_TYPE']) : null;
-
-        if ($c !== null && $c !== false) {
-            return trim(explode(';', $c)[0]);
-        }
-
-        return null;
     }
     /**
      * Returns the description of web services set.
@@ -351,16 +322,6 @@ class WebServicesManager implements JsonI {
         return $this->outputStreamPath;
     }
     /**
-     * Returns the name of request method which is used to call one of the services in the set.
-     * 
-     * @return string Request method such as POST, GET, etc....
-     * 
-     * @since 1.0
-     */
-    public final function getRequestMethod() {
-        return $this->requestMethod;
-    }
-    /**
      * Returns a web service given its name.
      * 
      * @param string $serviceName The name of the service.
@@ -444,8 +405,8 @@ class WebServicesManager implements JsonI {
      * @since 1.1
      */
     public final function isContentTypeSupported() {
-        $c = $this->getContentType();
-        $rm = $this->getRequestMethod();
+        $c = Request::getContentType();
+        $rm = Request::getMethod();
 
         if ($c !== null && ($rm == 'POST' || $rm == 'PUT')) {
             return in_array($c, self::POST_CONTENT_TYPES);
@@ -553,7 +514,7 @@ class WebServicesManager implements JsonI {
                 }
             }
         } else {
-            $this->contentTypeNotSupported($this->getContentType());
+            $this->contentTypeNotSupported(Request::getContentType());
         }
     }
     /**
@@ -639,15 +600,11 @@ class WebServicesManager implements JsonI {
         if ($this->getOutputStream() !== null) {
             fwrite($this->getOutputStream(), $data.'');
             fclose($this->getOutputStream());
-        } else if (class_exists('webfiori\framework\Response')) {
+        } else {
             Response::addHeader('content-type', $conentType);
-            Response::append($data);
+            Response::write($data);
             Response::setCode($code);
             Response::send();
-        } else {
-            http_response_code($code);
-            header('content-type:'.$conentType);
-            echo $data;
         }
     }
     /**
@@ -661,11 +618,7 @@ class WebServicesManager implements JsonI {
      */
     public function sendHeaders(array $headersArr) {
         foreach ($headersArr as $header => $val) {
-            if (class_exists('webfiori\framework\Response')) {
-                Response::addHeader($header, $val);
-            } else {
-                header($header.':'.$val);
-            }
+            Response::addHeader($header, $val);
         }
     }
     /**
@@ -714,15 +667,11 @@ class WebServicesManager implements JsonI {
         if ($this->getOutputStream() !== null) {
             fwrite($this->getOutputStream(), $json);
             fclose($this->getOutputStream());
-        } else if (class_exists('webfiori\framework\Response')) {
+        } else {
             Response::addHeader('content-type', 'application/json');
-            Response::append($json);
+            Response::write($json);
             Response::setCode($code);
             Response::send();
-        } else {
-            header('content-type:application/json');
-            http_response_code($code);
-            echo $json;
         }
     }
     /**
@@ -934,7 +883,7 @@ class WebServicesManager implements JsonI {
                 $allowedMethods = $calledService->getRequestMethods();
 
                 if (count($allowedMethods) != 0) {
-                    $isValidRequestMethod = in_array($this->getRequestMethod(), $allowedMethods);
+                    $isValidRequestMethod = in_array(Request::getMethod(), $allowedMethods);
 
                     if (!$isValidRequestMethod) {
                         $this->requestMethodNotAllowed();
@@ -954,8 +903,8 @@ class WebServicesManager implements JsonI {
         return false;
     }
     private function _filterInputs() {
-        $reqMeth = $this->getRequestMethod();
-        $contentType = $this->getContentType();
+        $reqMeth = Request::getMethod();
+        $contentType = Request::getContentType();
 
         if ($reqMeth == 'GET' || 
             $reqMeth == 'DELETE' || 
@@ -1030,11 +979,11 @@ class WebServicesManager implements JsonI {
      * @deprecated since version 1.4.6 Use WebServicesManager::getCalledServiceName() instead.
      */
     private function getAction() {
-        $reqMeth = $this->getRequestMethod();
+        $reqMeth = Request::getMethod();
 
         $serviceIdx = ['action','service', 'service-name'];
 
-        $contentType = $this->getContentType();
+        $contentType = Request::getContentType();
         $retVal = null;
 
         if ($contentType == 'application/json') {

@@ -2,8 +2,8 @@
 namespace restEasy\tests;
 
 use PHPUnit\Framework\TestCase;
-use webfiori\restEasy\APIFilter;
-use webfiori\restEasy\RequestParameter;
+use webfiori\http\APIFilter;
+use webfiori\http\RequestParameter;
 use webfiori\json\Json;
 /**
  * Description of APIFilterTest

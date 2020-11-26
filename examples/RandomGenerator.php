@@ -1,7 +1,7 @@
 <?php
 require 'loader.php';
 
-use webfiori\restEasy\WebServicesManager;
+use webfiori\http\WebServicesManager;
 use GetRandomService;
 
 class RandomGenerator extends WebServicesManager {

@@ -1,7 +1,7 @@
 <?php
 
 namespace restEasy\tests;
-use webfiori\restEasy\RequestParameter;
+use webfiori\http\RequestParameter;
 /**
  * Description of AddNubmersService
  *

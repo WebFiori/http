@@ -1,8 +1,8 @@
 <?php
 require 'loader.php';
 
-use webfiori\restEasy\AbstractWebService;
-use webfiori\restEasy\RequestParameter;
+use webfiori\http\AbstractWebService;
+use webfiori\http\RequestParameter;
 
 class GetRandomService extends AbstractWebService {
     public function __construct() {

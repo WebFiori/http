@@ -2,8 +2,8 @@
 namespace restEasy\tests;
 
 use webfiori\json\Json;
-use webfiori\restEasy\RequestParameter;
-use webfiori\restEasy\WebServicesManager;
+use webfiori\http\RequestParameter;
+use webfiori\http\WebServicesManager;
 /**
  * Description of SampleAPI
  *
