@@ -48,12 +48,6 @@ use InvalidArgumentException;
  */
 class Uri {
     /**
-     * The route which this URI will be routing to.
-     * @var mixed This route can be a file or a method.
-     * @since 1.0 
-     */
-    private $routeTo;
-    /**
      * The URI broken into its sub-components (scheme, authority ...) as an associative 
      * array.
      * @var array 
@@ -129,32 +123,10 @@ class Uri {
      */
     public function isAllVarsSet() {
         $canRoute = true;
-        foreach ($this->getUriVars() as $key => $val){
+        foreach ($this->getUriVars() as $val){
             $canRoute = $canRoute && $val != null;
         }
         return $canRoute;
-    }
-    /**
-     * Returns the location where the URI will route to.
-     * 
-     * @return string|callable Usually, the route can be either a callable 
-     * or a path to a file. The file can be of any type.
-     * 
-     * @since 1.0
-     */
-    public function getRouteTo() {
-        return $this->routeTo;
-    }
-    /**
-     * Sets the route which the URI will take to.
-     * 
-     * @param string|callable $routeTo Usually, the route can be either a 
-     * file or it can be a callable. The file can be of any type.
-     * 
-     * @since 1.0
-     */
-    public function setRoute($routeTo) {
-        $this->routeTo = $routeTo;
     }
     /**
      * Returns the query string that was appended to the URI.
