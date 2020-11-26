@@ -26,6 +26,7 @@
 
 namespace webfiori\http;
 
+use InvalidArgumentException;
 /**
  * A class that is used to split URIs and get their parameters.
  * 
@@ -67,9 +68,57 @@ class Uri {
     public function __construct($requestedUri) {
 
         $this->uriBroken = self::splitURI($requestedUri);
+        
+        if (gettype($this->uriBroken) != 'array') {
+            throw new InvalidArgumentException('Invalid URI given.');
+        }
+        $this->uriBroken['vars-possible-values'] = [];
 
+        foreach (array_keys($this->getUriVars()) as $varName) {
+            $this->uriBroken['vars-possible-values'][$varName] = [];
+        }
     }
+    /**
+     * Adds a possible value for a URI variable.
+     * 
+     * This is used in constructing the sitemap node of the URI. If a value is 
+     * provided, then it will be part of the URI that will appear in the sitemap.
+     * 
+     * @param string $varName The name of the variable. It must be exist as 
+     * the path part in the URI.
+     * 
+     * @param string $varValue The value of the variable. Note that any extra spaces 
+     * in the value will be trimmed.
+     * 
+     * @since 1.0
+     */
+    public function addVarValue($varName, $varValue) {
+        $trimmed = trim($varName);
+        $trimmedVal = trim($varValue);
 
+        if (strlen($trimmedVal) != 0 
+                && isset($this->uriBroken['vars-possible-values'][$trimmed]) 
+                && !in_array($trimmedVal, $this->uriBroken['vars-possible-values'][$trimmed])) {
+            $this->uriBroken['vars-possible-values'][$trimmed][] = $trimmedVal;
+        }
+    }
+    /**
+     * Adds multiple values to URI variable.
+     * 
+     * @param string $varName The name of he variable.
+     * 
+     * @param array $arrayOfVals An array that contains all possible values for 
+     * the variable.
+     * 
+     * @since 1.0
+     */
+    public function addVarValues($varName, $arrayOfVals) {
+        if (gettype($arrayOfVals) == 'array') {
+            foreach ($arrayOfVals as $val) {
+                $this->addVarValue($varName, $val);
+            }
+        }
+    }
     /**
      * Checks if all URI variables has values or not.
      * 
@@ -152,6 +201,26 @@ class Uri {
      */
     public function getPort() {
         return $this->uriBroken['port'];
+    }
+    /**
+     * Returns an array that contains possible values for a URI variable.
+     * 
+     * @param string $varName The name of the variable.
+     * 
+     * @return array The method will return an array that contains all possible 
+     * values for the variable which was added using the method Router::addUriVarValue(). 
+     * If the variable does not exist, the array will be empty.
+     * 
+     * @since 1.3.6
+     */
+    public function getVarValues($varName) {
+        $trimmed = trim($varName);
+
+        if (isset($this->uriBroken['vars-possible-values'][$trimmed])) {
+            return $this->uriBroken['vars-possible-values'][$trimmed];
+        }
+
+        return [];
     }
     /**
      * Returns authority part of the URI.
