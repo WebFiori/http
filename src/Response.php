@@ -34,17 +34,24 @@ namespace webfiori\http;
  *
  * @author Ibrahim
  * 
- * @version 1.0
+ * @version 1.0.1
  * 
  */
 class Response {
     /**
      *
-     * @var Closure 
+     * @var boolean
+     * 
+     * @since 1.0.1 
+     */
+    private $isSent;
+    /**
+     *
+     * @var array 
      * 
      * @since 1.0
      */
-    private $beforeSend;
+    private $beforeSendCalls;
     /**
      *
      * @var string
@@ -88,6 +95,8 @@ class Response {
         $this->body = '';
         $this->responseCode = 200;
         $this->lock = false;
+        $this->isSent = false;
+        $this->beforeSendCalls = [];
     }
     /**
      * Adds new HTTP header to the response.
@@ -128,7 +137,9 @@ class Response {
         return $retVal;
     }
     /**
-     * Sets a function to execute before sending the final response.
+     * Adds a function to execute before sending the final response.
+     * 
+     * This method can be used to add more than one callback. 
      * 
      * @param Closure $func A PHP callable.
      * 
@@ -136,7 +147,7 @@ class Response {
      */
     public static function beforeSend($func) {
         if (is_callable($func)) {
-            self::get()->beforeSend = $func;
+            self::get()->beforeSendCalls[] = $func;
         }
     }
     /**
@@ -262,6 +273,17 @@ class Response {
         return count($headerValFromObj) != 0;
     }
     /**
+     * Checks if the response was sent or not.
+     * 
+     * @return boolean The method will return true if output is sent. False 
+     * if not.
+     * 
+     * @since 1.0.1
+     */
+    public static function isSent() {
+        return self::get()->isSent;
+    }
+    /**
      * Removes a header from the response.
      * 
      * @param string $headerName The name of the header.
@@ -317,36 +339,41 @@ class Response {
      * @since 1.0
      */
     public static function send() {
-        if (self::get()->beforeSend !== null && !self::get()->lock) {
-            self::get()->lock = true;
-            call_user_func(self::get()->beforeSend);
-        }
-
-        if (!(http_response_code() === false)) {
-            // Send response only in non-cli environment.
-
-            http_response_code(self::getCode());
-
-            foreach (self::getHeaders() as $headerName => $headerVals) {
-                foreach ($headerVals as $headerVal) {
-                    header($headerName.': '.$headerVal, false);
+        if (!self::isSent()) {
+            if (!self::get()->lock) {
+                self::get()->lock = true;
+                foreach (self::get()->beforeSendCalls as $func) {
+                    call_user_func($func);
                 }
             }
 
-            if (is_callable('fastcgi_finish_request')) {
-                echo self::getBody();
-                fastcgi_finish_request();
-            } else {
-                ob_start();
-                echo self::getBody();
-                ob_end_flush();
+            if (!(http_response_code() === false)) {
+                self::get()->isSent = true;
+                // Send response only in non-cli environment.
 
-                if (ob_get_level() > 0) {
-                    ob_flush();
+                http_response_code(self::getCode());
+
+                foreach (self::getHeaders() as $headerName => $headerVals) {
+                    foreach ($headerVals as $headerVal) {
+                        header($headerName.': '.$headerVal, false);
+                    }
                 }
-                flush();
+
+                if (is_callable('fastcgi_finish_request')) {
+                    echo self::getBody();
+                    fastcgi_finish_request();
+                } else {
+                    ob_start();
+                    echo self::getBody();
+                    ob_end_flush();
+
+                    if (ob_get_level() > 0) {
+                        ob_flush();
+                    }
+                    flush();
+                }
+                die;
             }
-            die();
         }
     }
     /**
