@@ -173,8 +173,9 @@ class Request {
      * 
      * @since 1.0
      */
-    public static function getRequestHeaders() {
+    public static function getHeaders() {
         if (self::get()->requestHeaders === null || defined('__PHPUNIT_PHAR__')) {
+            //Refresh headers if in testing environment.
             self::get()->requestHeaders = [];
 
             if (function_exists('apache_request_headers')) {
@@ -210,7 +211,7 @@ class Request {
         ];
         $headerVal = '';
         
-        $headers = self::getRequestHeaders();
+        $headers = self::getHeaders();
         
         if (isset($headers['authorization'])) {
             $headerVal = $headers['authorization'];
