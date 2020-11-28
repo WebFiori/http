@@ -135,13 +135,10 @@ class Request {
         $meth = getenv('REQUEST_METHOD');
         
         if ($meth === false) {
-            $meth = $_SERVER['REQUEST_METHOD'];
+            $meth = isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : '';
         }
         $method = filter_var($meth, FILTER_SANITIZE_STRING);
         
-        if ($method === false) {
-            
-        }
         
         if (!in_array($method, self::METHODS)) {
             $method = 'GET';
