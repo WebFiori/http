@@ -132,8 +132,17 @@ class Request {
      * @since 1.0
      */
     public static function getMethod() {
-        $method = filter_var(getenv('REQUEST_METHOD'), FILTER_SANITIZE_STRING);
-
+        $meth = getenv('REQUEST_METHOD');
+        
+        if ($meth === false) {
+            $meth = $_SERVER['REQUEST_METHOD'];
+        }
+        $method = filter_var($meth, FILTER_SANITIZE_STRING);
+        
+        if ($method === false) {
+            
+        }
+        
         if (!in_array($method, self::METHODS)) {
             $method = 'GET';
         }
@@ -150,9 +159,17 @@ class Request {
     public static function getRequestedURL() {
         if (self::get()->requestedUri === null) {
             $base = Uri::getBaseURL();
+            $uri = getenv('REQUEST_URI');
 
-            $requestedURI = trim(filter_var(getenv('REQUEST_URI')),'/');
-            self::get()->requestedUri = $base.'/'.$requestedURI;
+            if ($uri === false) {
+                // Using built-in server, it will be false
+                $path = isset($_SERVER['PATH_INFO']) ? $_SERVER['PATH_INFO'] : '';
+                self::get()->requestedUri = $base.'/'.trim(filter_var($path),'/');
+            } else {
+                $requestedURI = trim(filter_var($uri),'/');
+
+                self::get()->requestedUri = $base.'/'.$requestedURI;
+            }
         }
 
 
