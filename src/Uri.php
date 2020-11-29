@@ -173,10 +173,10 @@ class Uri {
     /**
      * Returns the base URL of the framework.
      * 
-     * The returned value will depend on the folder where the framework files 
-     * are located. For example, if your domain is 'example.com' and the framework 
+     * The returned value will depend on the folder where the library files 
+     * are located. For example, if your domain is 'example.com' and the library 
      * is placed at the root and the requested resource is 'http://example.com/x/y/z', 
-     * then the base URL will be 'http://example.com/'. If the framework is 
+     * then the base URL will be 'http://example.com/'. If the library is 
      * placed inside a folder in the server which has the name 'system', and 
      * the same resource is requested, then the base URL will be 
      * 'http://example.com/system'.
@@ -202,13 +202,13 @@ class Uri {
         $docRoot = filter_var($_SERVER['DOCUMENT_ROOT']);
         $len = strlen($docRoot);
 
-        if (!defined(ROOT_DIR)) {
+        if (!defined('ROOT_DIR')) {
             define('ROOT_DIR', __DIR__);
         }
         $toAppend = substr(ROOT_DIR, $len, strlen(ROOT_DIR) - $len);
 
-        if (isset($_SERVER['HTTP_WEBFIORI_REMOVE_PATH'])) {
-            $toAppend = str_replace($_SERVER['HTTP_WEBFIORI_REMOVE_PATH'],'' ,$toAppend);
+        if (isset($_SERVER['HTTP_WF_REMOVE_PATH'])) {
+            $toAppend = str_replace($_SERVER['HTTP_WF_REMOVE_PATH'],'' ,$toAppend);
         }
         $xToAppend = str_replace('\\', '/', $toAppend);
 
