@@ -579,7 +579,7 @@ class Uri {
      * @since 1.0
      */
     public static function splitURI($uri) {
-        $validate = filter_var($uri,FILTER_VALIDATE_URL);
+        $validate = filter_var(str_replace(' ', '%20', $uri),FILTER_VALIDATE_URL);
 
         if ($validate === false) {
             return false;
