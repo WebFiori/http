@@ -178,4 +178,12 @@ class UriTest extends TestCase {
         $this->assertEquals('/{some-var}/{x}/{some-var}',$uriObj->getPath());
         $this->assertEquals(2,count($uriObj->getUriVars()));
     }
+    /**
+     * @test
+     */
+    public function testSplitURI_08() {
+        $uri = 'https://programmingacademia.com/Hello World';
+        $uriObj = new Uri($uri, '');
+        $this->assertEquals('/Hello World',$uriObj->getPath());
+    }
 }
