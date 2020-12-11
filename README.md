@@ -3,8 +3,8 @@ A simple library for creating RESTful web APIs in aadition to providing the deve
 It includes inputs feltering and data validation in addion to creating user-defined inputs filters.
 
 <p align="center">
-  <a href="https://travis-ci.com/github/WebFiori/http">
-    <img src="https://travis-ci.com/WebFiori/http.svg?branch=master">
+  <a href="https://github.com/WebFiori/http/actions">
+    <img src="https://github.com/WebFiori/http/workflows/Build%20PHP%207,8/badge.svg?branch=master">
   </a>
   <a href="https://codecov.io/gh/WebFiori/http">
     <img src="https://codecov.io/gh/WebFiori/http/branch/master/graph/badge.svg" />
