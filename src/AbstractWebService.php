@@ -515,11 +515,15 @@ abstract class AbstractWebService implements JsonI {
      * The developer should implement this method in a way it returns a boolean. 
      * If the method returns true, it means the client is allowed to use the service. 
      * If the method returns false, then he is not authorized and a 401 error 
-     * code will be sent back.
+     * code will be sent back. If the method returned nothing, then it means the 
+     * user is authorized to call the API. If WebFiori framework is used, it is 
+     * possible to perform the functionality of this method using middleware.
      * 
      * @since 1.0.1
      */
-    abstract function isAuthorized();
+    public function isAuthorized() {
+        
+    }
     /**
      * Returns the value of the property 'requreAuth'.
      * 
