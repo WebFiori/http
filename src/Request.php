@@ -118,6 +118,7 @@ class Request {
         if ($val === false) {
             return null;
         }
+        return $val;
     }
     /**
      * Returns the IP address of the user who is connected to the server.
@@ -227,8 +228,10 @@ class Request {
                 foreach ($headers as $k => $v) {
                     self::get()->requestHeaders[strtolower($k)] = filter_var($v, FILTER_SANITIZE_STRING);
                 }
-            } else if (isset($_SERVER)) {
-                self::get()->requestHeaders = self::_getRequestHeadersFromServer();
+            } 
+            
+            if (isset($_SERVER)) {
+                self::get()->requestHeaders = array_merge(self::get()->requestHeaders, self::_getRequestHeadersFromServer());
             }
         }
 
