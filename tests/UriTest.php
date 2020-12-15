@@ -186,4 +186,29 @@ class UriTest extends TestCase {
         $uriObj = new Uri($uri, '');
         $this->assertEquals('/Hello World',$uriObj->getPath());
     }
+    /**
+     * @test
+     */
+    public function testSplitURI_09() {
+        $uri = 'https://programmingacademia.com/Hello World? or Not?';
+        $uriObj = new Uri($uri, '');
+        $this->assertEquals('/Hello World? or Not?',$uriObj->getPath());
+    }
+    /**
+     * @test
+     */
+    public function testSplitURI_10() {
+        $uri = 'https://programmingacademia.com/Hello World? or Not?Yes';
+        $uriObj = new Uri($uri, '');
+        $this->assertEquals('/Hello World? or Not',$uriObj->getPath());
+    }
+    /**
+     * @test
+     */
+    public function testSplitURI_11() {
+        $uri = 'https://programmingacademia.com/Hello World#or Not#Yes';
+        $uriObj = new Uri($uri, '');
+        $this->assertEquals('/Hello World#or Not',$uriObj->getPath());
+        $this->assertEquals('Yes',$uriObj->getFragment());
+    }
 }

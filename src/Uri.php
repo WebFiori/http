@@ -601,11 +601,12 @@ class Uri {
             ],
         ];
         //First step, extract the fragment
-        $split1 = explode('#', $uri);
+        $split1 = self::_queryOrFragment($uri, '#', '%23');
         $retVal['fragment'] = isset($split1[1]) ? $split1[1] : '';
 
         //after that, extract the query string
-        $split2 = explode('?', $split1[0]);
+        $split2 = self::_queryOrFragment($split1[0], '?', '%3F');
+
         $retVal['query-string'] = isset($split2[1]) ? $split2[1] : '';
 
         //next comes the scheme
@@ -650,6 +651,28 @@ class Uri {
         }
 
         return $retVal;
+    }
+    private static function _queryOrFragment($split, $char, $encoded) {
+        $split2 = explode($char, $split);
+        $spCount = count($split2);
+        if ($spCount > 2) {
+            $temp = [];
+            for ($x = 0 ; $x < $spCount - 1 ; $x++) {
+                $temp[] = $split2[$x];
+            }
+            $lastStr = $split2[$spCount - 1];
+            if (strlen($lastStr) == 0) {
+                $split2 = [
+                    implode($encoded, $temp).$encoded
+                ];
+            } else {
+                $split2 = [
+                    implode($encoded, $temp),
+                    $split2[$spCount - 1]
+                ];
+            }
+        }
+        return $split2;
     }
     /**
      * Validate the path part of original URI and the requested one.

@@ -189,8 +189,8 @@ class APIFilter {
             $defaultVal = $def[$paramIdx]->getDefault();
 
             if (isset($arr[$name])) {
-                $toBeFiltered = $arr[$name];
-                $retVal[$noFIdx][$name] = $arr[$name];
+                $toBeFiltered = urldecode($arr[$name]);
+                $retVal[$noFIdx][$name] = $toBeFiltered;
 
                 if (isset($def[$optIdx]['filter-func'])) {
                     $retVal[$filteredIdx][$name] = self::_applyCustomFilterFunc($def, $toBeFiltered);
