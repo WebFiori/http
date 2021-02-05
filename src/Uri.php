@@ -186,7 +186,8 @@ class Uri {
      * @since 0.2
      */
     public static function getBaseURL() {
-        $host = trim(filter_var($_SERVER['HTTP_HOST']),'/');
+        $tempHost = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : '127.0.0.1';
+        $host = trim(filter_var($tempHost),'/');
 
         if (isset($_SERVER['HTTPS'])) {
             $secureHost = filter_var($_SERVER['HTTPS']);
