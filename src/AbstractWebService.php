@@ -37,11 +37,25 @@ use webfiori\json\JsonI;
  * 
  * @author Ibrahim
  * 
- * @version 1.0.1
+ * @version 1.0.2
  * 
  * @since 1.5.0 
  */
 abstract class AbstractWebService implements JsonI {
+    /**
+     * A constant which is used to indicate that the message that will be 
+     * sent is of type error.
+     * 
+     * @since 1.0.2
+     */
+    const E = 'error';
+    /**
+     * A constant which is used to indicate that the message that will be 
+     * sent is of type info.
+     * 
+     * @since 1.0.2
+     */
+    const I = 'info';
     /**
      * An array that contains the names of request methods.
      * 
@@ -440,7 +454,9 @@ abstract class AbstractWebService implements JsonI {
      * it was added to the service.
      * 
      * @return mixed|null If the parameter is found and its value is set, the 
-     * method will return its value. Other than that, the method will return null.
+     * method will return its value. Other than that, the method will return null. 
+     * For optional parameters, if a default value is set for it, the method will
+     * return that value.
      * 
      * @since 1.0.1
      */

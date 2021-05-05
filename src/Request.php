@@ -94,13 +94,14 @@ class Request {
      * Returns the value of a GET or POST parameter.
      * 
      * This method will apply basic filtering to the value of the parameter before returning 
-     * it.
+     * it. The developer may need to apply extra filtering to make sure that the 
+     * value of the parameter is safe to use.
      * 
      * @param string $paramName The name of the parameter. Note that if the value has extra 
      * spaces, they will be trimmed.
      * 
      * @return string|null The method will return the value of the parameter if 
-     * set. Other than that, the method will return null.
+     * set as a string. Other than that, the method will return null.
      * 
      * @since 1.0.1
      */
@@ -157,7 +158,10 @@ class Request {
      * Returns the name of request method which is used to call one of the services in the set.
      * 
      * @return string Request method such as POST, GET, etc.... Default return 
-     * value is 'GET'.
+     * value is 'GET'. The default is usually returned in case the call to 
+     * this method was performed in CLI environment. To change request method 
+     * in CLI environment to something like 'POST' for testing, use the 
+     * function putenv('REQUEST_METHOD=POST'). 
      * 
      * @since 1.0
      */
