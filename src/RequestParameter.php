@@ -675,6 +675,10 @@ class RequestParameter implements JsonI {
         $isOptional = isset($options['optional']) ? $options['optional'] : false;
         $param->setIsOptional($isOptional);
 
+        if (isset($options['custom-filter'])) {
+            $param->setCustomFilterFunction($options['custom-filter']);
+        }
+        
         if (isset($options['min'])) {
             $param->setMinVal($options['min']);
         }
