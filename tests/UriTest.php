@@ -12,6 +12,7 @@ class UriTest extends TestCase {
      * @test
      */
     public function testAllowedRequestMethods00() {
+        putenv('REQUEST_METHOD=GET');
         $uri = new Uri('https://example.com/', '');
         $this->assertEquals([], $uri->getRequestMethods());
         $this->assertTrue($uri->isRequestMethodAllowed());
@@ -23,6 +24,7 @@ class UriTest extends TestCase {
      * @test
      */
     public function testAllowedRequestMethods01() {
+        putenv('REQUEST_METHOD=GET');
         $uri = new Uri('https://example.com/', '');
         $uri->setRequestMethods(['POST', 'PUT', 'Get']);
         $this->assertEquals(['POST', 'PUT'], $uri->getRequestMethods());
