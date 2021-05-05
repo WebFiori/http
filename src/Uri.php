@@ -43,9 +43,16 @@ use InvalidArgumentException;
  * 
  * @author Ibrahim
  * 
- * @version 1.0
+ * @version 1.0.1
  */
 class Uri {
+    /**
+     *
+     * @var array 
+     * 
+     * @since 1.0.1
+     */
+    private $allowedRequestMethods;
     /**
      * A boolean which is set to true if URI is case sensitive.
      * 
@@ -67,6 +74,7 @@ class Uri {
      * @param string $requestedUri The URI such as 'https://www3.webfiori.com:80/{some-var}/hell/{other-var}/?do=dnt&y=#xyz'
      */
     public function __construct($requestedUri) {
+        $this->allowedRequestMethods = [];
         $this->uriBroken = self::splitURI($requestedUri);
 
         if (gettype($this->uriBroken) != 'array') {
@@ -76,6 +84,20 @@ class Uri {
 
         foreach (array_keys($this->getUriVars()) as $varName) {
             $this->uriBroken['vars-possible-values'][$varName] = [];
+        }
+    }
+    /**
+     * Adds a request method to the allowed set of methods at which the URI can 
+     * be called with.
+     * 
+     * @param string $method A string such as 'GET' or 'POST'. Note that the 
+     * value must exist in the array Request::METHODS or it will be not added.
+     * 
+     * @since 1.0.1
+     */
+    public function addRequestMethod($method) {
+        if (in_array($method, Request::METHODS)) {
+            $this->allowedRequestMethods[] = $method;
         }
     }
     /**
@@ -304,6 +326,17 @@ class Uri {
         return $this->uriBroken['port'];
     }
     /**
+     * Returns an array that holds all allowed request methods at which the 
+     * URI can be called with.
+     * 
+     * @return array An array that holds strings such as 'GET' or 'POST'.
+     * 
+     * @since 1.0.1
+     */
+    public function getRequestMethods() {
+        return $this->allowedRequestMethods;
+    }
+    /**
      * Returns the query string that was appended to the URI.
      * 
      * @return string The query string that was appended to the URI. 
@@ -496,6 +529,20 @@ class Uri {
         return $this->isCS;
     }
     /**
+     * Checks if URI is fetched using allowed request method or not.
+     * 
+     * @return boolean The method will return true in two cases, if the array 
+     * that holds allowed request methods is empty or request method is exist 
+     * in the allowed request methods. Other than that, the method will return 
+     * false.
+     * 
+     * @since 1.0.1
+     */
+    public function isRequestMethodAllowed() {
+        $methods = $this->getRequestMethods();
+        return count($methods) == 0 || in_array(Request::getMethod(), $this->getRequestMethods());
+    }
+    /**
      * Make the URI case sensitive or not.
      * 
      * This is mainly used in case the developer would like to use the 
@@ -508,6 +555,19 @@ class Uri {
      */
     public function setIsCaseSensitive($caseSensitive) {
         $this->isCS = $caseSensitive === true;
+    }
+    /**
+     * Adds a set of request methods to the allowed methods at which the URI
+     * can be called with.
+     * 
+     * @param array $methods An array that holds strings such as 'GET' or 'POST'.
+     * 
+     * @since 1.0.1
+     */
+    public function setRequestMethods(array $methods) {
+        foreach ($methods as $m) {
+            $this->addRequestMethod($m);
+        }
     }
     /**
      * Sets the requested URI.

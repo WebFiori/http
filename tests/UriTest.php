@@ -11,6 +11,28 @@ class UriTest extends TestCase {
     /**
      * @test
      */
+    public function testAllowedRequestMethods00() {
+        $uri = new Uri('https://example.com/', '');
+        $this->assertEquals([], $uri->getRequestMethods());
+        $this->assertTrue($uri->isRequestMethodAllowed());
+        $uri->addRequestMethod('GET');
+        $this->assertEquals(['GET'], $uri->getRequestMethods());
+        $this->assertTrue($uri->isRequestMethodAllowed());
+    }
+    /**
+     * @test
+     */
+    public function testAllowedRequestMethods01() {
+        $uri = new Uri('https://example.com/', '');
+        $uri->setRequestMethods(['POST', 'PUT', 'Get']);
+        $this->assertEquals(['POST', 'PUT'], $uri->getRequestMethods());
+        $this->assertFalse($uri->isRequestMethodAllowed());
+        putenv('REQUEST_METHOD=PUT');
+        $this->assertTrue($uri->isRequestMethodAllowed());
+    }
+    /**
+     * @test
+     */
     public function testSetUriPossibleVar00() {
         $uri = new Uri('https://example.com/{first-var}', '');
         $uri->addVarValue('first-var', 'Hello World');
