@@ -873,7 +873,7 @@ class WebServicesManager implements JsonI {
      * 
      * @since 1.0
      */
-    private final function _checkAction() {
+    private function _checkAction() {
         $serviceName = $this->getCalledServiceName();
         //first, check if action is set and not null
         if ($serviceName !== null) {

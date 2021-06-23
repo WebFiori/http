@@ -4,13 +4,13 @@
     </php>
     <filter>
         <whitelist addUncoveredFilesFromWhitelist="true">
-            <file>./src/AbstractWebService.php</file>
-            <file>./src/APIFilter.php</file>
-            <file>./src/RequestParameter.php</file>
-            <file>./src/WebServicesManager.php</file>
-            <file>./src/Request.php</file>
-            <file>./src/Response.php</file>
-            <file>./src/Uri.php</file>
+            <file>./webfiori/http/AbstractWebService.php</file>
+            <file>./webfiori/http/APIFilter.php</file>
+            <file>./webfiori/http/RequestParameter.php</file>
+            <file>./webfiori/http/WebServicesManager.php</file>
+            <file>./webfiori/http/Request.php</file>
+            <file>./webfiori/http/Response.php</file>
+            <file>./webfiori/http/Uri.php</file>
         </whitelist>
     </filter>
     <logging>
