@@ -500,6 +500,24 @@ class APIFilterTest extends TestCase {
     /**
      * @test
      */
+    public function testFilterGet26() {
+        $this->apiFilter = new APIFilter();
+        $param00 = new RequestParameter('array', 'array');
+        $this->apiFilter->addRequestParameter($param00);
+        $_GET['array'] = "['". urlencode("01-05/2018")."' ,'". urlencode("2018/07-01")."', '". urlencode("2017/08-01")."']";
+        $this->assertEquals("['01-05%2F2018' ,'2018%2F07-01', '2017%2F08-01']",$_GET['array']);
+        $this->apiFilter->filterGET();
+        $filtered = $this->apiFilter->getInputs();
+        
+        $this->assertEquals([
+            '01-05/2018',
+            '2018/07-01', 
+            '2017/08-01'
+        ],$filtered['array']);
+    }
+    /**
+     * @test
+     */
     public function testFilterPost01() {
         $this->apiFilter = new APIFilter();
         $param00 = new RequestParameter('array', 'array');

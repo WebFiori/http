@@ -770,7 +770,7 @@ class APIFilter {
             if ($ch == $stringEndChar) {
                 $str .= "";
                 $retVal['end'] = $x;
-                $retVal['string'] = $str;
+                $retVal['string'] = urldecode($str);
                 $retVal['parsed'] = true;
                 break;
             } else if ($ch == '\\') {
