@@ -199,13 +199,10 @@ class Request {
             } 
             $toAppend = trim(filter_var($path),'/');
             
-            if (defined('WF_PATH_TO_REMOVE')) {
-                $toAppend = str_replace(trim(WF_PATH_TO_REMOVE, '/'),'' ,$toAppend);
+            if (defined('WF_PATH_TO_APPEND')) {
+                $toAppend = str_replace(trim(str_replace('\\', '/', WF_PATH_TO_APPEND), '/'),'' ,$toAppend);
             }
             
-            if (defined('WF_PATH_TO_APPEND')) {
-                $toAppend = $toAppend.'/'.trim(WF_PATH_TO_APPEND, '/');
-            }
             self::get()->requestedUri = $base.'/'.trim($toAppend);
         }
 
