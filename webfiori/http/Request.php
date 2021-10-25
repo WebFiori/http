@@ -190,17 +190,23 @@ class Request {
     public static function getRequestedURL() {
         if (self::get()->requestedUri === null) {
             $base = Uri::getBaseURL();
-            $uri = getenv('REQUEST_URI');
+            $path = getenv('REQUEST_URI');
 
-            if ($uri === false) {
+            if ($path === false) {
                 // Using built-in server, it will be false
                 $path = isset($_SERVER['PATH_INFO']) ? $_SERVER['PATH_INFO'] : '';
-                self::get()->requestedUri = $base.'/'.trim(filter_var($path),'/');
-            } else {
-                $requestedURI = trim(filter_var($uri),'/');
-
-                self::get()->requestedUri = $base.'/'.$requestedURI;
+                
+            } 
+            $toAppend = trim(filter_var($path),'/');
+            
+            if (defined('WF_PATH_TO_REMOVE')) {
+                $toAppend = str_replace(trim(WF_PATH_TO_REMOVE, '/'),'' ,$toAppend);
             }
+            
+            if (defined('WF_PATH_TO_APPEND')) {
+                $toAppend = $toAppend.'/'.trim(WF_PATH_TO_APPEND, '/');
+            }
+            self::get()->requestedUri = $base.'/'.trim($toAppend);
         }
 
 

@@ -223,22 +223,26 @@ class Uri {
             $protocol = "https://";
         }
         $docRoot = filter_var($_SERVER['DOCUMENT_ROOT']);
-        $len = strlen($docRoot);
+        $docRootLen = strlen($docRoot);
 
         if (!defined('ROOT_DIR')) {
             define('ROOT_DIR', __DIR__);
         }
-        $toAppend = substr(ROOT_DIR, $len, strlen(ROOT_DIR) - $len);
+        $toAppend = substr(ROOT_DIR, $docRootLen, strlen(ROOT_DIR) - $docRootLen);
 
-        if (isset($_SERVER['HTTP_WF_REMOVE_PATH'])) {
-            $toAppend = str_replace($_SERVER['HTTP_WF_REMOVE_PATH'],'' ,$toAppend);
+        if (defined('WF_PATH_TO_REMOVE')) {
+            $toAppend = str_replace(WF_PATH_TO_REMOVE,'' ,$toAppend);
         }
         $xToAppend = str_replace('\\', '/', $toAppend);
+        
+        if (defined('WF_PATH_TO_APPEND')) {
+            $xToAppend = $xToAppend.'/'.trim(WF_PATH_TO_APPEND, '/');
+        }
 
         if (strlen($xToAppend) == 0) {
             return $protocol.$host;
         } else {
-            return $protocol.$host.'/'.$xToAppend;
+            return $protocol.$host.'/'.trim($xToAppend, '/');
         }
     }
     /**
