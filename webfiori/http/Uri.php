@@ -228,7 +228,7 @@ class Uri {
         if (!defined('ROOT_DIR')) {
             define('ROOT_DIR', __DIR__);
         }
-        $toAppend = substr(ROOT_DIR, $docRootLen, strlen(ROOT_DIR) - $docRootLen);
+        $toAppend = str_replace('\\', '/', substr(ROOT_DIR, $docRootLen, strlen(ROOT_DIR) - $docRootLen));
 
         if (defined('WF_PATH_TO_REMOVE')) {
             $toAppend = str_replace(str_replace('\\', '/', WF_PATH_TO_REMOVE),'' ,$toAppend);
