@@ -203,7 +203,7 @@ class Request {
                 $toAppend = str_replace(trim(str_replace('\\', '/', WF_PATH_TO_APPEND), '/'),'' ,$toAppend);
             }
             
-            self::get()->requestedUri = $base.'/'.trim($toAppend);
+            self::get()->requestedUri = $base.'/'.trim($toAppend, '/');
         }
 
 
