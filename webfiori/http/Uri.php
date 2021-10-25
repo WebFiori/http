@@ -231,12 +231,12 @@ class Uri {
         $toAppend = substr(ROOT_DIR, $docRootLen, strlen(ROOT_DIR) - $docRootLen);
 
         if (defined('WF_PATH_TO_REMOVE')) {
-            $toAppend = str_replace(WF_PATH_TO_REMOVE,'' ,$toAppend);
+            $toAppend = str_replace(str_replace('\\', '/', WF_PATH_TO_REMOVE),'' ,$toAppend);
         }
         $xToAppend = str_replace('\\', '/', $toAppend);
         
         if (defined('WF_PATH_TO_APPEND')) {
-            $xToAppend = $xToAppend.'/'.trim(WF_PATH_TO_APPEND, '/');
+            $xToAppend = $xToAppend.'/'.trim(str_replace('\\', '/', WF_PATH_TO_APPEND), '/');
         }
 
         if (strlen($xToAppend) == 0) {
