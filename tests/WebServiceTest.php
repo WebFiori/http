@@ -80,6 +80,52 @@ class WebServiceTest extends TestCase {
     }
     /**
      * @test
+     */
+    public function testAddParameters00() {
+        $action = new TestServiceObj('add-user');
+        $action->addParameters([
+            'username' => []
+        ]);
+        $this->assertEquals(1,count($action->getParameters()));
+        $param = $action->getParameterByName('username');
+        $this->assertEquals('string', $param->getType());
+    }
+    /**
+     * @test
+     */
+    public function testAddParameters01() {
+        $action = new TestServiceObj('add-user');
+        $action->addParameters([
+            new RequestParameter('username')
+        ]);
+        $this->assertEquals(1,count($action->getParameters()));
+        $param = $action->getParameterByName('username');
+        $this->assertEquals('string', $param->getType());
+    }
+    /**
+     * @test
+     */
+    public function testAddParameters02() {
+        $action = new TestServiceObj('add-user');
+        $action->addParameters([
+            new RequestParameter('username'),
+            'password' => [
+                'optional' => true,
+                'default' => 1234,
+                'type' => 'integer'
+            ]
+        ]);
+        $this->assertEquals(2,count($action->getParameters()));
+        $param = $action->getParameterByName('username');
+        $this->assertEquals('string', $param->getType());
+        
+        $param2 = $action->getParameterByName('password');
+        $this->assertEquals('integer', $param2->getType());
+        $this->assertTrue($param2->isOptional());
+        $this->assertEquals(1234, $param2->getDefault());
+    }
+    /**
+     * @test
      * @depends testConstructor02
      * @param TestServiceObj $action 
      */

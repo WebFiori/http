@@ -37,7 +37,7 @@ use webfiori\json\JsonI;
  * 
  * @author Ibrahim
  * 
- * @version 1.0.2
+ * @version 1.0.3
  * 
  * @since 1.5.0 
  */
@@ -312,6 +312,26 @@ abstract class AbstractWebService implements JsonI {
         }
 
         return false;
+    }
+    /**
+     * Adds multiple parameters to the web service in one batch.
+     * 
+     * @param array $params An associative or indexed array. If the array is indexed, 
+     * each index should hold an object of type 'RequestParameter'. If it is associative,
+     * then the key will represent the name of the web service and the value of the 
+     * key should be a sub-associative array that holds parameter options.
+     * 
+     * @since 1.0.3
+     */
+    public function addParameters(array $params) {
+        foreach ($params as $paramIndex => $param) {
+            if ($param instanceof RequestParameter) {
+                $this->addParameter($param);
+            } else if (gettype($param) == 'array') {
+                $param['name'] = $paramIndex;
+                $this->addParameter(RequestParameter::createParam($param));
+            }
+        }
     }
     /**
      * Adds new request method.
