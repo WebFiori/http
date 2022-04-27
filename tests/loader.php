@@ -44,6 +44,9 @@ fwrite($stderr,'Root Directory: \''.$rootDir.'\'.'."\n");
 require_once $rootDir.'vendor'.$DS.'webfiori'.$DS.'jsonx'.$DS.'webfiori'.$DS.'json'.$DS.'JsonTypes.php';
 require_once $rootDir.'vendor'.$DS.'webfiori'.$DS.'jsonx'.$DS.'webfiori'.$DS.'json'.$DS.'JsonI.php';
 require_once $rootDir.'vendor'.$DS.'webfiori'.$DS.'jsonx'.$DS.'webfiori'.$DS.'json'.$DS.'Json.php';
+require_once $rootDir.'vendor'.$DS.'webfiori'.$DS.'jsonx'.$DS.'webfiori'.$DS.'json'.$DS.'CaseConverter.php';
+require_once $rootDir.'vendor'.$DS.'webfiori'.$DS.'jsonx'.$DS.'webfiori'.$DS.'json'.$DS.'Property.php';
+require_once $rootDir.'vendor'.$DS.'webfiori'.$DS.'jsonx'.$DS.'webfiori'.$DS.'json'.$DS.'JsonConverter.php';
 
 require_once $rootDir.'webfiori'.$DS.'http'.$DS.'ParamTypes.php';
 require_once $rootDir.'webfiori'.$DS.'http'.$DS.'AbstractWebService.php';
