@@ -171,7 +171,7 @@ class Request {
         if ($meth === false) {
             $meth = isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : '';
         }
-        $method = filter_var($meth, FILTER_SANITIZE_STRING);
+        $method = filter_var($meth, FILTER_SANITIZE_FULL_SPECIAL_CHARS);
         
         
         if (!in_array($method, self::METHODS)) {
@@ -233,7 +233,7 @@ class Request {
                 $headers = apache_request_headers();
 
                 foreach ($headers as $k => $v) {
-                    self::get()->requestHeaders[strtolower($k)] = filter_var($v, FILTER_SANITIZE_STRING);
+                    self::get()->requestHeaders[strtolower($k)] = filter_var($v, FILTER_SANITIZE_FULL_SPECIAL_CHARS);
                 }
             } 
             
@@ -314,7 +314,7 @@ class Request {
                         $headerName = $headerName.$split[$x].'-';
                     }
                 }
-                $retVal[strtolower($headerName)] = filter_var($v, FILTER_SANITIZE_STRING);
+                $retVal[strtolower($headerName)] = filter_var($v, FILTER_SANITIZE_FULL_SPECIAL_CHARS);
             }
         }
 

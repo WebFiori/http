@@ -762,7 +762,7 @@ class WebServicesManager implements JsonI {
             return true;
         } 
 
-        $trimmed = trim($stream);
+        $trimmed = trim((string)$stream);
 
         if (strlen($trimmed) > 0) {
             $create = $new === true;

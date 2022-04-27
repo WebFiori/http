@@ -467,7 +467,7 @@ class APIFilter {
 
             if ($propType == 'string') {
                 if ($applyBasicFiltering) {
-                    $cleanArr[] = filter_var($val, FILTER_SANITIZE_STRING);
+                    $cleanArr[] = filter_var($val, FILTER_SANITIZE_FULL_SPECIAL_CHARS);
                 } else {
                     $cleanArr[] = $val;
                 }
@@ -717,7 +717,7 @@ class APIFilter {
                 $cleanJson->add($propName, $this->_jsonBasicClean($propVal, $applyBasicFiltering));
             } else if ($propType == 'string') {
                 if ($applyBasicFiltering) {
-                    $cleanJson->add($propName, filter_var($propVal, FILTER_SANITIZE_STRING));
+                    $cleanJson->add($propName, filter_var($propVal, FILTER_SANITIZE_FULL_SPECIAL_CHARS));
                 } else {
                     $cleanJson->add($propName, $propVal);
                 }

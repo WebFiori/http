@@ -974,7 +974,7 @@ class APIFilterTest extends TestCase {
         $this->assertEquals(1.5, $json->get('another-number'));
         $this->assertTrue($json->get('bool-true'));
         $this->assertFalse($json->get('bool-false'));
-        $this->assertEquals(["one","Two"], $json->get('array'));
+        $this->assertEquals(["one","&lt;script&gt;Two&lt;/script&gt;"], $json->get('array'));
         $this->assertEquals(["one","<script>Two</script>"], $apiFilter->getNonFiltered()->get('array'));
     }
     /**
@@ -1027,7 +1027,7 @@ class APIFilterTest extends TestCase {
         $this->assertEquals(1.5, $json->get('another-number'));
         $this->assertTrue($json->get('bool-true'));
         $this->assertFalse($json->get('bool-false'));
-        $this->assertEquals(["one","Two", true, false, null, 1], $json->get('array'));
+        $this->assertEquals(["one","&lt;script&gt;Two&lt;/script&gt;", true, false, null, 1], $json->get('array'));
         $jsonObj = $json->get('json-obj');
         $this->assertTrue($jsonObj instanceof Json);
         $this->assertEquals(["hell","no","<script>not clean</script>"], $jsonObj->get('four'));
