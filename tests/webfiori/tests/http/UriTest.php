@@ -125,6 +125,37 @@ class UriTest extends TestCase {
     /**
      * @test
      */
+    public function testGetBase00() {
+        $this->assertEquals('http://127.0.0.1', Uri::getBaseURL());
+    }
+    /**
+     * @test
+     */
+    public function testGetBase01() {
+        $_SERVER['HTTP_HOST'] = 'webfiori.com';
+        $this->assertEquals('http://webfiori.com', Uri::getBaseURL());
+    }
+    /**
+     * @test
+     */
+    public function testGetBase03() {
+        $_SERVER['HTTP_HOST'] = 'webfiori.com';
+        $_SERVER['DOCUMENT_ROOT'] = __DIR__;
+        define('WF_PATH_TO_APPEND', 'my-app');
+        $this->assertEquals('http://webfiori.com/my-app', Uri::getBaseURL());
+    }
+    /**
+     * @test
+     */
+    public function testGetBase02() {
+        $_SERVER['HTTP_HOST'] = 'webfiori.com';
+        $_SERVER['DOCUMENT_ROOT'] = __DIR__;
+        define('WF_PATH_TO_REMOVE', 'my-app');
+        $this->assertEquals('http://webfiori.com/my-app', Uri::getBaseURL());
+    }
+    /**
+     * @test
+     */
     public function testGetComponents() {
         $uri = new Uri('https://example.com:8080/hell?me=ibrahim#22', '');
         $components = $uri->getComponents();
