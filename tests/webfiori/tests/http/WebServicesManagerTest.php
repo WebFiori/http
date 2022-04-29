@@ -1,11 +1,13 @@
 <?php
-namespace restEasy\tests;
+namespace webfiori\tests\http;
 
 use webfiori\json\Json;
 use PHPUnit\Framework\TestCase;
 use webfiori\http\AbstractWebService;
 use webfiori\http\WebServicesManager;
-use restEasy\tests\NotImplService;
+use webfiori\tests\http\testServices\NotImplService;
+use webfiori\tests\http\testServices\SampleServicesManager;
+use webfiori\tests\http\testServices\NoAuthService;
 /**
  * Description of WebAPITest
  *

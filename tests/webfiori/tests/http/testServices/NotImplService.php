@@ -1,12 +1,13 @@
 <?php
 
-namespace restEasy\tests;
+namespace webfiori\tests\http\testServices;
+
 use webfiori\http\AbstractWebService;
 
 /**
  * Description of NotImplService
  *
- * @author Eng.Ibrahim
+ * @author Ibrahim
  */
 class NotImplService extends AbstractWebService {
     public function __construct() {

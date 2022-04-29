@@ -1,5 +1,5 @@
 <?php
-namespace webfiori\tests\entity\router;
+namespace webfiori\tests\http;
 
 use PHPUnit\Framework\TestCase;
 use webfiori\http\Uri;

@@ -1,5 +1,5 @@
 <?php
-namespace restEasy\tests;
+namespace webfiori\tests\http;
 
 use PHPUnit\Framework\TestCase;
 use webfiori\http\RequestParameter;

@@ -1,6 +1,6 @@
 <?php
 
-namespace restEasy\tests;
+namespace webfiori\tests\http\testServices;
 
 use webfiori\http\RequestParameter;
 use webfiori\json\Json;
