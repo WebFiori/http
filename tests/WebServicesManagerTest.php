@@ -191,10 +191,10 @@ class WebServicesManagerTest extends TestCase {
     public function testGetNonFiltered00($api) {
         $nonFiltered = $api->getNonFiltered();
         $j = new Json();
-        $j->add('non-filtered', $nonFiltered);
+        $j->add('non-filtered', $nonFiltered, true);
         $api->sendHeaders(['content-type' => 'application/json']);
         echo $j;
-        $this->expectOutputString('{"non-filtered":[{"pass":"123"},{"first-number":"-1.8.89"},{"second-number":"300"}]}');
+        $this->expectOutputString('{"non-filtered":{"pass":"123","first-number":"-1.8.89","second-number":"300"}}');
     }
     /**
      * @test
