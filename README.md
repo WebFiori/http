@@ -4,7 +4,7 @@ It includes inputs feltering and data validation in addion to creating user-defi
 
 <p align="center">
   <a href="https://github.com/WebFiori/http/actions">
-    <img src="https://github.com/WebFiori/http/workflows/Build%20PHP%207,8/badge.svg?branch=master">
+    <img src="https://github.com/WebFiori/http/workflows/Build%20PHP%208.1/badge.svg?branch=master">
   </a>
   <a href="https://codecov.io/gh/WebFiori/http">
     <img src="https://codecov.io/gh/WebFiori/http/branch/master/graph/badge.svg" />
