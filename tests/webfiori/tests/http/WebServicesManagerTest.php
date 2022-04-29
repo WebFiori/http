@@ -269,7 +269,7 @@ class WebServicesManagerTest extends TestCase {
         $api = new SampleServicesManager();
         $api->setOutputStream($this->outputStreamName);
         $api->process();
-        $this->assertEquals('{"message":"Content type not supported.","type":"error","http-code":404,"more-info":{"request-content-type":null}}', $api->readOutputStream());
+        $this->assertEquals('{"message":"Content type not supported.","type":"error","http-code":404,"more-info":{"request-content-type":"NOT_SET"}}', $api->readOutputStream());
     }
     /**
      * @test

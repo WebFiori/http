@@ -146,7 +146,7 @@ class WebServicesManager implements JsonI {
      * number must follow the format 'X.X.X' where 'X' is a number between 
      * 0 and 9 inclusive.
      */
-    public function __construct($version = '1.0.0') {
+    public function __construct(string $version = '1.0.0') {
         $this->setVersion($version);
         $this->setDescription('NO DESCRIPTION');
 
@@ -185,7 +185,7 @@ class WebServicesManager implements JsonI {
      * 
      * @since 1.1
      */
-    public function contentTypeNotSupported($cType = '') {
+    public function contentTypeNotSupported(string $cType = '') {
         $j = new Json();
         $j->add('request-content-type', $cType);
         $this->sendResponse('Content type not supported.', self::E, 404,$j);
@@ -268,7 +268,7 @@ class WebServicesManager implements JsonI {
      * 
      * @since 1.4.1
      */
-    public function getInvalidParameters() {
+    public function getInvalidParameters() : array {
         return $this->invParamsArr;
     }
     /**
@@ -279,7 +279,7 @@ class WebServicesManager implements JsonI {
      * 
      * @since 1.4.1
      */
-    public function getMissingParameters() {
+    public function getMissingParameters() : array {
         return $this->missingParamsArr;
     }
     /**
@@ -294,7 +294,7 @@ class WebServicesManager implements JsonI {
      * 
      * @since 1.4.3
      */
-    public function getNonFiltered() {
+    public function getNonFiltered() : array {
         return $this->filter->getNonFiltered();
     }
     /**
@@ -332,7 +332,7 @@ class WebServicesManager implements JsonI {
      * 
      * @since 1.3
      */
-    public function getServiceByName($serviceName) {
+    public function getServiceByName(string $serviceName) {
         $trimmed = trim($serviceName);
 
         if (isset($this->services[$trimmed])) {
@@ -350,7 +350,7 @@ class WebServicesManager implements JsonI {
      * 
      * @since 1.0
      */
-    public final function getServices() {
+    public final function getServices() : array {
         return $this->services;
     }
     /**
@@ -360,7 +360,7 @@ class WebServicesManager implements JsonI {
      * 
      * @since 1.0
      */
-    public final function getVersion() {
+    public final function getVersion() : string {
         return $this->apiVersion;
     }
     /**
@@ -404,7 +404,7 @@ class WebServicesManager implements JsonI {
      * 
      * @since 1.1
      */
-    public final function isContentTypeSupported() {
+    public final function isContentTypeSupported() : bool {
         $c = Request::getContentType();
         $rm = Request::getMethod();
 
@@ -514,7 +514,11 @@ class WebServicesManager implements JsonI {
                 }
             }
         } else {
-            $this->contentTypeNotSupported(Request::getContentType());
+            $c = Request::getContentType();
+            if ($c === null) {
+                $c = 'NOT_SET';  
+            } 
+            $this->contentTypeNotSupported($c);
         }
     }
     /**
@@ -546,7 +550,7 @@ class WebServicesManager implements JsonI {
      * 
      * @since 1.4.8
      */
-    public function removeService($name) {
+    public function removeService(string $name) {
         $trimmed = trim($name);
         $service = $this->getServiceByName($trimmed);
 
@@ -596,7 +600,7 @@ class WebServicesManager implements JsonI {
      * @param int $code HTTP response code that will be used to send the data. 
      * Default is HTTP code 200 - Ok.
      */
-    public function send($conentType,$data,$code = 200) {
+    public function send(string $conentType, $data, $code = 200) {
         if ($this->getOutputStream() !== null) {
             fwrite($this->getOutputStream(), $data.'');
             fclose($this->getOutputStream());
@@ -650,7 +654,7 @@ class WebServicesManager implements JsonI {
      * 
      * @since 1.0
      */
-    public function sendResponse($message,$type = '',$code = 200,$otherInfo = null) {
+    public function sendResponse(string $message, $type = '', $code = 200, $otherInfo = null) {
         $json = new Json();
         $json->add('message', $message);
         $typeTrimmed = trim($type);
@@ -716,7 +720,7 @@ class WebServicesManager implements JsonI {
      * 
      * @since 1.3
      */
-    public function setDescription($desc) {
+    public function setDescription(string $desc) {
         $this->apiDesc = $desc;
     }
     /**
@@ -752,7 +756,7 @@ class WebServicesManager implements JsonI {
      * 
      * @since 1.4.7
      */
-    public function setOutputStream($stream, $new = false) {
+    public function setOutputStream($stream, bool $new = false) {
         if (is_resource($stream)) {
             $this->outputStream = $stream;
             $meat = stream_get_meta_data($this->outputStream);
@@ -787,7 +791,7 @@ class WebServicesManager implements JsonI {
      * 
      * @since 1.0
      */
-    public final function setVersion($val) {
+    public final function setVersion(string $val) : bool {
         $nums = explode('.', $val);
 
         if (count($nums) == 3) {
@@ -814,7 +818,7 @@ class WebServicesManager implements JsonI {
      * 
      * @since 1.0
      */
-    public function toJSON() {
+    public function toJSON() : Json {
         $json = new Json();
         $json->add('api-version', $this->getVersion());
         $json->add('description', $this->getDescription());

@@ -285,7 +285,7 @@ class APIFilter {
      * 
      * @since 1.2.2
      */
-    public function getFilterDef() {
+    public function getFilterDef() : array {
         return $this->paramDefs;
     }
     /**
