@@ -321,12 +321,13 @@ class Request {
         return $retVal;
     }
     /**
+     * Returns an instance of the class.
      * 
      * @return Request
      * 
      * @since 1.0
      */
-    private static function get() {
+    public static function get() {
         if (self::$inst === null) {
             self::$inst = new Request();
         }

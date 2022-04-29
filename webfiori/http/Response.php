@@ -423,10 +423,11 @@ class Response {
         return true;
     }
     /**
+     * Returns an instance of the class.
      * 
      * @return Response
      */
-    private static function get() {
+    public static function get() {
         if (self::$inst === null) {
             self::$inst = new Response();
         }
