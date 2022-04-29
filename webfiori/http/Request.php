@@ -111,13 +111,25 @@ class Request {
         $val = null;
         
         if ($requMethod == 'POST' || $requMethod == 'PUT') {
-            $val = filter_input(INPUT_POST, $trimmed);
+            $val = self::filter(INPUT_POST, $paramName);
         } else if ($requMethod == 'DELETE' || $requMethod == 'GET') {
-            $val = filter_input(INPUT_GET, $trimmed);
+            $val = self::filter(INPUT_GET, $paramName);
         }
         
         if ($val === false) {
             return null;
+        }
+        return $val;
+    }
+    private  static function filter($inputSource, $varName) {
+        $val = filter_input($inputSource, $varName);
+        
+        if ($val === null) {
+            if ($inputSource == INPUT_POST && isset($_POST[$varName])) {
+                $val = filter_var($_POST[$varName]);
+            } else if ($inputSource == INPUT_GET && isset($_GET[$varName])) {
+                $val = filter_var($_GET[$varName]);
+            }
         }
         return $val;
     }
@@ -126,10 +138,14 @@ class Request {
      * 
      * @return string The IP address of the user who is connected to the server. 
      * The value is taken from the array $_SERVER at index 'REMOTE_ADDR'.
+     * If the IP address is invalid, empty string is returned.
      * 
      * @since 1.0
      */
     public static function getClientIP() : string {
+        if (!isset($_SERVER['REMOTE_ADDR'])) {
+            return '127.0.0.1';
+        }
         $ip = filter_var($_SERVER['REMOTE_ADDR'],FILTER_VALIDATE_IP);
 
         if ($ip == '::1') {
