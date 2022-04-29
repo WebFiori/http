@@ -120,7 +120,7 @@ class WebServicesManagerTest extends TestCase {
         
         
         $manager->process();
-        $this->assertEquals('{"message":"The following required parameter(s) where missing from the request body: \'pass\', \'numbers\'.","type":"error","http-code":404}', $manager->readOutputStream());
+        $this->assertEquals('{"message":"The following required parameter(s) where missing from the request body: \'pass\', \'numbers\'.","type":"error","http-code":404,"more-info":{"missing":["pass","numbers"]}}', $manager->readOutputStream());
     }
     /**
      * @test
@@ -315,7 +315,7 @@ class WebServicesManagerTest extends TestCase {
         $api = new SampleServicesManager();
         $api->setOutputStream($this->outputStreamName);
         $api->process();
-        $this->assertEquals('{"message":"The following required parameter(s) where missing from the request body: \'pass\', \'numbers\'.","type":"error","http-code":404}', $api->readOutputStream());
+        $this->assertEquals('{"message":"The following required parameter(s) where missing from the request body: \'pass\', \'numbers\'.","type":"error","http-code":404,"more-info":{"missing":["pass","numbers"]}}', $api->readOutputStream());
     }
     /**
      * @test
@@ -330,7 +330,7 @@ class WebServicesManagerTest extends TestCase {
         $api = new SampleServicesManager();
         $api->setOutputStream($this->outputStreamName);
         $api->process();
-        $this->assertEquals('{"message":"The following parameter(s) has invalid values: \'numbers\'.","type":"error","http-code":404}', $api->readOutputStream());
+        $this->assertEquals('{"message":"The following parameter(s) has invalid values: \'numbers\'.","type":"error","http-code":404,"more-info":{"invalid":["numbers"]}}', $api->readOutputStream());
     }
     /**
      * @test
@@ -421,7 +421,7 @@ class WebServicesManagerTest extends TestCase {
         $api = new SampleServicesManager();
         $api->setOutputStream($this->outputStreamName);
         $api->process();
-        $this->assertEquals('{"message":"The following parameter(s) has invalid values: \'first-number\', \'second-number\'.","type":"error","http-code":404}', $api->readOutputStream());
+        $this->assertEquals('{"message":"The following parameter(s) has invalid values: \'first-number\', \'second-number\'.","type":"error","http-code":404,"more-info":{"invalid":["first-number","second-number"]}}', $api->readOutputStream());
     }
     /**
      * @test
@@ -434,7 +434,7 @@ class WebServicesManagerTest extends TestCase {
         $api = new SampleServicesManager();
         $api->setOutputStream($this->outputStreamName);
         $api->process();
-        $this->assertEquals('{"message":"The following required parameter(s) where missing from the request body: \'first-number\', \'second-number\'.","type":"error","http-code":404}', $api->readOutputStream());
+        $this->assertEquals('{"message":"The following required parameter(s) where missing from the request body: \'first-number\', \'second-number\'.","type":"error","http-code":404,"more-info":{"missing":["first-number","second-number"]}}', $api->readOutputStream());
     }
     /**
      * @test
@@ -466,7 +466,7 @@ class WebServicesManagerTest extends TestCase {
         $api = new SampleServicesManager();
         $api->setOutputStream($this->outputStreamName);
         $api->process();
-        $this->assertEquals('{"message":"The following parameter(s) has invalid values: \'first-number\'.","type":"error","http-code":404}', $api->readOutputStream());
+        $this->assertEquals('{"message":"The following parameter(s) has invalid values: \'first-number\'.","type":"error","http-code":404,"more-info":{"invalid":["first-number"]}}', $api->readOutputStream());
     }
     /**
      * @test

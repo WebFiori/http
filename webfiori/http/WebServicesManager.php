@@ -391,7 +391,9 @@ class WebServicesManager implements JsonI {
             }
             $i++;
         }
-        $this->sendResponse('The following parameter(s) has invalid values: '.$val.'.', self::E, 404);
+        $this->sendResponse('The following parameter(s) has invalid values: '.$val.'.', self::E, 404, new Json([
+            'invalid' => $paramsNamesArr
+        ]));
     }
     /**
      * Checks if request content type is supported by the service or not (For 'POST' 
@@ -444,7 +446,9 @@ class WebServicesManager implements JsonI {
             }
             $i++;
         }
-        $this->sendResponse('The following required parameter(s) where missing from the request body: '.$val.'.', self::E, 404);
+        $this->sendResponse('The following required parameter(s) where missing from the request body: '.$val.'.', self::E, 404, new Json([
+            'missing' => $paramsNamesArr
+        ]));
     }
     /**
      * Sends a response message to tell the front-end that the parameter 
