@@ -1,13 +1,11 @@
 <?php
-namespace restEasy\tests;
+namespace webfiori\tests\http\testServices;
 
-use webfiori\json\Json;
-use webfiori\http\RequestParameter;
 use webfiori\http\WebServicesManager;
 /**
  * Description of SampleAPI
  *
- * @author Eng.Ibrahim
+ * @author Ibrahim
  */
 class SampleServicesManager extends WebServicesManager {
     public function __construct() {

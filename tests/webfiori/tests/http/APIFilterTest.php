@@ -1,5 +1,5 @@
 <?php
-namespace restEasy\tests;
+namespace webfiori\tests\http;
 
 use PHPUnit\Framework\TestCase;
 use webfiori\http\APIFilter;
@@ -974,7 +974,7 @@ class APIFilterTest extends TestCase {
         $this->assertEquals(1.5, $json->get('another-number'));
         $this->assertTrue($json->get('bool-true'));
         $this->assertFalse($json->get('bool-false'));
-        $this->assertEquals(["one","Two"], $json->get('array'));
+        $this->assertEquals(["one","&lt;script&gt;Two&lt;/script&gt;"], $json->get('array'));
         $this->assertEquals(["one","<script>Two</script>"], $apiFilter->getNonFiltered()->get('array'));
     }
     /**
@@ -1027,7 +1027,7 @@ class APIFilterTest extends TestCase {
         $this->assertEquals(1.5, $json->get('another-number'));
         $this->assertTrue($json->get('bool-true'));
         $this->assertFalse($json->get('bool-false'));
-        $this->assertEquals(["one","Two", true, false, null, 1], $json->get('array'));
+        $this->assertEquals(["one","&lt;script&gt;Two&lt;/script&gt;", true, false, null, 1], $json->get('array'));
         $jsonObj = $json->get('json-obj');
         $this->assertTrue($jsonObj instanceof Json);
         $this->assertEquals(["hell","no","<script>not clean</script>"], $jsonObj->get('four'));
@@ -1179,7 +1179,7 @@ class APIFilterTest extends TestCase {
         $this->assertNull($json->get('invalid-param'));
         $this->assertEquals(1, count($json->get('array-of-arrays')));
         $this->assertEquals('hello', $json->get('array-of-arrays')[0][0]);
-        $this->assertEquals('{"obj":true, "string":"not safe"}', $json->get('array-of-arrays')[0][1]->toJSONString());
+        $this->assertEquals('{"obj":true,"string":"&lt;script&gt;not safe"}', $json->get('array-of-arrays')[0][1]->toJSONString());
         $subObj = $json->get('sub-obj');
         $this->assertTrue($subObj instanceof Json);
         $this->assertEquals(['with arr'], $subObj->get('arr'));

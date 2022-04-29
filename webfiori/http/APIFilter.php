@@ -285,7 +285,7 @@ class APIFilter {
      * 
      * @since 1.2.2
      */
-    public function getFilterDef() {
+    public function getFilterDef() : array {
         return $this->paramDefs;
     }
     /**
@@ -448,7 +448,7 @@ class APIFilter {
             $extraClean->add($name, null);
         }
     }
-    private function _checkExtracted($extraClean, $name, $defaultVal) {
+    private function _checkExtracted(Json $extraClean, $name, $defaultVal) {
         $extractedVal = $extraClean->get($name);
 
         if ($extractedVal === null) {
@@ -467,7 +467,7 @@ class APIFilter {
 
             if ($propType == 'string') {
                 if ($applyBasicFiltering) {
-                    $cleanArr[] = filter_var($val, FILTER_SANITIZE_STRING);
+                    $cleanArr[] = filter_var($val, FILTER_SANITIZE_FULL_SPECIAL_CHARS);
                 } else {
                     $cleanArr[] = $val;
                 }
@@ -717,7 +717,7 @@ class APIFilter {
                 $cleanJson->add($propName, $this->_jsonBasicClean($propVal, $applyBasicFiltering));
             } else if ($propType == 'string') {
                 if ($applyBasicFiltering) {
-                    $cleanJson->add($propName, filter_var($propVal, FILTER_SANITIZE_STRING));
+                    $cleanJson->add($propName, filter_var($propVal, FILTER_SANITIZE_FULL_SPECIAL_CHARS));
                 } else {
                     $cleanJson->add($propName, $propVal);
                 }

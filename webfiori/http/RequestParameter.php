@@ -152,7 +152,7 @@ class RequestParameter implements JsonI {
      * @param boolean $isOptional Set to true if the parameter is optional. Default 
      * is false.
      */
-    public function __construct($name,$type = 'string',$isOptional = false) {
+    public function __construct(string $name, string $type = 'string', bool $isOptional = false) {
         if (!$this->setName($name)) {
             $this->setName('a-parameter');
         }
@@ -244,7 +244,7 @@ class RequestParameter implements JsonI {
      * 
      * @since 1.2.3
      */
-    public static function createParam($options) {
+    public static function createParam(array $options) {
         if (isset($options['name'])) {
             $paramType = isset($options['type']) ? $options['type'] : 'string';
             $param = new RequestParameter($options['name'], $paramType);
@@ -326,7 +326,7 @@ class RequestParameter implements JsonI {
      * 
      * @since 1.0
      */
-    public function getName() {
+    public function getName() : string {
         return $this->name;
     }
     /**
@@ -336,7 +336,7 @@ class RequestParameter implements JsonI {
      * 
      * @since 1.0
      */
-    public function getType() {
+    public function getType() : string {
         return $this->type;
     }
     /**
@@ -351,7 +351,7 @@ class RequestParameter implements JsonI {
      * 
      * @since 1.2.1
      */
-    public function isEmptyStringAllowed() {
+    public function isEmptyStringAllowed() : bool {
         return $this->isEmptStrAllowed;
     }
     /**
@@ -363,7 +363,7 @@ class RequestParameter implements JsonI {
      * 
      * @since 1.0
      */
-    public function isOptional() {
+    public function isOptional() : bool {
         return $this->isOptional;
     }
     /**
@@ -395,10 +395,10 @@ class RequestParameter implements JsonI {
      * 
      * @since 1.2
      */
-    public function setCustomFilterFunction($function,$applyBasicFilter = true) {
+    public function setCustomFilterFunction($function, bool $applyBasicFilter = true) {
         if (is_callable($function)) {
             $this->customFilterFunc = $function;
-            $this->applyBasicFilter = $applyBasicFilter === true ? true : false;
+            $this->applyBasicFilter = $applyBasicFilter === true;
 
             return true;
         }
@@ -420,7 +420,7 @@ class RequestParameter implements JsonI {
      * 
      * @since 1.1
      */
-    public function setDefault($val) {
+    public function setDefault($val) : bool {
         $valType = gettype($val);
         $RPType = $this->getType();
 
@@ -445,8 +445,8 @@ class RequestParameter implements JsonI {
      * 
      * @since 1.1
      */
-    public function setDescription($desc) {
-        $this->desc = trim($desc);
+    public function setDescription(string $desc) {
+        $this->desc = trim((string)$desc);
     }
     /**
      * Allow or disallow empty strings as values for the parameter.
@@ -463,11 +463,11 @@ class RequestParameter implements JsonI {
      * 
      * @since 1.2.1
      */
-    public function setIsEmptyStringAllowed($bool) {
+    public function setIsEmptyStringAllowed(bool $bool) {
         if ($this->getType() == ParamTypes::STRING) {
             //in php 5.6, premitive type hinting is not allowed.
             //this will resulve the issue.
-            $this->isEmptStrAllowed = $bool === true ? true : false;
+            $this->isEmptStrAllowed = $bool === true;
 
             return true;
         }
@@ -482,7 +482,7 @@ class RequestParameter implements JsonI {
      * 
      * @since 1.2.2
      */
-    public function setIsOptional($bool) {
+    public function setIsOptional(bool $bool) {
         $this->isOptional = $bool === true;
     }
     /**
@@ -572,7 +572,7 @@ class RequestParameter implements JsonI {
      * 
      * @since 1.0
      */
-    public function setName($name) {
+    public function setName(string $name) {
         $nameTrimmed = trim($name);
         $len = strlen($nameTrimmed);
 
@@ -602,7 +602,7 @@ class RequestParameter implements JsonI {
      * 
      * @since 1.1
      */
-    public function setType($type) {
+    public function setType(string $type) {
         $sType = strtolower(trim($type));
 
         if ($sType == 'float') {
@@ -654,7 +654,7 @@ class RequestParameter implements JsonI {
      * 
      * @since 1.0
      */
-    public function toJSON() {
+    public function toJSON() : Json {
         $json = new Json();
         $json->add('name', $this->name);
         $json->add('type', $this->getType());

@@ -1,10 +1,10 @@
 <?php
-namespace restEasy\tests;
+namespace webfiori\tests\http;
 
 use PHPUnit\Framework\TestCase;
-use restEasy\tests\TestServiceObj;
+use webfiori\tests\http\testServices\TestServiceObj;
 use webfiori\http\RequestParameter;
-use restEasy\tests\NoAuthService;
+use webfiori\tests\http\testServices\NoAuthService;
 
 class WebServiceTest extends TestCase {
     /**
@@ -257,72 +257,72 @@ class WebServiceTest extends TestCase {
     public function testToJson00() {
         $action = new TestServiceObj('login');
         $this->assertEquals(''
-                .'{"name":"login", '
-                .'"since":null, '
-                .'"description":null, '
-                .'"request-methods":[], '
-                .'"parameters":[], '
+                .'{"name":"login",'
+                .'"since":null,'
+                .'"description":null,'
+                .'"request-methods":[],'
+                .'"parameters":[],'
                 .'"responses":[]}',$action->toJSON().'');
         $action->setSince('1.0.0');
         $action->setDescription('Allow the user to login to the system.');
         $this->assertEquals(''
-                .'{"name":"login", '
-                .'"since":"1.0.0", '
-                .'"description":"Allow the user to login to the system.", '
-                .'"request-methods":[], '
-                .'"parameters":[], '
+                .'{"name":"login",'
+                .'"since":"1.0.0",'
+                .'"description":"Allow the user to login to the system.",'
+                .'"request-methods":[],'
+                .'"parameters":[],'
                 .'"responses":[]}',$action->toJSON().'');
         $action->addRequestMethod('get');
         $action->addRequestMethod('put');
         $action->addRequestMethod('post');
         $this->assertEquals(''
-                .'{"name":"login", '
-                .'"since":"1.0.0", '
-                .'"description":"Allow the user to login to the system.", '
-                .'"request-methods":["GET", "PUT", "POST"], '
-                .'"parameters":[], '
+                .'{"name":"login",'
+                .'"since":"1.0.0",'
+                .'"description":"Allow the user to login to the system.",'
+                .'"request-methods":["GET","PUT","POST"],'
+                .'"parameters":[],'
                 .'"responses":[]}',$action->toJSON().'');
         $action->removeRequestMethod('put');
         $action->addParameter(new RequestParameter('username'));
         $this->assertEquals(''
-                .'{"name":"login", '
-                .'"since":"1.0.0", '
-                .'"description":"Allow the user to login to the system.", '
-                .'"request-methods":["GET", "POST"], '
+                .'{"name":"login",'
+                .'"since":"1.0.0",'
+                .'"description":"Allow the user to login to the system.",'
+                .'"request-methods":["GET","POST"],'
                 .'"parameters":['
-                .'{"name":"username", '
-                .'"type":"string", '
-                .'"description":null, '
-                .'"is-optional":false, '
-                .'"default-value":null, '
-                .'"min-val":null, '
+                .'{"name":"username",'
+                .'"type":"string",'
+                .'"description":null,'
+                .'"is-optional":false,'
+                .'"default-value":null,'
+                .'"min-val":null,'
                 .'"max-val":null}'
-                .'], '
+                .'],'
                 .'"responses":[]}',$action->toJSON().'');
         $action->addParameter(new RequestParameter('password', 'integer'));
         $action->getParameterByName('password')->setDescription('The password of the user.');
         $action->getParameterByName('password')->setMinVal(1000000);
         $this->assertEquals(''
-                .'{"name":"login", '
-                .'"since":"1.0.0", '
-                .'"description":"Allow the user to login to the system.", '
-                .'"request-methods":["GET", "POST"], '
+                .'{"name":"login",'
+                .'"since":"1.0.0",'
+                .'"description":"Allow the user to login to the system.",'
+                .'"request-methods":["GET","POST"],'
                 .'"parameters":['
-                .'{"name":"username", '
-                .'"type":"string", '
-                .'"description":null, '
-                .'"is-optional":false, '
-                .'"default-value":null, '
-                .'"min-val":null, '
-                .'"max-val":null}, '
-                .'{"name":"password", '
-                .'"type":"integer", '
-                .'"description":"The password of the user.", '
-                .'"is-optional":false, '
-                .'"default-value":null, '
-                .'"min-val":1000000, '
+                .'{"name":"username",'
+                .'"type":"string",'
+                .'"description":null,'
+                .'"is-optional":false,'
+                .'"default-value":null,'
+                .'"min-val":null,'
+                .'"max-val":null},'
+                .'{"name":"password",'
+                .'"type":"integer",'
+                .'"description":"The password of the user.",'
+                .'"is-optional":false,'
+                .'"default-value":null,'
+                .'"min-val":1000000,'
                 .'"max-val":'.PHP_INT_MAX.'}'
-                .'], '
+                .'],'
                 .'"responses":[]}',$action->toJSON().'');
     }
     /**

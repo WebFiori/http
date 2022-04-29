@@ -105,7 +105,7 @@ class Request {
      * 
      * @since 1.0.1
      */
-    public static function getParam($paramName) {
+    public static function getParam(string $paramName) {
         $requMethod = self::getMethod();
         $trimmed = trim($paramName);
         $val = null;
@@ -129,7 +129,7 @@ class Request {
      * 
      * @since 1.0
      */
-    public static function getClientIP() {
+    public static function getClientIP() : string {
         $ip = filter_var($_SERVER['REMOTE_ADDR'],FILTER_VALIDATE_IP);
 
         if ($ip == '::1') {
@@ -165,13 +165,13 @@ class Request {
      * 
      * @since 1.0
      */
-    public static function getMethod() {
+    public static function getMethod() : string {
         $meth = getenv('REQUEST_METHOD');
         
         if ($meth === false) {
             $meth = isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : '';
         }
-        $method = filter_var($meth, FILTER_SANITIZE_STRING);
+        $method = filter_var($meth, FILTER_SANITIZE_FULL_SPECIAL_CHARS);
         
         
         if (!in_array($method, self::METHODS)) {
@@ -187,7 +187,7 @@ class Request {
      * 
      * @since 1.0
      */
-    public static function getRequestedURL() {
+    public static function getRequestedURL() : string {
         if (self::get()->requestedUri === null) {
             $base = Uri::getBaseURL();
             $path = getenv('REQUEST_URI');
@@ -224,7 +224,7 @@ class Request {
      * 
      * @since 1.0
      */
-    public static function getHeaders() {
+    public static function getHeaders() : array {
         if (self::get()->requestHeaders === null || defined('__PHPUNIT_PHAR__')) {
             //Refresh headers if in testing environment.
             self::get()->requestHeaders = [];
@@ -233,7 +233,7 @@ class Request {
                 $headers = apache_request_headers();
 
                 foreach ($headers as $k => $v) {
-                    self::get()->requestHeaders[strtolower($k)] = filter_var($v, FILTER_SANITIZE_STRING);
+                    self::get()->requestHeaders[strtolower($k)] = filter_var($v, FILTER_SANITIZE_FULL_SPECIAL_CHARS);
                 }
             } 
             
@@ -257,7 +257,7 @@ class Request {
      * 
      *  @since 1.0
      */
-    public static function getAuthHeader() {
+    public static function getAuthHeader() : array {
         $retVal = [
             'scheme' => '',
             'credentials' => ''
@@ -288,7 +288,7 @@ class Request {
      * 
      * @since 1.0
      */
-    public static function getUri() {
+    public static function getUri() : Uri {
         return new Uri(self::getRequestedURL());
     }
     /**
@@ -314,7 +314,7 @@ class Request {
                         $headerName = $headerName.$split[$x].'-';
                     }
                 }
-                $retVal[strtolower($headerName)] = filter_var($v, FILTER_SANITIZE_STRING);
+                $retVal[strtolower($headerName)] = filter_var($v, FILTER_SANITIZE_FULL_SPECIAL_CHARS);
             }
         }
 

@@ -1,11 +1,13 @@
 <?php
-namespace restEasy\tests;
+namespace webfiori\tests\http;
 
 use webfiori\json\Json;
 use PHPUnit\Framework\TestCase;
 use webfiori\http\AbstractWebService;
 use webfiori\http\WebServicesManager;
-use restEasy\tests\NotImplService;
+use webfiori\tests\http\testServices\NotImplService;
+use webfiori\tests\http\testServices\SampleServicesManager;
+use webfiori\tests\http\testServices\NoAuthService;
 /**
  * Description of WebAPITest
  *
@@ -24,7 +26,7 @@ class WebServicesManagerTest extends TestCase {
         $_GET['service'] = 'ok-service';
         $manager->setOutputStream(fopen($this->outputStreamName,'w'));
         $manager->process();
-        $this->assertEquals('{"message":"You are authorized.", "http-code":200}', $manager->readOutputStream());
+        $this->assertEquals('{"message":"You are authorized.","http-code":200}', $manager->readOutputStream());
         return $manager;
     }
     /**
@@ -40,7 +42,7 @@ class WebServicesManagerTest extends TestCase {
         $_POST['service'] = 'not-implemented';
         $manager->setOutputStream(fopen($this->outputStreamName,'w'));
         $manager->process();
-        $this->assertEquals('{"message":"Service not implemented.", "type":"error", "http-code":404}', $manager->readOutputStream());
+        $this->assertEquals('{"message":"Service not implemented.","type":"error","http-code":404}', $manager->readOutputStream());
         return $manager;
     }
     /**
@@ -60,7 +62,7 @@ class WebServicesManagerTest extends TestCase {
         
         
         $manager->process();
-        $this->assertEquals('{"message":"Service name is not set.", "type":"error", "http-code":404}', $manager->readOutputStream());
+        $this->assertEquals('{"message":"Service name is not set.","type":"error","http-code":404}', $manager->readOutputStream());
     }
     /**
      * @test
@@ -79,7 +81,7 @@ class WebServicesManagerTest extends TestCase {
         
         
         $manager->process();
-        $this->assertEquals('{"message":"Service not supported.", "type":"error", "http-code":404}', $manager->readOutputStream());
+        $this->assertEquals('{"message":"Service not supported.","type":"error","http-code":404}', $manager->readOutputStream());
     }
     /**
      * @test
@@ -99,7 +101,7 @@ class WebServicesManagerTest extends TestCase {
         
         
         $manager->process();
-        $this->assertEquals('{"message":"Service not implemented.", "type":"error", "http-code":404}', $manager->readOutputStream());
+        $this->assertEquals('{"message":"Service not implemented.","type":"error","http-code":404}', $manager->readOutputStream());
     }
     /**
      * @test
@@ -118,7 +120,7 @@ class WebServicesManagerTest extends TestCase {
         
         
         $manager->process();
-        $this->assertEquals('{"message":"The following required parameter(s) where missing from the request body: \'pass\', \'numbers\'.", "type":"error", "http-code":404}', $manager->readOutputStream());
+        $this->assertEquals('{"message":"The following required parameter(s) where missing from the request body: \'pass\', \'numbers\'.","type":"error","http-code":404}', $manager->readOutputStream());
     }
     /**
      * @test
@@ -129,7 +131,7 @@ class WebServicesManagerTest extends TestCase {
         putenv('REQUEST_METHOD=POST');
         $_SERVER['CONTENT_TYPE'] = 'application/json';
         $jsonTestFile = __DIR__.DIRECTORY_SEPARATOR.'json.json';
-        self::setTestJson($jsonTestFile, '{"service":"sum-array", "pass":"123", "numbers":[1,5,4, 1.5]}');
+        self::setTestJson($jsonTestFile,'{"service":"sum-array","pass":"123","numbers":[1,5,4,1.5]}');
         $manager = new SampleServicesManager();
         $manager->setInputStream(fopen($jsonTestFile, 'r'));
         $manager->setOutputStream(fopen($this->outputStreamName,'w'));
@@ -182,7 +184,7 @@ class WebServicesManagerTest extends TestCase {
         $api = new SampleServicesManager();
         $api->setOutputStream($this->outputStreamName);
         $api->process();
-        $this->assertEquals('{"message":"Service not supported.", "type":"error", "http-code":404}', $api->readOutputStream());
+        $this->assertEquals('{"message":"Service not supported.","type":"error","http-code":404}', $api->readOutputStream());
     }
     /**
      * @depends testSumTwoIntegers05
@@ -191,10 +193,10 @@ class WebServicesManagerTest extends TestCase {
     public function testGetNonFiltered00($api) {
         $nonFiltered = $api->getNonFiltered();
         $j = new Json();
-        $j->add('non-filtered', $nonFiltered);
+        $j->add('non-filtered', $nonFiltered, true);
         $api->sendHeaders(['content-type' => 'application/json']);
         echo $j;
-        $this->expectOutputString('{"non-filtered":[{"pass":"123"}, {"first-number":"-1.8.89"}, {"second-number":"300"}]}');
+        $this->expectOutputString('{"non-filtered":{"pass":"123","first-number":"-1.8.89","second-number":"300"}}');
     }
     /**
      * @test
@@ -208,7 +210,7 @@ class WebServicesManagerTest extends TestCase {
         $api = new SampleServicesManager();
         $api->setOutputStream($this->outputStreamName);
         $api->process();
-        $this->assertEquals('{"message":"Method Not Allowed.", "type":"error", "http-code":405}', $api->readOutputStream());
+        $this->assertEquals('{"message":"Method Not Allowed.","type":"error","http-code":405}', $api->readOutputStream());
     }
     /**
      * @test
@@ -223,7 +225,7 @@ class WebServicesManagerTest extends TestCase {
         $api = new SampleServicesManager();
         $api->setOutputStream($this->outputStreamName);
         $api->process();
-        $this->assertEquals('{"message":"Database Error.", "type":"error", "http-code":500, "more-info":""}', $api->readOutputStream());
+        $this->assertEquals('{"message":"Database Error.","type":"error","http-code":500,"more-info":""}', $api->readOutputStream());
     }
     /**
      * @test
@@ -238,7 +240,7 @@ class WebServicesManagerTest extends TestCase {
         $api = new SampleServicesManager();
         $api->setOutputStream($this->outputStreamName);
         $api->process();
-        $this->assertEquals('{"user-name":"Ibrahim", "bio":"A software engineer who is ready to help anyone in need."}', $api->readOutputStream());
+        $this->assertEquals('{"user-name":"Ibrahim","bio":"A software engineer who is ready to help anyone in need."}', $api->readOutputStream());
     }
     /**
      * @test
@@ -253,7 +255,7 @@ class WebServicesManagerTest extends TestCase {
         $api = new SampleServicesManager();
         $api->setOutputStream($this->outputStreamName);
         $api->process();
-        $this->assertEquals('{"message":"Content type not supported.", "type":"error", "http-code":404, "more-info":{"request-content-type":"application\/xml"}}', $api->readOutputStream());
+        $this->assertEquals('{"message":"Content type not supported.","type":"error","http-code":404,"more-info":{"request-content-type":"application\/xml"}}', $api->readOutputStream());
     }
     /**
      * @test
@@ -267,7 +269,7 @@ class WebServicesManagerTest extends TestCase {
         $api = new SampleServicesManager();
         $api->setOutputStream($this->outputStreamName);
         $api->process();
-        $this->assertEquals('{"message":"Content type not supported.", "type":"error", "http-code":404, "more-info":{"request-content-type":null}}', $api->readOutputStream());
+        $this->assertEquals('{"message":"Content type not supported.","type":"error","http-code":404,"more-info":{"request-content-type":"NOT_SET"}}', $api->readOutputStream());
     }
     /**
      * @test
@@ -279,7 +281,7 @@ class WebServicesManagerTest extends TestCase {
         $api = new SampleServicesManager();
         $api->setOutputStream($this->outputStreamName);
         $api->process();
-        $this->assertEquals('{"message":"Service not supported.", "type":"error", "http-code":404}', $api->readOutputStream());
+        $this->assertEquals('{"message":"Service not supported.","type":"error","http-code":404}', $api->readOutputStream());
     }
     /**
      * @test
@@ -290,7 +292,7 @@ class WebServicesManagerTest extends TestCase {
         $api->setOutputStream($this->outputStreamName);
         $api->process();
 
-        $this->assertEquals('{"message":"Service name is not set.", "type":"error", "http-code":404}', $api->readOutputStream());
+        $this->assertEquals('{"message":"Service name is not set.","type":"error","http-code":404}', $api->readOutputStream());
     }
     /**
      * @test
@@ -313,7 +315,7 @@ class WebServicesManagerTest extends TestCase {
         $api = new SampleServicesManager();
         $api->setOutputStream($this->outputStreamName);
         $api->process();
-        $this->assertEquals('{"message":"The following required parameter(s) where missing from the request body: \'pass\', \'numbers\'.", "type":"error", "http-code":404}', $api->readOutputStream());
+        $this->assertEquals('{"message":"The following required parameter(s) where missing from the request body: \'pass\', \'numbers\'.","type":"error","http-code":404}', $api->readOutputStream());
     }
     /**
      * @test
@@ -328,7 +330,7 @@ class WebServicesManagerTest extends TestCase {
         $api = new SampleServicesManager();
         $api->setOutputStream($this->outputStreamName);
         $api->process();
-        $this->assertEquals('{"message":"The following parameter(s) has invalid values: \'numbers\'.", "type":"error", "http-code":404}', $api->readOutputStream());
+        $this->assertEquals('{"message":"The following parameter(s) has invalid values: \'numbers\'.","type":"error","http-code":404}', $api->readOutputStream());
     }
     /**
      * @test
@@ -343,7 +345,7 @@ class WebServicesManagerTest extends TestCase {
         $api = new SampleServicesManager();
         $api->setOutputStream($this->outputStreamName);
         $api->process();
-        $this->assertEquals('{"message":"Not authorized.", "type":"error", "http-code":401}', $api->readOutputStream());
+        $this->assertEquals('{"message":"Not authorized.","type":"error","http-code":401}', $api->readOutputStream());
     }
     /**
      * @test
@@ -373,7 +375,7 @@ class WebServicesManagerTest extends TestCase {
         $api = new SampleServicesManager();
         $api->setOutputStream($this->outputStreamName);
         $api->process();
-        $this->assertEquals('{"message":"The sum of 100 and 300 is 400.", "http-code":200}', $api->readOutputStream());
+        $this->assertEquals('{"message":"The sum of 100 and 300 is 400.","http-code":200}', $api->readOutputStream());
     }
     /**
      * @test
@@ -388,7 +390,7 @@ class WebServicesManagerTest extends TestCase {
         $api = new SampleServicesManager();
         $api->setOutputStream($this->outputStreamName);
         $api->process();
-        $this->assertEquals('{"message":"The sum of -100 and 300 is 200.", "http-code":200}', $api->readOutputStream());
+        $this->assertEquals('{"message":"The sum of -100 and 300 is 200.","http-code":200}', $api->readOutputStream());
     }
 
     /**
@@ -404,7 +406,7 @@ class WebServicesManagerTest extends TestCase {
         $api = new SampleServicesManager();
         $api->setOutputStream($this->outputStreamName);
         $api->process();
-        $this->assertEquals('{"message":"The sum of 1889 and 300 is 2189.", "http-code":200}', $api->readOutputStream());
+        $this->assertEquals('{"message":"The sum of 1889 and 300 is 2189.","http-code":200}', $api->readOutputStream());
     }
     /**
      * @test
@@ -419,7 +421,7 @@ class WebServicesManagerTest extends TestCase {
         $api = new SampleServicesManager();
         $api->setOutputStream($this->outputStreamName);
         $api->process();
-        $this->assertEquals('{"message":"The following parameter(s) has invalid values: \'first-number\', \'second-number\'.", "type":"error", "http-code":404}', $api->readOutputStream());
+        $this->assertEquals('{"message":"The following parameter(s) has invalid values: \'first-number\', \'second-number\'.","type":"error","http-code":404}', $api->readOutputStream());
     }
     /**
      * @test
@@ -432,7 +434,7 @@ class WebServicesManagerTest extends TestCase {
         $api = new SampleServicesManager();
         $api->setOutputStream($this->outputStreamName);
         $api->process();
-        $this->assertEquals('{"message":"The following required parameter(s) where missing from the request body: \'first-number\', \'second-number\'.", "type":"error", "http-code":404}', $api->readOutputStream());
+        $this->assertEquals('{"message":"The following required parameter(s) where missing from the request body: \'first-number\', \'second-number\'.","type":"error","http-code":404}', $api->readOutputStream());
     }
     /**
      * @test
@@ -447,7 +449,7 @@ class WebServicesManagerTest extends TestCase {
         $api = new SampleServicesManager();
         $api->setOutputStream($this->outputStreamName);
         $api->process();
-        $this->assertEquals('{"message":"The sum of -1889 and 300 is -1589.", "http-code":200}', $api->readOutputStream());
+        $this->assertEquals('{"message":"The sum of -1889 and 300 is -1589.","http-code":200}', $api->readOutputStream());
 
         return $api;
     }
@@ -464,7 +466,7 @@ class WebServicesManagerTest extends TestCase {
         $api = new SampleServicesManager();
         $api->setOutputStream($this->outputStreamName);
         $api->process();
-        $this->assertEquals('{"message":"The following parameter(s) has invalid values: \'first-number\'.", "type":"error", "http-code":404}', $api->readOutputStream());
+        $this->assertEquals('{"message":"The following parameter(s) has invalid values: \'first-number\'.","type":"error","http-code":404}', $api->readOutputStream());
     }
     /**
      * @test
@@ -479,7 +481,7 @@ class WebServicesManagerTest extends TestCase {
         $api = new SampleServicesManager();
         $api->setOutputStream($this->outputStreamName);
         $api->process();
-        $this->assertEquals('{"message":"Method Not Allowed.", "type":"error", "http-code":405}', $api->readOutputStream());
+        $this->assertEquals('{"message":"Method Not Allowed.","type":"error","http-code":405}', $api->readOutputStream());
     }
     /**
      * @test

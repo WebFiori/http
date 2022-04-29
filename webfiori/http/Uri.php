@@ -73,7 +73,7 @@ class Uri {
      * 
      * @param string $requestedUri The URI such as 'https://www3.webfiori.com:80/{some-var}/hell/{other-var}/?do=dnt&y=#xyz'
      */
-    public function __construct($requestedUri) {
+    public function __construct(string $requestedUri) {
         $this->allowedRequestMethods = [];
         $this->uriBroken = self::splitURI($requestedUri);
 
@@ -95,7 +95,7 @@ class Uri {
      * 
      * @since 1.0.1
      */
-    public function addRequestMethod($method) {
+    public function addRequestMethod(string $method) {
         if (in_array($method, Request::METHODS)) {
             $this->allowedRequestMethods[] = $method;
         }
@@ -114,7 +114,7 @@ class Uri {
      * 
      * @since 1.0
      */
-    public function addVarValue($varName, $varValue) {
+    public function addVarValue(string $varName, string $varValue) {
         $trimmed = trim($varName);
         $trimmedVal = trim($varValue);
 
@@ -134,7 +134,7 @@ class Uri {
      * 
      * @since 1.0
      */
-    public function addVarValues($varName, $arrayOfVals) {
+    public function addVarValues(string $varName, array $arrayOfVals) {
         if (gettype($arrayOfVals) == 'array') {
             foreach ($arrayOfVals as $val) {
                 $this->addVarValue($varName, $val);
@@ -154,7 +154,7 @@ class Uri {
      * 
      * @since 1.0
      */
-    public function equals(Uri $otherUri) {
+    public function equals(Uri $otherUri) : bool {
         if ($otherUri instanceof Uri) {
             $isEqual = true;
 
@@ -189,7 +189,7 @@ class Uri {
      * 
      * @since 1.0
      */
-    public function getAuthority() {
+    public function getAuthority() : string {
         return $this->uriBroken['authority'];
     }
     /**
@@ -207,7 +207,7 @@ class Uri {
      * 
      * @since 0.2
      */
-    public static function getBaseURL() {
+    public static function getBaseURL() : string {
         $tempHost = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : '127.0.0.1';
         $host = trim(filter_var($tempHost),'/');
 
@@ -266,7 +266,7 @@ class Uri {
      * 
      * @since 1.0
      */
-    public function getComponents() {
+    public function getComponents() : array {
         return $this->uriBroken;
     }
     /**
@@ -277,7 +277,7 @@ class Uri {
      * 
      * @since 1.0
      */
-    public function getFragment() {
+    public function getFragment() : string {
         return $this->uriBroken['fragment'];
     }
     /**
@@ -287,7 +287,7 @@ class Uri {
      * 
      * @since 1.0
      */
-    public function getHost() {
+    public function getHost() : string {
         return $this->uriBroken['host'];
     }
     /**
@@ -297,7 +297,7 @@ class Uri {
      * 
      * @since 1.0
      */
-    public function getPath() {
+    public function getPath() : string {
         $retVal = '';
 
         foreach ($this->uriBroken['path'] as $dir) {
@@ -315,7 +315,7 @@ class Uri {
      * 
      * @since 1.0
      */
-    public function getPathArray() {
+    public function getPathArray() : array {
         return $this->uriBroken['path'];
     }
     /**
@@ -326,7 +326,7 @@ class Uri {
      * 
      * @since 1.0
      */
-    public function getPort() {
+    public function getPort() : string {
         return $this->uriBroken['port'];
     }
     /**
@@ -337,7 +337,7 @@ class Uri {
      * 
      * @since 1.0.1
      */
-    public function getRequestMethods() {
+    public function getRequestMethods() : array {
         return $this->allowedRequestMethods;
     }
     /**
@@ -349,7 +349,7 @@ class Uri {
      * 
      * @since 1.0
      */
-    public function getQueryString() {
+    public function getQueryString() : string {
         return $this->uriBroken['query-string'];
     }
     /**
@@ -361,7 +361,7 @@ class Uri {
      * 
      * @since 1.0
      */
-    public function getQueryStringVars() {
+    public function getQueryStringVars() : array {
         return $this->uriBroken['query-string-vars'];
     }
     /**
@@ -372,7 +372,7 @@ class Uri {
      * 
      * @since 1.0
      */
-    public function getScheme() {
+    public function getScheme() : string {
         return $this->uriBroken['scheme'];
     }
     /**
@@ -388,7 +388,7 @@ class Uri {
      * 
      * @since 1.0
      */
-    public function getUri($incQueryStr = false, $incFragment = false) {
+    public function getUri(bool $incQueryStr = false, bool $incFragment = false) {
         $retVal = $this->getScheme().':'.$this->getAuthority().$this->getPath();
 
         if ($incQueryStr === true && $incFragment === true) {
@@ -437,7 +437,7 @@ class Uri {
      * 
      * @since 1.0
      */
-    public function getUriVar($varName) {
+    public function getUriVar(string $varName) {
         if ($this->hasUriVar($varName)) {
             return $this->uriBroken['uri-vars'][$varName];
         }
@@ -446,12 +446,14 @@ class Uri {
     }
     /**
      * Returns an associative array which contains URI parameters.
+     * 
      * @return array An associative array which contains URI parameters. The 
      * keys will be the names of the variables and the value of each variable will 
      * be in its index.
+     * 
      * @since 1.0
      */
-    public function getUriVars() {
+    public function getUriVars() : array {
         return $this->uriBroken['uri-vars'];
     }
     /**
@@ -465,7 +467,7 @@ class Uri {
      * 
      * @since 1.3.6
      */
-    public function getVarValues($varName) {
+    public function getVarValues(string $varName) {
         $trimmed = trim($varName);
 
         if (isset($this->uriBroken['vars-possible-values'][$trimmed])) {
@@ -487,7 +489,7 @@ class Uri {
      * 
      * @since 1.0
      */
-    public function hasUriVar($varName) {
+    public function hasUriVar(string $varName) : bool {
         return array_key_exists($varName, $this->uriBroken['uri-vars']);
     }
     /**
@@ -501,7 +503,7 @@ class Uri {
      * 
      * @since 1.0
      */
-    public function hasVars() {
+    public function hasVars() : bool {
         return count($this->getUriVars()) != 0;
     }
     /**
@@ -512,7 +514,7 @@ class Uri {
      * 
      * @since 1.0
      */
-    public function isAllVarsSet() {
+    public function isAllVarsSet() : bool {
         $canRoute = true;
 
         foreach ($this->getUriVars() as $val) {
@@ -529,7 +531,7 @@ class Uri {
      * 
      * @since 1.0
      */
-    public function isCaseSensitive() {
+    public function isCaseSensitive() : bool {
         return $this->isCS;
     }
     /**
@@ -542,7 +544,7 @@ class Uri {
      * 
      * @since 1.0.1
      */
-    public function isRequestMethodAllowed() {
+    public function isRequestMethodAllowed() : bool {
         $methods = $this->getRequestMethods();
         return count($methods) == 0 || in_array(Request::getMethod(), $this->getRequestMethods());
     }
@@ -557,7 +559,7 @@ class Uri {
      * 
      * @since 1.0 
      */
-    public function setIsCaseSensitive($caseSensitive) {
+    public function setIsCaseSensitive(bool $caseSensitive) {
         $this->isCS = $caseSensitive === true;
     }
     /**
@@ -584,7 +586,7 @@ class Uri {
      * 
      * @since 1.0
      */
-    public function setRequestedUri($uri) {
+    public function setRequestedUri(string $uri) {
         $this->uriBroken['requested-uri'] = self::splitURI($uri);
 
         if (!$this->_comparePath()) {
@@ -610,7 +612,7 @@ class Uri {
      * 
      * @since 1.0
      */
-    public function setUriVar($varName,$value) {
+    public function setUriVar(string $varName, string $value) : bool {
         if ($this->hasUriVar($varName)) {
             $this->uriBroken['uri-vars'][$varName] = $value;
 
@@ -643,7 +645,7 @@ class Uri {
      * 
      * @since 1.0
      */
-    public static function splitURI($uri) {
+    public static function splitURI(string $uri) {
         $validate = filter_var(str_replace(' ', '%20', $uri),FILTER_VALIDATE_URL);
 
         if ($validate === false) {

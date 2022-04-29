@@ -1,6 +1,7 @@
 <?php
 
-namespace webfiori\tests\entity;
+namespace webfiori\tests\http;
+
 use PHPUnit\Framework\TestCase;
 use webfiori\http\Response;
 

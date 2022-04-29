@@ -114,7 +114,7 @@ class Response {
      * 
      * @since 1.0
      */
-    public static function addHeader($headerName, $headerVal, $isReplace = false) {
+    public static function addHeader(string $headerName, string $headerVal, bool $isReplace = false) {
         $trimmedHeader = strtolower(trim($headerName));
         $replace = $isReplace === true;
         $retVal = false;
@@ -193,7 +193,7 @@ class Response {
      * 
      * @since 1.0
      */
-    public static function getBody() {
+    public static function getBody() : string {
         return self::get()->body;
     }
     /**
@@ -203,7 +203,7 @@ class Response {
      * 
      * @since 1.0
      */
-    public static function getCode() {
+    public static function getCode() : int {
         return self::get()->responseCode;
     }
     /**
@@ -217,7 +217,7 @@ class Response {
      * 
      * @since 1.0
      */
-    public static function getHeader($headerName) {
+    public static function getHeader(string $headerName) {
         $trimmed = strtolower(trim($headerName));
 
         if (isset(self::get()->headers[$trimmed])) {
@@ -237,7 +237,7 @@ class Response {
      * 
      * @since 1.0
      */
-    public static function getHeaders() {
+    public static function getHeaders() : array {
         return self::get()->headers;
     }
     /**
@@ -257,7 +257,7 @@ class Response {
      * 
      * @since 1.0 
      */
-    public static function hasHeader($headerName, $headerVal = null) {
+    public static function hasHeader(string $headerName, $headerVal = null) {
         $headerValFromObj = self::getHeader($headerName);
 
         if ($headerVal !== null) {
@@ -280,7 +280,7 @@ class Response {
      * 
      * @since 1.0.1
      */
-    public static function isSent() {
+    public static function isSent() : bool {
         return self::get()->isSent;
     }
     /**
@@ -297,7 +297,7 @@ class Response {
      * 
      * @since 1.0
      */
-    public static function removeHeader($headerName, $headerVal = null) {
+    public static function removeHeader(string $headerName, $headerVal = null) {
         $trimmedName = strtolower(trim($headerName));
         $retVal = false;
 
@@ -384,7 +384,7 @@ class Response {
      * 
      * @since 1.0
      */
-    public static function setCode($code) {
+    public static function setCode(int $code) {
         $asInt = intval($code);
 
         if ($asInt >= 100 && $asInt <= 599) {
@@ -400,7 +400,7 @@ class Response {
      * 
      * @since 1.0
      */
-    public static function write($str) {
+    public static function write(string $str) {
         self::get()->body .= $str;
 
         return self::get();
