@@ -448,7 +448,7 @@ class APIFilter {
             $extraClean->add($name, null);
         }
     }
-    private function _checkExtracted($extraClean, $name, $defaultVal) {
+    private function _checkExtracted(Json $extraClean, $name, $defaultVal) {
         $extractedVal = $extraClean->get($name);
 
         if ($extractedVal === null) {
