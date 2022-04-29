@@ -224,6 +224,11 @@ class Uri {
         }
         $docRoot = filter_var($_SERVER['DOCUMENT_ROOT']);
         $docRootLen = strlen($docRoot);
+        
+        if ($docRootLen == 0) {
+            $docRoot = __DIR__;
+            $docRootLen = strlen($docRoot);
+        }
 
         if (!defined('ROOT_DIR')) {
             define('ROOT_DIR', __DIR__);
