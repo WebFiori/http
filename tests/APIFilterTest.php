@@ -1179,7 +1179,7 @@ class APIFilterTest extends TestCase {
         $this->assertNull($json->get('invalid-param'));
         $this->assertEquals(1, count($json->get('array-of-arrays')));
         $this->assertEquals('hello', $json->get('array-of-arrays')[0][0]);
-        $this->assertEquals('{"obj":true, "string":"not safe"}', $json->get('array-of-arrays')[0][1]->toJSONString());
+        $this->assertEquals('{"obj":true,"string":"&lt;script&gt;not safe"}', $json->get('array-of-arrays')[0][1]->toJSONString());
         $subObj = $json->get('sub-obj');
         $this->assertTrue($subObj instanceof Json);
         $this->assertEquals(['with arr'], $subObj->get('arr'));
