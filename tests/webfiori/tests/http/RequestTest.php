@@ -49,6 +49,30 @@ class RequestTest extends TestCase {
     /**
      * @test
      */
+    public function testGetParam05() {
+        putenv('REQUEST_METHOD=GET');
+        $_GET['hello'] = 'This%20is%20an%20encoded%20string.';
+        $this->assertEquals('This is an encoded string.', Request::getParam('hello'));
+    }
+    /**
+     * @test
+     */
+    public function testGetParam06() {
+        putenv('REQUEST_METHOD=GET');
+        $_GET['hello'] = 'This+is+an+encoded%20string.';
+        $this->assertEquals('This is an encoded string.', Request::getParam('hello'));
+    }
+    /**
+     * @test
+     */
+    public function testGetParams06() {
+        putenv('REQUEST_METHOD=GET');
+        $_GET['arabic'] = '%D9%86%D8%B5%20%D8%B9%D8%B1%D8%A8%D9%8A';
+        $this->assertEquals('نص عربي', Request::getParam('arabic'));
+    }
+    /**
+     * @test
+     */
     public function testGetClientIp00() {
         $this->assertEquals('127.0.0.1', Request::getClientIP());
     }
