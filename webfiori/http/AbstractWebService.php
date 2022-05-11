@@ -831,7 +831,7 @@ abstract class AbstractWebService implements JsonI {
      * 
      * @since 1.0
      */
-    public function toJSON() {
+    public function toJSON() : Json {
         $json = new Json();
         $json->add('name', $this->getName());
         $json->add('since', $this->getSince());
