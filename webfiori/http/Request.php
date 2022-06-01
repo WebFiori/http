@@ -88,7 +88,7 @@ class Request {
 
     private function __construct() {
         $this->requestedUri = null;
-        $this->requestHeaders = null;
+        $this->requestHeaders = [];
     }
     /**
      * Returns the value of a GET or POST parameter.
@@ -235,22 +235,21 @@ class Request {
      * there. If it does not exist, it will try to extract request headers 
      * from the super global $_SERVER.
      * 
-     * @return array An associative array of request headers. The indices 
-     * will represents the headers and the values are the values of the 
-     * headers. The indices will be all in lower case.
+     * @return array An array of request headers. Each header is represented
+     * as an object of type HttpHeader.
      * 
      * @since 1.0
      */
     public static function getHeaders() : array {
-        if (self::get()->requestHeaders === null || defined('__PHPUNIT_PHAR__')) {
-            //Refresh headers if in testing environment.
+        if (defined('__PHPUNIT_PHAR__')) {
+            //Always Refresh headers if in testing environment.
             self::get()->requestHeaders = [];
 
             if (function_exists('apache_request_headers')) {
                 $headers = apache_request_headers();
 
                 foreach ($headers as $k => $v) {
-                    self::get()->requestHeaders[strtolower($k)] = filter_var($v, FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+                    self::get()->requestHeaders[] = new HttpHeader($k, filter_var($v, FILTER_SANITIZE_FULL_SPECIAL_CHARS));
                 }
             } 
             
@@ -263,8 +262,24 @@ class Request {
         return self::get()->requestHeaders;
     }
     /**
-     * Returns an array that contains the value of the header 'authorization'.
+     * Returns HTTP header given its name.
      * 
+     * @param string $name The name of the header.
+     * 
+     * @return HttpHeader|null If a header which has the given name exist,
+     * it will be returned as an object. Other than that, null is returned.
+     */
+    public static function getHeader(string $name) {
+        $trimmed = strtolower(trim($name));
+        
+        foreach (self::getHeaders() as $header) {
+            if ($header->getName() == $trimmed) {
+                return $header;
+            }
+        }
+    }
+    /**
+     * Returns an array that contains the value of the header 'authorization'.
      * 
      * @return array The array will have two indices, the first one with 
      * name 'scheme' and the second one with name 'credentials'. The index 'scheme' 
@@ -281,10 +296,10 @@ class Request {
         ];
         $headerVal = '';
         
-        $headers = self::getHeaders();
+        $header = self::getHeader('authorization');
         
-        if (isset($headers['authorization'])) {
-            $headerVal = $headers['authorization'];
+        if ($header !== null) {
+            $headerVal = $header->getValue();
         }
 
         if (strlen($headerVal) != 0) {
@@ -331,7 +346,7 @@ class Request {
                         $headerName = $headerName.$split[$x].'-';
                     }
                 }
-                $retVal[strtolower($headerName)] = filter_var($v, FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+                $retVal[] = new HttpHeader($headerName, filter_var($v, FILTER_SANITIZE_FULL_SPECIAL_CHARS));
             }
         }
 
