@@ -24,6 +24,7 @@
  */
 namespace webfiori\http;
 
+
 /**
  * A class that represents HTTP response.
  * 
@@ -65,7 +66,7 @@ class Response {
      * 
      * @since 1.0 
      */
-    private $headers;
+    private $headersPool;
     /**
      *
      * @var Response
@@ -91,7 +92,7 @@ class Response {
      * @since 1.0
      */
     private function __construct() {
-        $this->headers = [];
+        $this->headersPool = [];
         $this->body = '';
         $this->responseCode = 200;
         $this->lock = false;
@@ -123,13 +124,13 @@ class Response {
             $hasHeader = self::hasHeader($trimmedHeader);
 
             if ($hasHeader && $replace) {
-                self::get()->headers[$trimmedHeader] = $headerVal;
+                self::get()->headersPool[$trimmedHeader] = $headerVal;
                 $retVal = true;
             } else if (!$hasHeader) {
-                self::get()->headers[$trimmedHeader] = [$headerVal];
+                self::get()->headersPool[$trimmedHeader] = [$headerVal];
                 $retVal = true;
             } else if (!$replace) {
-                self::get()->headers[$trimmedHeader][] = $headerVal;
+                self::get()->headersPool[$trimmedHeader][] = $headerVal;
                 $retVal = true;
             }
         }
@@ -182,7 +183,7 @@ class Response {
      * @since 1.0
      */
     public static function clearHeaders() {
-        self::get()->headers = [];
+        self::get()->headersPool = [];
 
         return self::get();
     }
@@ -241,7 +242,7 @@ class Response {
      * @since 1.0
      */
     public static function getHeaders() : array {
-        return self::get()->headers;
+        return self::get()->headersPool;
     }
     /**
      * Checks if the response will have specific header or not.
@@ -301,7 +302,7 @@ class Response {
                 $count = count($values);
 
                 if ($count == 1) {
-                    unset(self::get()->headers[$trimmedName]);
+                    unset(self::get()->headersPool[$trimmedName]);
                     $retVal = true;
                 } else {
                     $newValsArr = [];
@@ -313,10 +314,10 @@ class Response {
                             $retVal = true;
                         }
                     }
-                    self::get()->headers[$trimmedName] = $newValsArr;
+                    self::get()->headersPool[$trimmedName] = $newValsArr;
                 }
             } else {
-                unset(self::get()->headers[$trimmedName]);
+                unset(self::get()->headersPool[$trimmedName]);
                 $retVal = true;
             }
         }
