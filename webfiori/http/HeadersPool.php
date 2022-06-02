@@ -75,7 +75,7 @@ class HeadersPool {
         $trimmed = strtolower(trim($name));
         $removed = false;
         foreach ($this->getHeaders() as $headerObj) {
-            $headerObj instanceof HttpHeader;
+            
             if ($headerObj->getName() == $trimmed) {
                 if ($val !== null && $headerObj->getValue() != $val) {
                     $tempArr[] = $headerObj;
