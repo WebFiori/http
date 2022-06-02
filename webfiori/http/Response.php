@@ -62,7 +62,7 @@ class Response {
     private $body;
     /**
      *
-     * @var array
+     * @var HeadersPool
      * 
      * @since 1.0 
      */
@@ -92,7 +92,7 @@ class Response {
      * @since 1.0
      */
     private function __construct() {
-        $this->headersPool = [];
+        $this->headersPool = new HeadersPool();
         $this->body = '';
         $this->responseCode = 200;
         $this->lock = false;
@@ -116,26 +116,7 @@ class Response {
      * @since 1.0
      */
     public static function addHeader(string $headerName, string $headerVal, bool $isReplace = false) {
-        $trimmedHeader = strtolower(trim($headerName));
-        $replace = $isReplace === true;
-        $retVal = false;
-
-        if (self::_validateheaderName($trimmedHeader) && strlen($headerVal) != 0) {
-            $hasHeader = self::hasHeader($trimmedHeader);
-
-            if ($hasHeader && $replace) {
-                self::get()->headersPool[$trimmedHeader] = $headerVal;
-                $retVal = true;
-            } else if (!$hasHeader) {
-                self::get()->headersPool[$trimmedHeader] = [$headerVal];
-                $retVal = true;
-            } else if (!$replace) {
-                self::get()->headersPool[$trimmedHeader][] = $headerVal;
-                $retVal = true;
-            }
-        }
-
-        return $retVal;
+        return self::getHeadersPool()->addHeader($headerName, $headerVal, $isReplace);
     }
     /**
      * Adds a function to execute before sending the final response.
@@ -183,7 +164,7 @@ class Response {
      * @since 1.0
      */
     public static function clearHeaders() {
-        self::get()->headersPool = [];
+        self::get()->headersPool = new HeadersPool();
 
         return self::get();
     }
@@ -219,29 +200,19 @@ class Response {
      * @since 1.0
      */
     public static function getHeader(string $headerName) {
-        $trimmed = strtolower(trim($headerName));
-
-        $retVal = [];
-        foreach (self::getHeaders() as $header) {
-            if ($header->getName() == $trimmed) {
-                $retVal[] = $header->getValue();
-            }
-        }
-
-        return $retVal;
+        return self::getHeadersPool()->getHeader($headerName);
     }
     /**
-     * Returns an associative array that contains response headers.
+     * Returns an array that contains response headers as object.
      * 
-     * The returned array will only contain information about the headers which are 
-     * added using the method Response::addHeader().
-     * 
-     * @return array An associative array. The indices will be headers names and 
-     * the value of each index will be sub array that contains header values.
+     * @return array An array that contains response headers as object.
      * 
      * @since 1.0
      */
     public static function getHeaders() : array {
+        return self::getHeadersPool()->getHeaders();
+    }
+    public static function getHeadersPool() : HeadersPool {
         return self::get()->headersPool;
     }
     /**
@@ -262,10 +233,7 @@ class Response {
      * @since 1.0 
      */
     public static function hasHeader(string $headerName, string $headerVal = null) {
-        $vals = self::getHeader($headerName);
-        if (count($vals) == 0) {
-            return false;
-        }
+        return self::getHeadersPool()->hasHeader($headerName, $headerVal);
     }
     /**
      * Checks if the response was sent or not.
@@ -293,36 +261,7 @@ class Response {
      * @since 1.0
      */
     public static function removeHeader(string $headerName, $headerVal = null) {
-        $trimmedName = strtolower(trim($headerName));
-        $retVal = false;
-
-        if (self::hasHeader($trimmedName)) {
-            if ($headerVal !== null) {
-                $values = self::getHeader($trimmedName);
-                $count = count($values);
-
-                if ($count == 1) {
-                    unset(self::get()->headersPool[$trimmedName]);
-                    $retVal = true;
-                } else {
-                    $newValsArr = [];
-
-                    for ($x = 0 ; $x < $count ; $x++) {
-                        if ($values[$x] != $headerVal) {
-                            $newValsArr[] = $values[$x];
-                        } else {
-                            $retVal = true;
-                        }
-                    }
-                    self::get()->headersPool[$trimmedName] = $newValsArr;
-                }
-            } else {
-                unset(self::get()->headersPool[$trimmedName]);
-                $retVal = true;
-            }
-        }
-
-        return $retVal;
+        return self::getHeadersPool()->removeHeader($headerName, $headerVal);
     }
     /**
      * Send the response.
@@ -399,23 +338,6 @@ class Response {
         self::get()->body .= $str;
 
         return self::get();
-    }
-    private static function _validateheaderName($name) {
-        $len = strlen($name);
-
-        if ($len == 0) {
-            return false;
-        }
-
-        for ($x = 0 ; $x < $len ; $x++) {
-            $char = $name[$x];
-
-            if (!(($char >= 'a' && $char <= 'z') || ($char >= 'A' && $char <= 'Z') || $char == '_' || $char == '-')) {
-                return false;
-            }
-        }
-
-        return true;
     }
     /**
      * Returns an instance of the class.
