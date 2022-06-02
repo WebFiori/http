@@ -102,7 +102,7 @@ class RequestTest extends TestCase {
      */
     public function testGetRequestedURL00() {
         $_SERVER['PATH_INFO'] = '/my/app';
-        $this->assertEquals('http://127.0.0.1/my/app', Request::getRequestedURL());
+        $this->assertEquals('http://127.0.0.1/my/app', Request::getRequestedURI());
     }
     
 }

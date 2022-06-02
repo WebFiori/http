@@ -80,15 +80,15 @@ class Request {
     private $requestedUri;
     /**
      *
-     * @var array
+     * @var HeadersPool
      * 
      * @since 1.0 
      */
-    private $requestHeaders;
+    private $headersPool;
 
     private function __construct() {
         $this->requestedUri = null;
-        $this->requestHeaders = null;
+        $this->headersPool = new HeadersPool();
     }
     /**
      * Returns the value of a GET or POST parameter.
@@ -204,7 +204,7 @@ class Request {
      * 
      * @since 1.0
      */
-    public static function getRequestedURL() : string {
+    public static function getRequestedURI() : string {
         if (self::get()->requestedUri === null) {
             $base = Uri::getBaseURL();
             $path = getenv('REQUEST_URI');
@@ -235,36 +235,58 @@ class Request {
      * there. If it does not exist, it will try to extract request headers 
      * from the super global $_SERVER.
      * 
-     * @return array An associative array of request headers. The indices 
-     * will represents the headers and the values are the values of the 
-     * headers. The indices will be all in lower case.
+     * @return array An array of request headers. Each header is represented
+     * as an object of type HttpHeader.
      * 
      * @since 1.0
      */
     public static function getHeaders() : array {
-        if (self::get()->requestHeaders === null || defined('__PHPUNIT_PHAR__')) {
-            //Refresh headers if in testing environment.
-            self::get()->requestHeaders = [];
+        if (defined('__PHPUNIT_PHAR__')) {
+            //Always Refresh headers if in testing environment.
+            self::get()->headersPool = new HeadersPool();
 
             if (function_exists('apache_request_headers')) {
                 $headers = apache_request_headers();
 
                 foreach ($headers as $k => $v) {
-                    self::get()->requestHeaders[strtolower($k)] = filter_var($v, FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+                    self::get()->headersPool->addHeader($k, filter_var($v, FILTER_SANITIZE_FULL_SPECIAL_CHARS));
                 }
             } 
             
             if (isset($_SERVER)) {
-                self::get()->requestHeaders = array_merge(self::get()->requestHeaders, self::_getRequestHeadersFromServer());
+                $headersArr = self::_getRequestHeadersFromServer();
+                foreach ($headersArr as $header) {
+                    self::get()->headersPool->addHeader($header->getName(), $header->getValue());
+                }
             }
         }
 
 
-        return self::get()->requestHeaders;
+        return self::getHeadersPool()->getHeaders();
+    }
+    /**
+     * Returns HTTP header given its name.
+     * 
+     * @param string $name The name of the header.
+     * 
+     * @return array If a header which has the given name exist,
+     * the method will return all header values as an array. If the header
+     * does not exist, the array will be empty.
+     */
+    public static function getHeader(string $name) : array {
+        self::getHeaders();
+        return self::getHeadersPool()->getHeader($name);
+    }
+    /**
+     * Returns the pool which is used to hold request headers.
+     * 
+     * @return HeadersPool
+     */
+    public static function getHeadersPool() : HeadersPool {
+        return self::get()->headersPool;
     }
     /**
      * Returns an array that contains the value of the header 'authorization'.
-     * 
      * 
      * @return array The array will have two indices, the first one with 
      * name 'scheme' and the second one with name 'credentials'. The index 'scheme' 
@@ -281,10 +303,10 @@ class Request {
         ];
         $headerVal = '';
         
-        $headers = self::getHeaders();
+        $header = self::getHeader('authorization');
         
-        if (isset($headers['authorization'])) {
-            $headerVal = $headers['authorization'];
+        if (count($header) == 1) {
+            $headerVal = $header[0];
         }
 
         if (strlen($headerVal) != 0) {
@@ -306,7 +328,7 @@ class Request {
      * @since 1.0
      */
     public static function getUri() : Uri {
-        return new Uri(self::getRequestedURL());
+        return new Uri(self::getRequestedURI());
     }
     /**
      * Collect request headers from the array $_SERVER.
@@ -331,7 +353,7 @@ class Request {
                         $headerName = $headerName.$split[$x].'-';
                     }
                 }
-                $retVal[strtolower($headerName)] = filter_var($v, FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+                $retVal[] = new HttpHeader($headerName, filter_var($v, FILTER_SANITIZE_FULL_SPECIAL_CHARS));
             }
         }
 
