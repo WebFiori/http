@@ -274,6 +274,7 @@ class Request {
      * does not exist, the array will be empty.
      */
     public static function getHeader(string $name) : array {
+        self::getHeaders();
         return self::getHeadersPool()->getHeader($name);
     }
     /**
