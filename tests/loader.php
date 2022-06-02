@@ -49,6 +49,7 @@ require_once $rootDir.'vendor'.$DS.'webfiori'.$DS.'jsonx'.$DS.'webfiori'.$DS.'js
 require_once $rootDir.'vendor'.$DS.'webfiori'.$DS.'jsonx'.$DS.'webfiori'.$DS.'json'.$DS.'JsonConverter.php';
 
 require_once $rootDir.'webfiori'.$DS.'http'.$DS.'HttpHeader.php';
+require_once $rootDir.'webfiori'.$DS.'http'.$DS.'HeadersPool.php';
 require_once $rootDir.'webfiori'.$DS.'http'.$DS.'ParamTypes.php';
 require_once $rootDir.'webfiori'.$DS.'http'.$DS.'AbstractWebService.php';
 require_once $rootDir.'webfiori'.$DS.'http'.$DS.'APIFilter.php';
