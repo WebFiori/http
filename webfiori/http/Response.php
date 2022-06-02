@@ -220,11 +220,14 @@ class Response {
     public static function getHeader(string $headerName) {
         $trimmed = strtolower(trim($headerName));
 
-        if (isset(self::get()->headers[$trimmed])) {
-            return self::get()->headers[$trimmed];
+        $retVal = [];
+        foreach (self::getHeaders() as $header) {
+            if ($header->getName() == $trimmed) {
+                $retVal[] = $header->getValue();
+            }
         }
 
-        return [];
+        return $retVal;
     }
     /**
      * Returns an associative array that contains response headers.
@@ -257,20 +260,11 @@ class Response {
      * 
      * @since 1.0 
      */
-    public static function hasHeader(string $headerName, $headerVal = null) {
-        $headerValFromObj = self::getHeader($headerName);
-
-        if ($headerVal !== null) {
-            foreach ($headerValFromObj as $val) {
-                if ($val == $headerVal) {
-                    return true;
-                }
-            }
-
+    public static function hasHeader(string $headerName, string $headerVal = null) {
+        $vals = self::getHeader($headerName);
+        if (count($vals) == 0) {
             return false;
         }
-
-        return count($headerValFromObj) != 0;
     }
     /**
      * Checks if the response was sent or not.
