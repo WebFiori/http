@@ -43,6 +43,7 @@ class HeadersPool {
         $header = new HttpHeader();
         
         if ($header->setName($headerName)) {
+            $header->setValue($headerVal);
             $hasHeader = $this->hasHeader($trimmedHeader, $headerVal);
 
             if ($hasHeader && $isReplace) {
@@ -72,11 +73,14 @@ class HeadersPool {
     public function removeHeader(string $name, string $val = null) {
         $tempArr = [];
         $trimmed = strtolower(trim($name));
+        $removed = false;
         foreach ($this->getHeaders() as $headerObj) {
             $headerObj instanceof HttpHeader;
             if ($headerObj->getName() == $trimmed) {
                 if ($val !== null && $headerObj->getValue() != $val) {
                     $tempArr[] = $headerObj;
+                } else {
+                    $removed = true;
                 }
             } else {
                 $tempArr[] = $headerObj;
@@ -84,6 +88,7 @@ class HeadersPool {
             
         }
         $this->headersArr = $tempArr;
+        return $removed;
     }
     /**
      * Checks if the response will have specific header or not.
@@ -103,7 +108,16 @@ class HeadersPool {
      * @since 1.0 
      */
     public function hasHeader(string $name, string $val = null) : bool {
-        return count($this->getHeaders($name, $val)) != 0;
+        $headers = $this->getHeaderAsObj($name);
+        if ($val === null) {
+            return count($headers) !== 0;
+        }
+        foreach ($headers as $obj) {
+            if ($obj->getValue() == $val) {
+                return true;
+            }
+        }
+        return false;
     }
     /**
      * Returns the value(s) of specific HTTP header as an array of objects.
