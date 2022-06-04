@@ -106,17 +106,18 @@ class Response {
      * 
      * @param string $headerVal The value of the header.
      * 
-     * @param boolean $isReplace If the header is already exist and this parameter 
-     * is set to true, the method will override all existing header values with 
-     * the given value.
+     * @param string $replaceValue If the header is already exist and this parameter 
+     * is specified, the method will override existing header with the specified
+     * value with the given new value. Note that if no header was found which
+     * has the given value, the header will be added as new one.
      * 
      * @return boolean If the header is added, the method will return true. If 
      * not added, the method will return false.
      * 
      * @since 1.0
      */
-    public static function addHeader(string $headerName, string $headerVal, bool $isReplace = false) {
-        return self::getHeadersPool()->addHeader($headerName, $headerVal, $isReplace);
+    public static function addHeader(string $headerName, string $headerVal, string $replaceValue = null) {
+        return self::getHeadersPool()->addHeader($headerName, $headerVal, $replaceValue);
     }
     /**
      * Adds a function to execute before sending the final response.

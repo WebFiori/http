@@ -35,6 +35,29 @@ class ResponseTest extends TestCase {
         
         $this->assertTrue(Response::addHeader('Set-Cookie', 'name=no'));
         $this->assertTrue(Response::hasHeader('Set-Cookie','name=no'));
+        $headerArr = Response::getHeader('set-cookie');
+        $this->assertEquals([
+            'name=ok',
+            'name=good',
+            'name=no'
+        ], $headerArr);
+        
+    }
+    /**
+     * @test
+     * @depends testRemoveHeader01
+     */
+    public function testAddHeader02() {
+        Response::clear();
+        $this->assertEquals([], Response::getHeaders());
+        Response::addHeader('set-cookie', 'name=super');
+        $this->assertEquals([
+            'name=super'
+        ], Response::getHeader('set-cookie'));
+        Response::addHeader('set-cookie', 'name=not-super', 'name=super');
+        $this->assertEquals([
+            'name=not-super'
+        ], Response::getHeader('set-cookie'));
     }
     /**
      * @test
@@ -44,6 +67,8 @@ class ResponseTest extends TestCase {
         $this->assertTrue(Response::hasHeader('content-type'));
         Response::removeHeader('content-type');
         $this->assertFalse(Response::hasHeader('content-type'));
+        $headerArr = Response::getHeader('content-type');
+        $this->assertEquals([], $headerArr);
     }
     /**
      * @test
@@ -90,5 +115,20 @@ class ResponseTest extends TestCase {
         $this->assertEquals(599, Response::getCode());
         Response::setCode(600);
         $this->assertEquals(599, Response::getCode());
+    }
+    /**
+     * @test
+     */
+    public function testBeforeSend00() {
+        $this->assertFalse(Response::hasHeader('super'));
+        Response::beforeSend(function () {
+            Response::addHeader('super', 'yes');
+        });
+        $this->assertFalse(Response::isSent());
+        Response::send();
+        $this->assertTrue(Response::hasHeader('super'));
+        Response::clearHeaders();
+        $headerArr = Response::getHeaders();
+        $this->assertEquals([], $headerArr);
     }
 }
