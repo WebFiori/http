@@ -12,6 +12,7 @@
             <file>./webfiori/http/Response.php</file>
             <file>./webfiori/http/Uri.php</file>
             <file>./webfiori/http/HttpHeader.php</file>
+            <file>./webfiori/http/HttpCookie.php</file>
             <file>./webfiori/http/HeadersPool.php</file>
         </whitelist>
     </filter>

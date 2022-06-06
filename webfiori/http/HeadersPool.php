@@ -28,32 +28,34 @@ class HeadersPool {
      * 
      * @param string $headerVal The value of the header.
      * 
-     * @param bool $isReplace If the header is already exist and this parameter 
-     * is set to true, the method will override all existing header values with 
-     * the given value.
+     * @param string $replaceValue If the header is already exist and this parameter 
+     * is specified, the method will override existing header with the specified
+     * value with the given new value. Note that if no header was found which
+     * has the given value, the header will be added as new one.
      * 
      * @return boolean If the header is added, the method will return true. If 
      * not added, the method will return false.
      * 
      * @since 1.0
      */
-    public function addHeader(string $headerName, string $headerVal, bool $isReplace = false) : bool {
+    public function addHeader(string $headerName, string $headerVal, string $replaceValue = null) : bool {
         $trimmedHeader = strtolower(trim($headerName));
         $retVal = false;
         $header = new HttpHeader();
         
         if ($header->setName($headerName)) {
             $header->setValue($headerVal);
-            $hasHeader = $this->hasHeader($trimmedHeader, $headerVal);
+            if ($replaceValue !== null) {
+                $hasHeader = $this->hasHeader($trimmedHeader, $replaceValue);
+            } else {
+                $hasHeader = false;
+            }
 
-            if ($hasHeader && $isReplace) {
-                $this->removeHeader($trimmedHeader, $headerVal);
+            if ($hasHeader) {
+                $this->removeHeader($trimmedHeader, $replaceValue);
                 $this->headersArr[] = $header;
                 $retVal = true;
-            } else if (!$hasHeader) {
-                $this->headersArr[] = $header;
-                $retVal = true;
-            } else if (!$isReplace) {
+            } else {
                 $this->headersArr[] = $header;
                 $retVal = true;
             }
