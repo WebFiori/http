@@ -183,6 +183,7 @@ class UriTest extends TestCase {
     public function testGetBase02() {
         $_SERVER['HTTP_HOST'] = 'webfiori.com';
         $_SERVER['DOCUMENT_ROOT'] = __DIR__;
+        $_SERVER['HTTPS'] = null;
         define('WF_PATH_TO_REMOVE', 'my-app');
         $this->assertEquals('http://webfiori.com/my-app', Uri::getBaseURL());
     }
