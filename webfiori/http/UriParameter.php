@@ -22,15 +22,18 @@ class UriParameter {
     public function __construct(string $varName) {
         $trimmed = trim($varName);
         if (strlen($trimmed) == 0) {
-            throw new InvalidArgumentException('Empty string not allowed as variable name.');
+            throw new \InvalidArgumentException('Empty string not allowed as variable name.');
         }
         $lastChar = $varName[strlen($varName) - 1];
-        if ($lastChar == '%3F' || $lastChar == '?') {
+        if ($lastChar == '?') {
+            if (strlen($trimmed) == 1) {
+                throw new \InvalidArgumentException('Empty string not allowed as variable name.');
+            }
             $this->isOptional = true;
         } else {
             $this->isOptional = false;
         }
-        $this->name = trim(trim($trimmed, '?'), '%3F');
+        $this->name = trim($trimmed, '?');
     }
     /**
      * Checks if the parameter is optional.

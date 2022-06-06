@@ -50,4 +50,24 @@ class HttpCookieTest extends TestCase {
         $this->assertTrue($cookie->isSecure());
         $this->assertEquals('super=cool; expires='.$expires.'; path=/b/a/m; Secure; HttpOnly; SameSite=None', $cookie->getHeaderString());
     }
+    /**
+     * @test
+     */
+    public function testConstructor03() {
+        $cookie = new HttpCookie();
+        $this->assertEquals('new-cookie', $cookie->getName());
+        $this->assertEquals('/', $cookie->getPath());
+        $this->assertEquals('', $cookie->getLifetime());
+        $this->assertEquals('Lax', $cookie->getSameSite());
+        $cookie->setValue('super');
+        $this->assertEquals('super', $cookie->getValue());
+        $cookie->setIsHttpOnly(false);
+        $this->assertFalse($cookie->isHttpOnly());
+        $this->assertEquals('new-cookie=super; path=/; Secure; SameSite=Lax', $cookie->getHeaderString());
+        $cookie->setIsSecure(false);
+        $this->assertFalse($cookie->isSecure());
+        $this->assertEquals('new-cookie=super; path=/; SameSite=Lax', $cookie.'');
+        $header = $cookie->getHeader();
+        $this->assertEquals('set-cookie :new-cookie=super; path=/; SameSite=Lax', $header.'');
+    }
 }

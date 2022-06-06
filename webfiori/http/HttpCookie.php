@@ -23,6 +23,9 @@ class HttpCookie {
     private $domain;
     private $secure;
     private $val;
+    /**
+     * Creates new instance of the class with default properties.
+     */
     public function __construct() {
         $this->httpOnly = true;
         $this->cookieName = 'new-cookie';
@@ -164,6 +167,27 @@ class HttpCookie {
         return $this->secure;
     }
     /**
+     * Sets the attribute 'Secure'.
+     * 
+     * A cookie with the Secure attribute is only sent to the server with an
+     * encrypted request over the HTTPS protocol. It's never sent with unsecured
+     * HTTP (except on localhost), which means man-in-the-middle attackers
+     * can't access it easily.
+     * 
+     * @param bool $bool True to make the cookie secure only. False to not.
+     */
+    public function setIsSecure(bool $bool) {
+        $this->secure = $bool;
+    }
+    /**
+     * Returns an object that represents http header of the cookie.
+     * 
+     * @return HttpHeader
+     */
+    public function getHeader() : HttpHeader {
+        return new HttpHeader('set-cookie', $this.'');
+    }
+    /**
      * Checks if the attribute 'HttpOnly' is set or not.
      * 
      * A cookie with the HttpOnly attribute is inaccessible to the JavaScript
@@ -174,6 +198,17 @@ class HttpCookie {
      */
     public function isHttpOnly() : bool {
         return $this->httpOnly;
+    }
+    /**
+     * Sets the attribute 'HttpOnly'.
+     * 
+     * A cookie with the HttpOnly attribute is inaccessible to the JavaScript
+     * Document.cookie API; it's only sent to the server.
+     * 
+     * @param bool $bool True to make it HttpOnly. false other wise.
+     */
+    public function setIsHttpOnly(bool $bool) {
+        $this->httpOnly = $bool;
     }
     /**
      * Returns the value of the attribute 'SameSite'.

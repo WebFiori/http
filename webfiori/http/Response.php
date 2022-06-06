@@ -88,6 +88,7 @@ class Response {
      * @since 1.0 
      */
     private $responseCode;
+    private $cookies;
     /**
      * @since 1.0
      */
@@ -98,6 +99,42 @@ class Response {
         $this->lock = false;
         $this->isSent = false;
         $this->beforeSendCalls = [];
+        $this->cookies = [];
+    }
+    /**
+     * Adds new cookie to the list of response cookies.
+     * 
+     * @param HttpCookie $cookie An object that holds cookie properties.
+     */
+    public static function addCookie(HttpCookie $cookie) {
+        self::get()->cookies[] = $cookie;
+    }
+    /**
+     * Checks if the response will have specific cookie given its name.
+     * 
+     * @param string $cookieName The name of the cookie.
+     * 
+     * @return bool If the response will have a cookie with specified name,
+     * the method will return true. False if not.
+     */
+    public static function hasCookie(string $cookieName) : bool {
+        return self::getCookie($cookieName) !== null;
+    }
+    /**
+     * Returns an object that holds cookie information given its name.
+     * 
+     * @param string $cookieName The name of the cookie.
+     * 
+     * @return HttpCookie|null If a cookie which has the given name exist,
+     * the method will return it as an object. Other than that, null
+     * is returned.
+     */
+    public static function getCookie(string $cookieName) {
+        foreach (self::getCookies() as $cookie) {
+            if ($cookie->getName() == $cookieName) {
+                return $cookie;
+            }
+        }
     }
     /**
      * Adds new HTTP header to the response.
@@ -213,6 +250,12 @@ class Response {
     public static function getHeaders() : array {
         return self::getHeadersPool()->getHeaders();
     }
+    /**
+     * Returns the instance which is used to hold all http headers that
+     * will be sent with the request.
+     * 
+     * @return HeadersPool
+     */
     public static function getHeadersPool() : HeadersPool {
         return self::get()->headersPool;
     }
@@ -265,6 +308,14 @@ class Response {
         return self::getHeadersPool()->removeHeader($headerName, $headerVal);
     }
     /**
+     * Returns an array of all cookies that will be sent with the response.
+     * 
+     * @return array An array that holds objects of type 'HttpCookie'.
+     */
+    public static function getCookies() : array {
+        return self::get()->cookies;
+    }
+    /**
      * Send the response.
      * 
      * Note that if this method is called outside CLI environment,
@@ -288,12 +339,14 @@ class Response {
 
                 http_response_code(self::getCode());
 
-                foreach (self::getHeaders() as $headerName => $headerVals) {
+                foreach (self::getHeaders() as $headerObj) {
                     foreach ($headerVals as $headerVal) {
-                        header($headerName.': '.$headerVal, false);
+                        header($headerObj.'', false);
                     }
                 }
-
+                foreach (self::getCookies() as $cookie) {
+                    header($cookie->getHeader().'', false);
+                }
                 if (is_callable('fastcgi_finish_request')) {
                     echo self::getBody();
                     fastcgi_finish_request();

@@ -76,7 +76,7 @@ class HttpHeader {
      * by a colon (":") and the header value.
      */
     public function __toString() {
-        return $this->getName().': '.$this->getValue();
+        return $this->getName().' :'.$this->getValue();
     }
     private static function _validateheaderName($name) {
         $len = strlen($name);
