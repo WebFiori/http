@@ -61,6 +61,29 @@ class UriTest extends TestCase {
     /**
      * @test
      */
+    public function testParams00() {
+        $uri = new Uri('https://example.com/{first-var}');
+        $this->assertTrue($uri->hasParameter('first-var'));
+        $this->assertFalse($uri->getParameter('first-var')->isOptional());
+        $this->assertNull($uri->getParameter('first-var')->getValue());
+        $uri->setParameterValue('first-var', '1009');
+        $this->assertEquals('1009', $uri->getParameter('first-var')->getValue());
+    }
+    /**
+     * @test
+     */
+//    public function testParams01() {
+//        $uri = new Uri('https://example.com/{first-var?}');
+//        $this->assertTrue($uri->hasParameter('first-var'));
+//        $this->assertTrue($uri->getParameter('first-var')->isOptional());
+//        $this->assertNull($uri->getParameter('first-var')->getValue());
+//        $uri->setParameterValue('first-var', '1009');
+//        $this->assertEquals(['first-var'], $uri->getParametersNames());
+//        $this->assertEquals('1009', $uri->getParameter('first-var')->getValue());
+//    }
+    /**
+     * @test
+     */
     public function testSetUriPossibleVar03() {
         $uri = new Uri('https://example.com/{first-var}/ok/{second-var}', '');
         $uri->addVarValues('first-var', ['Hello','World']);
@@ -143,6 +166,15 @@ class UriTest extends TestCase {
         $_SERVER['DOCUMENT_ROOT'] = __DIR__;
         define('WF_PATH_TO_APPEND', 'my-app');
         $this->assertEquals('http://webfiori.com/my-app', Uri::getBaseURL());
+    }
+    /**
+     * @test
+     */
+    public function testGetBase04() {
+        $_SERVER['HTTP_HOST'] = 'webfiori.com';
+        $_SERVER['DOCUMENT_ROOT'] = __DIR__;
+        $_SERVER['HTTPS'] = 'HTTPS';
+        $this->assertEquals('https://webfiori.com/my-app', Uri::getBaseURL());
     }
     /**
      * @test
@@ -231,7 +263,7 @@ class UriTest extends TestCase {
         $uri = 'https://www3.programmingacademia.com:80/{some-var}/{x}/{some-var}';
         $uriObj = new Uri($uri, '');
         $this->assertEquals('/{some-var}/{x}/{some-var}',$uriObj->getPath());
-        $this->assertEquals(2,count($uriObj->getUriVars()));
+        $this->assertEquals(2,count($uriObj->getParameters()));
     }
     /**
      * @test
