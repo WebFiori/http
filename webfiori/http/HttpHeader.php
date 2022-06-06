@@ -19,11 +19,38 @@ class HttpHeader {
      * 
      * @param string $value
      */
-    public function __construct(string $name = '', string $value= '') {
+    public function __construct(string $name = '', string $value = '') {
         $this->headerName = 'http-header';
         $this->headerValue = 'http-val';
         $this->setName($name);
         $this->setValue($value);
+    }
+    /**
+     * Returns string representation of the header.
+     * 
+     * @return string The returned string will consists of a name followed
+     * by a colon (":") and the header value.
+     */
+    public function __toString() {
+        return $this->getName().' :'.$this->getValue();
+    }
+    /**
+     * Returns a string that represents the name of the header.
+     * 
+     * @return string A string that represents the name of the header. Default
+     * return value is 'http-header'
+     */
+    public function getName() : string {
+        return $this->headerName;
+    }
+    /**
+     * Returns the value of the header.
+     * 
+     * @return string A string that represents the value of the header. Default
+     * return value is 'http-val'
+     */
+    public function getValue() : string {
+        return $this->headerValue;
     }
     /**
      * Sets the name of the header.
@@ -37,20 +64,14 @@ class HttpHeader {
      */
     public function setName(string $name) : bool {
         $trimmed = strtolower(trim($name));
+
         if ($this->_validateheaderName($trimmed)) {
             $this->headerName = $trimmed;
+
             return true;
         }
+
         return false;
-    }
-    /**
-     * Returns a string that represents the name of the header.
-     * 
-     * @return string A string that represents the name of the header. Default
-     * return value is 'http-header'
-     */
-    public function getName() : string {
-        return $this->headerName;
     }
     /**
      * Sets the value of the header.
@@ -59,24 +80,6 @@ class HttpHeader {
      */
     public function setValue(string $val) {
         $this->headerValue = $val;
-    }
-    /**
-     * Returns the value of the header.
-     * 
-     * @return string A string that represents the value of the header. Default
-     * return value is 'http-val'
-     */
-    public function getValue() : string {
-        return $this->headerValue;
-    }
-    /**
-     * Returns string representation of the header.
-     * 
-     * @return string The returned string will consists of a name followed
-     * by a colon (":") and the header value.
-     */
-    public function __toString() {
-        return $this->getName().' :'.$this->getValue();
     }
     private static function _validateheaderName($name) {
         $len = strlen($name);

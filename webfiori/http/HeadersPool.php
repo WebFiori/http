@@ -1,5 +1,4 @@
 <?php
-
 namespace webfiori\http;
 
 /**
@@ -14,12 +13,6 @@ class HeadersPool {
      */
     public function __construct() {
         $this->clear();
-    }
-    /**
-     * Removes all added headers from the pool.
-     */
-    public function clear() {
-        $this->headersArr = [];
     }
     /**
      * Adds new HTTP header to the pool.
@@ -42,9 +35,10 @@ class HeadersPool {
         $trimmedHeader = strtolower(trim($headerName));
         $retVal = false;
         $header = new HttpHeader();
-        
+
         if ($header->setName($headerName)) {
             $header->setValue($headerVal);
+
             if ($replaceValue !== null) {
                 $hasHeader = $this->hasHeader($trimmedHeader, $replaceValue);
             } else {
@@ -64,33 +58,57 @@ class HeadersPool {
         return $retVal;
     }
     /**
-     * Removes specific header from the pool.
-     * 
-     * @param string $name The name of the header that will be removed.
-     * 
-     * @param string $val If the header is added with multiple values, this
-     * can be used to remove specific one with specific value. If not provided,
-     * all headers will be removed.
+     * Removes all added headers from the pool.
      */
-    public function removeHeader(string $name, string $val = null) {
-        $tempArr = [];
+    public function clear() {
+        $this->headersArr = [];
+    }
+    /**
+     * Returns the value(s) of specific HTTP header.
+     * 
+     * @param string $name The name of the header.
+     * 
+     * @return array If such header exist, the method will return an array 
+     * that contains the values of the header. If the header does not exist, the 
+     * method will return an empty array.
+     * 
+     */
+    public function getHeader(string $name) : array {
+        return array_map(function ($headerObj)
+        {
+            return $headerObj->getValue();
+        }, $this->getHeaderAsObj($name));
+    }
+    /**
+     * Returns the value(s) of specific HTTP header as an array of objects.
+     * 
+     * @param array $name The name of the header.
+     * 
+     * @return array If such header exist, the method will return an array 
+     * that contains the values of the header stored as objects of type
+     * HttpHeader. If the header does not exist, the array will be empty.
+     * 
+     */
+    public function getHeaderAsObj(string $name) : array {
+        $retVal = [];
         $trimmed = strtolower(trim($name));
-        $removed = false;
+
         foreach ($this->getHeaders() as $headerObj) {
-            
             if ($headerObj->getName() == $trimmed) {
-                if ($val !== null && $headerObj->getValue() != $val) {
-                    $tempArr[] = $headerObj;
-                } else {
-                    $removed = true;
-                }
-            } else {
-                $tempArr[] = $headerObj;
+                $retVal[] = $headerObj;
             }
-            
         }
-        $this->headersArr = $tempArr;
-        return $removed;
+
+        return $retVal;
+    }
+    /**
+     * Returns an array that contains all added headers.
+     * 
+     * @return array An array that contains objects of type HttpHeader.
+     * 
+     */
+    public function getHeaders() : array {
+        return $this->headersArr;
     }
     /**
      * Checks if the response will have specific header or not.
@@ -111,58 +129,46 @@ class HeadersPool {
      */
     public function hasHeader(string $name, string $val = null) : bool {
         $headers = $this->getHeaderAsObj($name);
+
         if ($val === null) {
             return count($headers) !== 0;
         }
+
         foreach ($headers as $obj) {
             if ($obj->getValue() == $val) {
                 return true;
             }
         }
+
         return false;
     }
     /**
-     * Returns the value(s) of specific HTTP header as an array of objects.
+     * Removes specific header from the pool.
      * 
-     * @param array $name The name of the header.
+     * @param string $name The name of the header that will be removed.
      * 
-     * @return array If such header exist, the method will return an array 
-     * that contains the values of the header stored as objects of type
-     * HttpHeader. If the header does not exist, the array will be empty.
-     * 
+     * @param string $val If the header is added with multiple values, this
+     * can be used to remove specific one with specific value. If not provided,
+     * all headers will be removed.
      */
-    public function getHeaderAsObj(string $name) : array {
-        $retVal = [];
+    public function removeHeader(string $name, string $val = null) {
+        $tempArr = [];
         $trimmed = strtolower(trim($name));
+        $removed = false;
+
         foreach ($this->getHeaders() as $headerObj) {
             if ($headerObj->getName() == $trimmed) {
-                $retVal[] = $headerObj;
+                if ($val !== null && $headerObj->getValue() != $val) {
+                    $tempArr[] = $headerObj;
+                } else {
+                    $removed = true;
+                }
+            } else {
+                $tempArr[] = $headerObj;
             }
         }
-        return $retVal;
-    }
-    /**
-     * Returns the value(s) of specific HTTP header.
-     * 
-     * @param string $name The name of the header.
-     * 
-     * @return array If such header exist, the method will return an array 
-     * that contains the values of the header. If the header does not exist, the 
-     * method will return an empty array.
-     * 
-     */
-    public function getHeader(string $name) : array {
-        return array_map(function ($headerObj) {
-            return $headerObj->getValue();
-        }, $this->getHeaderAsObj($name));
-    }
-    /**
-     * Returns an array that contains all added headers.
-     * 
-     * @return array An array that contains objects of type HttpHeader.
-     * 
-     */
-    public function getHeaders() : array {
-        return $this->headersArr;
+        $this->headersArr = $tempArr;
+
+        return $removed;
     }
 }

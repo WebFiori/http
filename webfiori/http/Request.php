@@ -66,65 +66,70 @@ class Request {
     ];
     /**
      *
-     * @var Response
-     * 
-     * @since 1.0 
-     */
-    private static $inst;
-    /**
-     *
      * @var HeadersPool
      * 
      * @since 1.0 
      */
     private $headersPool;
+    /**
+     *
+     * @var Response
+     * 
+     * @since 1.0 
+     */
+    private static $inst;
 
     private function __construct() {
         $this->headersPool = new HeadersPool();
     }
     /**
-     * Returns the value of a GET or POST parameter.
+     * Returns an instance of the class.
      * 
-     * This method will apply basic filtering to the value of the parameter before returning 
-     * it. The developer may need to apply extra filtering to make sure that the 
-     * value of the parameter is safe to use.
+     * @return Request
      * 
-     * @param string $paramName The name of the parameter. Note that if the value has extra 
-     * spaces, they will be trimmed.
-     * 
-     * @return string|null The method will return the value of the parameter if 
-     * set as a string. Other than that, the method will return null.
-     * 
-     * @since 1.0.1
+     * @since 1.0
      */
-    public static function getParam(string $paramName) {
-        $requMethod = self::getMethod();
-        $trimmed = trim($paramName);
-        $val = null;
-        
-        if ($requMethod == 'POST' || $requMethod == 'PUT') {
-            $val = self::filter(INPUT_POST, $paramName);
-        } else if ($requMethod == 'DELETE' || $requMethod == 'GET') {
-            $val = self::filter(INPUT_GET, $paramName);
+    public static function get() {
+        if (self::$inst === null) {
+            self::$inst = new Request();
         }
-        
-        if ($val === false) {
-            return null;
-        }
-        return $val;
-    }
-    private  static function filter($inputSource, $varName) {
-        $val = filter_input($inputSource, $varName);
-        
-        if ($val === null) {
 
-            if ($inputSource == INPUT_POST && isset($_POST[$varName])) {
-                $val = filter_var(urldecode($_POST[$varName]));
-            } else if ($inputSource == INPUT_GET && isset($_GET[$varName])) {
-                $val = filter_var(urldecode($_GET[$varName]));
+        return self::$inst;
+    }
+    /**
+     * Returns an array that contains the value of the header 'authorization'.
+     * 
+     * @return array The array will have two indices, the first one with 
+     * name 'scheme' and the second one with name 'credentials'. The index 'scheme' 
+     * will contain the name of the scheme which is used to authenticate 
+     * ('Basic', 'Bearer', 'Digest', etc...). The index 'credentials' will contain 
+     * the credentials which can be used to authenticate the client.
+     * 
+     *  @since 1.0
+     */
+    public static function getAuthHeader() : array {
+        $retVal = [
+            'scheme' => '',
+            'credentials' => ''
+        ];
+        $headerVal = '';
+
+        $header = self::getHeader('authorization');
+
+        if (count($header) == 1) {
+            $headerVal = $header[0];
+        }
+
+        if (strlen($headerVal) != 0) {
+            $split = explode(' ', $headerVal);
+
+            if (count($split) == 2) {
+                $retVal['scheme'] = strtolower($split[0]);
+                $retVal['credentials'] = $split[1];
             }
         }
-        return $val;
+
+        return $retVal;
     }
     /**
      * Returns the IP address of the user who is connected to the server.
@@ -164,54 +169,18 @@ class Request {
         return null;
     }
     /**
-     * Returns the name of request method which is used to call one of the services in the set.
+     * Returns HTTP header given its name.
      * 
-     * @return string Request method such as POST, GET, etc.... Default return 
-     * value is 'GET'. The default is usually returned in case the call to 
-     * this method was performed in CLI environment. To change request method 
-     * in CLI environment to something like 'POST' for testing, use the 
-     * function putenv('REQUEST_METHOD=POST'). 
+     * @param string $name The name of the header.
      * 
-     * @since 1.0
+     * @return array If a header which has the given name exist,
+     * the method will return all header values as an array. If the header
+     * does not exist, the array will be empty.
      */
-    public static function getMethod() : string {
-        $meth = getenv('REQUEST_METHOD');
-        
-        if ($meth === false) {
-            $meth = isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : '';
-        }
-        $method = filter_var($meth, FILTER_SANITIZE_FULL_SPECIAL_CHARS);
-        
-        
-        if (!in_array($method, self::METHODS)) {
-            $method = 'GET';
-        }
+    public static function getHeader(string $name) : array {
+        self::getHeaders();
 
-        return $method;
-    }
-    /**
-     * Returns the URI of the requested resource.
-     * 
-     * @return string The URI of the requested resource. 
-     * 
-     * @since 1.0
-     */
-    public static function getRequestedURI() : string {
-        $base = Uri::getBaseURL();
-        $path = getenv('REQUEST_URI');
-
-        if ($path === false) {
-            // Using built-in server, it will be false
-            $path = isset($_SERVER['PATH_INFO']) ? $_SERVER['PATH_INFO'] : '';
-
-        } 
-        $toAppend = trim(filter_var($path),'/');
-
-        if (defined('WF_PATH_TO_APPEND')) {
-            $toAppend = str_replace(trim(str_replace('\\', '/', WF_PATH_TO_APPEND), '/'),'' ,$toAppend);
-        }
-
-        return $base.'/'.trim($toAppend, '/');
+        return self::getHeadersPool()->getHeader($name);
     }
     /**
      * Returns HTTP request headers.
@@ -239,9 +208,10 @@ class Request {
                     self::get()->headersPool->addHeader($k, filter_var($v, FILTER_SANITIZE_FULL_SPECIAL_CHARS));
                 }
             } 
-            
+
             if (isset($_SERVER)) {
                 $headersArr = self::_getRequestHeadersFromServer();
+
                 foreach ($headersArr as $header) {
                     self::get()->headersPool->addHeader($header->getName(), $header->getValue());
                 }
@@ -252,19 +222,6 @@ class Request {
         return self::getHeadersPool()->getHeaders();
     }
     /**
-     * Returns HTTP header given its name.
-     * 
-     * @param string $name The name of the header.
-     * 
-     * @return array If a header which has the given name exist,
-     * the method will return all header values as an array. If the header
-     * does not exist, the array will be empty.
-     */
-    public static function getHeader(string $name) : array {
-        self::getHeaders();
-        return self::getHeadersPool()->getHeader($name);
-    }
-    /**
      * Returns the pool which is used to hold request headers.
      * 
      * @return HeadersPool
@@ -273,39 +230,87 @@ class Request {
         return self::get()->headersPool;
     }
     /**
-     * Returns an array that contains the value of the header 'authorization'.
+     * Returns the name of request method which is used to call one of the services in the set.
      * 
-     * @return array The array will have two indices, the first one with 
-     * name 'scheme' and the second one with name 'credentials'. The index 'scheme' 
-     * will contain the name of the scheme which is used to authenticate 
-     * ('Basic', 'Bearer', 'Digest', etc...). The index 'credentials' will contain 
-     * the credentials which can be used to authenticate the client.
+     * @return string Request method such as POST, GET, etc.... Default return 
+     * value is 'GET'. The default is usually returned in case the call to 
+     * this method was performed in CLI environment. To change request method 
+     * in CLI environment to something like 'POST' for testing, use the 
+     * function putenv('REQUEST_METHOD=POST'). 
      * 
-     *  @since 1.0
+     * @since 1.0
      */
-    public static function getAuthHeader() : array {
-        $retVal = [
-            'scheme' => '',
-            'credentials' => ''
-        ];
-        $headerVal = '';
-        
-        $header = self::getHeader('authorization');
-        
-        if (count($header) == 1) {
-            $headerVal = $header[0];
+    public static function getMethod() : string {
+        $meth = getenv('REQUEST_METHOD');
+
+        if ($meth === false) {
+            $meth = isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : '';
+        }
+        $method = filter_var($meth, FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+
+
+        if (!in_array($method, self::METHODS)) {
+            $method = 'GET';
         }
 
-        if (strlen($headerVal) != 0) {
-            $split = explode(' ', $headerVal);
+        return $method;
+    }
+    /**
+     * Returns the value of a GET or POST parameter.
+     * 
+     * This method will apply basic filtering to the value of the parameter before returning 
+     * it. The developer may need to apply extra filtering to make sure that the 
+     * value of the parameter is safe to use.
+     * 
+     * @param string $paramName The name of the parameter. Note that if the value has extra 
+     * spaces, they will be trimmed.
+     * 
+     * @return string|null The method will return the value of the parameter if 
+     * set as a string. Other than that, the method will return null.
+     * 
+     * @since 1.0.1
+     */
+    public static function getParam(string $paramName) {
+        $requMethod = self::getMethod();
+        $trimmed = trim($paramName);
+        $val = null;
 
-            if (count($split) == 2) {
-                $retVal['scheme'] = strtolower($split[0]);
-                $retVal['credentials'] = $split[1];
+        if ($requMethod == 'POST' || $requMethod == 'PUT') {
+            $val = self::filter(INPUT_POST, $paramName);
+        } else {
+            if ($requMethod == 'DELETE' || $requMethod == 'GET') {
+                $val = self::filter(INPUT_GET, $paramName);
             }
         }
 
-        return $retVal;
+        if ($val === false) {
+            return null;
+        }
+
+        return $val;
+    }
+    /**
+     * Returns the URI of the requested resource.
+     * 
+     * @return string The URI of the requested resource. 
+     * 
+     * @since 1.0
+     */
+    public static function getRequestedURI() : string {
+        $base = Uri::getBaseURL();
+        $path = getenv('REQUEST_URI');
+
+        if ($path === false) {
+            // Using built-in server, it will be false
+            $path = isset($_SERVER['PATH_INFO']) ? $_SERVER['PATH_INFO'] : '';
+        } 
+        $toAppend = trim(filter_var($path),'/');
+
+        if (defined('WF_PATH_TO_APPEND')) {
+            $toAppend = str_replace(trim(str_replace('\\', '/', WF_PATH_TO_APPEND), '/'),'' ,$toAppend);
+        }
+
+        return $base.'/'.trim($toAppend, '/');
     }
     /**
      * Returns an object that holds all information about requested URI.
@@ -334,10 +339,14 @@ class Request {
                 for ($x = 0 ; $x < $count ; $x++) {
                     if ($x + 1 == $count && $split[$x] != 'HTTP') {
                         $headerName = $headerName.$split[$x];
-                    } else if ($x == 1 && $split[$x] != 'HTTP') {
-                        $headerName = $split[$x].'-';
-                    } else if ($split[$x] != 'HTTP') {
-                        $headerName = $headerName.$split[$x].'-';
+                    } else {
+                        if ($x == 1 && $split[$x] != 'HTTP') {
+                            $headerName = $split[$x].'-';
+                        } else {
+                            if ($split[$x] != 'HTTP') {
+                                $headerName = $headerName.$split[$x].'-';
+                            }
+                        }
                     }
                 }
                 $retVal[] = new HttpHeader($headerName, filter_var($v, FILTER_SANITIZE_FULL_SPECIAL_CHARS));
@@ -346,18 +355,19 @@ class Request {
 
         return $retVal;
     }
-    /**
-     * Returns an instance of the class.
-     * 
-     * @return Request
-     * 
-     * @since 1.0
-     */
-    public static function get() {
-        if (self::$inst === null) {
-            self::$inst = new Request();
+    private  static function filter($inputSource, $varName) {
+        $val = filter_input($inputSource, $varName);
+
+        if ($val === null) {
+            if ($inputSource == INPUT_POST && isset($_POST[$varName])) {
+                $val = filter_var(urldecode($_POST[$varName]));
+            } else {
+                if ($inputSource == INPUT_GET && isset($_GET[$varName])) {
+                    $val = filter_var(urldecode($_GET[$varName]));
+                }
+            }
         }
 
-        return self::$inst;
+        return $val;
     }
 }

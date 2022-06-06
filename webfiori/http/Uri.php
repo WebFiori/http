@@ -76,6 +76,7 @@ class Uri {
     public function __construct(string $requestedUri) {
         $this->allowedRequestMethods = [];
         $this->uriBroken = self::splitURI($requestedUri);
+
         if (gettype($this->uriBroken) != 'array') {
             throw new InvalidArgumentException('Invalid URI given.');
         }
@@ -84,13 +85,6 @@ class Uri {
         foreach ($this->getParametersNames() as $varName) {
             $this->uriBroken['vars-possible-values'][$varName] = [];
         }
-    }
-    public function getParametersNames() : array {
-        $retVal = [];
-        foreach ($this->getParameters() as $paramObj) {
-            $retVal[] = $paramObj->getName();
-        }
-        return $retVal;
     }
     /**
      * Adds a request method to the allowed set of methods at which the URI can 
@@ -230,7 +224,7 @@ class Uri {
         }
         $docRoot = filter_var($_SERVER['DOCUMENT_ROOT']);
         $docRootLen = strlen($docRoot);
-        
+
         if ($docRootLen == 0) {
             $docRoot = __DIR__;
             $docRootLen = strlen($docRoot);
@@ -245,7 +239,7 @@ class Uri {
             $toAppend = str_replace(str_replace('\\', '/', WF_PATH_TO_REMOVE),'' ,$toAppend);
         }
         $xToAppend = str_replace('\\', '/', $toAppend);
-        
+
         if (defined('WF_PATH_TO_APPEND')) {
             $xToAppend = $xToAppend.'/'.trim(str_replace('\\', '/', WF_PATH_TO_APPEND), '/');
         }
@@ -302,6 +296,41 @@ class Uri {
         return $this->uriBroken['host'];
     }
     /**
+     * Returns URI parameter given its name.
+     * 
+     * @param string $name The name of the parameter.
+     * 
+     * @return UriParameter|null If such parameter is found, it will be returned
+     * as an object. Other than that, null is returned.
+     */
+    public function getParameter(string $name) {
+        foreach ($this->getParameters() as $obj) {
+            if ($obj->getName() == $name) {
+                return $obj;
+            }
+        }
+    }
+    /**
+     * Returns an array which contains URI parameters as objects.
+     * 
+     * @return array An indexed array which contains URI parameters as 
+     * objects of type UriParameter.
+     * 
+     * @since 1.0
+     */
+    public function getParameters() : array {
+        return $this->uriBroken['uri-vars'];
+    }
+    public function getParametersNames() : array {
+        $retVal = [];
+
+        foreach ($this->getParameters() as $paramObj) {
+            $retVal[] = $paramObj->getName();
+        }
+
+        return $retVal;
+    }
+    /**
      * Returns the path part of the URI.
      * 
      * @return string A string such as '/path1/path2/path3'.
@@ -341,17 +370,6 @@ class Uri {
         return $this->uriBroken['port'];
     }
     /**
-     * Returns an array that holds all allowed request methods at which the 
-     * URI can be called with.
-     * 
-     * @return array An array that holds strings such as 'GET' or 'POST'.
-     * 
-     * @since 1.0.1
-     */
-    public function getRequestMethods() : array {
-        return $this->allowedRequestMethods;
-    }
-    /**
      * Returns the query string that was appended to the URI.
      * 
      * @return string The query string that was appended to the URI. 
@@ -374,6 +392,17 @@ class Uri {
      */
     public function getQueryStringVars() : array {
         return $this->uriBroken['query-string-vars'];
+    }
+    /**
+     * Returns an array that holds all allowed request methods at which the 
+     * URI can be called with.
+     * 
+     * @return array An array that holds strings such as 'GET' or 'POST'.
+     * 
+     * @since 1.0.1
+     */
+    public function getRequestMethods() : array {
+        return $this->allowedRequestMethods;
     }
     /**
      * Returns the scheme part of the URI.
@@ -454,17 +483,6 @@ class Uri {
         }
 
         return null;
-    }
-    /**
-     * Returns an array which contains URI parameters as objects.
-     * 
-     * @return array An indexed array which contains URI parameters as 
-     * objects of type UriParameter.
-     * 
-     * @since 1.0
-     */
-    public function getParameters() : array {
-        return $this->uriBroken['uri-vars'];
     }
     /**
      * Returns an array that contains possible values for a URI variable.
@@ -556,6 +574,7 @@ class Uri {
      */
     public function isRequestMethodAllowed() : bool {
         $methods = $this->getRequestMethods();
+
         return count($methods) == 0 || in_array(Request::getMethod(), $this->getRequestMethods());
     }
     /**
@@ -573,17 +592,30 @@ class Uri {
         $this->isCS = $caseSensitive === true;
     }
     /**
-     * Adds a set of request methods to the allowed methods at which the URI
-     * can be called with.
+     * Sets the value of a URI parameter.
      * 
-     * @param array $methods An array that holds strings such as 'GET' or 'POST'.
+     * A parameter is a string which is defined while creating the route. 
+     * it is name is included between '{}'.
      * 
-     * @since 1.0.1
+     * @param string $varName The name of the parameter.
+     * 
+     * @param string $value The value of the parameter.
+     * 
+     * @return bool The method will return true if the parameter 
+     * was set. If the variable does not exist, the method will return false.
+     * 
+     * @since 1.0
      */
-    public function setRequestMethods(array $methods) {
-        foreach ($methods as $m) {
-            $this->addRequestMethod($m);
+    public function setParameterValue(string $varName, string $value) : bool {
+        $param = $this->getParameter($varName);
+
+        if ($param !== null) {
+            $param->setValue($value);
+
+            return true;
         }
+
+        return false;
     }
     /**
      * Sets the requested URI.
@@ -608,43 +640,16 @@ class Uri {
         return true;
     }
     /**
-     * Sets the value of a URI parameter.
+     * Adds a set of request methods to the allowed methods at which the URI
+     * can be called with.
      * 
-     * A parameter is a string which is defined while creating the route. 
-     * it is name is included between '{}'.
+     * @param array $methods An array that holds strings such as 'GET' or 'POST'.
      * 
-     * @param string $varName The name of the parameter.
-     * 
-     * @param string $value The value of the parameter.
-     * 
-     * @return bool The method will return true if the parameter 
-     * was set. If the variable does not exist, the method will return false.
-     * 
-     * @since 1.0
+     * @since 1.0.1
      */
-    public function setParameterValue(string $varName, string $value) : bool {
-        $param = $this->getParameter($varName);
-        if ($param !== null) {
-            $param->setValue($value);
-
-            return true;
-        }
-
-        return false;
-    }
-    /**
-     * Returns URI parameter given its name.
-     * 
-     * @param string $name The name of the parameter.
-     * 
-     * @return UriParameter|null If such parameter is found, it will be returned
-     * as an object. Other than that, null is returned.
-     */
-    public function getParameter(string $name) {
-        foreach ($this->getParameters() as $obj) {
-            if ($obj->getName() == $name) {
-                return $obj;
-            }
+    public function setRequestMethods(array $methods) {
+        foreach ($methods as $m) {
+            $this->addRequestMethod($m);
         }
     }
     /**
@@ -702,7 +707,7 @@ class Uri {
         $split2 = self::_queryOrFragment($split1[0], '?', '%3F');
 
         $retVal['query-string'] = isset($split2[1]) ? $split2[1] : '';
-        
+
         $split2[0] = str_replace('<>', '?}', $split2[0]);
         //next comes the scheme
         $split3 = explode(':', $split2[0]);
@@ -723,6 +728,7 @@ class Uri {
         //a variable is a value in the path which is enclosed between {}
         //optional variable ends with ? (e.g. {name?}
         $addedParams = [];
+
         for ($x = 3 ; $x < count($split4) ; $x++) {
             $dirName = $split4[$x];
 
@@ -731,6 +737,7 @@ class Uri {
 
                 if ($dirName[0] == '{' && $dirName[strlen($dirName) - 1] == '}') {
                     $name = trim($split4[$x], '{}');
+
                     if (!in_array($name, $addedParams)) {
                         $addedParams[] = $name;
                         $retVal['uri-vars'][] = new UriParameter($name);
@@ -752,39 +759,6 @@ class Uri {
         }
 
         return $retVal;
-    }
-    /**
-     * Splits a string based on character mask.
-     * 
-     * @param string $split The string to split.
-     * 
-     * @param string $char The character that the split is based on.
-     * 
-     * @param string $encoded The character when encoded in URI.
-     * 
-     * @return type
-     */
-    private static function _queryOrFragment($split, $char, $encoded) {
-        $split2 = explode($char, $split);
-        $spCount = count($split2);
-        if ($spCount > 2) {
-            $temp = [];
-            for ($x = 0 ; $x < $spCount - 1 ; $x++) {
-                $temp[] = $split2[$x];
-            }
-            $lastStr = $split2[$spCount - 1];
-            if (strlen($lastStr) == 0) {
-                $split2 = [
-                    implode($encoded, $temp).$encoded
-                ];
-            } else {
-                $split2 = [
-                    implode($encoded, $temp),
-                    $split2[$spCount - 1]
-                ];
-            }
-        }
-        return $split2;
     }
     /**
      * Validate the path part of original URI and the requested one.
@@ -828,5 +802,42 @@ class Uri {
         }
 
         return true;
+    }
+    /**
+     * Splits a string based on character mask.
+     * 
+     * @param string $split The string to split.
+     * 
+     * @param string $char The character that the split is based on.
+     * 
+     * @param string $encoded The character when encoded in URI.
+     * 
+     * @return type
+     */
+    private static function _queryOrFragment($split, $char, $encoded) {
+        $split2 = explode($char, $split);
+        $spCount = count($split2);
+
+        if ($spCount > 2) {
+            $temp = [];
+
+            for ($x = 0 ; $x < $spCount - 1 ; $x++) {
+                $temp[] = $split2[$x];
+            }
+            $lastStr = $split2[$spCount - 1];
+
+            if (strlen($lastStr) == 0) {
+                $split2 = [
+                    implode($encoded, $temp).$encoded
+                ];
+            } else {
+                $split2 = [
+                    implode($encoded, $temp),
+                    $split2[$spCount - 1]
+                ];
+            }
+        }
+
+        return $split2;
     }
 }

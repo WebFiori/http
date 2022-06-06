@@ -558,7 +558,6 @@ abstract class AbstractWebService implements JsonI {
      * @since 1.0.1
      */
     public function isAuthorized() {
-        
     }
     /**
      * Returns the value of the property 'requreAuth'.
