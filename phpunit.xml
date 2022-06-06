@@ -14,6 +14,7 @@
             <file>./webfiori/http/HttpHeader.php</file>
             <file>./webfiori/http/HttpCookie.php</file>
             <file>./webfiori/http/HeadersPool.php</file>
+            <file>./webfiori/http/UriParameter.php</file>
         </whitelist>
     </filter>
     <logging>

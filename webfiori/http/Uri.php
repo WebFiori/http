@@ -76,15 +76,21 @@ class Uri {
     public function __construct(string $requestedUri) {
         $this->allowedRequestMethods = [];
         $this->uriBroken = self::splitURI($requestedUri);
-
         if (gettype($this->uriBroken) != 'array') {
             throw new InvalidArgumentException('Invalid URI given.');
         }
         $this->uriBroken['vars-possible-values'] = [];
 
-        foreach (array_keys($this->getUriVars()) as $varName) {
+        foreach ($this->getParametersNames() as $varName) {
             $this->uriBroken['vars-possible-values'][$varName] = [];
         }
+    }
+    public function getParametersNames() : array {
+        $retVal = [];
+        foreach ($this->getParameters() as $paramObj) {
+            $retVal[] = $paramObj->getName();
+        }
+        return $retVal;
     }
     /**
      * Adds a request method to the allowed set of methods at which the URI can 
@@ -443,22 +449,21 @@ class Uri {
      * @since 1.0
      */
     public function getUriVar(string $varName) {
-        if ($this->hasUriVar($varName)) {
+        if ($this->hasParameter($varName)) {
             return $this->uriBroken['uri-vars'][$varName];
         }
 
         return null;
     }
     /**
-     * Returns an associative array which contains URI parameters.
+     * Returns an array which contains URI parameters as objects.
      * 
-     * @return array An associative array which contains URI parameters. The 
-     * keys will be the names of the variables and the value of each variable will 
-     * be in its index.
+     * @return array An indexed array which contains URI parameters as 
+     * objects of type UriParameter.
      * 
      * @since 1.0
      */
-    public function getUriVars() : array {
+    public function getParameters() : array {
         return $this->uriBroken['uri-vars'];
     }
     /**
@@ -494,36 +499,36 @@ class Uri {
      * 
      * @since 1.0
      */
-    public function hasUriVar(string $varName) : bool {
-        return array_key_exists($varName, $this->uriBroken['uri-vars']);
+    public function hasParameter(string $varName) : bool {
+        return in_array($varName, $this->getParametersNames());
     }
     /**
-     * Checks if the URI has any variables or not.
+     * Checks if the URI has any paramaters or not.
      * 
-     * A variable is a string which is defined while creating the route. 
+     * A parameter is a string which is defined while creating the route. 
      * it is name is included between '{}'.
      * 
-     * @return boolean If the URI has any variables, the method will 
+     * @return bool If the URI has any parameters, the method will 
      * return true.
      * 
      * @since 1.0
      */
-    public function hasVars() : bool {
-        return count($this->getUriVars()) != 0;
+    public function hasParameters() : bool {
+        return count($this->getParameters()) != 0;
     }
     /**
-     * Checks if all URI variables has values or not.
+     * Checks if all URI parameters has values or not.
      * 
-     * @return boolean The method will return true if all URI 
-     * variables have a value other than null.
+     * @return bool The method will return true if all non-optional URI 
+     * parameters have a value other than null.
      * 
      * @since 1.0
      */
-    public function isAllVarsSet() : bool {
+    public function isAllParametersSet() : bool {
         $canRoute = true;
 
-        foreach ($this->getUriVars() as $val) {
-            $canRoute = $canRoute && $val != null;
+        foreach ($this->getParameters() as $val) {
+            $canRoute = $canRoute && ($val->isOptional() || $val->getValue() != null);
         }
 
         return $canRoute;
@@ -603,28 +608,44 @@ class Uri {
         return true;
     }
     /**
-     * Sets the value of a URI variable.
+     * Sets the value of a URI parameter.
      * 
-     * A variable is a string which is defined while creating the route. 
+     * A parameter is a string which is defined while creating the route. 
      * it is name is included between '{}'.
      * 
-     * @param string $varName The name of the variable.
+     * @param string $varName The name of the parameter.
      * 
-     * @param string $value The value of the variable.
+     * @param string $value The value of the parameter.
      * 
-     * @return boolean The method will return true if the variable 
+     * @return bool The method will return true if the parameter 
      * was set. If the variable does not exist, the method will return false.
      * 
      * @since 1.0
      */
-    public function setUriVar(string $varName, string $value) : bool {
-        if ($this->hasUriVar($varName)) {
-            $this->uriBroken['uri-vars'][$varName] = $value;
+    public function setParameterValue(string $varName, string $value) : bool {
+        $param = $this->getParameter($varName);
+        if ($param !== null) {
+            $param->setValue($value);
 
             return true;
         }
 
         return false;
+    }
+    /**
+     * Returns URI parameter given its name.
+     * 
+     * @param string $name The name of the parameter.
+     * 
+     * @return UriParameter|null If such parameter is found, it will be returned
+     * as an object. Other than that, null is returned.
+     */
+    public function getParameter(string $name) {
+        foreach ($this->getParameters() as $obj) {
+            if ($obj->getName() == $name) {
+                return $obj;
+            }
+        }
     }
     /**
      * Breaks a URI into its basic components.
@@ -677,10 +698,12 @@ class Uri {
         $retVal['fragment'] = isset($split1[1]) ? $split1[1] : '';
 
         //after that, extract the query string
+        $split1[0] = str_replace('?}', '<>', $split1[0]);
         $split2 = self::_queryOrFragment($split1[0], '?', '%3F');
 
         $retVal['query-string'] = isset($split2[1]) ? $split2[1] : '';
-
+        
+        $split2[0] = str_replace('<>', '?}', $split2[0]);
         //next comes the scheme
         $split3 = explode(':', $split2[0]);
         $retVal['scheme'] = $split3[0];
@@ -696,8 +719,10 @@ class Uri {
         $retVal['authority'] = '//'.$split4[2];
 
         //after that, we create the path from the remaining parts
-        //also we check if the path has variables or not
+        //also we check if the path has parameters or not
         //a variable is a value in the path which is enclosed between {}
+        //optional variable ends with ? (e.g. {name?}
+        $addedParams = [];
         for ($x = 3 ; $x < count($split4) ; $x++) {
             $dirName = $split4[$x];
 
@@ -705,7 +730,11 @@ class Uri {
                 $retVal['path'][] = utf8_decode(urldecode($dirName));
 
                 if ($dirName[0] == '{' && $dirName[strlen($dirName) - 1] == '}') {
-                    $retVal['uri-vars'][trim($split4[$x], '{}')] = null;
+                    $name = trim($split4[$x], '{}');
+                    if (!in_array($name, $addedParams)) {
+                        $addedParams[] = $name;
+                        $retVal['uri-vars'][] = new UriParameter($name);
+                    }
                 }
             }
         }
@@ -724,6 +753,17 @@ class Uri {
 
         return $retVal;
     }
+    /**
+     * Splits a string based on character mask.
+     * 
+     * @param string $split The string to split.
+     * 
+     * @param string $char The character that the split is based on.
+     * 
+     * @param string $encoded The character when encoded in URI.
+     * 
+     * @return type
+     */
     private static function _queryOrFragment($split, $char, $encoded) {
         $split2 = explode($char, $split);
         $spCount = count($split2);

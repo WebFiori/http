@@ -61,6 +61,30 @@ class UriTest extends TestCase {
     /**
      * @test
      */
+    public function testParams00() {
+        $uri = new Uri('https://example.com/{first-var}');
+        $this->assertTrue($uri->hasParameter('first-var'));
+        $this->assertFalse($uri->getParameter('first-var')->isOptional());
+        $this->assertNull($uri->getParameter('first-var')->getValue());
+        $uri->setParameterValue('first-var', '1009');
+        $this->assertEquals('1009', $uri->getParameter('first-var')->getValue());
+    }
+    /**
+     * @test
+     */
+    public function testParams01() {
+        $uri = new Uri('https://example.com/{first-var?}');
+        $this->assertEquals('/{first-var?}', $uri->getPath());
+        $this->assertTrue($uri->hasParameter('first-var'));
+        $this->assertTrue($uri->getParameter('first-var')->isOptional());
+        $this->assertNull($uri->getParameter('first-var')->getValue());
+        $uri->setParameterValue('first-var', '1009');
+        $this->assertEquals(['first-var'], $uri->getParametersNames());
+        $this->assertEquals('1009', $uri->getParameter('first-var')->getValue());
+    }
+    /**
+     * @test
+     */
     public function testSetUriPossibleVar03() {
         $uri = new Uri('https://example.com/{first-var}/ok/{second-var}', '');
         $uri->addVarValues('first-var', ['Hello','World']);
@@ -147,9 +171,19 @@ class UriTest extends TestCase {
     /**
      * @test
      */
+    public function testGetBase04() {
+        $_SERVER['HTTP_HOST'] = 'webfiori.com';
+        $_SERVER['DOCUMENT_ROOT'] = __DIR__;
+        $_SERVER['HTTPS'] = 'HTTPS';
+        $this->assertEquals('https://webfiori.com/my-app', Uri::getBaseURL());
+    }
+    /**
+     * @test
+     */
     public function testGetBase02() {
         $_SERVER['HTTP_HOST'] = 'webfiori.com';
         $_SERVER['DOCUMENT_ROOT'] = __DIR__;
+        $_SERVER['HTTPS'] = null;
         define('WF_PATH_TO_REMOVE', 'my-app');
         $this->assertEquals('http://webfiori.com/my-app', Uri::getBaseURL());
     }
@@ -231,7 +265,7 @@ class UriTest extends TestCase {
         $uri = 'https://www3.programmingacademia.com:80/{some-var}/{x}/{some-var}';
         $uriObj = new Uri($uri, '');
         $this->assertEquals('/{some-var}/{x}/{some-var}',$uriObj->getPath());
-        $this->assertEquals(2,count($uriObj->getUriVars()));
+        $this->assertEquals(2,count($uriObj->getParameters()));
     }
     /**
      * @test
@@ -245,9 +279,9 @@ class UriTest extends TestCase {
      * @test
      */
     public function testSplitURI_09() {
-        $uri = 'https://programmingacademia.com/Hello World? or Not?';
+        $uri = 'https://programmingacademia.com/Hello World? /or Not?super?';
         $uriObj = new Uri($uri, '');
-        $this->assertEquals('/Hello World? or Not?',$uriObj->getPath());
+        $this->assertEquals('/Hello World? /or Not?super?',$uriObj->getPath());
     }
     /**
      * @test
@@ -265,5 +299,37 @@ class UriTest extends TestCase {
         $uriObj = new Uri($uri, '');
         $this->assertEquals('/Hello World#or Not',$uriObj->getPath());
         $this->assertEquals('Yes',$uriObj->getFragment());
+    }
+    /**
+     * @test
+     */
+    public function testSplitURI_12() {
+        $uri = 'https://programmingacademia.com/{some-var?}/ok/not/super?one=2';
+        $uriObj = new Uri($uri, '');
+        $this->assertEquals('/{some-var?}/ok/not/super',$uriObj->getPath());
+        $this->assertEquals('one=2',$uriObj->getQueryString());
+        $this->assertTrue($uriObj->hasParameter('some-var'));
+    }
+    /**
+     * @test
+     */
+    public function testSplitURI_13() {
+        $uri = 'https://programmingacademia.com/{some-var?}/{another?}/not/super';
+        $uriObj = new Uri($uri, '');
+        $this->assertEquals('/{some-var?}/{another?}/not/super',$uriObj->getPath());
+        $this->assertTrue($uriObj->hasParameter('some-var'));
+        $this->assertTrue($uriObj->hasParameter('another'));
+        $this->assertTrue($uriObj->isAllParametersSet());
+    }
+    /**
+     * @test
+     */
+    public function testSplitURI_14() {
+        $uri = 'https://programmingacademia.com/{some-var?}/{another}/not/super';
+        $uriObj = new Uri($uri, '');
+        $this->assertEquals('/{some-var?}/{another}/not/super',$uriObj->getPath());
+        $this->assertTrue($uriObj->hasParameter('some-var'));
+        $this->assertTrue($uriObj->hasParameter('another'));
+        $this->assertFalse($uriObj->isAllParametersSet());
     }
 }
