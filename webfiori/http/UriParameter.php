@@ -25,12 +25,12 @@ class UriParameter {
             throw new InvalidArgumentException('Empty string not allowed as variable name.');
         }
         $lastChar = $varName[strlen($varName) - 1];
-        if ($lastChar == '?') {
+        if ($lastChar == '%3F' || $lastChar == '?') {
             $this->isOptional = true;
         } else {
             $this->isOptional = false;
         }
-        $this->name = trim($trimmed, '?');
+        $this->name = trim(trim($trimmed, '?'), '%3F');
     }
     /**
      * Checks if the parameter is optional.
