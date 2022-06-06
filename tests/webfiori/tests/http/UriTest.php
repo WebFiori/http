@@ -309,4 +309,26 @@ class UriTest extends TestCase {
         $this->assertEquals('one=2',$uriObj->getQueryString());
         $this->assertTrue($uriObj->hasParameter('some-var'));
     }
+    /**
+     * @test
+     */
+    public function testSplitURI_13() {
+        $uri = 'https://programmingacademia.com/{some-var?}/{another?}/not/super';
+        $uriObj = new Uri($uri, '');
+        $this->assertEquals('/{some-var?}/{another?}/not/super',$uriObj->getPath());
+        $this->assertTrue($uriObj->hasParameter('some-var'));
+        $this->assertTrue($uriObj->hasParameter('another'));
+        $this->assertTrue($uriObj->isAllParametersSet());
+    }
+    /**
+     * @test
+     */
+    public function testSplitURI_14() {
+        $uri = 'https://programmingacademia.com/{some-var?}/{another}/not/super';
+        $uriObj = new Uri($uri, '');
+        $this->assertEquals('/{some-var?}/{another}/not/super',$uriObj->getPath());
+        $this->assertTrue($uriObj->hasParameter('some-var'));
+        $this->assertTrue($uriObj->hasParameter('another'));
+        $this->assertFalse($uriObj->isAllParametersSet());
+    }
 }
