@@ -73,13 +73,6 @@ class Request {
     private static $inst;
     /**
      *
-     * @var string
-     * 
-     * @since 1.0 
-     */
-    private $requestedUri;
-    /**
-     *
      * @var HeadersPool
      * 
      * @since 1.0 
@@ -87,7 +80,6 @@ class Request {
     private $headersPool;
 
     private function __construct() {
-        $this->requestedUri = null;
         $this->headersPool = new HeadersPool();
     }
     /**
@@ -205,26 +197,21 @@ class Request {
      * @since 1.0
      */
     public static function getRequestedURI() : string {
-        if (self::get()->requestedUri === null) {
-            $base = Uri::getBaseURL();
-            $path = getenv('REQUEST_URI');
+        $base = Uri::getBaseURL();
+        $path = getenv('REQUEST_URI');
 
-            if ($path === false) {
-                // Using built-in server, it will be false
-                $path = isset($_SERVER['PATH_INFO']) ? $_SERVER['PATH_INFO'] : '';
-                
-            } 
-            $toAppend = trim(filter_var($path),'/');
-            
-            if (defined('WF_PATH_TO_APPEND')) {
-                $toAppend = str_replace(trim(str_replace('\\', '/', WF_PATH_TO_APPEND), '/'),'' ,$toAppend);
-            }
-            
-            self::get()->requestedUri = $base.'/'.trim($toAppend, '/');
+        if ($path === false) {
+            // Using built-in server, it will be false
+            $path = isset($_SERVER['PATH_INFO']) ? $_SERVER['PATH_INFO'] : '';
+
+        } 
+        $toAppend = trim(filter_var($path),'/');
+
+        if (defined('WF_PATH_TO_APPEND')) {
+            $toAppend = str_replace(trim(str_replace('\\', '/', WF_PATH_TO_APPEND), '/'),'' ,$toAppend);
         }
 
-
-        return self::get()->requestedUri;
+        return $base.'/'.trim($toAppend, '/');
     }
     /**
      * Returns HTTP request headers.
