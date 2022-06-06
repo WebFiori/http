@@ -24,7 +24,6 @@
  */
 namespace webfiori\http;
 
-
 /**
  * A class that represents HTTP response.
  * 
@@ -41,13 +40,6 @@ namespace webfiori\http;
 class Response {
     /**
      *
-     * @var boolean
-     * 
-     * @since 1.0.1 
-     */
-    private $isSent;
-    /**
-     *
      * @var array 
      * 
      * @since 1.0
@@ -60,6 +52,7 @@ class Response {
      * @since 1.0 
      */
     private $body;
+    private $cookies;
     /**
      *
      * @var HeadersPool
@@ -74,6 +67,13 @@ class Response {
      * @since 1.0 
      */
     private static $inst;
+    /**
+     *
+     * @var boolean
+     * 
+     * @since 1.0.1 
+     */
+    private $isSent;
     /**
      *
      * @var boolean
@@ -98,6 +98,15 @@ class Response {
         $this->lock = false;
         $this->isSent = false;
         $this->beforeSendCalls = [];
+        $this->cookies = [];
+    }
+    /**
+     * Adds new cookie to the list of response cookies.
+     * 
+     * @param HttpCookie $cookie An object that holds cookie properties.
+     */
+    public static function addCookie(HttpCookie $cookie) {
+        self::get()->cookies[] = $cookie;
     }
     /**
      * Adds new HTTP header to the response.
@@ -170,6 +179,18 @@ class Response {
         return self::get();
     }
     /**
+     * Returns an instance of the class.
+     * 
+     * @return Response
+     */
+    public static function get() {
+        if (self::$inst === null) {
+            self::$inst = new Response();
+        }
+
+        return self::$inst;
+    }
+    /**
      * Returns a string that represents response body that will be send.
      * 
      * @return string A string that represents response body that will be send.
@@ -188,6 +209,30 @@ class Response {
      */
     public static function getCode() : int {
         return self::get()->responseCode;
+    }
+    /**
+     * Returns an object that holds cookie information given its name.
+     * 
+     * @param string $cookieName The name of the cookie.
+     * 
+     * @return HttpCookie|null If a cookie which has the given name exist,
+     * the method will return it as an object. Other than that, null
+     * is returned.
+     */
+    public static function getCookie(string $cookieName) {
+        foreach (self::getCookies() as $cookie) {
+            if ($cookie->getName() == $cookieName) {
+                return $cookie;
+            }
+        }
+    }
+    /**
+     * Returns an array of all cookies that will be sent with the response.
+     * 
+     * @return array An array that holds objects of type 'HttpCookie'.
+     */
+    public static function getCookies() : array {
+        return self::get()->cookies;
     }
     /**
      * Returns the value(s) of specific HTTP header.
@@ -213,8 +258,25 @@ class Response {
     public static function getHeaders() : array {
         return self::getHeadersPool()->getHeaders();
     }
+    /**
+     * Returns the instance which is used to hold all http headers that
+     * will be sent with the request.
+     * 
+     * @return HeadersPool
+     */
     public static function getHeadersPool() : HeadersPool {
         return self::get()->headersPool;
+    }
+    /**
+     * Checks if the response will have specific cookie given its name.
+     * 
+     * @param string $cookieName The name of the cookie.
+     * 
+     * @return bool If the response will have a cookie with specified name,
+     * the method will return true. False if not.
+     */
+    public static function hasCookie(string $cookieName) : bool {
+        return self::getCookie($cookieName) !== null;
     }
     /**
      * Checks if the response will have specific header or not.
@@ -277,6 +339,7 @@ class Response {
         if (!self::isSent()) {
             if (!self::get()->lock) {
                 self::get()->lock = true;
+
                 foreach (self::get()->beforeSendCalls as $func) {
                     call_user_func($func);
                 }
@@ -288,10 +351,14 @@ class Response {
 
                 http_response_code(self::getCode());
 
-                foreach (self::getHeaders() as $headerName => $headerVals) {
+                foreach (self::getHeaders() as $headerObj) {
                     foreach ($headerVals as $headerVal) {
-                        header($headerName.': '.$headerVal, false);
+                        header($headerObj.'', false);
                     }
+                }
+
+                foreach (self::getCookies() as $cookie) {
+                    header($cookie->getHeader().'', false);
                 }
 
                 if (is_callable('fastcgi_finish_request')) {
@@ -339,17 +406,5 @@ class Response {
         self::get()->body .= $str;
 
         return self::get();
-    }
-    /**
-     * Returns an instance of the class.
-     * 
-     * @return Response
-     */
-    public static function get() {
-        if (self::$inst === null) {
-            self::$inst = new Response();
-        }
-
-        return self::$inst;
     }
 }

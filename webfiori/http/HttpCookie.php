@@ -15,14 +15,17 @@ class HttpCookie {
         'Strict',
         'None'
     ];
+    private $cookieName;
+    private $domain;
     private $expires;
     private $httpOnly;
-    private $cookieName;
-    private $sameSite;
     private $path;
-    private $domain;
+    private $sameSite;
     private $secure;
     private $val;
+    /**
+     * Creates new instance of the class with default properties.
+     */
     public function __construct() {
         $this->httpOnly = true;
         $this->cookieName = 'new-cookie';
@@ -33,95 +36,42 @@ class HttpCookie {
         $this->val = hash('sha256', date('Y-m-d H:i:s'));
         $this->expires = 0;
     }
+    public function __toString() {
+        return $this->getHeaderString();
+    }
     /**
-     * Sets the value of the attribute 'same site'.
+     * Returns an object that represents http header of the cookie.
      * 
-     * The SameSite attribute lets servers specify whether/when cookies are sent
-     * with cross-site requests. This provides some protection against 
-     * cross-site request forgery attacks (CSRF).
-     * 
-     * @param string $val The attribute can have only one of 3 values, 'Lax',
-     * 'None' and 'Strict'.
-     * 
-     * @return bool If set, the method will return true.
-     * False otherwise.
+     * @return HttpHeader
      */
-    public function setSameSite(string $val) : bool {
-        $trimmed = trim($val);
-        
-        if (in_array($trimmed, self::SAME_SITE)) {
-            $this->sameSite = $trimmed;
-            return true;
+    public function getHeader() : HttpHeader {
+        return new HttpHeader('set-cookie', $this.'');
+    }
+    /**
+     * Returns a string which can be used to sent the cookie using Http headers.
+     * 
+     * @return string
+     */
+    public function getHeaderString() : string {
+        $cookieName = $this->getName();
+        $cookieVal = $this->getValue();
+        $lifetime = $this->getLifetime();
+        $expires = $lifetime;
+
+        if ($lifetime != '') {
+            $expires = '; expires='.$lifetime;
         }
-        return false;
-    }
-    /**
-     * Sets cookie duration.
-     * 
-     * @param float $expireAfter Cookie duration in minutes.
-     * 
-     * @return boolean If cookie duration is updated, the method will return true. 
-     * False otherwise.
-     */
-    public function setExpires(float $expireAfter) : bool {
-        if ($expireAfter >= 0) {
-            $this->expires = time() + $expireAfter;
-            return true;
-        }
-        return false;
-    }
-    /**
-     * Sets the path at which the cookie will operate at.
-     * 
-     * he Path attribute indicates a URL path that must exist in the requested 
-     * URL in order to send the Cookie header.
-     * 
-     * @param string $path
-     */
-    public function setPath(string $path) {
-        $this->path = trim($path);
-    }
-    /**
-     * Sets the value of the cookie.
-     * 
-     * @param string $value A non-empty string that represents the value of the 
-     * cookie.
-     */
-    public function setValue(string $value) {
-        $trimmed = trim($value);
-        if (strlen($trimmed) > 0) {
-            $this->val = $trimmed;
-        }
-    }
-    /**
-     * Sets the name of the cookie.
-     * 
-     * @param string $name A non-empty string that represents the name of the 
-     * cookie.
-     */
-    public function setName(string $name) {
-        $trimmed = trim($name);
-        if (strlen($trimmed) > 0) {
-            $this->cookieName = $name;
-        }
-    }
-    /**
-     * Returns a string that represents the name of the cookie.
-     * 
-     * @return string A string that represents the name of the cookie. Default
-     * return value is 'new-cookie'.
-     */
-    public function getName() : string {
-        return $this->cookieName;
-    }
-    /**
-     * Returns a string that represents the name of the cookie.
-     * 
-     * @return string A string that represents the name of the cookie. Default
-     * return value is a random hash.
-     */
-    public function getValue() : string {
-        return $this->val;
+        $cookiePath = $this->getPath();
+        $isSecure = $this->isSecure() ? '; Secure' : '';
+        $isHttpOnly = $this->isHttpOnly() ? '; HttpOnly' : '';
+        $sameSiteVal = $this->getSameSite();
+
+        return "$cookieName=$cookieVal"
+                ."$expires; "
+                ."path=".$cookiePath
+                ."$isSecure"
+                ."$isHttpOnly"
+                .'; SameSite='.$sameSiteVal;
     }
     /**
      * Returns a string that represents the time at which the cookie will
@@ -135,7 +85,17 @@ class HttpCookie {
         if ($this->expires === 0) {
             return '';
         }
+
         return date(DATE_COOKIE, $this->expires);
+    }
+    /**
+     * Returns a string that represents the name of the cookie.
+     * 
+     * @return string A string that represents the name of the cookie. Default
+     * return value is 'new-cookie'.
+     */
+    public function getName() : string {
+        return $this->cookieName;
     }
     /**
      * Returns the path at which the cookie will operate at.
@@ -148,6 +108,39 @@ class HttpCookie {
      */
     public function getPath() : string {
         return $this->path;
+    }
+    /**
+     * Returns the value of the attribute 'SameSite'.
+     * 
+     * The SameSite attribute lets servers specify whether/when cookies are sent
+     * with cross-site requests. This provides some protection against 
+     * cross-site request forgery attacks (CSRF).
+     * 
+     * @return string One of 3 values, 'Lax', 'None' or 'Strict'
+     */
+    public function getSameSite() : string {
+        return $this->sameSite;
+    }
+    /**
+     * Returns a string that represents the name of the cookie.
+     * 
+     * @return string A string that represents the name of the cookie. Default
+     * return value is a random hash.
+     */
+    public function getValue() : string {
+        return $this->val;
+    }
+    /**
+     * Checks if the attribute 'HttpOnly' is set or not.
+     * 
+     * A cookie with the HttpOnly attribute is inaccessible to the JavaScript
+     * Document.cookie API; it's only sent to the server.
+     * 
+     * @return bool If set, the method will return true. False otherwise. Default
+     * is true.
+     */
+    public function isHttpOnly() : bool {
+        return $this->httpOnly;
     }
     /**
      * Checks if the attribute 'Secure' is set or not.
@@ -164,54 +157,105 @@ class HttpCookie {
         return $this->secure;
     }
     /**
-     * Checks if the attribute 'HttpOnly' is set or not.
+     * Sets cookie duration.
+     * 
+     * @param float $expireAfter Cookie duration in minutes.
+     * 
+     * @return boolean If cookie duration is updated, the method will return true. 
+     * False otherwise.
+     */
+    public function setExpires(float $expireAfter) : bool {
+        if ($expireAfter >= 0) {
+            $this->expires = time() + $expireAfter;
+
+            return true;
+        }
+
+        return false;
+    }
+    /**
+     * Sets the attribute 'HttpOnly'.
      * 
      * A cookie with the HttpOnly attribute is inaccessible to the JavaScript
      * Document.cookie API; it's only sent to the server.
      * 
-     * @return bool If set, the method will return true. False otherwise. Default
-     * is true.
+     * @param bool $bool True to make it HttpOnly. false other wise.
      */
-    public function isHttpOnly() : bool {
-        return $this->httpOnly;
+    public function setIsHttpOnly(bool $bool) {
+        $this->httpOnly = $bool;
     }
     /**
-     * Returns the value of the attribute 'SameSite'.
+     * Sets the attribute 'Secure'.
+     * 
+     * A cookie with the Secure attribute is only sent to the server with an
+     * encrypted request over the HTTPS protocol. It's never sent with unsecured
+     * HTTP (except on localhost), which means man-in-the-middle attackers
+     * can't access it easily.
+     * 
+     * @param bool $bool True to make the cookie secure only. False to not.
+     */
+    public function setIsSecure(bool $bool) {
+        $this->secure = $bool;
+    }
+    /**
+     * Sets the name of the cookie.
+     * 
+     * @param string $name A non-empty string that represents the name of the 
+     * cookie.
+     */
+    public function setName(string $name) {
+        $trimmed = trim($name);
+
+        if (strlen($trimmed) > 0) {
+            $this->cookieName = $name;
+        }
+    }
+    /**
+     * Sets the path at which the cookie will operate at.
+     * 
+     * he Path attribute indicates a URL path that must exist in the requested 
+     * URL in order to send the Cookie header.
+     * 
+     * @param string $path
+     */
+    public function setPath(string $path) {
+        $this->path = trim($path);
+    }
+    /**
+     * Sets the value of the attribute 'same site'.
      * 
      * The SameSite attribute lets servers specify whether/when cookies are sent
      * with cross-site requests. This provides some protection against 
      * cross-site request forgery attacks (CSRF).
      * 
-     * @return string One of 3 values, 'Lax', 'None' or 'Strict'
+     * @param string $val The attribute can have only one of 3 values, 'Lax',
+     * 'None' and 'Strict'.
+     * 
+     * @return bool If set, the method will return true.
+     * False otherwise.
      */
-    public function getSameSite() : string {
-        return $this->sameSite;
+    public function setSameSite(string $val) : bool {
+        $trimmed = trim($val);
+
+        if (in_array($trimmed, self::SAME_SITE)) {
+            $this->sameSite = $trimmed;
+
+            return true;
+        }
+
+        return false;
     }
     /**
-     * Returns a string which can be used to sent the cookie using Http headers.
+     * Sets the value of the cookie.
      * 
-     * @return string
+     * @param string $value A non-empty string that represents the value of the 
+     * cookie.
      */
-    public function getHeaderString() : string {
-        $cookieName = $this->getName();
-        $cookieVal = $this->getValue();
-        $lifetime = $this->getLifetime();
-        $expires = $lifetime;
-        if ($lifetime != '') {
-            $expires = '; expires='.$lifetime;
+    public function setValue(string $value) {
+        $trimmed = trim($value);
+
+        if (strlen($trimmed) > 0) {
+            $this->val = $trimmed;
         }
-        $cookiePath = $this->getPath();
-        $isSecure = $this->isSecure() ? '; Secure' : '';
-        $isHttpOnly = $this->isHttpOnly() ? '; HttpOnly' : '';
-        $sameSiteVal = $this->getSameSite();
-        return "$cookieName=$cookieVal"
-                ."$expires; "
-                ."path=".$cookiePath
-                ."$isSecure"
-                ."$isHttpOnly"
-                .'; SameSite='.$sameSiteVal;
-    }
-    public function __toString() {
-        return $this->getHeaderString();
     }
 }

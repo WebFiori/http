@@ -332,4 +332,22 @@ class UriTest extends TestCase {
         $this->assertTrue($uriObj->hasParameter('another'));
         $this->assertFalse($uriObj->isAllParametersSet());
     }
+    /**
+     * @test
+     */
+    public function testSplitURI_15() {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Empty string not allowed as variable name.');
+        $uri = 'https://programmingacademia.com/{}/{another}/not/super';
+        $uriObj = new Uri($uri, '');
+    }
+    /**
+     * @test
+     */
+    public function testSplitURI_16() {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Empty string not allowed as variable name.');
+        $uri = 'https://programmingacademia.com/{?}/{another}/not/super';
+        $uriObj = new Uri($uri, '');
+    }
 }

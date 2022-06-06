@@ -4,6 +4,7 @@ namespace webfiori\tests\http;
 
 use PHPUnit\Framework\TestCase;
 use webfiori\http\Response;
+use webfiori\http\HttpCookie;
 
 /**
  * Description of RequestTest
@@ -130,5 +131,19 @@ class ResponseTest extends TestCase {
         Response::clearHeaders();
         $headerArr = Response::getHeaders();
         $this->assertEquals([], $headerArr);
+    }
+    /**
+     * @test
+     */
+    public function testCookies00() {
+        $this->assertFalse(Response::hasCookie('cool'));
+        $this->assertEquals([], Response::getCookies());
+        $this->assertNull(Response::getCookie('cool'));
+        $coolCookie = new HttpCookie();
+        $coolCookie->setName('cool');
+        Response::addCookie($coolCookie);
+        $this->assertTrue(Response::hasCookie('cool'));
+        $this->assertEquals([$coolCookie], Response::getCookies());
+        $this->assertNotNull(Response::getCookie('cool'));
     }
 }
