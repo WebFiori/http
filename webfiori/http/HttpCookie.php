@@ -193,23 +193,23 @@ class HttpCookie {
      * @return string
      */
     public function getHeaderString() : string {
-        $name = $this->getName();
-        $value = $this->getValue();
+        $cookieName = $this->getName();
+        $cookieVal = $this->getValue();
         $lifetime = $this->getLifetime();
         $expires = $lifetime;
         if ($lifetime != '') {
             $expires = '; expires='.$lifetime;
         }
-        $path = $this->getPath();
-        $secure = $this->isSecure() ? '; Secure' : '';
-        $httpOnly = $this->isHttpOnly() ? '; HttpOnly' : '';
-        $sameSite = $this->getSameSite();
-        return "$name=$value"
+        $cookiePath = $this->getPath();
+        $isSecure = $this->isSecure() ? '; Secure' : '';
+        $isHttpOnly = $this->isHttpOnly() ? '; HttpOnly' : '';
+        $sameSiteVal = $this->getSameSite();
+        return "$cookieName=$cookieVal"
                 ."$expires; "
-                ."path=".$path
-                ."$secure"
-                ."$httpOnly"
-                .'; SameSite='.$sameSite;
+                ."path=".$cookiePath
+                ."$isSecure"
+                ."$isHttpOnly"
+                .'; SameSite='.$sameSiteVal;
     }
     public function __toString() {
         return $this->getHeaderString();
