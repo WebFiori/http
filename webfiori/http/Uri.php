@@ -698,10 +698,12 @@ class Uri {
         $retVal['fragment'] = isset($split1[1]) ? $split1[1] : '';
 
         //after that, extract the query string
+        $split1[0] = str_replace('?}', '<>', $split1[0]);
         $split2 = self::_queryOrFragment($split1[0], '?', '%3F');
 
         $retVal['query-string'] = isset($split2[1]) ? $split2[1] : '';
-
+        
+        $split2[0] = str_replace('<>', '?}', $split2[0]);
         //next comes the scheme
         $split3 = explode(':', $split2[0]);
         $retVal['scheme'] = $split3[0];
@@ -751,6 +753,17 @@ class Uri {
 
         return $retVal;
     }
+    /**
+     * Splits a string based on character mask.
+     * 
+     * @param string $split The string to split.
+     * 
+     * @param string $char The character that the split is based on.
+     * 
+     * @param string $encoded The character when encoded in URI.
+     * 
+     * @return type
+     */
     private static function _queryOrFragment($split, $char, $encoded) {
         $split2 = explode($char, $split);
         $spCount = count($split2);
