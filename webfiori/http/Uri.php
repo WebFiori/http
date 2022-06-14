@@ -101,15 +101,15 @@ class Uri {
         }
     }
     /**
-     * Adds a possible value for a URI variable.
+     * Adds a possible value for a URI parameter.
      * 
      * This is used in constructing the sitemap node of the URI. If a value is 
      * provided, then it will be part of the URI that will appear in the sitemap.
      * 
-     * @param string $varName The name of the variable. It must be exist as 
+     * @param string $varName The name of the parameter. It must be exist as 
      * the path part in the URI.
      * 
-     * @param string $varValue The value of the variable. Note that any extra spaces 
+     * @param string $varValue The value of the parameter. Note that any extra spaces 
      * in the value will be trimmed.
      * 
      * @since 1.0
@@ -125,12 +125,12 @@ class Uri {
         }
     }
     /**
-     * Adds multiple values to URI variable.
+     * Adds multiple values to URI parameter.
      * 
-     * @param string $varName The name of he variable.
+     * @param string $varName The name of the parameter.
      * 
      * @param array $arrayOfVals An array that contains all possible values for 
-     * the variable.
+     * the parameter.
      * 
      * @since 1.0
      */
@@ -266,7 +266,7 @@ class Uri {
      * <li><b>fragment</b>: Any string that comes after the character '#' in the URI.</li>
      * <li><b>path</b>: An array that contains the names of path directories</li>
      * <li><b>query-string-vars</b>: An array that contains query string parameter and values.</li>
-     * <li><b>uri-vars</b>: An array that contains URI path variable and values.</li>
+     * <li><b>uri-vars</b>: An array that contains URI path parameter and values.</li>
      * </ul>
      * 
      * @since 1.0
@@ -463,39 +463,40 @@ class Uri {
         return $retVal;
     }
     /**
-     * Returns the value of URI variable given its name.
+     * Returns the value of URI parameter given its name.
      * 
-     * A variable is a string which is defined while creating the route. 
+     * A URI parameter is a string which is defined while creating the route. 
      * it is name is included between '{}'.
      * 
-     * @param string $varName The name of the variable. Note that this value 
+     * @param string $varName The name of the parameter. Note that this value 
      * must not include braces.
      * 
      * @return string|null The method will return the value of the 
-     * variable if found. If the variable is not set or the variable 
+     * parameter if found. If the parameter is not set or the parameter 
      * does not exist, the method will return null.
      * 
      * @since 1.0
      */
-    public function getUriVar(string $varName) {
-        if ($this->hasParameter($varName)) {
-            return $this->uriBroken['uri-vars'][$varName];
+    public function getParameterValue(string $varName) {
+        $param = $this->getParameter($varName);
+        if ($param !== null) {
+            return $param->getValue();
         }
 
         return null;
     }
     /**
-     * Returns an array that contains possible values for a URI variable.
+     * Returns an array that contains possible values for a URI parameter.
      * 
-     * @param string $varName The name of the variable.
+     * @param string $varName The name of the parameter.
      * 
      * @return array The method will return an array that contains all possible 
-     * values for the variable which was added using the method Router::addUriVarValue(). 
-     * If the variable does not exist, the array will be empty.
+     * values for the parameter which was added using the method Router::addUriVarValue(). 
+     * If the parameter does not exist, the array will be empty.
      * 
      * @since 1.3.6
      */
-    public function getVarValues(string $varName) {
+    public function getParameterValues(string $varName) {
         $trimmed = trim($varName);
 
         if (isset($this->uriBroken['vars-possible-values'][$trimmed])) {
@@ -505,14 +506,14 @@ class Uri {
         return [];
     }
     /**
-     * Checks if the URI has a variable or not given its name.
+     * Checks if the URI has a parameter or not given its name.
      * 
-     * A variable is a string which is defined while creating the route. 
+     * A parameter is a string which is defined while creating the route. 
      * it is name is included between '{}'.
      * 
-     * @param string $varName The name of the variable.
+     * @param string $varName The name of the parameter.
      * 
-     * @return boolean If the given variable name is exist, the method will 
+     * @return boolean If the given parameter name is exist, the method will 
      * return true. Other than that, the method will return false.
      * 
      * @since 1.0
@@ -602,7 +603,7 @@ class Uri {
      * @param string $value The value of the parameter.
      * 
      * @return bool The method will return true if the parameter 
-     * was set. If the variable does not exist, the method will return false.
+     * was set. If the parameter does not exist, the method will return false.
      * 
      * @since 1.0
      */
@@ -671,7 +672,7 @@ class Uri {
      * <li><b>fragment</b>: Any string that comes after the character '#' in the URI.</li>
      * <li><b>path</b>: An array that contains the names of path directories</li>
      * <li><b>query-string-vars</b>: An array that contains query string parameter and values.</li>
-     * <li><b>uri-vars</b>: An array that contains URI path variable and values.</li>
+     * <li><b>uri-vars</b>: An array that contains URI path parameters and values.</li>
      * </ul>
      * 
      * @since 1.0
@@ -725,8 +726,8 @@ class Uri {
 
         //after that, we create the path from the remaining parts
         //also we check if the path has parameters or not
-        //a variable is a value in the path which is enclosed between {}
-        //optional variable ends with ? (e.g. {name?}
+        //a parameter is a value in the path which is enclosed between {}
+        //optional parameter ends with ? (e.g. {name?}
         $addedParams = [];
 
         for ($x = 3 ; $x < count($split4) ; $x++) {
