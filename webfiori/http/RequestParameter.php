@@ -613,10 +613,7 @@ class RequestParameter implements JsonI {
         if (in_array($sType, ParamTypes::getTypes())) {
             $this->type = $sType;
 
-            if ($sType == ParamTypes::INT || ($sType == ParamTypes::DOUBLE && PHP_MAJOR_VERSION <= 7 && PHP_MINOR_VERSION < 2)) {    
-                $this->minVal = defined('PHP_INT_MIN') ? PHP_INT_MIN : ~PHP_INT_MAX;
-                $this->maxVal = PHP_INT_MAX;
-            } else if ($sType == ParamTypes::DOUBLE && PHP_MAJOR_VERSION >= 7 && PHP_MINOR_VERSION >= 2) {
+            if ($sType == ParamTypes::DOUBLE && PHP_MAJOR_VERSION >= 7 && PHP_MINOR_VERSION >= 2) {
                 $this->maxVal = PHP_FLOAT_MAX;
                 $this->minVal = PHP_FLOAT_MIN;
             } else if ($sType == ParamTypes::INT || $sType == ParamTypes::DOUBLE) {
