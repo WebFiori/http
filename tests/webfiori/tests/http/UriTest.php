@@ -201,6 +201,8 @@ class UriTest extends TestCase {
         $this->assertEquals(8080, $components['port']);
         $this->assertEquals('22', $components['fragment']);
         $this->assertEquals(['hell'], $components['path']);
+        $this->assertFalse($uri->hasParameters());
+        $this->assertNull($uri->getParameterValue('not-exist'));
     }
     /**
      * @test
@@ -250,6 +252,7 @@ class UriTest extends TestCase {
         $uri = 'https://www3.programmingacademia.com:80/{some-var}/hell/{other-var}/?do=dnt&y=#xyz';
         $uriObj = new Uri($uri, '');
         $this->assertEquals('/{some-var}/hell/{other-var}',$uriObj->getPath());
+        $this->assertTrue($uriObj->hasParameters());
         $queryStrVars = $uriObj->getQueryStringVars();
         $this->assertEquals(2,count($queryStrVars));
         $this->assertEquals('dnt',$queryStrVars['do']);
