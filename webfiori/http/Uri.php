@@ -67,7 +67,6 @@ class Uri {
      */
     public function __construct(string $requestedUri) {
         $this->allowedRequestMethods = [];
-        $this->isCS = false;
         $this->uriBroken = self::splitURI($requestedUri);
 
         if (gettype($this->uriBroken) != 'array') {
