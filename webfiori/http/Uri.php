@@ -54,14 +54,6 @@ class Uri {
      */
     private $allowedRequestMethods;
     /**
-     * A boolean which is set to true if URI is case sensitive.
-     * 
-     * @var boolean 
-     * 
-     * @since 1.0
-     */
-    private $isCS;
-    /**
      * The URI broken into its sub-components (scheme, authority ...) as an associative 
      * array.
      * @var array 
@@ -75,6 +67,7 @@ class Uri {
      */
     public function __construct(string $requestedUri) {
         $this->allowedRequestMethods = [];
+        $this->isCS = false;
         $this->uriBroken = self::splitURI($requestedUri);
 
         if (gettype($this->uriBroken) != 'array') {
@@ -552,17 +545,7 @@ class Uri {
 
         return $canRoute;
     }
-    /**
-     * Returns the value of the property that tells if the URI is case sensitive 
-     * or not.
-     * 
-     * @return boolean  True if URI case sensitive. False if not. Default is false.
-     * 
-     * @since 1.0
-     */
-    public function isCaseSensitive() : bool {
-        return $this->isCS;
-    }
+    
     /**
      * Checks if URI is fetched using allowed request method or not.
      * 
@@ -578,20 +561,7 @@ class Uri {
 
         return count($methods) == 0 || in_array(Request::getMethod(), $this->getRequestMethods());
     }
-    /**
-     * Make the URI case sensitive or not.
-     * 
-     * This is mainly used in case the developer would like to use the 
-     * URI in routing.
-     *  
-     * @param boolean $caseSensitive True to make it case sensitive. False to 
-     * not.
-     * 
-     * @since 1.0 
-     */
-    public function setIsCaseSensitive(bool $caseSensitive) {
-        $this->isCS = $caseSensitive === true;
-    }
+    
     /**
      * Sets the value of a URI parameter.
      * 
@@ -617,28 +587,6 @@ class Uri {
         }
 
         return false;
-    }
-    /**
-     * Sets the requested URI.
-     * 
-     * @param string $uri A string that represents requested URI.
-     * 
-     * @return boolean If the requested URI is a match with the original URI which 
-     * is stored in the object, it will be set and the method will return true. 
-     * Other than that, the method will return false.
-     * 
-     * @since 1.0
-     */
-    public function setRequestedUri(string $uri) {
-        $this->uriBroken['requested-uri'] = self::splitURI($uri);
-
-        if (!$this->_comparePath()) {
-            unset($this->uriBroken['requested-uri']);
-
-            return false;
-        }
-
-        return true;
     }
     /**
      * Adds a set of request methods to the allowed methods at which the URI
@@ -734,7 +682,7 @@ class Uri {
             $dirName = $split4[$x];
 
             if ($dirName != '') {
-                $retVal['path'][] = utf8_decode(urldecode($dirName));
+                $retVal['path'][] = mb_convert_encoding(urldecode($dirName), 'UTF-8', 'ISO-8859-1');
 
                 if ($dirName[0] == '{' && $dirName[strlen($dirName) - 1] == '}') {
                     $name = trim($split4[$x], '{}');
@@ -761,49 +709,7 @@ class Uri {
 
         return $retVal;
     }
-    /**
-     * Validate the path part of original URI and the requested one.
-     * 
-     * @return boolean
-     * 
-     * @since 1.0
-     */
-    private function _comparePath() {
-        $requestedArr = $this->getRequestedUri();
-
-        if ($requestedArr !== null) {
-            $originalPath = $this->getPathArray();
-            $requestedPath = $requestedArr['path'];
-
-            if (count($originalPath) == count($requestedPath)) {
-                return $this->_comparePathHelper($originalPath, $requestedPath);
-            }
-        }
-
-        return false;
-    }
-    private function _comparePathHelper($originalPath, $requestedPath) {
-        $count = count($originalPath);
-
-        for ($x = 0 ; $x < $count ; $x++) {
-            $original = $originalPath[$x];
-
-            if (!($original[0] == '{' && $original[strlen($original) - 1] == '}')) {
-                $requested = $requestedPath[$x];
-
-                if (!$this->isCaseSensitive()) {
-                    $requested = strtolower($requested);
-                    $original = strtolower($original);
-                }
-
-                if ($requested != $original) {
-                    return false;
-                }
-            }
-        }
-
-        return true;
-    }
+    
     /**
      * Splits a string based on character mask.
      * 

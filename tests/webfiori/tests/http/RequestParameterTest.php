@@ -197,6 +197,8 @@ class RequestParameterTest extends TestCase {
         $this->assertNull($requestParam->getDescription());
         $this->assertNull($requestParam->getCustomFilterFunction());
         $this->assertEquals('double',$requestParam->getType());
+        $this->assertTrue($requestParam->setType('int'));
+        $this->assertEquals('integer',$requestParam->getType());
     }
     /**
      * @test
