@@ -41,10 +41,9 @@ The idea of the library is as follows, when a client performs a request to a web
 An end point is represented by the class [`AbstractWebService`](https://webfiori.com/docs/webfiori/http/AbstractWebService) and a set of web service (or end ponts) are grouped using the class [`WebServicesManager`](https://webfiori.com/docs/webfiori/http/WebServicesManager). Also, body parameters represented by the class [`RequestParameter`](https://webfiori.com/docs/webfiori/http/RequestParameter).
 
 ## Features
-* Full support for creating REST services that supports JSON as response.
+* Full support for creating REST services that supports JSON as request and response.
 * Support for basic data filtering and validation.
 * The ability to create custom filters based on the need.
-* Support for `application/json` content type for `POST` and `PUT` request methods.
 
 ## Installation
 If you are using composer to collect your dependencies, you can simply include the following entry in your 'composer.json' file to get the latest release of the library:
