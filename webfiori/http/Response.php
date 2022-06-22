@@ -350,9 +350,7 @@ class Response {
                 http_response_code(self::getCode());
 
                 foreach (self::getHeaders() as $headerObj) {
-                    foreach ($headerVals as $headerVal) {
-                        header($headerObj.'', false);
-                    }
+                    header($headerObj.'', false);
                 }
 
                 foreach (self::getCookies() as $cookie) {
