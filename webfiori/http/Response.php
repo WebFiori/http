@@ -137,10 +137,8 @@ class Response {
      * 
      * @since 1.0
      */
-    public static function beforeSend($func) {
-        if (is_callable($func)) {
-            self::get()->beforeSendCalls[] = $func;
-        }
+    public static function beforeSend(callable $func) {
+        self::get()->beforeSendCalls[] = $func;
     }
     /**
      * Removes all added headers and reset the body of the response.

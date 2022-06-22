@@ -38,7 +38,7 @@ class UriTest extends TestCase {
     public function testSetUriPossibleVar00() {
         $uri = new Uri('https://example.com/{first-var}', '');
         $uri->addVarValue('first-var', 'Hello World');
-        $this->assertEquals(['Hello World'], $uri->getVarValues('first-var'));
+        $this->assertEquals(['Hello World'], $uri->getParameterValues('first-var'));
         $this->assertEquals('/{first-var}', $uri->getPath());
         $this->assertEquals(['{first-var}'], $uri->getPathArray());
     }
@@ -48,7 +48,7 @@ class UriTest extends TestCase {
     public function testSetUriPossibleVar01() {
         $uri = new Uri('https://example.com/{first-var}', '');
         $uri->addVarValue('  first-var  ', '  Hello World  ');
-        $this->assertEquals(['Hello World'], $uri->getVarValues('first-var'));
+        $this->assertEquals(['Hello World'], $uri->getParameterValues('first-var'));
     }
     /**
      * @test
@@ -56,7 +56,7 @@ class UriTest extends TestCase {
     public function testSetUriPossibleVar02() {
         $uri = new Uri('https://example.com/{first-var}', '');
         $uri->addVarValues('first-var', ['Hello','World']);
-        $this->assertEquals(['Hello','World'], $uri->getVarValues('first-var'));
+        $this->assertEquals(['Hello','World'], $uri->getParameterValues('first-var'));
     }
     /**
      * @test
@@ -66,8 +66,10 @@ class UriTest extends TestCase {
         $this->assertTrue($uri->hasParameter('first-var'));
         $this->assertFalse($uri->getParameter('first-var')->isOptional());
         $this->assertNull($uri->getParameter('first-var')->getValue());
+        $this->assertNull($uri->getParameterValue('first-var'));
         $uri->setParameterValue('first-var', '1009');
         $this->assertEquals('1009', $uri->getParameter('first-var')->getValue());
+        $this->assertEquals('1009', $uri->getParameterValue('first-var'));
     }
     /**
      * @test
@@ -90,9 +92,9 @@ class UriTest extends TestCase {
         $uri->addVarValues('first-var', ['Hello','World']);
         $uri->addVarValues('  second-var ', ['hell','is','not','heven']);
         $uri->addVarValues('  secohhnd-var ', ['hell','is']);
-        $this->assertEquals(['Hello','World'], $uri->getVarValues('first-var'));
-        $this->assertEquals(['hell','is','not','heven'], $uri->getVarValues('second-var'));
-        $this->assertEquals([], $uri->getVarValues('secohhnd-var'));
+        $this->assertEquals(['Hello','World'], $uri->getParameterValues('first-var'));
+        $this->assertEquals(['hell','is','not','heven'], $uri->getParameterValues('second-var'));
+        $this->assertEquals([], $uri->getParameterValues('secohhnd-var'));
     }
     /**
      * @test
@@ -199,6 +201,8 @@ class UriTest extends TestCase {
         $this->assertEquals(8080, $components['port']);
         $this->assertEquals('22', $components['fragment']);
         $this->assertEquals(['hell'], $components['path']);
+        $this->assertFalse($uri->hasParameters());
+        $this->assertNull($uri->getParameterValue('not-exist'));
     }
     /**
      * @test
@@ -248,6 +252,7 @@ class UriTest extends TestCase {
         $uri = 'https://www3.programmingacademia.com:80/{some-var}/hell/{other-var}/?do=dnt&y=#xyz';
         $uriObj = new Uri($uri, '');
         $this->assertEquals('/{some-var}/hell/{other-var}',$uriObj->getPath());
+        $this->assertTrue($uriObj->hasParameters());
         $queryStrVars = $uriObj->getQueryStringVars();
         $this->assertEquals(2,count($queryStrVars));
         $this->assertEquals('dnt',$queryStrVars['do']);

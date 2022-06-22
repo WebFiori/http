@@ -36,6 +36,15 @@ class HttpCookie {
         $this->val = hash('sha256', date('Y-m-d H:i:s'));
         $this->expires = 0;
     }
+    /**
+     * Kill the cookie.
+     * 
+     * Killing a cookie is simply setting its expire to a negative value which
+     * simply indicates a date in the past.
+     */
+    public function kill() {
+        $this->expires = time() - 60*60*24;
+    }
     public function __toString() {
         return $this->getHeaderString();
     }
@@ -77,7 +86,7 @@ class HttpCookie {
      * Returns a string that represents the time at which the cookie will
      * expire at.
      * 
-     * @return string If the expires is a value which is not 0, the method will return
+     * @return string If the expires is a value is not 0, the method will return
      * a date string in the DATE_COOKIE format. Other than that, the method
      * will return empty string.
      */
