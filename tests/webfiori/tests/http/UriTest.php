@@ -13,7 +13,7 @@ class UriTest extends TestCase {
      */
     public function testAllowedRequestMethods00() {
         putenv('REQUEST_METHOD=GET');
-        $uri = new Uri('https://example.com/', '');
+        $uri = new Uri('https://example.com/');
         $this->assertEquals([], $uri->getRequestMethods());
         $this->assertTrue($uri->isRequestMethodAllowed());
         $uri->addRequestMethod('GET');
@@ -25,7 +25,7 @@ class UriTest extends TestCase {
      */
     public function testAllowedRequestMethods01() {
         putenv('REQUEST_METHOD=GET');
-        $uri = new Uri('https://example.com/', '');
+        $uri = new Uri('https://example.com/');
         $uri->setRequestMethods(['POST', 'PUT', 'Get']);
         $this->assertEquals(['POST', 'PUT'], $uri->getRequestMethods());
         $this->assertFalse($uri->isRequestMethodAllowed());
@@ -36,7 +36,7 @@ class UriTest extends TestCase {
      * @test
      */
     public function testSetUriPossibleVar00() {
-        $uri = new Uri('https://example.com/{first-var}', '');
+        $uri = new Uri('https://example.com/{first-var}');
         $uri->addVarValue('first-var', 'Hello World');
         $this->assertEquals(['Hello World'], $uri->getParameterValues('first-var'));
         $this->assertEquals('/{first-var}', $uri->getPath());
@@ -46,7 +46,7 @@ class UriTest extends TestCase {
      * @test
      */
     public function testSetUriPossibleVar01() {
-        $uri = new Uri('https://example.com/{first-var}', '');
+        $uri = new Uri('https://example.com/{first-var}');
         $uri->addVarValue('  first-var  ', '  Hello World  ');
         $this->assertEquals(['Hello World'], $uri->getParameterValues('first-var'));
     }
@@ -54,7 +54,7 @@ class UriTest extends TestCase {
      * @test
      */
     public function testSetUriPossibleVar02() {
-        $uri = new Uri('https://example.com/{first-var}', '');
+        $uri = new Uri('https://example.com/{first-var}');
         $uri->addVarValues('first-var', ['Hello','World']);
         $this->assertEquals(['Hello','World'], $uri->getParameterValues('first-var'));
     }
@@ -88,7 +88,7 @@ class UriTest extends TestCase {
      * @test
      */
     public function testSetUriPossibleVar03() {
-        $uri = new Uri('https://example.com/{first-var}/ok/{second-var}', '');
+        $uri = new Uri('https://example.com/{first-var}/ok/{second-var}');
         $uri->addVarValues('first-var', ['Hello','World']);
         $uri->addVarValues('  second-var ', ['hell','is','not','heven']);
         $uri->addVarValues('  secohhnd-var ', ['hell','is']);
@@ -99,16 +99,24 @@ class UriTest extends TestCase {
     /**
      * @test
      */
+    public function testSetUriPossibleVar04() {
+        $this->expectException('Exception');
+        $this->expectExceptionMessage('Inncorrect parameters order.');
+        $uri = new Uri('https://example.com/{first-var}/ok/{second-var?}/{non-optional}');
+    }
+    /**
+     * @test
+     */
     public function testInvalid00() {
         $this->expectException('Exception');
-        $uri = new Uri('', '');
+        $uri = new Uri('');
     }
     /**
      * @test
      */
     public function testEquals00() {
-        $uri1 = new Uri('https://example.com/my-folder', '');
-        $uri2 = new Uri('https://example.com/my-folder', '');
+        $uri1 = new Uri('https://example.com/my-folder');
+        $uri2 = new Uri('https://example.com/my-folder');
         $this->assertTrue($uri1->equals($uri2));
         $this->assertTrue($uri2->equals($uri1));
     }
@@ -116,8 +124,8 @@ class UriTest extends TestCase {
      * @test
      */
     public function testEquals01() {
-        $uri1 = new Uri('https://example.com:80/my-folder', '');
-        $uri2 = new Uri('https://example.com/my-folder', '');
+        $uri1 = new Uri('https://example.com:80/my-folder');
+        $uri2 = new Uri('https://example.com/my-folder');
         $this->assertFalse($uri1->equals($uri2));
         $this->assertFalse($uri2->equals($uri1));
     }
@@ -125,8 +133,8 @@ class UriTest extends TestCase {
      * @test
      */
     public function testEquals02() {
-        $uri1 = new Uri('http://example.com/my-folder-2', '');
-        $uri2 = new Uri('https://example.com/my-folder', '');
+        $uri1 = new Uri('http://example.com/my-folder-2');
+        $uri2 = new Uri('https://example.com/my-folder');
         $this->assertFalse($uri1->equals($uri2));
         $this->assertFalse($uri2->equals($uri1));
     }
@@ -134,8 +142,8 @@ class UriTest extends TestCase {
      * @test
      */
     public function testEquals03() {
-        $uri1 = new Uri('http://example.com/my-folder', '');
-        $uri2 = new Uri('https://example.com/my-folder', '');
+        $uri1 = new Uri('http://example.com/my-folder');
+        $uri2 = new Uri('https://example.com/my-folder');
         $this->assertTrue($uri1->equals($uri2));
         $this->assertTrue($uri2->equals($uri1));
     }
@@ -143,8 +151,8 @@ class UriTest extends TestCase {
      * @test
      */
     public function testEquals04() {
-        $uri1 = new Uri('http://example.com/my-folder/{a-var}', '');
-        $uri2 = new Uri('https://example.com/my-folder/{a-var}', '');
+        $uri1 = new Uri('http://example.com/my-folder/{a-var}');
+        $uri2 = new Uri('https://example.com/my-folder/{a-var}');
         $this->assertTrue($uri1->equals($uri2));
         $this->assertTrue($uri2->equals($uri1));
     }
@@ -193,7 +201,7 @@ class UriTest extends TestCase {
      * @test
      */
     public function testGetComponents() {
-        $uri = new Uri('https://example.com:8080/hell?me=ibrahim#22', '');
+        $uri = new Uri('https://example.com:8080/hell?me=ibrahim#22');
         $components = $uri->getComponents();
         $this->assertEquals('https://example.com:8080/hell?me=ibrahim#22', $components['uri']);
         $this->assertEquals('https',$components['scheme']);
@@ -208,8 +216,8 @@ class UriTest extends TestCase {
      * @test
      */
     public function testEquals06() {
-        $uri1 = new Uri('http://example.com/my-Folder/{a-var}', '', false);
-        $uri2 = new Uri('https://example.com/my-folder/{a-var}', '', false);
+        $uri1 = new Uri('http://example.com/my-Folder/{a-var}', false);
+        $uri2 = new Uri('https://example.com/my-folder/{a-var}', false);
         $this->assertFalse($uri1->equals($uri2));
         $this->assertFalse($uri2->equals($uri1));
     }
@@ -218,7 +226,7 @@ class UriTest extends TestCase {
      */
     public function testSplitURI_02() {
         $uri = 'https://www3.programmingacademia.com:80/{some-var}/hell/{other-var}/?do=dnt&y=#xyz';
-        $uriObj = new Uri($uri, '');
+        $uriObj = new Uri($uri);
         $this->assertEquals('80',$uriObj->getPort());
     }
     /**
@@ -226,7 +234,7 @@ class UriTest extends TestCase {
      */
     public function testSplitURI_03() {
         $uri = 'https://www3.programmingacademia.com:80/{some-var}/hell/{other-var}/?do=dnt&y=#xyz';
-        $uriObj = new Uri($uri, '');
+        $uriObj = new Uri($uri);
         $this->assertEquals('xyz',$uriObj->getFragment());
     }
     /**
@@ -234,7 +242,7 @@ class UriTest extends TestCase {
      */
     public function testSplitURI_04() {
         $uri = 'https://www3.programmingacademia.com:80/{some-var}/hell/{other-var}/?do=dnt&y=#xyz';
-        $uriObj = new Uri($uri, '');
+        $uriObj = new Uri($uri);
         $this->assertEquals('do=dnt&y=',$uriObj->getQueryString());
     }
     /**
@@ -242,7 +250,7 @@ class UriTest extends TestCase {
      */
     public function testSplitURI_05() {
         $uri = 'https://www3.programmingacademia.com:80/{some-var}/hell/{other-var}/?do=dnt&y=#xyz';
-        $uriObj = new Uri($uri, '');
+        $uriObj = new Uri($uri);
         $this->assertEquals('https',$uriObj->getScheme());
     }
     /**
@@ -250,7 +258,7 @@ class UriTest extends TestCase {
      */
     public function testSplitURI_06() {
         $uri = 'https://www3.programmingacademia.com:80/{some-var}/hell/{other-var}/?do=dnt&y=#xyz';
-        $uriObj = new Uri($uri, '');
+        $uriObj = new Uri($uri);
         $this->assertEquals('/{some-var}/hell/{other-var}',$uriObj->getPath());
         $this->assertTrue($uriObj->hasParameters());
         $queryStrVars = $uriObj->getQueryStringVars();
@@ -268,7 +276,7 @@ class UriTest extends TestCase {
      */
     public function testSplitURI_07() {
         $uri = 'https://www3.programmingacademia.com:80/{some-var}/{x}/{some-var}';
-        $uriObj = new Uri($uri, '');
+        $uriObj = new Uri($uri);
         $this->assertEquals('/{some-var}/{x}/{some-var}',$uriObj->getPath());
         $this->assertEquals(2,count($uriObj->getParameters()));
     }
@@ -277,7 +285,7 @@ class UriTest extends TestCase {
      */
     public function testSplitURI_08() {
         $uri = 'https://programmingacademia.com/Hello World';
-        $uriObj = new Uri($uri, '');
+        $uriObj = new Uri($uri);
         $this->assertEquals('/Hello World',$uriObj->getPath());
     }
     /**
@@ -285,7 +293,7 @@ class UriTest extends TestCase {
      */
     public function testSplitURI_09() {
         $uri = 'https://programmingacademia.com/Hello World? /or Not?super?';
-        $uriObj = new Uri($uri, '');
+        $uriObj = new Uri($uri);
         $this->assertEquals('/Hello World? /or Not?super?',$uriObj->getPath());
     }
     /**
@@ -293,7 +301,7 @@ class UriTest extends TestCase {
      */
     public function testSplitURI_10() {
         $uri = 'https://programmingacademia.com/Hello World? or Not?Yes';
-        $uriObj = new Uri($uri, '');
+        $uriObj = new Uri($uri);
         $this->assertEquals('/Hello World? or Not',$uriObj->getPath());
     }
     /**
@@ -301,7 +309,7 @@ class UriTest extends TestCase {
      */
     public function testSplitURI_11() {
         $uri = 'https://programmingacademia.com/Hello World#or Not#Yes';
-        $uriObj = new Uri($uri, '');
+        $uriObj = new Uri($uri);
         $this->assertEquals('/Hello World#or Not',$uriObj->getPath());
         $this->assertEquals('Yes',$uriObj->getFragment());
     }
@@ -310,7 +318,7 @@ class UriTest extends TestCase {
      */
     public function testSplitURI_12() {
         $uri = 'https://programmingacademia.com/{some-var?}/ok/not/super?one=2';
-        $uriObj = new Uri($uri, '');
+        $uriObj = new Uri($uri);
         $this->assertEquals('/{some-var?}/ok/not/super',$uriObj->getPath());
         $this->assertEquals('one=2',$uriObj->getQueryString());
         $this->assertTrue($uriObj->hasParameter('some-var'));
@@ -320,7 +328,7 @@ class UriTest extends TestCase {
      */
     public function testSplitURI_13() {
         $uri = 'https://programmingacademia.com/{some-var?}/{another?}/not/super';
-        $uriObj = new Uri($uri, '');
+        $uriObj = new Uri($uri);
         $this->assertEquals('/{some-var?}/{another?}/not/super',$uriObj->getPath());
         $this->assertTrue($uriObj->hasParameter('some-var'));
         $this->assertTrue($uriObj->hasParameter('another'));
@@ -330,9 +338,9 @@ class UriTest extends TestCase {
      * @test
      */
     public function testSplitURI_14() {
-        $uri = 'https://programmingacademia.com/{some-var?}/{another}/not/super';
-        $uriObj = new Uri($uri, '');
-        $this->assertEquals('/{some-var?}/{another}/not/super',$uriObj->getPath());
+        $uri = 'https://programmingacademia.com/{another}/not/{some-var?}/super';
+        $uriObj = new Uri($uri);
+        $this->assertEquals('/{another}/not/{some-var?}/super',$uriObj->getPath());
         $this->assertTrue($uriObj->hasParameter('some-var'));
         $this->assertTrue($uriObj->hasParameter('another'));
         $this->assertFalse($uriObj->isAllParametersSet());
@@ -344,7 +352,7 @@ class UriTest extends TestCase {
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('Empty string not allowed as variable name.');
         $uri = 'https://programmingacademia.com/{}/{another}/not/super';
-        $uriObj = new Uri($uri, '');
+        $uriObj = new Uri($uri);
     }
     /**
      * @test
@@ -353,6 +361,6 @@ class UriTest extends TestCase {
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('Empty string not allowed as variable name.');
         $uri = 'https://programmingacademia.com/{?}/{another}/not/super';
-        $uriObj = new Uri($uri, '');
+        $uriObj = new Uri($uri);
     }
 }
