@@ -73,6 +73,7 @@ class Uri {
         if (gettype($this->uriBroken) != 'array') {
             throw new InvalidArgumentException('Invalid URI given.');
         }
+        
         if (!$this->checkOptionalParamsOrder()) {
             throw  new InvalidArgumentException('Inncorrect parameters order.');
         }
@@ -84,13 +85,15 @@ class Uri {
     }
     private function checkOptionalParamsOrder() {
         $hasOptional = false;
+        
         foreach ($this->getParameters() as $obj) {
-            $obj instanceof UriParameter;
             $hasOptional = $hasOptional || $obj->isOptional();
             if ($hasOptional && !$obj->isOptional()) {
+                
                 return false;
             }
         }
+        
         return true;
     }
 
