@@ -73,12 +73,27 @@ class Uri {
         if (gettype($this->uriBroken) != 'array') {
             throw new InvalidArgumentException('Invalid URI given.');
         }
+        if (!$this->checkOptionalParamsOrder()) {
+            throw  new InvalidArgumentException('Inncorrect parameters order.');
+        }
         $this->uriBroken['vars-possible-values'] = [];
 
         foreach ($this->getParametersNames() as $varName) {
             $this->uriBroken['vars-possible-values'][$varName] = [];
         }
     }
+    private function checkOptionalParamsOrder() {
+        $hasOptional = false;
+        foreach ($this->getParameters() as $obj) {
+            $obj instanceof UriParameter;
+            $hasOptional = $hasOptional || $obj->isOptional();
+            if ($hasOptional && !$obj->isOptional()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     /**
      * Adds a request method to the allowed set of methods at which the URI can 
      * be called with.
