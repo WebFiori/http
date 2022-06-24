@@ -36,17 +36,27 @@ class HttpCookie {
         $this->val = hash('sha256', date('Y-m-d H:i:s'));
         $this->expires = 0;
     }
-    /**
-     * Kill the cookie.
-     * 
-     * Killing a cookie is simply setting its expire to a negative value which
-     * simply indicates a date in the past.
-     */
-    public function kill() {
-        $this->expires = time() - 60*60*24;
-    }
     public function __toString() {
         return $this->getHeaderString();
+    }
+    /**
+     * Returns the domain at which the cookie will operate from.
+     * 
+     * @return string|null If the domain is set, the method will return it
+     * as string. Other than that, null is returned.
+     */
+    public function getDomain() {
+        return $this->domain;
+    }
+    /**
+     * Returns the time at which the session is set to expire at in seconds.
+     * 
+     * @return int If the returned value is 0, this means that the expiry
+     * time of the session is not set. other than that, the returned value
+     * will represent the time at which the cookie will expire at.
+     */
+    public function getExpires() : int {
+        return $this->expires;
     }
     /**
      * Returns an object that represents http header of the cookie.
@@ -62,25 +72,30 @@ class HttpCookie {
      * @return string
      */
     public function getHeaderString() : string {
-        $cookieName = $this->getName();
-        $cookieVal = $this->getValue();
+        $headerArr = [
+            $this->getName().'='.$this->getValue()
+        ];
         $lifetime = $this->getLifetime();
-        $expires = $lifetime;
 
         if ($lifetime != '') {
-            $expires = '; expires='.$lifetime;
+            $headerArr[] = 'expires='.$lifetime;
         }
-        $cookiePath = $this->getPath();
-        $isSecure = $this->isSecure() ? '; Secure' : '';
-        $isHttpOnly = $this->isHttpOnly() ? '; HttpOnly' : '';
-        $sameSiteVal = $this->getSameSite();
 
-        return "$cookieName=$cookieVal"
-                ."$expires; "
-                ."path=".$cookiePath
-                ."$isSecure"
-                ."$isHttpOnly"
-                .'; SameSite='.$sameSiteVal;
+        if ($this->getDomain() !== null) {
+            $headerArr[] = 'domain='.$this->getDomain();
+        }
+        $headerArr[] = 'path='.$this->getPath();
+
+        if ($this->isSecure()) {
+            $headerArr[] = 'Secure';
+        }
+
+        if ($this->isHttpOnly()) {
+            $headerArr[] = 'HttpOnly';
+        }
+        $headerArr[] = 'SameSite='.$this->getSameSite();
+
+        return implode('; ', $headerArr);
     }
     /**
      * Returns a string that represents the time at which the cookie will
@@ -91,7 +106,7 @@ class HttpCookie {
      * will return empty string.
      */
     public function getLifetime() : string {
-        if ($this->expires === 0) {
+        if ($this->expires == 0) {
             return '';
         }
 
@@ -152,6 +167,18 @@ class HttpCookie {
         return $this->httpOnly;
     }
     /**
+     * Checks if the cookie is persistent or not.
+     * 
+     * A cookie is considered as persistent if the 'expire' attribute of the
+     * cookie is set. It simply means that the cookie will be not removed
+     * even if the browser is closed unless the expiry time has passed.
+     * 
+     * @return bool If persistent, true is returned. False otherwise.
+     */
+    public function isPersistent() : bool {
+        return $this->getLifetime() != '';
+    }
+    /**
      * Checks if the attribute 'Secure' is set or not.
      * 
      * A cookie with the Secure attribute is only sent to the server with an
@@ -166,21 +193,45 @@ class HttpCookie {
         return $this->secure;
     }
     /**
+     * Kill the cookie.
+     * 
+     * Killing a cookie is simply setting its expire to a negative value which
+     * simply indicates a date in the past.
+     */
+    public function kill() {
+        $this->expires = time() - 60 * 60 * 24;
+    }
+    /**
+     * Sets the domain that the cookie will operate from.
+     * 
+     * If empty string is provided, this means that the domain attribute will be
+     * not included in cookie header.
+     * 
+     * @param string $domain Domain name such as example.com
+     */
+    public function setDomain(string $domain = '') {
+        $trimmed = trim($domain);
+
+        if (strlen($trimmed) == 0) {
+            $this->domain = null;
+        } else {
+            $this->domain = $trimmed;
+        }
+    }
+    /**
      * Sets cookie duration.
      * 
-     * @param float $expireAfter Cookie duration in minutes.
-     * 
-     * @return boolean If cookie duration is updated, the method will return true. 
-     * False otherwise.
+     * @param float $expireAfter Cookie duration in minutes. If 0 is given,
+     * the expire attribute will not be included.
+     *
      */
-    public function setExpires(float $expireAfter) : bool {
-        if ($expireAfter >= 0) {
-            $this->expires = time() + $expireAfter;
+    public function setExpires(float $expireAfter) {
+        if ($expireAfter == 0) {
+            $this->expires = 0;
 
-            return true;
+            return;
         }
-
-        return false;
+        $this->expires = time() + $expireAfter;
     }
     /**
      * Sets the attribute 'HttpOnly'.
