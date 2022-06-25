@@ -16,6 +16,7 @@ class WebServiceTest extends TestCase {
             'scheme' => '',
             'credentials' => ''
         ],$service->getAuthHeader());
+        $this->assertNull($service->isAuthorized());
     }
     /**
      * 
