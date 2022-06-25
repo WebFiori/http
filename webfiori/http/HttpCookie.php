@@ -153,12 +153,12 @@ class HttpCookie {
      * number of seconds remaining before the cookie dies.
      */
     public function getRemainingTime() : int {
-        $expires = $this->getExpires();
+        $expiresAt = $this->getExpires();
         
-        if ($expires == 0) {
+        if ($expiresAt == 0) {
             return 0;
         }
-        $remaining = $expires - time();
+        $remaining = $expiresAt - time();
         
         if ($remaining < 0) {
             return 0;
