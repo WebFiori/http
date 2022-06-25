@@ -25,6 +25,18 @@ class HttpCookie {
     private $val;
     /**
      * Creates new instance of the class with default properties.
+     * 
+     * A newly created cookie will have following properties by default:
+     * <ul>
+     * <li>name: new-cookie</li>
+     * <li>path: /</li>
+     * <li>secure: true</li>
+     * <li>http only: true</li>
+     * <li>domain: The domain at which the library is operating from.</li>
+     * <li>same site: Lax</li>
+     * <li>expires: 0</li>
+     * <li>value: sha256 hash</li>
+     * </ul>
      */
     public function __construct() {
         $this->httpOnly = true;
@@ -134,6 +146,26 @@ class HttpCookie {
         return $this->path;
     }
     /**
+     * Returns number of seconds before the cookie expires.
+     * 
+     * @return int If the cookie is non-persistent or the cookie has expired,
+     * the method will always return 0. Other than that, the method will return
+     * number of seconds remaining before the cookie dies.
+     */
+    public function getRemainingTime() : int {
+        $expiresAt = $this->getExpires();
+        
+        if ($expiresAt == 0) {
+            return 0;
+        }
+        $remaining = $expiresAt - time();
+        
+        if ($remaining < 0) {
+            return 0;
+        }
+        return $remaining;
+    }
+    /**
      * Returns the value of the attribute 'SameSite'.
      * 
      * The SameSite attribute lets servers specify whether/when cookies are sent
@@ -231,7 +263,7 @@ class HttpCookie {
 
             return;
         }
-        $this->expires = time() + $expireAfter;
+        $this->expires = time() + $expireAfter*60;
     }
     /**
      * Sets the attribute 'HttpOnly'.

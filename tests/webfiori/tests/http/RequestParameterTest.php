@@ -3,6 +3,7 @@ namespace webfiori\tests\http;
 
 use PHPUnit\Framework\TestCase;
 use webfiori\http\RequestParameter;
+use webfiori\http\APIFilter;
 /**
  * Description of RequestParameterTest
  *
@@ -36,7 +37,7 @@ class RequestParameterTest extends TestCase {
             'min' => 33,
             'max' => 100,
             'custom-filter' => function ($original, $basicFilterResult, $param) {
-                if ($basicFilterResult != \restEasy\APIFilter::INVALID) {
+                if ($basicFilterResult != APIFilter::INVALID) {
                     return $basicFilterResult * 100;
                 }
             }

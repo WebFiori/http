@@ -12,7 +12,7 @@ It includes inputs feltering and data validation in addion to creating user-defi
   <a href="https://sonarcloud.io/dashboard?id=WebFiori_http">
       <img src="https://sonarcloud.io/api/project_badges/measure?project=WebFiori_http&metric=alert_status" />
   </a>
-  <a href="https://github.com/WebFiori/restEasy/releases">
+  <a href="https://github.com/WebFiori/http/releases">
       <img src="https://img.shields.io/github/release/WebFiori/http.svg?label=latest" />
   </a>
   <a href="https://packagist.org/packages/webfiori/http">

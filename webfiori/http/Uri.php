@@ -72,7 +72,7 @@ class Uri {
         if (gettype($this->uriBroken) != 'array') {
             throw new InvalidArgumentException('Invalid URI given.');
         }
-        
+
         if (!$this->checkOptionalParamsOrder()) {
             throw  new InvalidArgumentException('Inncorrect parameters order.');
         }
@@ -81,19 +81,6 @@ class Uri {
         foreach ($this->getParametersNames() as $varName) {
             $this->uriBroken['vars-possible-values'][$varName] = [];
         }
-    }
-    private function checkOptionalParamsOrder() {
-        $hasOptional = false;
-        
-        foreach ($this->getParameters() as $obj) {
-            $hasOptional = $hasOptional || $obj->isOptional();
-            if ($hasOptional && !$obj->isOptional()) {
-                
-                return false;
-            }
-        }
-        
-        return true;
     }
 
     /**
@@ -341,6 +328,50 @@ class Uri {
         return $retVal;
     }
     /**
+     * Returns the value of URI parameter given its name.
+     * 
+     * A URI parameter is a string which is defined while creating the route. 
+     * it is name is included between '{}'.
+     * 
+     * @param string $varName The name of the parameter. Note that this value 
+     * must not include braces.
+     * 
+     * @return string|null The method will return the value of the 
+     * parameter if found. If the parameter is not set or the parameter 
+     * does not exist, the method will return null.
+     * 
+     * @since 1.0
+     */
+    public function getParameterValue(string $varName) {
+        $param = $this->getParameter($varName);
+
+        if ($param !== null) {
+            return $param->getValue();
+        }
+
+        return null;
+    }
+    /**
+     * Returns an array that contains possible values for a URI parameter.
+     * 
+     * @param string $varName The name of the parameter.
+     * 
+     * @return array The method will return an array that contains all possible 
+     * values for the parameter which was added using the method Router::addUriVarValue(). 
+     * If the parameter does not exist, the array will be empty.
+     * 
+     * @since 1.3.6
+     */
+    public function getParameterValues(string $varName) {
+        $trimmed = trim($varName);
+
+        if (isset($this->uriBroken['vars-possible-values'][$trimmed])) {
+            return $this->uriBroken['vars-possible-values'][$trimmed];
+        }
+
+        return [];
+    }
+    /**
      * Returns the path part of the URI.
      * 
      * @return string A string such as '/path1/path2/path3'.
@@ -473,49 +504,6 @@ class Uri {
         return $retVal;
     }
     /**
-     * Returns the value of URI parameter given its name.
-     * 
-     * A URI parameter is a string which is defined while creating the route. 
-     * it is name is included between '{}'.
-     * 
-     * @param string $varName The name of the parameter. Note that this value 
-     * must not include braces.
-     * 
-     * @return string|null The method will return the value of the 
-     * parameter if found. If the parameter is not set or the parameter 
-     * does not exist, the method will return null.
-     * 
-     * @since 1.0
-     */
-    public function getParameterValue(string $varName) {
-        $param = $this->getParameter($varName);
-        if ($param !== null) {
-            return $param->getValue();
-        }
-
-        return null;
-    }
-    /**
-     * Returns an array that contains possible values for a URI parameter.
-     * 
-     * @param string $varName The name of the parameter.
-     * 
-     * @return array The method will return an array that contains all possible 
-     * values for the parameter which was added using the method Router::addUriVarValue(). 
-     * If the parameter does not exist, the array will be empty.
-     * 
-     * @since 1.3.6
-     */
-    public function getParameterValues(string $varName) {
-        $trimmed = trim($varName);
-
-        if (isset($this->uriBroken['vars-possible-values'][$trimmed])) {
-            return $this->uriBroken['vars-possible-values'][$trimmed];
-        }
-
-        return [];
-    }
-    /**
      * Checks if the URI has a parameter or not given its name.
      * 
      * A parameter is a string which is defined while creating the route. 
@@ -562,7 +550,7 @@ class Uri {
 
         return $canRoute;
     }
-    
+
     /**
      * Checks if URI is fetched using allowed request method or not.
      * 
@@ -578,7 +566,7 @@ class Uri {
 
         return count($methods) == 0 || in_array(Request::getMethod(), $this->getRequestMethods());
     }
-    
+
     /**
      * Sets the value of a URI parameter.
      * 
@@ -726,7 +714,7 @@ class Uri {
 
         return $retVal;
     }
-    
+
     /**
      * Splits a string based on character mask.
      * 
@@ -763,5 +751,18 @@ class Uri {
         }
 
         return $split2;
+    }
+    private function checkOptionalParamsOrder() {
+        $hasOptional = false;
+
+        foreach ($this->getParameters() as $obj) {
+            $hasOptional = $hasOptional || $obj->isOptional();
+
+            if ($hasOptional && !$obj->isOptional()) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

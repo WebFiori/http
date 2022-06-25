@@ -83,6 +83,7 @@ class UriTest extends TestCase {
         $uri->setParameterValue('first-var', '1009');
         $this->assertEquals(['first-var'], $uri->getParametersNames());
         $this->assertEquals('1009', $uri->getParameter('first-var')->getValue());
+        $this->assertFalse($uri->setParameterValue('not-exist', 'hello'));
     }
     /**
      * @test
