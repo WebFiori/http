@@ -14,7 +14,7 @@ class TestServiceObj extends AbstractWebService {
     }
     //put your code here
     public function isAuthorized() {
-        
+        return parent::isAuthorized();
     }
 
     public function processRequest() {
