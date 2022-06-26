@@ -32,7 +32,7 @@ class HttpHeader {
      * by a colon (":") and the header value.
      */
     public function __toString() {
-        return $this->getName().' :'.$this->getValue();
+        return $this->getName().': '.$this->getValue();
     }
     /**
      * Returns a string that represents the name of the header.
