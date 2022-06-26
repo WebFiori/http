@@ -16,7 +16,7 @@ class HttpHeaderTest extends TestCase {
         $header = new HttpHeader();
         $this->assertEquals('http-header', $header->getName());
         $this->assertEquals('', $header->getValue());
-        $this->assertEquals('http-header :', $header);
+        $this->assertEquals('http-header: ', $header);
     }
     /**
      * @test
@@ -25,7 +25,7 @@ class HttpHeaderTest extends TestCase {
         $header = new HttpHeader('User-Agent', 'Chrome');
         $this->assertEquals('user-agent', $header->getName());
         $this->assertEquals('Chrome', $header->getValue());
-        $this->assertEquals('user-agent :Chrome', $header);
+        $this->assertEquals('user-agent: Chrome', $header);
     }
     /**
      * @test
@@ -34,6 +34,6 @@ class HttpHeaderTest extends TestCase {
         $header = new HttpHeader('User Agent', 'Chrome');
         $this->assertEquals('http-header', $header->getName());
         $this->assertEquals('Chrome', $header->getValue());
-        $this->assertEquals('http-header :Chrome', $header);
+        $this->assertEquals('http-header: Chrome', $header);
     }
 }
