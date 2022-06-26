@@ -81,9 +81,9 @@ class HttpCookieTest extends TestCase {
         $cookie->setDomain();
         $this->assertEquals('new-cookie=super; path=/; SameSite=Lax', $cookie.'');
         
-        $this->assertEquals('set-cookie :new-cookie=super; path=/; SameSite=Lax', $cookie->getHeader().'');
+        $this->assertEquals('set-cookie: new-cookie=super; path=/; SameSite=Lax', $cookie->getHeader().'');
         $cookie->setDomain('webfiori.com');
-        $this->assertEquals('set-cookie :new-cookie=super; domain=webfiori.com; path=/; SameSite=Lax', $cookie->getHeader().'');
+        $this->assertEquals('set-cookie: new-cookie=super; domain=webfiori.com; path=/; SameSite=Lax', $cookie->getHeader().'');
         $cookie->kill();
         $this->assertEquals(date(DATE_COOKIE, time() - 60*60*24), $cookie->getLifetime());
     }
