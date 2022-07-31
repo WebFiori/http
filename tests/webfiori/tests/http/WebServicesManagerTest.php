@@ -225,7 +225,7 @@ class WebServicesManagerTest extends TestCase {
         $api = new SampleServicesManager();
         $api->setOutputStream($this->outputStreamName);
         $api->process();
-        $this->assertEquals('{"message":"Database Error.","type":"error","http-code":500,"more-info":""}', $api->readOutputStream());
+        $this->assertEquals('{"message":"Database Error.","type":"error","http-code":500}', $api->readOutputStream());
     }
     /**
      * @test
@@ -255,7 +255,7 @@ class WebServicesManagerTest extends TestCase {
         $api = new SampleServicesManager();
         $api->setOutputStream($this->outputStreamName);
         $api->process();
-        $this->assertEquals('{"message":"Content type not supported.","type":"error","http-code":404,"more-info":{"request-content-type":"application\/xml"}}', $api->readOutputStream());
+        $this->assertEquals('{"message":"Content type not supported.","type":"error","http-code":415,"more-info":{"request-content-type":"application\/xml"}}', $api->readOutputStream());
     }
     /**
      * @test
@@ -269,7 +269,7 @@ class WebServicesManagerTest extends TestCase {
         $api = new SampleServicesManager();
         $api->setOutputStream($this->outputStreamName);
         $api->process();
-        $this->assertEquals('{"message":"Content type not supported.","type":"error","http-code":404,"more-info":{"request-content-type":"NOT_SET"}}', $api->readOutputStream());
+        $this->assertEquals('{"message":"Content type not supported.","type":"error","http-code":415,"more-info":{"request-content-type":"NOT_SET"}}', $api->readOutputStream());
     }
     /**
      * @test
@@ -345,7 +345,23 @@ class WebServicesManagerTest extends TestCase {
         $api = new SampleServicesManager();
         $api->setOutputStream($this->outputStreamName);
         $api->process();
-        $this->assertEquals('{"message":"Not authorized.","type":"error","http-code":401}', $api->readOutputStream());
+        $this->assertEquals('{"message":"Not Authorized.","type":"error","http-code":401}', $api->readOutputStream());
+    }
+    /**
+     * @test
+     */
+    public function testSumArray04() {
+        $this->clrearVars();
+        putenv('REQUEST_METHOD=POST');
+        $_SERVER['CONTENT_TYPE'] = 'application/x-www-form-urlencoded';
+        $_POST['action'] = 'sum-array';
+        $_POST['numbers'] = '[1,2,"as",1.9,\'hello\',10]';
+        $_POST['pass'] = '1234';
+        $api = new SampleServicesManager();
+        $api->setResponseMessage('401', 'Your password is inncorrect.');
+        $api->setOutputStream($this->outputStreamName);
+        $api->process();
+        $this->assertEquals('{"message":"Your password is inncorrect.","type":"error","http-code":401}', $api->readOutputStream());
     }
     /**
      * @test
