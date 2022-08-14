@@ -104,5 +104,19 @@ class RequestTest extends TestCase {
         $_SERVER['PATH_INFO'] = '/my/app';
         $this->assertEquals('http://127.0.0.1/my/app', Request::getRequestedURI());
     }
-    
+    /**
+     * @test
+     */
+    public function testGetHeaders00() {
+        $_SERVER['HTTP_CONTENT_TYPE'] = "application/json";
+        $_SERVER['HTTP_X_HOST'] = "Custom H";
+        $this->assertEquals([
+            'content-type' => [
+                'application/json'
+            ],
+            'x-host' => [
+                'Custom H'
+            ]
+        ], Request::getHeadersAssoc());
+    }
 }

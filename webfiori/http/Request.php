@@ -1,26 +1,11 @@
 <?php
 /**
- * MIT License
- *
- * Copyright (c) 2019, WebFiori HTTP.
+ * This file is licensed under MIT License.
  * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * Copyright (c) 2019 Ibrahim BinAlshikh
  * 
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
+ * For more information on the license, please visit: 
+ * https://github.com/WebFiori/http/blob/master/LICENSE
  */
 namespace webfiori\http;
 
@@ -182,6 +167,7 @@ class Request {
 
         return self::getHeadersPool()->getHeader($name);
     }
+    
     /**
      * Returns HTTP request headers.
      * 
@@ -199,28 +185,55 @@ class Request {
     public static function getHeaders() : array {
         if (defined('__PHPUNIT_PHAR__')) {
             //Always Refresh headers if in testing environment.
-            self::get()->headersPool = new HeadersPool();
-
-            if (function_exists('apache_request_headers')) {
-                $headers = apache_request_headers();
-
-                foreach ($headers as $k => $v) {
-                    self::get()->headersPool->addHeader($k, filter_var($v, FILTER_SANITIZE_FULL_SPECIAL_CHARS));
-                }
-            } 
-
-            if (isset($_SERVER)) {
-                $headersArr = self::_getRequestHeadersFromServer();
-
-                foreach ($headersArr as $header) {
-                    self::get()->headersPool->addHeader($header->getName(), $header->getValue());
-                }
-            }
+            self::extractHeaders();
         }
-
+        
+        if (self::get()->headersPool === null) {
+            self::extractHeaders();
+        }
 
         return self::getHeadersPool()->getHeaders();
     }
+    /**
+     * Returns an associative array of request headers.
+     * 
+     * @return array The indices of the array will be headers names and the
+     * values are sub-arrays. Each array contains the values of the header.
+     */
+    public static function getHeadersAssoc() : array {
+        $retVal = [];
+        $headers = self::getHeaders();
+        
+        foreach ($headers as $headerObj) {
+            
+            if (!isset($retVal[$headerObj->getName()])) {
+                $retVal[$headerObj->getName()] = [];
+            }
+            $retVal[$headerObj->getName()][] = $headerObj->getValue();
+        }
+        
+        return $retVal;
+    }
+    private static function extractHeaders() {
+        self::get()->headersPool = new HeadersPool();
+
+        if (function_exists('apache_request_headers')) {
+            $headers = apache_request_headers();
+
+            foreach ($headers as $k => $v) {
+                self::get()->headersPool->addHeader($k, filter_var($v, FILTER_SANITIZE_FULL_SPECIAL_CHARS));
+            }
+        } 
+
+        if (isset($_SERVER)) {
+            $headersArr = self::_getRequestHeadersFromServer();
+
+            foreach ($headersArr as $header) {
+                self::get()->headersPool->addHeader($header->getName(), $header->getValue());
+            }
+        }
+    }
+
     /**
      * Returns the pool which is used to hold request headers.
      * 
@@ -276,11 +289,9 @@ class Request {
         $val = null;
 
         if ($requMethod == 'POST' || $requMethod == 'PUT') {
-            $val = self::filter(INPUT_POST, $paramName);
-        } else {
-            if ($requMethod == 'DELETE' || $requMethod == 'GET') {
-                $val = self::filter(INPUT_GET, $paramName);
-            }
+            $val = self::filter(INPUT_POST, $trimmed);
+        } else if ($requMethod == 'DELETE' || $requMethod == 'GET') {
+            $val = self::filter(INPUT_GET, $trimmed);
         }
 
         if ($val === false) {
@@ -292,7 +303,8 @@ class Request {
     /**
      * Returns the URI of the requested resource.
      * 
-     * @return string The URI of the requested resource. 
+     * @return string The URI of the requested resource 
+     * (e.g. http://example.com/get-random?range=[1,100]). 
      * 
      * @since 1.0
      */
@@ -339,14 +351,10 @@ class Request {
                 for ($x = 0 ; $x < $count ; $x++) {
                     if ($x + 1 == $count && $split[$x] != 'HTTP') {
                         $headerName = $headerName.$split[$x];
-                    } else {
-                        if ($x == 1 && $split[$x] != 'HTTP') {
+                    } else if ($x == 1 && $split[$x] != 'HTTP') {
                             $headerName = $split[$x].'-';
-                        } else {
-                            if ($split[$x] != 'HTTP') {
-                                $headerName = $headerName.$split[$x].'-';
-                            }
-                        }
+                    } else if ($split[$x] != 'HTTP') {
+                        $headerName = $headerName.$split[$x].'-';
                     }
                 }
                 $retVal[] = new HttpHeader($headerName, filter_var($v, FILTER_SANITIZE_FULL_SPECIAL_CHARS));
@@ -361,10 +369,8 @@ class Request {
         if ($val === null) {
             if ($inputSource == INPUT_POST && isset($_POST[$varName])) {
                 $val = filter_var(urldecode($_POST[$varName]));
-            } else {
-                if ($inputSource == INPUT_GET && isset($_GET[$varName])) {
-                    $val = filter_var(urldecode($_GET[$varName]));
-                }
+            } else if ($inputSource == INPUT_GET && isset($_GET[$varName])) {
+                $val = filter_var(urldecode($_GET[$varName]));
             }
         }
 

@@ -1,4 +1,12 @@
 <?php
+/**
+ * This file is licensed under MIT License.
+ * 
+ * Copyright (c) 2022 Ibrahim BinAlshikh
+ * 
+ * For more information on the license, please visit: 
+ * https://github.com/WebFiori/http/blob/master/LICENSE
+ */
 namespace webfiori\http;
 
 /**
