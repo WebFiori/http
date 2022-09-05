@@ -91,13 +91,13 @@ class APIFilter {
                 if ($reqParam->getMinVal() !== null) {
                     $attribute[$optIdx][$optIdx]['min_range'] = $reqParam->getMinVal();
                 }
-                array_push($attribute[$filterIdx], FILTER_SANITIZE_NUMBER_INT);
                 array_push($attribute[$filterIdx], FILTER_VALIDATE_INT);
+                
             } else if ($paramType == ParamTypes::STRING) {
                 $attribute[$optIdx][$optIdx]['allow-empty'] = $reqParam->isEmptyStringAllowed();
                 array_push($attribute[$filterIdx], FILTER_DEFAULT);
             } else if ($paramType == ParamTypes::DOUBLE) {
-                array_push($attribute[$filterIdx], FILTER_SANITIZE_NUMBER_FLOAT);
+                array_push($attribute[$filterIdx], FILTER_VALIDATE_FLOAT);
             } else if ($paramType == ParamTypes::EMAIL) {
                 array_push($attribute[$filterIdx], FILTER_SANITIZE_EMAIL);
                 array_push($attribute[$filterIdx], FILTER_VALIDATE_EMAIL);
