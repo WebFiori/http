@@ -422,7 +422,7 @@ class WebServicesManagerTest extends TestCase {
         $api = new SampleServicesManager();
         $api->setOutputStream($this->outputStreamName);
         $api->process();
-        $this->assertEquals('{"message":"The sum of 1889 and 300 is 2189.","http-code":200}', $api->readOutputStream());
+        $this->assertEquals('{"message":"The following parameter(s) has invalid values: \'first-number\'.","type":"error","http-code":404,"more-info":{"invalid":["first-number"]}}', $api->readOutputStream());
     }
     /**
      * @test
@@ -465,7 +465,7 @@ class WebServicesManagerTest extends TestCase {
         $api = new SampleServicesManager();
         $api->setOutputStream($this->outputStreamName);
         $api->process();
-        $this->assertEquals('{"message":"The sum of -1889 and 300 is -1589.","http-code":200}', $api->readOutputStream());
+        $this->assertEquals('{"message":"The following parameter(s) has invalid values: \'first-number\'.","type":"error","http-code":404,"more-info":{"invalid":["first-number"]}}', $api->readOutputStream());
 
         return $api;
     }
