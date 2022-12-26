@@ -203,7 +203,15 @@ class Uri {
         if (strlen($secureHost) != 0 && !$useHttp) {
             $protocol = "https://";
         }
-        $docRoot = filter_var($_SERVER['DOCUMENT_ROOT']);
+
+        if (isset($_SERVER['DOCUMENT_ROOT'])) {
+            $docRoot = filter_var($_SERVER['DOCUMENT_ROOT']);
+        } else {
+            //Fix for IIS since the $_SERVER['DOCUMENT_ROOT'] is not set
+            //in some cases
+            $docRoot = getcwd();
+        }
+        
         $docRootLen = strlen($docRoot);
 
         if ($docRootLen == 0) {
