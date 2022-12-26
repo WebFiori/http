@@ -284,21 +284,37 @@ class Request {
      * @since 1.0.1
      */
     public static function getParam(string $paramName) {
-        $requMethod = self::getMethod();
+
         $trimmed = trim($paramName);
-        $val = null;
+        $params = self::getParams();
 
+        if (isset($params[$trimmed])) {
+            return $params[$trimmed];
+        }
+
+        return null;
+    }
+    /**
+     * Returns an array that contains all POST or GET parameters.
+     * 
+     * @return array An array that contains all POST or GET parameters. The
+     * indices of the array are parameters names and the value of each index
+     * is the value of the parameter.
+     */
+    public static function getParams() : array {
+        $requMethod = self::getMethod();
+        $retVal = [];
+        
         if ($requMethod == 'POST' || $requMethod == 'PUT') {
-            $val = self::filter(INPUT_POST, $trimmed);
+            foreach (array_keys($_POST) as $name) {
+                $retVal[$name] = self::filter(INPUT_POST, $name);
+            }
         } else if ($requMethod == 'DELETE' || $requMethod == 'GET') {
-            $val = self::filter(INPUT_GET, $trimmed);
+            foreach (array_keys($_GET) as $name) {
+                $retVal[$name] = self::filter(INPUT_GET, $name);
+            }
         }
-
-        if ($val === false) {
-            return null;
-        }
-
-        return $val;
+        return $retVal;
     }
     /**
      * Returns the URI of the requested resource.
