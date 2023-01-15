@@ -107,7 +107,7 @@ abstract class AbstractWebService implements JsonI {
      * This is used to indicate if authentication is required when the service 
      * is called.
      * 
-     * @var boolean
+     * @var bool
      * 
      * @since 1.0.1 
      */
@@ -151,8 +151,11 @@ abstract class AbstractWebService implements JsonI {
      * If The given name is invalid, the name of the service will be set to 'new-service'.
      * 
      * @param string $name The name of the web service. 
+     * 
+     * @param WebServicesManager|null $owner The manager which is used to
+     * manage the web service.
      */
-    public function __construct($name) {
+    public function __construct(string $name, WebServicesManager $owner = null) {
         if (!$this->setName($name)) {
             $this->setName('new-service');
         }
@@ -160,6 +163,10 @@ abstract class AbstractWebService implements JsonI {
         $this->parameters = [];
         $this->responses = [];
         $this->requreAuth = true;
+        $this->sinceVersion = '1.0.0';
+        $this->serviceDesc = '';
+        
+        $this->setManager($owner);
     }
     /**
      * Returns an array that contains all possible requests methods at which the 
@@ -173,7 +180,7 @@ abstract class AbstractWebService implements JsonI {
      * 
      * @since 1.0
      */
-    public function &getRequestMethods() {
+    public function &getRequestMethods() : array {
         return $this->reqMethods;
     }
     /**
@@ -183,7 +190,7 @@ abstract class AbstractWebService implements JsonI {
      * 
      * @since 1.0
      */
-    public final function &getParameters() {
+    public final function &getParameters() : array {
         return $this->parameters;
     }
     /**
@@ -278,13 +285,13 @@ abstract class AbstractWebService implements JsonI {
      * <li><b>description</b>: The description of the attribute.</li>
      * </ul>
      * 
-     * @return boolean If the given request parameter is added, the method will 
+     * @return bool If the given request parameter is added, the method will 
      * return true. If it was not added for any reason, the method will return 
      * false.
      * 
      * @since 1.0
      */
-    public function addParameter($param) {
+    public function addParameter($param) : bool {
         if (gettype($param) == 'array') {
             $param = RequestParameter::createParam($param);
         }
@@ -326,13 +333,13 @@ abstract class AbstractWebService implements JsonI {
      * 
      * @param string $method The request method.
      * 
-     * @return boolean true in case the request method is added. If the given 
+     * @return bool true in case the request method is added. If the given 
      * request method is already added or the method is unknown, the method 
      * will return false.
      * 
      * @since 1.0
      */
-    public final function addRequestMethod($method) {
+    public final function addRequestMethod(string $method) : bool {
         $uMethod = strtoupper(trim($method));
 
         if (in_array($uMethod, self::METHODS) && !in_array($uMethod, $this->reqMethods)) {
@@ -354,7 +361,7 @@ abstract class AbstractWebService implements JsonI {
      * 
      * @since 1.0
      */
-    public final function addResponseDescription($description) {
+    public final function addResponseDescription(string $description) {
         $trimmed = trim($description);
 
         if (strlen($trimmed) != 0) {
@@ -373,18 +380,17 @@ abstract class AbstractWebService implements JsonI {
      * 
      *  @since 1.0.1
      */
-    public function getAuthHeader() {
+    public function getAuthHeader() : array {
         return Request::getAuthHeader();
     }
     /**
      * Returns the description of the service.
      * 
-     * @return string|null The description of the service. If the description is 
-     * not set, the method will return null.
+     * @return string The description of the service. Default is empty string.
      * 
      * @since 1.0
      */
-    public final function getDescription() {
+    public final function getDescription() : string {
         return $this->serviceDesc;
     }
     /**
@@ -412,8 +418,10 @@ abstract class AbstractWebService implements JsonI {
         }
     }
     /**
+     * Returns the manager which is used to manage the web service.
      * 
-     * @return WebServicesManager|null
+     * @return WebServicesManager|null If set, it is returned as an object. Other
+     * than that, null is returned.
      */
     public function getManager() {
         return $this->owner;
@@ -425,7 +433,7 @@ abstract class AbstractWebService implements JsonI {
      * 
      * @since 1.0
      */
-    public final function getName() {
+    public final function getName() : string {
         return $this->name;
     }
     /**
@@ -438,7 +446,7 @@ abstract class AbstractWebService implements JsonI {
      * 
      * @since 1.0
      */
-    public final function getParameterByName($paramName) {
+    public final function getParameterByName(string $paramName) {
         $trimmed = trim($paramName);
 
         if (strlen($trimmed) != 0) {
@@ -464,7 +472,7 @@ abstract class AbstractWebService implements JsonI {
      * 
      * @since 1.0.1
      */
-    public function getParamVal($paramName) {
+    public function getParamVal(string $paramName) {
         $inputs = $this->getInputs();
         $trimmed = trim($paramName);
 
@@ -486,7 +494,7 @@ abstract class AbstractWebService implements JsonI {
      * 
      * @since 1.0
      */
-    public final function getResponsesDescriptions() {
+    public final function getResponsesDescriptions() : array {
         return $this->responses;
     }
     /**
@@ -495,11 +503,12 @@ abstract class AbstractWebService implements JsonI {
      * Version number is set based on the version number which was set in the 
      * class WebAPI.
      * 
-     * @return string The version number at which the service was added to the API.
+     * @return string The version number at which the service was added to the API. 
+     * Default is '1.0.0'.
      * 
      * @since 1.0
      */
-    public final function getSince() {
+    public final function getSince() : string {
         return $this->sinceVersion;
     }
     /**
@@ -510,13 +519,13 @@ abstract class AbstractWebService implements JsonI {
      * 
      * @param string $name The name of the parameter.
      * 
-     * @return boolean If a request parameter which has the given name is added 
+     * @return bool If a request parameter which has the given name is added 
      * to the service, the method will return true. Otherwise, the method will return 
      * false.
      * 
      * @since 1.0
      */
-    public function hasParameter($name) {
+    public function hasParameter(string $name) {
         $trimmed = trim($name);
 
         if (strlen($name) != 0) {
@@ -543,18 +552,21 @@ abstract class AbstractWebService implements JsonI {
      */
     public function isAuthorized() {
     }
+    public function map(string $namespace) {
+        
+    }
     /**
      * Returns the value of the property 'requreAuth'.
      * 
      * The property is used to tell if the authorization step will be skipped 
      * or not when the service is called. 
      * 
-     * @return boolean The method will return true if authorization step required. 
+     * @return bool The method will return true if authorization step required. 
      * False if the authorization step will be skipped. Default return value is true.
      * 
      * @since 1.0.1
      */
-    public function isAuthRequred() {
+    public function isAuthRequred() : bool {
         return $this->requreAuth;
     }
     /**
@@ -578,7 +590,7 @@ abstract class AbstractWebService implements JsonI {
      * 
      * @since 1.0
      */
-    public function removeParameter($paramName) {
+    public function removeParameter(string $paramName) {
         $trimmed = trim($paramName);
         $params = &$this->getParameters();
         $index = -1;
@@ -611,12 +623,12 @@ abstract class AbstractWebService implements JsonI {
      * @param string $method The request method (e.g. 'get', 'post', 'options' ...). It 
      * can be in upper case or lower case.
      * 
-     * @return boolean If the given request method is remove, the method will 
+     * @return bool If the given request method is remove, the method will 
      * return true. Other than that, the method will return true.
      * 
      * @since 1.0
      */
-    public function removeRequestMethod($method) {
+    public function removeRequestMethod(string $method) {
         $uMethod = strtoupper(trim($method));
         $allowedMethods = &$this->getRequestMethods();
 
@@ -655,7 +667,7 @@ abstract class AbstractWebService implements JsonI {
      * 
      * @since 1.0.1
      */
-    public function send($conentType, $data, $code = 200) {
+    public function send(string $conentType, $data, int $code = 200) {
         $manager = $this->getManager();
 
         if ($manager !== null) {
@@ -707,7 +719,7 @@ abstract class AbstractWebService implements JsonI {
      * 
      * @since 1.0
      */
-    public final function setDescription($desc) {
+    public final function setDescription(string $desc) {
         $this->serviceDesc = trim($desc);
     }
     /**
@@ -716,12 +728,12 @@ abstract class AbstractWebService implements JsonI {
      * The property is used to tell if the authorization step will be skipped 
      * or not when the service is called. 
      * 
-     * @param boolean $bool True to make authorization step required. False to 
+     * @param bool $bool True to make authorization step required. False to 
      * skip the authorization step.
      * 
      * @since 1.0.1
      */
-    public function setIsAuthRequred($bool) {
+    public function setIsAuthRequred(bool $bool) {
         $this->requreAuth = $bool === true;
     }
     /**
@@ -735,13 +747,11 @@ abstract class AbstractWebService implements JsonI {
      * the service was associated with a manager.
      * 
      */
-    public function setManager($manager) {
+    public function setManager(WebServicesManager $manager = null) {
         if ($manager === null) {
             $this->owner = null;
-        } else {
-            if ($manager instanceof WebServicesManager) {
-                $this->owner = $manager;
-            }
+        } else if ($manager instanceof WebServicesManager) {
+            $this->owner = $manager;
         }
     }
     /**
@@ -756,13 +766,13 @@ abstract class AbstractWebService implements JsonI {
      * 
      * @param string $name The name of the web service.
      * 
-     * @return boolean If the given name is valid, the method will return 
+     * @return bool If the given name is valid, the method will return 
      * true once the name is set. false is returned if the given 
      * name is invalid.
      * 
      * @since 1.0
      */
-    public final function setName($name) {
+    public final function setName(string $name) {
         $trimmedName = trim($name);
         $len = strlen($trimmedName);
 
@@ -791,7 +801,7 @@ abstract class AbstractWebService implements JsonI {
      * 
      * @since 1.0
      */
-    public final function setSince($sinceAPIv) {
+    public final function setSince(string $sinceAPIv) {
         $this->sinceVersion = $sinceAPIv;
     }
     /**

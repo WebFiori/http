@@ -259,16 +259,16 @@ class WebServiceTest extends TestCase {
         $action = new TestServiceObj('login');
         $this->assertEquals(''
                 .'{"name":"login",'
-                .'"since":null,'
-                .'"description":null,'
+                .'"since":"1.0.0",'
+                .'"description":"",'
                 .'"request-methods":[],'
                 .'"parameters":[],'
                 .'"responses":[]}',$action->toJSON().'');
-        $action->setSince('1.0.0');
+        $action->setSince('1.0.1');
         $action->setDescription('Allow the user to login to the system.');
         $this->assertEquals(''
                 .'{"name":"login",'
-                .'"since":"1.0.0",'
+                .'"since":"1.0.1",'
                 .'"description":"Allow the user to login to the system.",'
                 .'"request-methods":[],'
                 .'"parameters":[],'
@@ -278,7 +278,7 @@ class WebServiceTest extends TestCase {
         $action->addRequestMethod('post');
         $this->assertEquals(''
                 .'{"name":"login",'
-                .'"since":"1.0.0",'
+                .'"since":"1.0.1",'
                 .'"description":"Allow the user to login to the system.",'
                 .'"request-methods":["GET","PUT","POST"],'
                 .'"parameters":[],'
@@ -287,7 +287,7 @@ class WebServiceTest extends TestCase {
         $action->addParameter(new RequestParameter('username'));
         $this->assertEquals(''
                 .'{"name":"login",'
-                .'"since":"1.0.0",'
+                .'"since":"1.0.1",'
                 .'"description":"Allow the user to login to the system.",'
                 .'"request-methods":["GET","POST"],'
                 .'"parameters":['
@@ -305,7 +305,7 @@ class WebServiceTest extends TestCase {
         $action->getParameterByName('password')->setMinVal(1000000);
         $this->assertEquals(''
                 .'{"name":"login",'
-                .'"since":"1.0.0",'
+                .'"since":"1.0.1",'
                 .'"description":"Allow the user to login to the system.",'
                 .'"request-methods":["GET","POST"],'
                 .'"parameters":['
@@ -338,7 +338,7 @@ class WebServiceTest extends TestCase {
         $this->assertEquals("APIAction[\n"
                 ."    Name => 'get-user',\n"
                 ."    Description => 'Returns a JSON string which holds user profile info.',\n"
-                ."    Since => 'null',\n"
+                ."    Since => '1.0.0',\n"
                 ."    Request Methods => [\n"
                 ."        GET\n"
                 ."    ],\n"
@@ -373,7 +373,7 @@ class WebServiceTest extends TestCase {
         $this->assertEquals("APIAction[\n"
                 ."    Name => 'add-user',\n"
                 ."    Description => 'Adds new user profile to the system.',\n"
-                ."    Since => 'null',\n"
+                ."    Since => '1.0.0',\n"
                 ."    Request Methods => [\n"
                 ."        POST,\n"
                 ."        PUT\n"
