@@ -17,6 +17,7 @@ class SampleServicesManager extends WebServicesManager {
         
         $this->addService(new SumNumbersService());
         $this->addService(new GetUserProfileService());
+        $this->addService(new CreateUserProfileService());
     }
     /**
      * 

@@ -165,7 +165,7 @@ class WebServicesManagerTest extends TestCase {
         $this->assertEquals('1.0.1',$api->getVersion());
         $this->assertEquals('NO DESCRIPTION',$api->getDescription());
         $api->setDescription('Test API.');
-        $this->assertEquals(3,count($api->getServices()));
+        $this->assertEquals(4,count($api->getServices()));
         $this->assertEquals('Test API.',$api->getDescription());
         $this->assertTrue($api->getServiceByName('sum-array') instanceof AbstractWebService);
         $this->assertNull($api->getServiceByName('request-info'));
@@ -270,6 +270,41 @@ class WebServicesManagerTest extends TestCase {
         $api->setOutputStream($this->outputStreamName);
         $api->process();
         $this->assertEquals('{"message":"Content type not supported.","type":"error","http-code":415,"more-info":{"request-content-type":"NOT_SET"}}', $api->readOutputStream());
+    }
+    /**
+     * @test
+     */
+    public function testCreateUser00() {
+        $this->clrearVars();
+        putenv('REQUEST_METHOD=POST');
+        $_SERVER['CONTENT_TYPE'] = 'application/x-www-form-urlencoded';
+        $_POST['service'] = 'create-user-profile';
+        $_POST['id'] = '99';
+        $_POST['name'] = 'Ibrahim';
+        $_POST['username'] = 'WarriorX';
+        $_POST['pass'] = '123';
+        $api = new SampleServicesManager();
+        $api->setOutputStream($this->outputStreamName);
+        $api->process();
+        $this->assertEquals('{"user":{"Id":99,"FullName":"Ibrahim","Username":"WarriorX"}}', $api->readOutputStream());
+    }
+    /**
+     * @test
+     */
+    public function testCreateUser01() {
+        //Start Setup
+        $this->clrearVars();
+        putenv('REQUEST_METHOD=POST');
+        $_SERVER['CONTENT_TYPE'] = 'application/json';
+        $jsonTestFile = __DIR__.DIRECTORY_SEPARATOR.'json.json';
+        self::setTestJson($jsonTestFile,'{"service":"create-user-profile","pass":"123","name":"Me", "username":"Cpool", "id":54}');
+        $manager = new SampleServicesManager();
+        $manager->setInputStream(fopen($jsonTestFile, 'r'));
+        $manager->setOutputStream(fopen($this->outputStreamName,'w'));
+        //End Setup
+        
+        $manager->process();
+        $this->assertEquals('{"user":{"Id":54,"FullName":"Me","Username":"Cpool"}}', $manager->readOutputStream());
     }
     /**
      * @test
