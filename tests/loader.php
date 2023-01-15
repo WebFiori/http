@@ -62,6 +62,7 @@ require_once $rootDir.'webfiori'.$DS.'http'.$DS.'ManagerInfoService.php';
 require_once $rootDir.'webfiori'.$DS.'http'.$DS.'Uri.php';
 require_once $rootDir.'webfiori'.$DS.'http'.$DS.'Request.php';
 require_once $rootDir.'webfiori'.$DS.'http'.$DS.'Response.php';
+require_once $rootDir.'webfiori'.$DS.'http'.$DS.'ObjectMapper.php';
 
 require_once $rootDir.'tests'.$DS.'webfiori'.$DS.'tests'.$DS.'http'.$DS.'testServices'.$DS.'TestServiceObj.php';
 require_once $rootDir.'tests'.$DS.'webfiori'.$DS.'tests'.$DS.'http'.$DS.'testServices'.$DS.'SampleServicesManager.php';
@@ -71,4 +72,6 @@ require_once $rootDir.'tests'.$DS.'webfiori'.$DS.'tests'.$DS.'http'.$DS.'testSer
 require_once $rootDir.'tests'.$DS.'webfiori'.$DS.'tests'.$DS.'http'.$DS.'testServices'.$DS.'GetUserProfileService.php';
 require_once $rootDir.'tests'.$DS.'webfiori'.$DS.'tests'.$DS.'http'.$DS.'testServices'.$DS.'NoAuthService.php';
 require_once $rootDir.'tests'.$DS.'webfiori'.$DS.'tests'.$DS.'http'.$DS.'testServices'.$DS.'NotImplService.php';
+require_once $rootDir.'tests'.$DS.'webfiori'.$DS.'tests'.$DS.'http'.$DS.'testServices'.$DS.'TestUserObj.php';
+require_once $rootDir.'tests'.$DS.'webfiori'.$DS.'tests'.$DS.'http'.$DS.'testServices'.$DS.'CreateUserProfileService.php';
 fwrite($stderr,"Classes Loaded.\n");

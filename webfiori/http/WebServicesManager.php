@@ -373,7 +373,7 @@ class WebServicesManager implements JsonI {
      * Checks if request content type is supported by the service or not (For 'POST' 
      * and PUT requests only).
      * 
-     * @return boolean Returns false in case the 'content-type' header is not 
+     * @return bool Returns false in case the 'content-type' header is not 
      * set and the request method is 'POST' or 'PUT'. If content type is supported (for 
      * PUT and POST), the method will return true, false if not. Other than that, the method 
      * will return true.
@@ -724,7 +724,7 @@ class WebServicesManager implements JsonI {
      * @param string|resource $pathOrResource A file that contains JSON or 
      * a stream which was opened using a function like 'fopen()'.
      * 
-     * @return boolean If input stream is successfully set, the method will 
+     * @return bool If input stream is successfully set, the method will 
      * return true. False otherwise.
      * 
      * @since 1.4.8
@@ -743,7 +743,7 @@ class WebServicesManager implements JsonI {
      * @param resource|string $stream A resource which was opened by 'fopen()'. Also, 
      * it can be a string that points to a file.
      * 
-     * @param boolean $new If set to true and the resource does not exist, the 
+     * @param bool $new If set to true and the resource does not exist, the 
      * method will attempt to create it.
      * 
      * @since 1.4.7
@@ -779,7 +779,7 @@ class WebServicesManager implements JsonI {
      * must be provided in the form 'x.x.x' where 'x' is a number between 
      * 0 and 9 inclusive.
      * 
-     * @return boolean true if set. false otherwise.
+     * @return bool true if set. false otherwise.
      * 
      * @since 1.0
      */
@@ -865,7 +865,7 @@ class WebServicesManager implements JsonI {
      * If one of the conditions is not met, the method will return false and 
      * send back a response to indicate the issue.
      * 
-     * @return boolean true if called service is valid.
+     * @return bool true if called service is valid.
      * 
      * @since 1.0
      */

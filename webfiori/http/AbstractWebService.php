@@ -437,6 +437,31 @@ abstract class AbstractWebService implements JsonI {
         return $this->name;
     }
     /**
+     * Map service parameter to specific instance of a class.
+     * 
+     * This method assumes that every parameter in the request has a method
+     * that can be called to set attribute value. For example, if a parameter 
+     * has the name 'user-last-name', the mapping method should have the name
+     * 'setUserLastName' for mapping to work correctly.
+     * 
+     * @param string $clazz The class that service parameters will be mapped
+     * to.
+     * 
+     * @param array $settrsMap An optional array that can have custom
+     * setters map. The indices of the array should be parameters names
+     * and the values are the names of setter methods in the class.
+     * 
+     * @return object The Method will return an instance of the class with
+     * all its attributes set to request parameters's values.
+     */
+    public function getObject(string $clazz, array $settrsMap = []) {
+        $mapper = new ObjectMapper($clazz, $this);
+        foreach ($settrsMap as $param => $method) {
+            $mapper->addSetterMap($param, $method);
+        }
+        return $mapper->map($this->getInputs());
+    }
+    /**
      * Returns one of the parameters of the service given its name.
      * 
      * @param string $paramName The name of the parameter.
@@ -551,9 +576,6 @@ abstract class AbstractWebService implements JsonI {
      * @since 1.0.1
      */
     public function isAuthorized() {
-    }
-    public function map(string $namespace) {
-        
     }
     /**
      * Returns the value of the property 'requreAuth'.
