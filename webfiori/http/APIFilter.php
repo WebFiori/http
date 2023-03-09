@@ -382,7 +382,7 @@ class APIFilter {
         ];
         $paramObj = $def['parameter'];
 
-        if ($paramObj->applyBasicFilter() === true) {
+        if ($paramObj->isBasicFilter()) {
             $arrToPass['basic-filter-result'] = self::_getBasicFilterResultForCustomFilter($def, $toBeFiltered);
         } else {
             $arrToPass['basic-filter-result'] = 'NOT_APPLICABLE';
@@ -732,7 +732,7 @@ class APIFilter {
      *
      * It is a helper method that works with the method APIFilter::_parseStringFromArray().
      *
-     * @param array $arr
+     * @param array $stringAsArr
      *
      * @param int $start
      *
@@ -742,7 +742,7 @@ class APIFilter {
      *
      * @since 1.2.1
      */
-    private static function _parseStringFromArray(array $arr,int $start,int $len, string $stringEndChar) : array {
+    private static function _parseStringFromArray(string $stringAsArr,int $start,int $len, string $stringEndChar) : array {
         $retVal = [
             'end' => 0,
             'string' => '',
@@ -751,7 +751,7 @@ class APIFilter {
         $str = "";
 
         for ($x = $start ; $x < $len ; $x++) {
-            $ch = $arr[$x];
+            $ch = $stringAsArr[$x];
 
             if ($ch == $stringEndChar) {
                 $str .= "";
@@ -761,7 +761,7 @@ class APIFilter {
                 break;
             } else if ($ch == '\\') {
                 $x++;
-                $nextCh = $arr[$x];
+                $nextCh = $stringAsArr[$x];
 
                 if ($ch != ' ') {
                     $str .= '\\'.$nextCh;
@@ -774,7 +774,7 @@ class APIFilter {
         }
 
         for ($x = $retVal['end'] + 1 ; $x < $len ; $x++) {
-            $ch = $arr[$x];
+            $ch = $stringAsArr[$x];
 
             if ($ch == ',') {
                 $retVal['parsed'] = true;

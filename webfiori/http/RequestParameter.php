@@ -485,7 +485,7 @@ class RequestParameter implements JsonI {
             $min = $this->getMinVal();
 
             if ($min !== null && $val > $min) {
-                $this->maxVal = $val;
+                $this->maxVal = $type === ParamTypes::INT ? intval($val) : $val;
 
                 return true;
             }
@@ -517,7 +517,7 @@ class RequestParameter implements JsonI {
             $max = $this->getMaxVal();
 
             if ($max !== null && $val < $max) {
-                $this->minVal = $val;
+                $this->minVal = $type == ParamTypes::INT ? intval($val) : $val;
 
                 return true;
             }
