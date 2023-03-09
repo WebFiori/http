@@ -172,8 +172,7 @@ class Request {
      * Returns HTTP request headers.
      * 
      * This method will try to extract request headers using two ways, 
-     * first, it will check if the method 'apache_request_headers()' is 
-     * exist or not. If it does, then request headers will be taken from 
+     * first, it will check if the method 'apache_request_headers()' is existed or not. If it does, then request headers will be taken from
      * there. If it does not exist, it will try to extract request headers 
      * from the super global $_SERVER.
      * 
@@ -226,7 +225,7 @@ class Request {
         } 
 
         if (isset($_SERVER)) {
-            $headersArr = self::_getRequestHeadersFromServer();
+            $headersArr = self::getRequestHeadersFromServer();
 
             foreach ($headersArr as $header) {
                 self::get()->headersPool->addHeader($header->getName(), $header->getValue());
@@ -257,7 +256,7 @@ class Request {
         $meth = getenv('REQUEST_METHOD');
 
         if ($meth === false) {
-            $meth = isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : '';
+            $meth = $_SERVER['REQUEST_METHOD'] ?? '';
         }
         $method = filter_var($meth, FILTER_SANITIZE_FULL_SPECIAL_CHARS);
 
@@ -302,14 +301,14 @@ class Request {
      * is the value of the parameter.
      */
     public static function getParams() : array {
-        $requMethod = self::getMethod();
+        $requestMethod = self::getMethod();
         $retVal = [];
         
-        if ($requMethod == 'POST' || $requMethod == 'PUT') {
+        if ($requestMethod == 'POST' || $requestMethod == 'PUT') {
             foreach (array_keys($_POST) as $name) {
                 $retVal[$name] = self::filter(INPUT_POST, $name);
             }
-        } else if ($requMethod == 'DELETE' || $requMethod == 'GET') {
+        } else if ($requestMethod == 'DELETE' || $requestMethod == 'GET') {
             foreach (array_keys($_GET) as $name) {
                 $retVal[$name] = self::filter(INPUT_GET, $name);
             }
@@ -330,7 +329,7 @@ class Request {
 
         if ($path === false) {
             // Using built-in server, it will be false
-            $path = isset($_SERVER['PATH_INFO']) ? $_SERVER['PATH_INFO'] : '';
+            $path = $_SERVER['PATH_INFO'] ?? '';
         } 
         $toAppend = trim(filter_var($path),'/');
 
@@ -354,7 +353,7 @@ class Request {
      * Collect request headers from the array $_SERVER.
      * @return array
      */
-    private static function _getRequestHeadersFromServer() {
+    private static function getRequestHeadersFromServer() : array {
         $retVal = [];
 
         foreach ($_SERVER as $k => $v) {
