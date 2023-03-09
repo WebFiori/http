@@ -32,7 +32,7 @@ class APIFilter {
     const INVALID = 'INV';
 
     /**
-     * An array that will contains filtered data.
+     * An array that will contain filtered data.
      * 
      * @var array
      * 
@@ -41,13 +41,13 @@ class APIFilter {
     private $inputs = [];
     private $inputStreamPath;
     /**
-     * An array that contains non-filtered data (original).
+     * The non-filtered data (original).
      * 
-     * @var array
+     * @var mixed
      * 
      * @since 1.2 
      */
-    private $nonFilteredInputs = [];
+    private $nonFilteredInputs;
     /**
      * Array that contains filter definitions.
      * 
@@ -64,51 +64,49 @@ class APIFilter {
      * @since 1.1
      */
     public function addRequestParameter(RequestParameter $reqParam) {
-        if ($reqParam instanceof RequestParameter) {
-            $paramIdx = 'parameter';
-            $filterIdx = 'filters';
-            $optIdx = 'options';
-            $attribute = [
-                $paramIdx => $reqParam,
-                $filterIdx => [],
-                $optIdx => [$optIdx => []]
-            ];
+        $paramIdx = 'parameter';
+        $filterIdx = 'filters';
+        $optIdx = 'options';
+        $attribute = [
+            $paramIdx => $reqParam,
+            $filterIdx => [],
+            $optIdx => [$optIdx => []]
+        ];
 
-            if ($reqParam->getDefault() !== null) {
-                $attribute[$optIdx][$optIdx]['default'] = $reqParam->getDefault();
-            }
-
-            if ($reqParam->getCustomFilterFunction() != null) {
-                $attribute[$optIdx]['filter-func'] = $reqParam->getCustomFilterFunction();
-            }
-            $paramType = $reqParam->getType();
-
-            if ($paramType == ParamTypes::INT) {
-                if ($reqParam->getMaxVal() !== null) {
-                    $attribute[$optIdx][$optIdx]['max_range'] = $reqParam->getMaxVal();
-                }
-
-                if ($reqParam->getMinVal() !== null) {
-                    $attribute[$optIdx][$optIdx]['min_range'] = $reqParam->getMinVal();
-                }
-                array_push($attribute[$filterIdx], FILTER_VALIDATE_INT);
-                
-            } else if ($paramType == ParamTypes::STRING) {
-                $attribute[$optIdx][$optIdx]['allow-empty'] = $reqParam->isEmptyStringAllowed();
-                array_push($attribute[$filterIdx], FILTER_DEFAULT);
-            } else if ($paramType == ParamTypes::DOUBLE) {
-                array_push($attribute[$filterIdx], FILTER_VALIDATE_FLOAT);
-            } else if ($paramType == ParamTypes::EMAIL) {
-                array_push($attribute[$filterIdx], FILTER_SANITIZE_EMAIL);
-                array_push($attribute[$filterIdx], FILTER_VALIDATE_EMAIL);
-            } else if ($paramType == ParamTypes::URL) {
-                array_push($attribute[$filterIdx], FILTER_SANITIZE_URL);
-                array_push($attribute[$filterIdx], FILTER_VALIDATE_URL);
-            } else {
-                array_push($attribute[$filterIdx], FILTER_DEFAULT);
-            }
-            array_push($this->paramDefs, $attribute);
+        if ($reqParam->getDefault() !== null) {
+            $attribute[$optIdx][$optIdx]['default'] = $reqParam->getDefault();
         }
+
+        if ($reqParam->getCustomFilterFunction() != null) {
+            $attribute[$optIdx]['filter-func'] = $reqParam->getCustomFilterFunction();
+        }
+        $paramType = $reqParam->getType();
+
+        if ($paramType == ParamTypes::INT) {
+            if ($reqParam->getMaxVal() !== null) {
+                $attribute[$optIdx][$optIdx]['max_range'] = $reqParam->getMaxVal();
+            }
+
+            if ($reqParam->getMinVal() !== null) {
+                $attribute[$optIdx][$optIdx]['min_range'] = $reqParam->getMinVal();
+            }
+            $attribute[$filterIdx][] = FILTER_VALIDATE_INT;
+
+        } else if ($paramType == ParamTypes::STRING) {
+            $attribute[$optIdx][$optIdx]['allow-empty'] = $reqParam->isEmptyStringAllowed();
+            $attribute[$filterIdx][] = FILTER_DEFAULT;
+        } else if ($paramType == ParamTypes::DOUBLE) {
+            $attribute[$filterIdx][] = FILTER_VALIDATE_FLOAT;
+        } else if ($paramType == ParamTypes::EMAIL) {
+            $attribute[$filterIdx][] = FILTER_SANITIZE_EMAIL;
+            $attribute[$filterIdx][] = FILTER_VALIDATE_EMAIL;
+        } else if ($paramType == ParamTypes::URL) {
+            $attribute[$filterIdx][] = FILTER_SANITIZE_URL;
+            $attribute[$filterIdx][] = FILTER_VALIDATE_URL;
+        } else {
+            $attribute[$filterIdx][] = FILTER_DEFAULT;
+        }
+        $this->paramDefs[] = $attribute;
     }
     /**
      * Clears the arrays that are used to store filtered and not-filtered variables.
@@ -155,7 +153,7 @@ class APIFilter {
      * 
      * @since 1.2.2
      */
-    public static function filter(APIFilter $apiFilter, array $arr) {
+    public static function filter(APIFilter $apiFilter, array $arr): array {
         $filteredIdx = 'filtered';
         $noFIdx = 'non-filtered';
         $retVal = [
@@ -225,14 +223,15 @@ class APIFilter {
         $this->inputs = $filterResult['filtered'];
         $this->nonFilteredInputs = $filterResult['non-filtered'];
     }
+
     /**
      * Validate and sanitize POST parameters.
-     * 
+     *
      * POST parameters are usually sent when request method is POST or PUT.
      * The validation and sanitization algorithm will work as follows:
      * <ul>
      * <li>First, check if $_POST['param-name'] is set.</li>
-     * <li>If not set, check if its optional. If optional and default value is 
+     * <li>If not set, check if its optional. If optional and default value is
      * given, then use default value. Else, set the filtered value to null.</li>
      * <li>If $_POST['param-name'] is given, then do the following steps:
      * <ul>
@@ -241,7 +240,8 @@ class APIFilter {
      * </ul>
      * </li>
      * </ul>
-     * 
+     *
+     * @throws Exception
      * @since 1.0
      */
     public final function filterPOST() {
@@ -319,15 +319,15 @@ class APIFilter {
      * This can be used to test the filter if body content type is 
      * 'application/json'.
      * 
-     * @param string|resource $pathOrResource A file that contains JSON or 
+     * @param string $pathOrResource A file that contains JSON or
      * a stream which was opened using a function like 'fopen()'.
      * 
-     * @return boolean If input stream is successfully set, the method will 
+     * @return bool If input stream is successfully set, the method will 
      * return true. False otherwise.
      * 
      * @since 1.2.3
      */
-    public function setInputStream($pathOrResource) {
+    public function setInputStream($pathOrResource) : bool {
         if (is_resource($pathOrResource)) {
             $meat = stream_get_meta_data($pathOrResource);
             $this->inputStreamPath = $meat['uri'];
@@ -386,7 +386,7 @@ class APIFilter {
         if ($paramObj->applyBasicFilter() === true) {
             $arrToPass['basic-filter-result'] = self::_getBasicFilterResultForCustomFilter($def, $toBeFiltered);
         } else {
-            $arrToPass['basic-filter-result'] = 'NOT_APLICABLE';
+            $arrToPass['basic-filter-result'] = 'NOT_APPLICABLE';
         }
         $filterFuncResult = call_user_func($def['options']['filter-func'],$arrToPass['original-value'], $arrToPass['basic-filter-result'],$paramObj);
 
@@ -443,7 +443,7 @@ class APIFilter {
             }
         }
     }
-    private function _cleanJsonArray(array $arr, $applyBasicFiltering = false) {
+    private function _cleanJsonArray(array $arr, $applyBasicFiltering = false) : array {
         $cleanArr = [];
 
         foreach ($arr as $val) {
@@ -485,7 +485,7 @@ class APIFilter {
      * @param string|array $arr A string in the format '[3,"hello",4.8,"",44,...]'.
      * 
      * @return string|array If the string has valid array format, an array 
-     * which contains the values is returned. If has invalid syntax, the 
+     * which contains the values is returned. If it has invalid syntax, the 
      * method will return the string 'APIFilter::INVALID'.
      * 
      * @since 1.2.1
@@ -585,9 +585,9 @@ class APIFilter {
     /**
      * Returns the boolean value of given input.
      * 
-     * @param type $boolean
+     * @param mixed $boolean
      * 
-     * @return boolean|string
+     * @return bool|string
      * 
      * @since 1.1
      */
@@ -660,19 +660,17 @@ class APIFilter {
                 $retVal = $this->_getJsonPropArr($val, $propName);
             }
 
-            if ($retVal !== null) {
-                return $retVal;
-            }
         }
+        return $retVal;
     }
-    private function _getJsonPropVal(Json $jsonx, $propName) {
-        $propVal = $jsonx->get($propName);
+    private function _getJsonPropVal(Json $jsonObj, $propName) {
+        $propVal = $jsonObj->get($propName);
 
         if ($propVal === null) {
-            $props = $jsonx->getPropsNames();
+            $props = $jsonObj->getPropsNames();
 
             foreach ($props as $propNameX) {
-                $testVal = $jsonx->get($propNameX);
+                $testVal = $jsonObj->get($propNameX);
 
                 if ($testVal instanceof Json) {
                     $propVal = $this->_getJsonPropVal($testVal, $propName);
@@ -688,7 +686,7 @@ class APIFilter {
 
         return $propVal;
     }
-    private function _jsonBasicClean(Json $val, $applyBasicFiltering) {
+    private function _jsonBasicClean(Json $val, $applyBasicFiltering) : Json {
         $cleanJson = new Json();
 
         foreach ($val->getPropsNames() as $propName) {
@@ -712,6 +710,10 @@ class APIFilter {
 
         return $cleanJson;
     }
+
+    /**
+     * @throws Exception
+     */
     private function _jsonBody() {
         if ($this->inputStreamPath !== null) {
             $body = file_get_contents($this->inputStreamPath);
@@ -725,22 +727,23 @@ class APIFilter {
         }
         $this->filterJson($json);
     }
+
     /**
      * Extract string value from an array that is formed as string.
-     * 
+     *
      * It is a helper method that works with the method APIFilter::_parseStringFromArray().
-     * 
-     * @param type $arr
-     * 
-     * @param type $start
-     * 
-     * @param type $len
-     * 
-     * @return boolean
-     * 
+     *
+     * @param array $arr
+     *
+     * @param int $start
+     *
+     * @param int $len
+     * @param string $stringEndChar
+     * @return array
+     *
      * @since 1.2.1
      */
-    private static function _parseStringFromArray($arr,$start,$len,$stringEndChar) {
+    private static function _parseStringFromArray(array $arr,int $start,int $len, string $stringEndChar) : array {
         $retVal = [
             'end' => 0,
             'string' => '',
@@ -794,13 +797,13 @@ class APIFilter {
      * 
      * @param string $str A value such as '1' or '7.0'.
      * 
-     * @return string|int|double If the given string does not represents any 
+     * @return string|int|double If the given string does not represent any 
      * numerical value, the method will return the string 'APIFilter::INVALID'. If the 
      * given string represents an integer, an integer value is returned. 
      * If the given string represents a floating point value, a float number 
      * is returned.
      */
-    private static function checkIsNumber($str) {
+    private static function checkIsNumber(string $str) {
         $strX = trim($str);
         $len = strlen($strX);
         $isFloat = false;
@@ -830,7 +833,7 @@ class APIFilter {
     }
     /**
      * 
-     * @param Json $jsonx
+     * @param Json $cleanJson
      */
     private function filterJson(Json $cleanJson) {
         $originalInputs = new Json();
@@ -840,14 +843,14 @@ class APIFilter {
         $optIdx = 'options';
 
         foreach ($filterDef as $def) {
-            $requParam = $def[$paramIdx];
-            $name = $requParam->getName();
-            $paramType = $requParam->getType();
-            $defaultVal = $requParam->getDefault();
-            $requParamVal = $this->_getJsonPropVal($cleanJson, $name);
+            $requestParam = $def[$paramIdx];
+            $name = $requestParam->getName();
+            $paramType = $requestParam->getType();
+            $defaultVal = $requestParam->getDefault();
+            $requestParamVal = $this->_getJsonPropVal($cleanJson, $name);
 
-            if ($requParamVal !== null) {
-                $toBeFiltered = $requParamVal;
+            if ($requestParamVal !== null) {
+                $toBeFiltered = $requestParamVal;
                 $originalInputs->add($name, $toBeFiltered);
 
                 if (isset($def[$optIdx]['filter-func'])) {
@@ -867,14 +870,14 @@ class APIFilter {
                     self::_applyJsonBasicFilter($extraClean, $toBeFiltered, $def);
                 }
                 $this->_checkExtracted($extraClean, $name, $defaultVal);
-            } else if ($requParam->isOptional()) {
+            } else if ($requestParam->isOptional()) {
                 $defaultVal !== null ? $extraClean->add($name, $defaultVal) : $extraClean->add($name, null);
             }
         }
         $this->inputs = $extraClean;
         $this->nonFilteredInputs = $originalInputs;
     }
-    private function setInputStreamHelper($trimmed, $mode) {
+    private function setInputStreamHelper($trimmed, $mode) : bool {
         $tempStream = fopen($trimmed, $mode);
 
         if (is_resource($tempStream)) {
