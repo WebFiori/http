@@ -9,6 +9,8 @@
  */
 namespace webfiori\http;
 
+use InvalidArgumentException;
+
 /**
  * An entity which represents a variable in URI definition.
  *
@@ -31,13 +33,13 @@ class UriParameter {
         $trimmed = trim($varName);
 
         if (strlen($trimmed) == 0) {
-            throw new \InvalidArgumentException('Empty string not allowed as variable name.');
+            throw new InvalidArgumentException('Empty string not allowed as variable name.');
         }
         $lastChar = $varName[strlen($varName) - 1];
 
         if ($lastChar == '?') {
             if (strlen($trimmed) == 1) {
-                throw new \InvalidArgumentException('Empty string not allowed as variable name.');
+                throw new InvalidArgumentException('Empty string not allowed as variable name.');
             }
             $this->isOptional = true;
         } else {
