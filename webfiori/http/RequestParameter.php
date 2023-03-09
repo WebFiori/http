@@ -558,18 +558,9 @@ class RequestParameter implements JsonI {
      */
     public function setName(string $name) {
         $nameTrimmed = trim($name);
-        $len = strlen($nameTrimmed);
 
-        if ($len != 0) {
-            for ($x = 0 ; $x < $len ; $x++) {
-                $ch = $nameTrimmed[$x];
-
-                if (!($ch == '_' || $ch == '-' || ($ch >= 'a' && $ch <= 'z') || ($ch >= 'A' && $ch <= 'Z') || ($ch >= '0' && $ch <= '9'))) {
-                    return false;
-                }
-            }
+        if (AbstractWebService::isValidName($nameTrimmed)) {
             $this->name = $nameTrimmed;
-
             return true;
         }
 
