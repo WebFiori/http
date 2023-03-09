@@ -10,7 +10,7 @@
 namespace webfiori\http;
 
 /**
- * A class which is used to represents Http cookies.
+ * A class which is used to represent Http cookies.
  *
  * @author Ibrahim
  */
@@ -34,7 +34,7 @@ class HttpCookie {
     /**
      * Creates new instance of the class with default properties.
      * 
-     * A newly created cookie will have following properties by default:
+     * A newly created cookie will have the following properties by default:
      * <ul>
      * <li>name: new-cookie</li>
      * <li>path: /</li>
@@ -87,7 +87,7 @@ class HttpCookie {
         return new HttpHeader('set-cookie', $this.'');
     }
     /**
-     * Returns a string which can be used to sent the cookie using Http headers.
+     * Returns a string which can be used to send the cookie using Http headers.
      * 
      * @return string
      */
@@ -197,8 +197,8 @@ class HttpCookie {
     /**
      * Checks if the attribute 'HttpOnly' is set or not.
      * 
-     * A cookie with the HttpOnly attribute is inaccessible to the JavaScript
-     * Document.cookie API; it's only sent to the server.
+     * A cookie with the HttpOnly attribute is inaccessible to the JavaScript's
+     * Document Cookie API; it's only sent to the server.
      * 
      * @return bool If set, the method will return true. False otherwise. Default
      * is true.
@@ -235,7 +235,7 @@ class HttpCookie {
     /**
      * Kill the cookie.
      * 
-     * Killing a cookie is simply setting its expire to a negative value which
+     * Killing a cookie is simply setting its expiry to a negative value which
      * simply indicates a date in the past.
      */
     public function kill() {
@@ -262,7 +262,7 @@ class HttpCookie {
      * Sets cookie duration.
      * 
      * @param float $expireAfter Cookie duration in minutes. If 0 is given,
-     * the expire attribute will not be included.
+     * the expiry attribute will not be included.
      *
      */
     public function setExpires(float $expireAfter) {
@@ -276,10 +276,10 @@ class HttpCookie {
     /**
      * Sets the attribute 'HttpOnly'.
      * 
-     * A cookie with the HttpOnly attribute is inaccessible to the JavaScript
-     * Document.cookie API; it's only sent to the server.
+     * A cookie with the HttpOnly attribute is inaccessible to the JavaScript's
+     * Document cookie API; it's only sent to the server.
      * 
-     * @param bool $bool True to make it HttpOnly. false other wise.
+     * @param bool $bool True to make it HttpOnly. false otherwise.
      */
     public function setIsHttpOnly(bool $bool) {
         $this->httpOnly = $bool;
