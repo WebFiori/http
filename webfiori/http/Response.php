@@ -105,12 +105,12 @@ class Response {
      * value with the given new value. Note that if no header was found which
      * has the given value, the header will be added as new one.
      * 
-     * @return boolean If the header is added, the method will return true. If 
+     * @return bool If the header is added, the method will return true. If 
      * not added, the method will return false.
      * 
      * @since 1.0
      */
-    public static function addHeader(string $headerName, string $headerVal, string $replaceValue = null) {
+    public static function addHeader(string $headerName, string $headerVal, string $replaceValue = null) : bool {
         return self::getHeadersPool()->addHeader($headerName, $headerVal, $replaceValue);
     }
     /**
@@ -118,7 +118,7 @@ class Response {
      * 
      * This method can be used to add more than one callback. 
      * 
-     * @param Closure $func A PHP callable.
+     * @param callable $func A PHP callable.
      * 
      * @since 1.0
      */
@@ -132,7 +132,7 @@ class Response {
      * 
      * @since 1.0
      */
-    public static function clear() {
+    public static function clear() : Response {
         self::clearBody()->clearHeaders();
 
         return self::get();
@@ -144,7 +144,7 @@ class Response {
      * 
      * @since 1.0
      */
-    public static function clearBody() {
+    public static function clearBody() : Response {
         self::get()->body = '';
 
         return self::get();
@@ -156,7 +156,7 @@ class Response {
      * 
      * @since 1.0
      */
-    public static function clearHeaders() {
+    public static function clearHeaders() : Response {
         self::get()->headersPool = new HeadersPool();
 
         return self::get();
@@ -166,7 +166,7 @@ class Response {
      * 
      * @return Response
      */
-    public static function get() {
+    public static function get() : Response {
         if (self::$inst === null) {
             self::$inst = new Response();
         }
@@ -174,9 +174,9 @@ class Response {
         return self::$inst;
     }
     /**
-     * Returns a string that represents response body that will be send.
+     * Returns a string that represents response body that will be sent.
      * 
-     * @return string A string that represents response body that will be send.
+     * @return string A string that represents response body that will be sent.
      * 
      * @since 1.0
      */
@@ -208,6 +208,8 @@ class Response {
                 return $cookie;
             }
         }
+        
+        return null;
     }
     /**
      * Returns an array of all cookies that will be sent with the response.
@@ -220,7 +222,7 @@ class Response {
     /**
      * Returns the value(s) of specific HTTP header.
      * 
-     * @param array $headerName The name of the header.
+     * @param string $headerName The name of the header.
      * 
      * @return array If such header exist, the method will return an array 
      * that contains the values of the header. If the header does not exist, the 
@@ -228,7 +230,7 @@ class Response {
      * 
      * @since 1.0
      */
-    public static function getHeader(string $headerName) {
+    public static function getHeader(string $headerName) : array {
         return self::getHeadersPool()->getHeader($headerName);
     }
     /**
@@ -255,7 +257,7 @@ class Response {
      * 
      * @param string $cookieName The name of the cookie.
      * 
-     * @return bool If the response will have a cookie with specified name,
+     * @return bool If the response have a cookie with specified name,
      * the method will return true. False if not.
      */
     public static function hasCookie(string $cookieName) : bool {
@@ -272,19 +274,19 @@ class Response {
      * @param string $headerVal An optional value to check for. Default is null 
      * which means only check for the name.
      * 
-     * @return boolean If a header which has the given name exist, the method 
+     * @return bool If a header which has the given name exist, the method 
      * will return true. If a value is specified and a match is fond, the 
      * method will return true. Other than that, the method will return true.
      * 
      * @since 1.0 
      */
-    public static function hasHeader(string $headerName, string $headerVal = null) {
+    public static function hasHeader(string $headerName, string $headerVal = null) : bool {
         return self::getHeadersPool()->hasHeader($headerName, $headerVal);
     }
     /**
      * Checks if the response was sent or not.
      * 
-     * @return boolean The method will return true if output is sent. False 
+     * @return bool The method will return true if output is sent. False 
      * if not.
      * 
      * @since 1.0.1
@@ -301,12 +303,12 @@ class Response {
      * multiple values and this one is specified, only the given header value 
      * will be removed.
      * 
-     * @return boolean If the header is removed, the method will return true. Other 
-     * than that, the method will return true.
+     * @return bool If the header is removed, the method will return true.
+     * Other than that, the method will return true.
      * 
      * @since 1.0
      */
-    public static function removeHeader(string $headerName, $headerVal = null) {
+    public static function removeHeader(string $headerName, string $headerVal = null) : bool {
         return self::getHeadersPool()->removeHeader($headerName, $headerVal);
     }
     /**
@@ -368,9 +370,8 @@ class Response {
      * @since 1.0
      */
     public static function setCode(int $code) {
-        $asInt = intval($code);
 
-        if ($asInt >= 100 && $asInt <= 599) {
+        if ($code >= 100 && $code <= 599) {
             self::get()->responseCode = $code;
         }
     }
@@ -383,7 +384,7 @@ class Response {
      * 
      * @since 1.0
      */
-    public static function write(string $str) {
+    public static function write(string $str) : Response {
         self::get()->body .= $str;
 
         return self::get();
