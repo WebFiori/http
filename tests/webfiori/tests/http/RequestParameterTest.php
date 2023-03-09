@@ -209,7 +209,7 @@ class RequestParameterTest extends TestCase {
         $this->assertNull($rp->getCustomFilterFunction());
         $this->assertFalse($rp->setCustomFilterFunction('not a func',false));
         $this->assertNull($rp->getCustomFilterFunction());
-        $this->assertTrue($rp->applyBasicFilter());
+        $this->assertTrue($rp->isBasicFilter());
     }
     /**
      * @test
@@ -220,7 +220,7 @@ class RequestParameterTest extends TestCase {
         {
         },false));
         $this->assertTrue(is_callable($rp->getCustomFilterFunction()));
-        $this->assertFalse($rp->applyBasicFilter());
+        $this->assertFalse($rp->isBasicFilter());
     }
     /**
      * @test
@@ -231,7 +231,7 @@ class RequestParameterTest extends TestCase {
         {
         },true));
         $this->assertTrue(is_callable($rp->getCustomFilterFunction()));
-        $this->assertTrue($rp->applyBasicFilter());
+        $this->assertTrue($rp->isBasicFilter());
     }
     /**
      * @test
