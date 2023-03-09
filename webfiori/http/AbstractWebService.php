@@ -165,7 +165,7 @@ abstract class AbstractWebService implements JsonI {
         $this->requireAuth = true;
         $this->sinceVersion = '1.0.0';
         $this->serviceDesc = '';
-        
+
         $this->setManager($owner);
     }
     /**
@@ -458,9 +458,11 @@ abstract class AbstractWebService implements JsonI {
      */
     public function getObject(string $clazz, array $settersMap = []) {
         $mapper = new ObjectMapper($clazz, $this);
+
         foreach ($settersMap as $param => $method) {
             $mapper->addSetterMap($param, $method);
         }
+
         return $mapper->map($this->getInputs());
     }
     /**
@@ -510,6 +512,7 @@ abstract class AbstractWebService implements JsonI {
                 return $inputs[$trimmed] ?? null;
             }
         }
+
         return null;
     }
     /**
@@ -593,6 +596,32 @@ abstract class AbstractWebService implements JsonI {
      */
     public function isAuthRequired() : bool {
         return $this->requireAuth;
+    }
+
+    /**
+     * Validates the name of a web service or request parameter.
+     *
+     * @param string $name The name of the service or parameter.
+     *
+     * @return bool If valid, true is returned. Other than that, false is returned.
+     */
+    public static function isValidName(string $name): bool {
+        $trimmedName = trim($name);
+        $len = strlen($trimmedName);
+
+        if ($len != 0) {
+            for ($x = 0 ; $x < $len ; $x++) {
+                $ch = $trimmedName[$x];
+
+                if (!($ch == '_' || $ch == '-' || ($ch >= 'a' && $ch <= 'z') || ($ch >= 'A' && $ch <= 'Z') || ($ch >= '0' && $ch <= '9'))) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        return false;
     }
     /**
      * Process client's request.
@@ -800,30 +829,6 @@ abstract class AbstractWebService implements JsonI {
     public final function setName(string $name) : bool {
         if (self::isValidName($name)) {
             $this->name = trim($name);
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * Validates the name of a web service or request parameter.
-     *
-     * @param string $name The name of the service or parameter.
-     *
-     * @return bool If valid, true is returned. Other than that, false is returned.
-     */
-    public static function isValidName(string $name): bool {
-        $trimmedName = trim($name);
-        $len = strlen($trimmedName);
-
-        if ($len != 0) {
-            for ($x = 0 ; $x < $len ; $x++) {
-                $ch = $trimmedName[$x];
-
-                if (!($ch == '_' || $ch == '-' || ($ch >= 'a' && $ch <= 'z') || ($ch >= 'A' && $ch <= 'Z') || ($ch >= '0' && $ch <= '9'))) {
-                    return false;
-                }
-            }
 
             return true;
         }

@@ -162,15 +162,16 @@ class HttpCookie {
      */
     public function getRemainingTime() : int {
         $expiresAt = $this->getExpires();
-        
+
         if ($expiresAt == 0) {
             return 0;
         }
         $remaining = $expiresAt - time();
-        
+
         if ($remaining < 0) {
             return 0;
         }
+
         return $remaining;
     }
     /**
@@ -271,7 +272,7 @@ class HttpCookie {
 
             return;
         }
-        $this->expires = time() + $expireAfter*60;
+        $this->expires = time() + $expireAfter * 60;
     }
     /**
      * Sets the attribute 'HttpOnly'.

@@ -155,7 +155,7 @@ class HeadersPool {
      * @param string $val If the header is added with multiple values, this
      * can be used to remove specific one with specific value. If not provided,
      * all headers will be removed.
-     * 
+     *
      * @return bool If removed, true is returned. False otherwise.
      */
     public function removeHeader(string $name, string $val = null) : bool {

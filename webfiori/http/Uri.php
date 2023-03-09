@@ -208,7 +208,7 @@ class Uri {
             //in some cases
             $docRoot = getcwd();
         }
-        
+
         $docRootLen = strlen($docRoot);
 
         if ($docRootLen == 0) {

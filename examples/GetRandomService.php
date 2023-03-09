@@ -1,4 +1,5 @@
 <?php
+
 require 'loader.php';
 
 use webfiori\http\AbstractWebService;
@@ -9,19 +10,18 @@ class GetRandomService extends AbstractWebService {
         parent::__construct('get-random-number');
         $this->addRequestMethod('get');
         $this->addRequestMethod('post');
-        
+
         $this->addParameter(new RequestParameter('min', 'integer', true));
         $this->addParameter(new RequestParameter('max', 'integer', true));
     }
 
     public function isAuthorized() {
-        
     }
 
     public function processRequest() {
         $max = $this->getParamVal('max');
         $min = $this->getParamVal('min');
-        
+
         if ($max !== null && $min !== null) {
             $random = rand($min, $max);
         } else {
@@ -29,5 +29,4 @@ class GetRandomService extends AbstractWebService {
         }
         $this->sendResponse($random);
     }
-
 }

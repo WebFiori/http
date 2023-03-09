@@ -1,9 +1,10 @@
 <?php
+
 require 'loader.php';
 require 'HelloWorldService.php';
 
-use webfiori\http\WebServicesManager;
 use HelloWorldService;
+use webfiori\http\WebServicesManager;
 
 $manager = new WebServicesManager();
 $manager->addService(new HelloWorldService());

@@ -208,7 +208,7 @@ class Response {
                 return $cookie;
             }
         }
-        
+
         return null;
     }
     /**
@@ -370,7 +370,6 @@ class Response {
      * @since 1.0
      */
     public static function setCode(int $code) {
-
         if ($code >= 100 && $code <= 599) {
             self::get()->responseCode = $code;
         }

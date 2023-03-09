@@ -8,7 +8,6 @@
  * https://github.com/WebFiori/.github/blob/main/LICENSE
  * 
  */
-
 namespace webfiori\http;
 
 use Exception;
@@ -141,6 +140,17 @@ class ObjectMapper {
             throw new Exception('Class not found: '.$clazz);
         }
     }
+    private function extractMethodsNames($inputs) {
+        if ($inputs instanceof Json) {
+            foreach ($inputs->getProperties() as $prop) {
+                $this->addSetterMap($prop->getName());
+            }
+        } else if (gettype($inputs) == 'array') {
+            foreach (array_keys($inputs) as $name) {
+                $this->addSetterMap($name);
+            }
+        }
+    }
     private function paramNameToMethodName($paramName) : string {
         $expl = explode('_', $paramName);
         $methName = '';
@@ -157,16 +167,5 @@ class ObjectMapper {
         }
 
         return $methName;
-    }
-    private function extractMethodsNames($inputs) {
-        if ($inputs instanceof Json) {
-            foreach ($inputs->getProperties() as $prop) {
-                $this->addSetterMap($prop->getName());
-            }
-        } else if (gettype($inputs) == 'array') {
-            foreach (array_keys($inputs) as $name) {
-                $this->addSetterMap($name);
-            }
-        }
     }
 }

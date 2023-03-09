@@ -167,7 +167,7 @@ class Request {
 
         return self::getHeadersPool()->getHeader($name);
     }
-    
+
     /**
      * Returns HTTP request headers.
      * 
@@ -186,7 +186,7 @@ class Request {
             //Always Refresh headers if in testing environment.
             self::extractHeaders();
         }
-        
+
         if (self::get()->headersPool === null) {
             self::extractHeaders();
         }
@@ -202,35 +202,15 @@ class Request {
     public static function getHeadersAssoc() : array {
         $retVal = [];
         $headers = self::getHeaders();
-        
+
         foreach ($headers as $headerObj) {
-            
             if (!isset($retVal[$headerObj->getName()])) {
                 $retVal[$headerObj->getName()] = [];
             }
             $retVal[$headerObj->getName()][] = $headerObj->getValue();
         }
-        
+
         return $retVal;
-    }
-    private static function extractHeaders() {
-        self::get()->headersPool = new HeadersPool();
-
-        if (function_exists('apache_request_headers')) {
-            $headers = apache_request_headers();
-
-            foreach ($headers as $k => $v) {
-                self::get()->headersPool->addHeader($k, filter_var($v, FILTER_SANITIZE_FULL_SPECIAL_CHARS));
-            }
-        } 
-
-        if (isset($_SERVER)) {
-            $headersArr = self::getRequestHeadersFromServer();
-
-            foreach ($headersArr as $header) {
-                self::get()->headersPool->addHeader($header->getName(), $header->getValue());
-            }
-        }
     }
 
     /**
@@ -283,7 +263,6 @@ class Request {
      * @since 1.0.1
      */
     public static function getParam(string $paramName) {
-
         $trimmed = trim($paramName);
         $params = self::getParams();
 
@@ -303,7 +282,7 @@ class Request {
     public static function getParams() : array {
         $requestMethod = self::getMethod();
         $retVal = [];
-        
+
         if ($requestMethod == 'POST' || $requestMethod == 'PUT') {
             foreach (array_keys($_POST) as $name) {
                 $retVal[$name] = self::filter(INPUT_POST, $name);
@@ -313,6 +292,7 @@ class Request {
                 $retVal[$name] = self::filter(INPUT_GET, $name);
             }
         }
+
         return $retVal;
     }
     /**
@@ -349,6 +329,38 @@ class Request {
     public static function getUri() : Uri {
         return new Uri(self::getRequestedURI());
     }
+    private static function extractHeaders() {
+        self::get()->headersPool = new HeadersPool();
+
+        if (function_exists('apache_request_headers')) {
+            $headers = apache_request_headers();
+
+            foreach ($headers as $k => $v) {
+                self::get()->headersPool->addHeader($k, filter_var($v, FILTER_SANITIZE_FULL_SPECIAL_CHARS));
+            }
+        } 
+
+        if (isset($_SERVER)) {
+            $headersArr = self::getRequestHeadersFromServer();
+
+            foreach ($headersArr as $header) {
+                self::get()->headersPool->addHeader($header->getName(), $header->getValue());
+            }
+        }
+    }
+    private  static function filter($inputSource, $varName) {
+        $val = filter_input($inputSource, $varName);
+
+        if ($val === null) {
+            if ($inputSource == INPUT_POST && isset($_POST[$varName])) {
+                $val = filter_var(urldecode($_POST[$varName]));
+            } else if ($inputSource == INPUT_GET && isset($_GET[$varName])) {
+                $val = filter_var(urldecode($_GET[$varName]));
+            }
+        }
+
+        return $val;
+    }
     /**
      * Collect request headers from the array $_SERVER.
      * @return array
@@ -367,7 +379,7 @@ class Request {
                     if ($x + 1 == $count && $split[$x] != 'HTTP') {
                         $headerName = $headerName.$split[$x];
                     } else if ($x == 1 && $split[$x] != 'HTTP') {
-                            $headerName = $split[$x].'-';
+                        $headerName = $split[$x].'-';
                     } else if ($split[$x] != 'HTTP') {
                         $headerName = $headerName.$split[$x].'-';
                     }
@@ -377,18 +389,5 @@ class Request {
         }
 
         return $retVal;
-    }
-    private  static function filter($inputSource, $varName) {
-        $val = filter_input($inputSource, $varName);
-
-        if ($val === null) {
-            if ($inputSource == INPUT_POST && isset($_POST[$varName])) {
-                $val = filter_var(urldecode($_POST[$varName]));
-            } else if ($inputSource == INPUT_GET && isset($_GET[$varName])) {
-                $val = filter_var(urldecode($_GET[$varName]));
-            }
-        }
-
-        return $val;
     }
 }

@@ -184,19 +184,6 @@ class RequestParameter implements JsonI {
         return $retVal."    Maximum Value => '$max'\n]\n";
     }
     /**
-     * Checks if we need to apply basic filter or not 
-     * before applying custom filter callback.
-     * 
-     * @return bool The method will return true 
-     * if the basic filter will be applied before applying custom filter. If no custom 
-     * filter is set, the method will return true by default.
-     * 
-     * @since 1.2
-     */
-    public function isBasicFilter() : bool {
-        return $this->applyBasicFilter;
-    }
-    /**
      * Creates an object of the class given an associative array of options.
      * 
      * @param array $options An associative array of 
@@ -322,6 +309,19 @@ class RequestParameter implements JsonI {
      */
     public function getType() : string {
         return $this->type;
+    }
+    /**
+     * Checks if we need to apply basic filter or not 
+     * before applying custom filter callback.
+     * 
+     * @return bool The method will return true 
+     * if the basic filter will be applied before applying custom filter. If no custom 
+     * filter is set, the method will return true by default.
+     * 
+     * @since 1.2
+     */
+    public function isBasicFilter() : bool {
+        return $this->applyBasicFilter;
     }
     /**
      * Checks if empty strings are allowed as values for the parameter.
@@ -481,7 +481,7 @@ class RequestParameter implements JsonI {
     public function setMaxVal(float $val) : bool {
         $type = $this->getType();
 
-        if ($type == ParamTypes::INT || $type == ParamTypes::DOUBLE ) {
+        if ($type == ParamTypes::INT || $type == ParamTypes::DOUBLE) {
             $min = $this->getMinVal();
 
             if ($min !== null && $val > $min) {
@@ -549,6 +549,7 @@ class RequestParameter implements JsonI {
 
         if (AbstractWebService::isValidName($nameTrimmed)) {
             $this->name = $nameTrimmed;
+
             return true;
         }
 
@@ -573,6 +574,7 @@ class RequestParameter implements JsonI {
         } else if ($sType == 'int') {
             $sType = 'integer';
         }
+
         if (in_array($sType, ParamTypes::getTypes())) {
             $this->type = $sType;
 
@@ -638,7 +640,7 @@ class RequestParameter implements JsonI {
         if (isset($options['custom-filter'])) {
             $param->setCustomFilterFunction($options['custom-filter']);
         }
-        
+
         if (isset($options['min'])) {
             $param->setMinVal($options['min']);
         }

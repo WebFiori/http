@@ -91,7 +91,6 @@ class APIFilter {
                 $attribute[$optIdx][$optIdx]['min_range'] = $reqParam->getMinVal();
             }
             $attribute[$filterIdx][] = FILTER_VALIDATE_INT;
-
         } else if ($paramType == ParamTypes::STRING) {
             $attribute[$optIdx][$optIdx]['allow-empty'] = $reqParam->isEmptyStringAllowed();
             $attribute[$filterIdx][] = FILTER_DEFAULT;
@@ -659,8 +658,8 @@ class APIFilter {
             } else if (gettype($val) == 'array') {
                 $retVal = $this->_getJsonPropArr($val, $propName);
             }
-
         }
+
         return $retVal;
     }
     private function _getJsonPropVal(Json $jsonObj, $propName) {
