@@ -74,7 +74,7 @@ class ParamTypes {
      * 
      * @since 1.0
      */
-    public static function getTypes() {
+    public static function getTypes() : array {
         return [
             self::ARR, 
             self::BOOL, 
