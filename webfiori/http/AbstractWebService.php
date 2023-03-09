@@ -94,7 +94,7 @@ abstract class AbstractWebService implements JsonI {
      * 
      * @since 1.0 
      */
-    private $parameters = [];
+    private $parameters;
     /**
      * An array that contains service request methods.
      * 
@@ -102,7 +102,7 @@ abstract class AbstractWebService implements JsonI {
      * 
      * @since 1.0 
      */
-    private $reqMethods = [];
+    private $reqMethods;
     /**
      * This is used to indicate if authentication is required when the service 
      * is called.
@@ -111,7 +111,7 @@ abstract class AbstractWebService implements JsonI {
      * 
      * @since 1.0.1 
      */
-    private $requreAuth;
+    private $requireAuth;
     /**
      * An array that contains descriptions of 
      * possible responses.
@@ -124,7 +124,7 @@ abstract class AbstractWebService implements JsonI {
     /**
      * An optional description for the service.
      * 
-     * @var sting
+     * @var string
      * 
      * @since 1.0
      */
@@ -162,7 +162,7 @@ abstract class AbstractWebService implements JsonI {
         $this->reqMethods = [];
         $this->parameters = [];
         $this->responses = [];
-        $this->requreAuth = true;
+        $this->requireAuth = true;
         $this->sinceVersion = '1.0.0';
         $this->serviceDesc = '';
         
@@ -172,7 +172,7 @@ abstract class AbstractWebService implements JsonI {
      * Returns an array that contains all possible requests methods at which the 
      * service can be called with.
      * 
-     * The array will contains strings like 'GET' or 'POST'. If no request methods 
+     * The array will contain strings like 'GET' or 'POST'. If no request methods
      * where added, the array will be empty.
      * 
      * @return array An array that contains all possible requests methods at which the 
@@ -416,12 +416,14 @@ abstract class AbstractWebService implements JsonI {
         if ($manager !== null) {
             return $manager->getInputs();
         }
+
+        return null;
     }
     /**
      * Returns the manager which is used to manage the web service.
      * 
-     * @return WebServicesManager|null If set, it is returned as an object. Other
-     * than that, null is returned.
+     * @return WebServicesManager|null If set, it is returned as an object.
+     * Other than that, null is returned.
      */
     public function getManager() {
         return $this->owner;
@@ -447,16 +449,16 @@ abstract class AbstractWebService implements JsonI {
      * @param string $clazz The class that service parameters will be mapped
      * to.
      * 
-     * @param array $settrsMap An optional array that can have custom
+     * @param array $settersMap An optional array that can have custom
      * setters map. The indices of the array should be parameters names
      * and the values are the names of setter methods in the class.
      * 
      * @return object The Method will return an instance of the class with
-     * all its attributes set to request parameters's values.
+     * all its attributes set to request parameter's values.
      */
-    public function getObject(string $clazz, array $settrsMap = []) {
+    public function getObject(string $clazz, array $settersMap = []) {
         $mapper = new ObjectMapper($clazz, $this);
-        foreach ($settrsMap as $param => $method) {
+        foreach ($settersMap as $param => $method) {
             $mapper->addSetterMap($param, $method);
         }
         return $mapper->map($this->getInputs());
@@ -505,9 +507,10 @@ abstract class AbstractWebService implements JsonI {
             if ($inputs instanceof Json) {
                 return $inputs->get($trimmed);
             } else {
-                return isset($inputs[$trimmed]) ? $inputs[$trimmed] : null;
+                return $inputs[$trimmed] ?? null;
             }
         }
+        return null;
     }
     /**
      * Returns an indexed array that contains information about possible responses.
@@ -539,7 +542,7 @@ abstract class AbstractWebService implements JsonI {
     /**
      * Checks if the service has a specific request parameter given its name.
      * 
-     * Note that the name of the parameter is case sensitive. This means that 
+     * Note that the name of the parameter is case-sensitive. This means that
      * 'get-profile' is not the same as 'Get-Profile'.
      * 
      * @param string $name The name of the parameter.
@@ -550,7 +553,7 @@ abstract class AbstractWebService implements JsonI {
      * 
      * @since 1.0
      */
-    public function hasParameter(string $name) {
+    public function hasParameter(string $name) : bool {
         $trimmed = trim($name);
 
         if (strlen($name) != 0) {
@@ -578,7 +581,7 @@ abstract class AbstractWebService implements JsonI {
     public function isAuthorized() {
     }
     /**
-     * Returns the value of the property 'requreAuth'.
+     * Returns the value of the property 'requireAuth'.
      * 
      * The property is used to tell if the authorization step will be skipped 
      * or not when the service is called. 
@@ -588,8 +591,8 @@ abstract class AbstractWebService implements JsonI {
      * 
      * @since 1.0.1
      */
-    public function isAuthRequred() : bool {
-        return $this->requreAuth;
+    public function isAuthRequired() : bool {
+        return $this->requireAuth;
     }
     /**
      * Process client's request.
@@ -603,7 +606,7 @@ abstract class AbstractWebService implements JsonI {
     /**
      * Removes a request parameter from the service given its name.
      * 
-     * @param string $paramName The name of the parameter (case sensitive).
+     * @param string $paramName The name of the parameter (case-sensitive).
      * 
      * @return null|RequestParameter If a parameter which has the given name 
      * was removed, the method will return an object of type 'RequestParameter' 
@@ -650,7 +653,7 @@ abstract class AbstractWebService implements JsonI {
      * 
      * @since 1.0
      */
-    public function removeRequestMethod(string $method) {
+    public function removeRequestMethod(string $method): bool {
         $uMethod = strtoupper(trim($method));
         $allowedMethods = &$this->getRequestMethods();
 
@@ -680,7 +683,7 @@ abstract class AbstractWebService implements JsonI {
     /**
      * Sends Back a data using specific content type and specific response code.
      * 
-     * @param string $conentType Response content type (such as 'application/json')
+     * @param string $contentType Response content type (such as 'application/json')
      * 
      * @param mixed $data Any data to send back. Mostly, it will be a string.
      * 
@@ -689,11 +692,11 @@ abstract class AbstractWebService implements JsonI {
      * 
      * @since 1.0.1
      */
-    public function send(string $conentType, $data, int $code = 200) {
+    public function send(string $contentType, $data, int $code = 200) {
         $manager = $this->getManager();
 
         if ($manager !== null) {
-            $manager->send($conentType, $data, $code);
+            $manager->send($contentType, $data, $code);
         }
     }
     /**
@@ -725,7 +728,7 @@ abstract class AbstractWebService implements JsonI {
      * 
      * @since 1.0.1
      */
-    public function sendResponse($message,$type = '',$code = 200,$otherInfo = null) {
+    public function sendResponse(string $message, string $type = '', int $code = 200, $otherInfo = null) {
         $manager = $this->getManager();
 
         if ($manager !== null) {
@@ -737,7 +740,7 @@ abstract class AbstractWebService implements JsonI {
      * 
      * Used to help front-end to identify the use of the service.
      * 
-     * @param sting $desc Action description.
+     * @param string $desc Action description.
      * 
      * @since 1.0
      */
@@ -745,7 +748,7 @@ abstract class AbstractWebService implements JsonI {
         $this->serviceDesc = trim($desc);
     }
     /**
-     * Sets the value of the property 'requreAuth'.
+     * Sets the value of the property 'requireAuth'.
      * 
      * The property is used to tell if the authorization step will be skipped 
      * or not when the service is called. 
@@ -755,8 +758,8 @@ abstract class AbstractWebService implements JsonI {
      * 
      * @since 1.0.1
      */
-    public function setIsAuthRequred(bool $bool) {
-        $this->requreAuth = $bool === true;
+    public function setIsAuthRequired(bool $bool) {
+        $this->requireAuth = $bool;
     }
     /**
      * Associate the web service with a manager.
@@ -772,7 +775,7 @@ abstract class AbstractWebService implements JsonI {
     public function setManager(WebServicesManager $manager = null) {
         if ($manager === null) {
             $this->owner = null;
-        } else if ($manager instanceof WebServicesManager) {
+        } else {
             $this->owner = $manager;
         }
     }
@@ -794,7 +797,22 @@ abstract class AbstractWebService implements JsonI {
      * 
      * @since 1.0
      */
-    public final function setName(string $name) {
+    public final function setName(string $name) : bool {
+        if (self::isValidName($name)) {
+            $this->name = trim($name);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Validates the name of a web service or request parameter.
+     *
+     * @param string $name The name of the service or parameter.
+     *
+     * @return bool If valid, true is returned. Other than that, false is returned.
+     */
+    public static function isValidName(string $name): bool {
         $trimmedName = trim($name);
         $len = strlen($trimmedName);
 
@@ -806,7 +824,6 @@ abstract class AbstractWebService implements JsonI {
                     return false;
                 }
             }
-            $this->name = $name;
 
             return true;
         }
@@ -816,10 +833,10 @@ abstract class AbstractWebService implements JsonI {
     /**
      * Sets version number or name at which the service was added to a manager.
      * 
-     * This method is called automatically when the service is added to any 
-     * services manager. The developer does not have to use this method.
+     * This method is called automatically when the service is added to any services manager.
+     * The developer does not have to use this method.
      * 
-     * @param string The version number at which the service was added to the API.
+     * @param string $sinceAPIv The version number at which the service was added to the API.
      * 
      * @since 1.0
      */
