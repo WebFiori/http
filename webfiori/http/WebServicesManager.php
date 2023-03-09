@@ -840,7 +840,7 @@ class WebServicesManager implements JsonI {
     private function _AfterParamsCheck($processReq) {
         if ($processReq) {
             $service = $this->getServiceByName($this->getCalledServiceName());
-            $isAuth = !$service->isAuthRequred() || $service->isAuthorized() === null || $service->isAuthorized();
+            $isAuth = !$service->isAuthRequired() || $service->isAuthorized() === null || $service->isAuthorized();
 
             if ($isAuth) {
                 $service->processRequest();
