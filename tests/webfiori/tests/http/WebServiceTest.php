@@ -49,7 +49,7 @@ class WebServiceTest extends TestCase {
      */
     public function test00() {
         $service = new NoAuthService();
-        $this->assertFalse($service->isAuthRequred());
+        $this->assertFalse($service->isAuthRequired());
     }
     /**
      * @test

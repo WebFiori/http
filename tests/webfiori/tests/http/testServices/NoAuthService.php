@@ -11,7 +11,7 @@ use webfiori\http\AbstractWebService;
 class NoAuthService extends AbstractWebService {
     public function __construct() {
         parent::__construct('ok-service');
-        $this->setIsAuthRequred(false);
+        $this->setIsAuthRequired(false);
         $this->addRequestMethod('get');
     }
     public function isAuthorized() {

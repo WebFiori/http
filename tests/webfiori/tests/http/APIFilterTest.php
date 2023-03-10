@@ -838,7 +838,7 @@ class APIFilterTest extends TestCase {
      */
     public function testFilterPost17() {
         $jsonTestFile = __DIR__.DIRECTORY_SEPARATOR.'json.json';
-        self::setTestJson($jsonTestFile, '{"json-array":[], "another-param":"It should be ignored."}');
+        self::setJsonInput($jsonTestFile, '{"json-array":[], "another-param":"It should be ignored."}');
         $apiFilter = new APIFilter();
         $apiFilter->setInputStream($jsonTestFile);
         $param00 = new RequestParameter('json-array', 'array');
@@ -860,7 +860,7 @@ class APIFilterTest extends TestCase {
      */
     public function testFilterPost18() {
         $jsonTestFile = __DIR__.DIRECTORY_SEPARATOR.'json.json';
-        self::setTestJson($jsonTestFile, '{"json-array":[], "another-param":');
+        self::setJsonInput($jsonTestFile, '{"json-array":[], "another-param":');
         $apiFilter = new APIFilter();
         $apiFilter->setInputStream($jsonTestFile);
         $param00 = new RequestParameter('json-array', 'array');
@@ -880,7 +880,7 @@ class APIFilterTest extends TestCase {
      */
     public function testFilterPost19() {
         $jsonTestFile = __DIR__.DIRECTORY_SEPARATOR.'json.json';
-        self::setTestJson($jsonTestFile, '{"json-array":[], "another-param":');
+        self::setJsonInput($jsonTestFile, '{"json-array":[], "another-param":');
         $apiFilter = new APIFilter();
         $apiFilter->setInputStream($jsonTestFile);
         $param00 = new RequestParameter('json-array', 'array');
@@ -896,7 +896,7 @@ class APIFilterTest extends TestCase {
      */
     public function testFilterPost21() {
         $jsonTestFile = __DIR__.DIRECTORY_SEPARATOR.'json.json';
-        self::setTestJson($jsonTestFile, ''
+        self::setJsonInput($jsonTestFile, ''
                 . '{'
                 . '    "json-array":['
                 . '        "hello",'
@@ -939,7 +939,7 @@ class APIFilterTest extends TestCase {
      */
     public function testFilterPost22() {
         $jsonTestFile = __DIR__.DIRECTORY_SEPARATOR.'json.json';
-        self::setTestJson($jsonTestFile, ''
+        self::setJsonInput($jsonTestFile, ''
                 . '{'
                 . '    "string":" My Super String"'
                 . '}');
@@ -963,7 +963,7 @@ class APIFilterTest extends TestCase {
      */
     public function testFilterPost23() {
         $jsonTestFile = __DIR__.DIRECTORY_SEPARATOR.'json.json';
-        self::setTestJson($jsonTestFile, ''
+        self::setJsonInput($jsonTestFile, ''
                 . '{'
                 . '    "number":" My Super String"'
                 . '}');
@@ -985,7 +985,7 @@ class APIFilterTest extends TestCase {
      */
     public function testFilterPost24() {
         $jsonTestFile = __DIR__.DIRECTORY_SEPARATOR.'json.json';
-        self::setTestJson($jsonTestFile, ''
+        self::setJsonInput($jsonTestFile, ''
                 . '{'
                 . '    "number":1,'
                 . '    "another-number":1.5,'
@@ -1026,7 +1026,7 @@ class APIFilterTest extends TestCase {
      */
     public function testFilterPost25() {
         $jsonTestFile = __DIR__.DIRECTORY_SEPARATOR.'json.json';
-        self::setTestJson($jsonTestFile, ''
+        self::setJsonInput($jsonTestFile, ''
                 . '{'
                 . '    "obj-00":{'
                 . '        "deep-obj":{'
@@ -1081,7 +1081,7 @@ class APIFilterTest extends TestCase {
      */
     public function testFilterPost26() {
         $jsonTestFile = __DIR__.DIRECTORY_SEPARATOR.'json.json';
-        self::setTestJson($jsonTestFile, ''
+        self::setJsonInput($jsonTestFile, ''
                 . '{'
                 . '    "json-obj":{'
                 . '        "one":1,'
@@ -1127,7 +1127,7 @@ class APIFilterTest extends TestCase {
      */
     public function testFilterPost27() {
         $jsonTestFile = __DIR__.DIRECTORY_SEPARATOR.'json.json';
-        self::setTestJson($jsonTestFile, ''
+        self::setJsonInput($jsonTestFile, ''
                 . '{'
                 . '    "json-obj":{'
                 . '        "first-string":"<script>Not Safe.<?php",'
@@ -1173,11 +1173,16 @@ class APIFilterTest extends TestCase {
      */
     public function testFilterPost28() {
         $jsonTestFile = __DIR__.DIRECTORY_SEPARATOR.'json.json';
-        self::setTestJson($jsonTestFile, ''
+        self::setJsonInput($jsonTestFile, ''
                 . '{'
                 . '    "json-obj":{'
                 . '        "invalid-param":77,'
                 . '        "one":1,'
+                . '        "sub-obj":{'
+                . '            "arr":['
+                . '                "with arr"'
+                . '            ]'
+                . '        },'
                 . '        "array-of-arrays":['
                 . '            ['
                 . '                "hello",'
@@ -1218,7 +1223,13 @@ class APIFilterTest extends TestCase {
         $_SERVER['CONTENT_TYPE'] = 'application/json';
         $apiFilter->filterPOST();
         $json = $apiFilter->getInputs();
-        $this->assertEquals(4, count($json->getPropsNames()));
+        $this->assertEquals(4, count($apiFilter->getFilterDef()));
+        $this->assertEquals([
+            'array-of-arrays',
+            'sub-obj',
+            'with-default',
+            'invalid-param'
+        ], $json->getPropsNames());
         $this->assertEquals(44, $json->get('with-default'));
         $this->assertNull($json->get('invalid-param'));
         $this->assertEquals(1, count($json->get('array-of-arrays')));
@@ -1228,7 +1239,7 @@ class APIFilterTest extends TestCase {
         $this->assertTrue($subObj instanceof Json);
         $this->assertEquals(['with arr'], $subObj->get('arr'));
     }
-    public static function setTestJson($fName, $jsonData) {
+    public static function setJsonInput($fName, $jsonData) {
         $stream = fopen($fName, 'w+');
         fwrite($stream, $jsonData);
         fclose($stream);

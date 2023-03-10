@@ -36,7 +36,7 @@ class HttpHeader {
     /**
      * Returns string representation of the header.
      * 
-     * @return string The returned string will consists of a name followed
+     * @return string The returned string will consist of a name followed
      * by a colon (":") and the header value.
      */
     public function __toString() {
@@ -73,7 +73,7 @@ class HttpHeader {
     public function setName(string $name) : bool {
         $trimmed = strtolower(trim($name));
 
-        if ($this->_validateheaderName($trimmed)) {
+        if ($this->validateHeaderNameHelper($trimmed)) {
             $this->headerName = $trimmed;
 
             return true;
@@ -89,7 +89,7 @@ class HttpHeader {
     public function setValue(string $val) {
         $this->headerValue = $val;
     }
-    private static function _validateheaderName($name) {
+    private static function validateHeaderNameHelper($name) : bool {
         $len = strlen($name);
 
         if ($len == 0) {

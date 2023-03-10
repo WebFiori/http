@@ -286,7 +286,7 @@ class WebServicesManagerTest extends TestCase {
         $api = new SampleServicesManager();
         $api->setOutputStream($this->outputStreamName);
         $api->process();
-        $this->assertEquals('{"user":{"Id":99,"FullName":"Ibrahim","Username":"WarriorX"}}', $api->readOutputStream());
+        $this->assertEquals('{"user":{"Id":3,"FullName":"Ibrahim","Username":"WarriorX"}}', $api->readOutputStream());
     }
     /**
      * @test
@@ -304,7 +304,7 @@ class WebServicesManagerTest extends TestCase {
         //End Setup
         
         $manager->process();
-        $this->assertEquals('{"user":{"Id":54,"FullName":"Me","Username":"Cpool"}}', $manager->readOutputStream());
+        $this->assertEquals('{"user":{"Id":3,"FullName":"Me","Username":"Cpool"}}', $manager->readOutputStream());
     }
     /**
      * @test

@@ -102,7 +102,7 @@ class UriTest extends TestCase {
      */
     public function testSetUriPossibleVar04() {
         $this->expectException('Exception');
-        $this->expectExceptionMessage('Inncorrect parameters order.');
+        $this->expectExceptionMessage('Incorrect parameters order.');
         $uri = new Uri('https://example.com/{first-var}/ok/{second-var?}/{non-optional}');
     }
     /**

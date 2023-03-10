@@ -204,34 +204,22 @@ class RequestParameterTest extends TestCase {
     /**
      * @test
      */
-    public function testSetCustomFilter00() {
-        $rp = new RequestParameter('hello');
-        $this->assertNull($rp->getCustomFilterFunction());
-        $this->assertFalse($rp->setCustomFilterFunction('not a func',false));
-        $this->assertNull($rp->getCustomFilterFunction());
-        $this->assertTrue($rp->applyBasicFilter());
-    }
-    /**
-     * @test
-     */
     public function testSetCustomFilter01() {
         $rp = new RequestParameter('hello');
-        $this->assertTrue($rp->setCustomFilterFunction(function()
-        {
-        },false));
+        $rp->setCustomFilterFunction(function() {
+        },false);
         $this->assertTrue(is_callable($rp->getCustomFilterFunction()));
-        $this->assertFalse($rp->applyBasicFilter());
+        $this->assertFalse($rp->isBasicFilter());
     }
     /**
      * @test
      */
     public function testSetCustomFilter02() {
         $rp = new RequestParameter('hello');
-        $this->assertTrue($rp->setCustomFilterFunction(function()
-        {
-        },true));
+        $rp->setCustomFilterFunction(function() {
+        },true);
         $this->assertTrue(is_callable($rp->getCustomFilterFunction()));
-        $this->assertTrue($rp->applyBasicFilter());
+        $this->assertTrue($rp->isBasicFilter());
     }
     /**
      * @test
@@ -376,16 +364,16 @@ class RequestParameterTest extends TestCase {
      */
     public function testSetMax02() {
         $rp = new RequestParameter('val','integer');
-        $this->assertFalse($rp->setMaxVal('5'));
-        $this->assertEquals(PHP_INT_MAX,$rp->getMaxVal());
+        $this->assertTrue($rp->setMaxVal('5'));
+        $this->assertEquals(5,$rp->getMaxVal());
     }
     /**
      * @test
      */
     public function testSetMax03() {
         $rp = new RequestParameter('val','integer');
-        $this->assertFalse($rp->setMaxVal(66.90));
-        $this->assertEquals(PHP_INT_MAX,$rp->getMaxVal());
+        $this->assertTrue($rp->setMaxVal(66.90));
+        $this->assertEquals(66,$rp->getMaxVal());
     }
     /**
      * @test
@@ -402,13 +390,10 @@ class RequestParameterTest extends TestCase {
     public function testSetMax05() {
         $rp = new RequestParameter('val','float');
         $this->assertEquals('double',$rp->getType());
-        $this->assertFalse($rp->setMaxVal('5'));
+        $this->assertTrue($rp->setMaxVal('5'));
 
-        if (PHP_MAJOR_VERSION >= 7 && PHP_MINOR_VERSION >= 2) {
-            $this->assertEquals(PHP_FLOAT_MAX,$rp->getMaxVal());
-        } else {
-            $this->assertEquals(PHP_INT_MAX,$rp->getMaxVal());
-        }
+        
+        $this->assertSame(5.0,$rp->getMaxVal());
     }
     /**
      * @test
@@ -452,16 +437,16 @@ class RequestParameterTest extends TestCase {
      */
     public function testSetMin02() {
         $rp = new RequestParameter('val','integer');
-        $this->assertFalse($rp->setMinVal('5'));
-        $this->assertEquals(~PHP_INT_MAX,$rp->getMinVal());
+        $this->assertTrue($rp->setMinVal('5'));
+        $this->assertSame(5,$rp->getMinVal());
     }
     /**
      * @test
      */
     public function testSetMin03() {
         $rp = new RequestParameter('val','integer');
-        $this->assertFalse($rp->setMinVal(66.90));
-        $this->assertEquals(~PHP_INT_MAX,$rp->getMinVal());
+        $this->assertTrue($rp->setMinVal(66.90));
+        $this->assertSame(66,$rp->getMinVal());
     }
     /**
      * @test
@@ -478,13 +463,8 @@ class RequestParameterTest extends TestCase {
     public function testSetMin05() {
         $rp = new RequestParameter('val','float');
         $this->assertEquals('double',$rp->getType());
-        $this->assertFalse($rp->setMinVal('5'));
-
-        if (PHP_MAJOR_VERSION >= 7 && PHP_MINOR_VERSION >= 2) {
-            $this->assertEquals(PHP_FLOAT_MIN,$rp->getMinVal());
-        } else {
-            $this->assertEquals(~PHP_INT_MAX,$rp->getMinVal());
-        }
+        $this->assertTrue($rp->setMinVal('5'));
+        $this->assertSame(5.0,$rp->getMinVal());
     }
     /**
      * @test

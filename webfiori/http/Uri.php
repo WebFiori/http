@@ -38,7 +38,7 @@ class Uri {
      */
     private $allowedRequestMethods;
     /**
-     * The URI broken into its sub-components (scheme, authority ...) as an associative 
+     * The URI broken into its subcomponents (scheme, authority ...) as an associative
      * array.
      * @var array 
      * @since 1.0
@@ -58,7 +58,7 @@ class Uri {
         }
 
         if (!$this->checkOptionalParamsOrder()) {
-            throw  new InvalidArgumentException('Inncorrect parameters order.');
+            throw  new InvalidArgumentException('Incorrect parameters order.');
         }
         $this->uriBroken['vars-possible-values'] = [];
 
@@ -72,7 +72,7 @@ class Uri {
      * be called with.
      * 
      * @param string $method A string such as 'GET' or 'POST'. Note that the 
-     * value must exist in the array Request::METHODS or it will be not added.
+     * value must exist in the array Request::METHODS, or it will be not added.
      * 
      * @since 1.0.1
      */
@@ -87,8 +87,7 @@ class Uri {
      * This is used in constructing the sitemap node of the URI. If a value is 
      * provided, then it will be part of the URI that will appear in the sitemap.
      * 
-     * @param string $varName The name of the parameter. It must be exist as 
-     * the path part in the URI.
+     * @param string $varName The name of the parameter. It must be existed as the path part in the URI.
      * 
      * @param string $varValue The value of the parameter. Note that any extra spaces 
      * in the value will be trimmed.
@@ -110,14 +109,14 @@ class Uri {
      * 
      * @param string $varName The name of the parameter.
      * 
-     * @param array $arrayOfVals An array that contains all possible values for 
+     * @param array $arrayOfValues An array that contains all possible values for
      * the parameter.
      * 
      * @since 1.0
      */
-    public function addVarValues(string $varName, array $arrayOfVals) {
-        if (gettype($arrayOfVals) == 'array') {
-            foreach ($arrayOfVals as $val) {
+    public function addVarValues(string $varName, array $arrayOfValues) {
+        if (gettype($arrayOfValues) == 'array') {
+            foreach ($arrayOfValues as $val) {
                 $this->addVarValue($varName, $val);
             }
         }
@@ -136,28 +135,26 @@ class Uri {
      * @since 1.0
      */
     public function equals(Uri $otherUri) : bool {
-        if ($otherUri instanceof Uri) {
-            $isEqual = true;
+        $isEqual = true;
 
-            if ($this->getAuthority() == $otherUri->getAuthority()) {
-                $thisPathNames = $this->getPathArray();
-                $otherPathNames = $otherUri->getPathArray();
-                $boolsArr = [];
+        if ($this->getAuthority() == $otherUri->getAuthority()) {
+            $thisPathNames = $this->getPathArray();
+            $otherPathNames = $otherUri->getPathArray();
+            $booleansArr = [];
 
-                foreach ($thisPathNames as $path1) {
-                    $boolsArr[] = in_array($path1, $otherPathNames);
-                }
-
-                foreach ($otherPathNames as $path) {
-                    $boolsArr[] = in_array($path, $thisPathNames);
-                }
-
-                foreach ($boolsArr as $bool) {
-                    $isEqual = $isEqual && $bool;
-                }
-
-                return $isEqual;
+            foreach ($thisPathNames as $path1) {
+                $booleansArr[] = in_array($path1, $otherPathNames);
             }
+
+            foreach ($otherPathNames as $path) {
+                $booleansArr[] = in_array($path, $thisPathNames);
+            }
+
+            foreach ($booleansArr as $bool) {
+                $isEqual = $isEqual && $bool;
+            }
+
+            return $isEqual;
         }
 
         return false;
@@ -189,7 +186,7 @@ class Uri {
      * @since 0.2
      */
     public static function getBaseURL() : string {
-        $tempHost = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : '127.0.0.1';
+        $tempHost = $_SERVER['HTTP_HOST'] ?? '127.0.0.1';
         $host = trim(filter_var($tempHost),'/');
 
         if (isset($_SERVER['HTTPS'])) {
@@ -211,7 +208,7 @@ class Uri {
             //in some cases
             $docRoot = getcwd();
         }
-        
+
         $docRootLen = strlen($docRoot);
 
         if ($docRootLen == 0) {
@@ -298,6 +295,8 @@ class Uri {
                 return $obj;
             }
         }
+
+        return null;
     }
     /**
      * Returns an array which contains URI parameters as objects.
@@ -354,7 +353,7 @@ class Uri {
      * 
      * @since 1.3.6
      */
-    public function getParameterValues(string $varName) {
+    public function getParameterValues(string $varName) : array {
         $trimmed = trim($varName);
 
         if (isset($this->uriBroken['vars-possible-values'][$trimmed])) {
@@ -461,7 +460,7 @@ class Uri {
      * 
      * @since 1.0
      */
-    public function getUri(bool $incQueryStr = false, bool $incFragment = false) {
+    public function getUri(bool $incQueryStr = false, bool $incFragment = false) : string {
         $retVal = $this->getScheme().':'.$this->getAuthority().$this->getPath();
 
         if ($incQueryStr === true && $incFragment === true) {
@@ -512,7 +511,7 @@ class Uri {
         return in_array($varName, $this->getParametersNames());
     }
     /**
-     * Checks if the URI has any paramaters or not.
+     * Checks if the URI has any parameters or not.
      * 
      * A parameter is a string which is defined while creating the route. 
      * it is name is included between '{}'.
@@ -547,7 +546,7 @@ class Uri {
      * Checks if URI is fetched using allowed request method or not.
      * 
      * @return boolean The method will return true in two cases, if the array 
-     * that holds allowed request methods is empty or request method is exist 
+     * that holds allowed request methods is empty or request method is existed
      * in the allowed request methods. Other than that, the method will return 
      * false.
      * 
@@ -646,13 +645,13 @@ class Uri {
         ];
         //First step, extract the fragment
         $split1 = self::_queryOrFragment($uri, '#', '%23');
-        $retVal['fragment'] = isset($split1[1]) ? $split1[1] : '';
+        $retVal['fragment'] = $split1[1] ?? '';
 
         //after that, extract the query string
         $split1[0] = str_replace('?}', '<>', $split1[0]);
         $split2 = self::_queryOrFragment($split1[0], '?', '%3F');
 
-        $retVal['query-string'] = isset($split2[1]) ? $split2[1] : '';
+        $retVal['query-string'] = $split2[1] ?? '';
 
         $split2[0] = str_replace('<>', '?}', $split2[0]);
         //next comes the scheme
@@ -660,12 +659,12 @@ class Uri {
         $retVal['scheme'] = $split3[0];
 
         if (count($split3) == 3) {
-            //if 3, this means port number was specifyed in the URI
+            //if 3, this means port number was specified in the URI
             $split3[1] = $split3[1].':'.$split3[2];
         }
-        //now, break the remaining using / as a delemiter
+        //now, break the remaining using / as a delimiter
         //the authority will be located at index 2 if the URI
-        //follows the standatd
+        //follows the standard
         $split4 = explode('/', $split3[1]);
         $retVal['authority'] = '//'.$split4[2];
 
@@ -693,15 +692,15 @@ class Uri {
         }
         //now extract port number from the authority (if any)
         $split5 = explode(':', $retVal['authority']);
-        $retVal['port'] = isset($split5[1]) ? $split5[1] : '';
+        $retVal['port'] = $split5[1] ?? '';
         //Also, host can be extracted at this step.
-        $retVal['host'] = trim($split5[0],'//');
-        //finaly, split query string and extract vars
+        $retVal['host'] = trim($split5[0],'/');
+        //finally, split query string and extract vars
         $split6 = explode('&', $retVal['query-string']);
 
         foreach ($split6 as $param) {
             $split7 = explode('=', $param);
-            $retVal['query-string-vars'][$split7[0]] = isset($split7[1]) ? $split7[1] : '';
+            $retVal['query-string-vars'][$split7[0]] = $split7[1] ?? '';
         }
 
         return $retVal;
@@ -716,9 +715,9 @@ class Uri {
      * 
      * @param string $encoded The character when encoded in URI.
      * 
-     * @return type
+     * @return array
      */
-    private static function _queryOrFragment($split, $char, $encoded) {
+    private static function _queryOrFragment(string $split, string $char, string $encoded) : array {
         $split2 = explode($char, $split);
         $spCount = count($split2);
 
@@ -744,7 +743,7 @@ class Uri {
 
         return $split2;
     }
-    private function checkOptionalParamsOrder() {
+    private function checkOptionalParamsOrder() : bool {
         $hasOptional = false;
 
         foreach ($this->getParameters() as $obj) {

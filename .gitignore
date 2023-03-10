@@ -9,3 +9,4 @@ tests/hello2.txt
 tests/json.json
 .php_cs.cache
 php-cs-fixer-v2.phar
+.idea/*
