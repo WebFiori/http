@@ -254,7 +254,7 @@ class APIFilter {
         }
 
         if ($contentType == 'application/json') {
-            $this->_jsonBody();
+            $this->parseJsonBody();
         } else {
             $filterResult = $this->filter($this, $_POST);
             $this->inputs = $filterResult['filtered'];
@@ -401,7 +401,7 @@ class APIFilter {
 
         return $returnVal;
     }
-    private function _applyJsonBasicFilter(Json $extraClean, $toBeFiltered, $def) {
+    private function applyJsonBasicFilter(Json $extraClean, $toBeFiltered, $def) {
         $paramObj = $def['parameter'];
         $paramType = $paramObj->getType();
         $name = $paramObj->getName();
@@ -428,10 +428,10 @@ class APIFilter {
                 }
             }
         } else {
-            $extraClean->add($name, null);
+            $extraClean->addNull($name);
         }
     }
-    private function _checkExtracted(Json $extraClean, $name, $defaultVal) {
+    private function checkExtracted(Json $extraClean, $name, $defaultVal) {
         $extractedVal = $extraClean->get($name);
 
         if ($extractedVal === null) {
@@ -654,7 +654,7 @@ class APIFilter {
 
         foreach ($arr as $val) {
             if ($val instanceof Json) {
-                $retVal = $this->_getJsonPropVal($val, $propName);
+                $retVal = $this->getJsonPropValue($val, $propName);
             } else if (gettype($val) == 'array') {
                 $retVal = $this->_getJsonPropArr($val, $propName);
             }
@@ -662,7 +662,7 @@ class APIFilter {
 
         return $retVal;
     }
-    private function _getJsonPropVal(Json $jsonObj, $propName) {
+    private function getJsonPropValue(Json $jsonObj, $propName) {
         $propVal = $jsonObj->get($propName);
 
         if ($propVal === null) {
@@ -672,7 +672,7 @@ class APIFilter {
                 $testVal = $jsonObj->get($propNameX);
 
                 if ($testVal instanceof Json) {
-                    $propVal = $this->_getJsonPropVal($testVal, $propName);
+                    $propVal = $this->getJsonPropValue($testVal, $propName);
                 } else if (gettype($testVal) == 'array') {
                     $propVal = $this->_getJsonPropArr($testVal, $propName);
                 }
@@ -713,7 +713,7 @@ class APIFilter {
     /**
      * @throws Exception
      */
-    private function _jsonBody() {
+    private function parseJsonBody() {
         if ($this->inputStreamPath !== null) {
             $body = file_get_contents($this->inputStreamPath);
         } else {
@@ -832,9 +832,9 @@ class APIFilter {
     }
     /**
      * 
-     * @param Json $cleanJson
+     * @param Json $toBeCleaned
      */
-    private function filterJson(Json $cleanJson) {
+    private function filterJson(Json $toBeCleaned) {
         $originalInputs = new Json();
         $extraClean = new Json();
         $filterDef = $this->getFilterDef();
@@ -846,7 +846,7 @@ class APIFilter {
             $name = $requestParam->getName();
             $paramType = $requestParam->getType();
             $defaultVal = $requestParam->getDefault();
-            $requestParamVal = $this->_getJsonPropVal($cleanJson, $name);
+            $requestParamVal = $this->getJsonPropValue($toBeCleaned, $name);
 
             if ($requestParamVal !== null) {
                 $toBeFiltered = $requestParamVal;
@@ -866,9 +866,9 @@ class APIFilter {
                     $extraClean->add($name, $filteredValue);
                     continue;
                 } else {
-                    self::_applyJsonBasicFilter($extraClean, $toBeFiltered, $def);
+                    self::applyJsonBasicFilter($extraClean, $toBeFiltered, $def);
                 }
-                $this->_checkExtracted($extraClean, $name, $defaultVal);
+                $this->checkExtracted($extraClean, $name, $defaultVal);
             } else if ($requestParam->isOptional()) {
                 $defaultVal !== null ? $extraClean->add($name, $defaultVal) : $extraClean->add($name, null);
             }
