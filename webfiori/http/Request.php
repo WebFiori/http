@@ -182,12 +182,8 @@ class Request {
      * @since 1.0
      */
     public static function getHeaders() : array {
-        if (defined('__PHPUNIT_PHAR__')) {
+        if (defined('__PHPUNIT_PHAR__') || self::get()->headersPool === null) {
             //Always Refresh headers if in testing environment.
-            self::extractHeaders();
-        }
-
-        if (self::get()->headersPool === null) {
             self::extractHeaders();
         }
 
@@ -298,12 +294,16 @@ class Request {
     /**
      * Returns the URI of the requested resource.
      * 
+     * @param string $pathToAppend If provided, this part will be 
+     * appended to the final URI. It is useful in case of having multiple
+     * applications on same domain to have different paths.
+     * 
      * @return string The URI of the requested resource 
      * (e.g. http://example.com/get-random?range=[1,100]). 
      * 
      * @since 1.0
      */
-    public static function getRequestedURI() : string {
+    public static function getRequestedURI(string $pathToAppend = '') : string {
         $base = Uri::getBaseURL();
         $path = getenv('REQUEST_URI');
 
@@ -311,13 +311,10 @@ class Request {
             // Using built-in server, it will be false
             $path = $_SERVER['PATH_INFO'] ?? '';
         } 
-        $toAppend = trim(filter_var($path),'/');
 
-        if (defined('WF_PATH_TO_APPEND')) {
-            $toAppend = str_replace(trim(str_replace('\\', '/', WF_PATH_TO_APPEND), '/'),'' ,$toAppend);
-        }
+        $cleanedPath = str_replace(trim(str_replace('\\', '/', $pathToAppend), '/'),'' ,trim(filter_var($path),'/'));
 
-        return $base.'/'.trim($toAppend, '/');
+        return $base.'/'.trim($cleanedPath, '/');
     }
     /**
      * Returns an object that holds all information about requested URI.
