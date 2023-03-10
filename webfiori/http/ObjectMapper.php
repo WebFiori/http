@@ -103,7 +103,9 @@ class ObjectMapper {
      * If no class was specified, the method will return null.
      */
     public function map($inputs) {
-        $instance = new $this->clazzName();
+        $clazzName = $this->getClass();
+        
+        $instance = new $clazzName();
 
         foreach ($this->getSettersMap() as $method => $paramName) {
             if (is_callable([$instance, $method])) {
