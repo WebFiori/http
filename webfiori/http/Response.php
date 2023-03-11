@@ -377,7 +377,7 @@ class Response {
     }
 
     /**
-     * Desplay dump information of a variable.
+     * Display dump information of a variable.
      *
      * This method uses PHP's 'var_dump' to show information.
      *
