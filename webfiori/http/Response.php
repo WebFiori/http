@@ -311,6 +311,7 @@ class Response {
     public static function removeHeader(string $headerName, string $headerVal = null) : bool {
         return self::getHeadersPool()->removeHeader($headerName, $headerVal);
     }
+
     /**
      * Send the response.
      * 
@@ -374,18 +375,62 @@ class Response {
             self::get()->responseCode = $code;
         }
     }
-    /**
-     * Appends a string to response body.
-     * 
-     * @param string $str The string that will be appended.
-     * 
-     * @return Response 
-     * 
-     * @since 1.0
-     */
-    public static function write(string $str) : Response {
-        self::get()->body .= $str;
 
+    /**
+     * Display dump information of a variable.
+     *
+     * This method uses PHP's 'var_dump' to show information.
+     *
+     * @param mixed $value The value that its dump will be displayed.
+     *
+     * @param bool $send If this parameter is set to true, the response
+     * will be sent and execution will be terminated.
+     *
+     * @return Response
+     */
+    public static function dump($value, bool $send = true) {
+        ob_start();
+        var_dump($value);
+        self::get()->body .= '<pre>' . ob_get_clean(). '</pre>';
+
+        if ($send) {
+            self::send();
+        }
         return self::get();
     }
+    /**
+     * Appends a value to response body.
+     *
+     * @param mixed $value The value that will be appended.
+     *
+     * @param bool $sendResponse If this parameter is set to true, the response
+     * will be sent and execution will be terminated.
+     *
+     * @return Response
+     *
+     * @since 1.0
+     */
+    public static function write($value, bool $sendResponse = false) : Response {
+        $type = gettype($value);
+        $dumpTypes = [
+            'resource (closed)',
+            'resource',
+            'boolean',
+            'array',
+            'unknown type',
+            'NULL'
+        ];
+        if (($type == 'object' && !method_exists($value, '__toString')) || in_array($type, $dumpTypes)) {
+            ob_start();
+            var_dump($value);
+            self::get()->body .= '<pre>' . ob_get_clean(). '</pre>';
+        } else {
+            self::get()->body .= $value;
+        }
+        if ($sendResponse) {
+            self::send();
+        }
+        return self::get();
+    }
+
 }

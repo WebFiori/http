@@ -27,8 +27,11 @@ jobs:
         with:
           php-version: ${{ matrix.php }} 
           extensions: mysqli, mbstring, sqlsrv
+          coverage: none
           tools: phpunit:5.7.27, composer
-          
+      - name: Show PHP V
+        run: php -v
+        
       - name: Install Dependencies
         run: composer install --prefer-source --no-interaction --no-dev
         
