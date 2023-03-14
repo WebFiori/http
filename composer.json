@@ -10,7 +10,7 @@
         "php": ">=7.0",
         "webfiori/jsonx":"3.1.x",
         "ext-json": "*",
-        "ext-mb_string": "*"
+        "ext-mbstring": "*"
     },
     "autoload" :{
         "psr-4":{
