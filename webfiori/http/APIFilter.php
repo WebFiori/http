@@ -387,7 +387,7 @@ class APIFilter {
         $paramObj = $def['parameter'];
 
         if ($paramObj->isBasicFilter()) {
-            $arrToPass['basic-filter-result'] = self::_getBasicFilterResultForCustomFilter($def, $toBeFiltered);
+            $arrToPass['basic-filter-result'] = self::getBasicFilterResultForCustomFilter($def, $toBeFiltered);
         } else {
             $arrToPass['basic-filter-result'] = 'NOT_APPLICABLE';
         }
@@ -405,7 +405,7 @@ class APIFilter {
 
         return $returnVal;
     }
-    private function _cleanJsonArray(array $arr, $applyBasicFiltering = false) : array {
+    private function cleanJsonArray(array $arr, $applyBasicFiltering = false) : array {
         $cleanArr = [];
 
         foreach ($arr as $val) {
@@ -418,9 +418,9 @@ class APIFilter {
                     $cleanArr[] = $val;
                 }
             } else if ($propType == 'array') {
-                $cleanArr[] = $this->_cleanJsonArray($val, $applyBasicFiltering);
+                $cleanArr[] = $this->cleanJsonArray($val, $applyBasicFiltering);
             } else if ($propType == 'object' && $val instanceof Json) {
-                $cleanArr[] = $this->_jsonBasicClean($val, $applyBasicFiltering);
+                $cleanArr[] = $this->jsonBasicClean($val, $applyBasicFiltering);
             } else {
                 $cleanArr[] = $val;
             }
@@ -428,7 +428,7 @@ class APIFilter {
 
         return $cleanArr;
     }
-    private function _cleanJsonStr($extraClean, $def, $toBeFiltered) {
+    private function cleanJsonStr($extraClean, $def, $toBeFiltered) {
         $name = $def['parameter']->getName();
         $extraClean->add($name, filter_var($toBeFiltered));
 
@@ -500,7 +500,7 @@ class APIFilter {
                             }
                         }
                     } else {
-                        $result = self::_parseStringFromArray($array, $x + 1, $len - 1, $char);
+                        $result = self::parseStringFromArray($array, $x + 1, $len - 1, $char);
 
                         if ($result['parsed'] === true) {
                             $x = $result['end'];
@@ -581,7 +581,7 @@ class APIFilter {
 
         return self::INVALID;
     }
-    private static function _getBasicFilterResultForCustomFilter($def, $toBeFiltered) {
+    private static function getBasicFilterResultForCustomFilter($def, $toBeFiltered) {
         if (gettype($toBeFiltered) == 'string') {
             $toBeFiltered = strip_tags($toBeFiltered);
         }
@@ -612,20 +612,20 @@ class APIFilter {
 
         return $filteredValue;
     }
-    private function _getJsonPropArr($arr, $propName) {
+    private function getJsonPropArr($arr, $propName) {
         $retVal = null;
 
         foreach ($arr as $val) {
             if ($val instanceof Json) {
                 $retVal = $this->getJsonPropValue($val, $propName);
             } else if (gettype($val) == 'array') {
-                $retVal = $this->_getJsonPropArr($val, $propName);
+                $retVal = $this->getJsonPropArr($val, $propName);
             }
         }
 
         return $retVal;
     }
-    private function _jsonBasicClean(Json $val, $applyBasicFiltering) : Json {
+    private function jsonBasicClean(Json $val, $applyBasicFiltering) : Json {
         $cleanJson = new Json();
 
         foreach ($val->getPropsNames() as $propName) {
@@ -633,9 +633,9 @@ class APIFilter {
             $propType = gettype($propVal);
 
             if ($propType == 'array') {
-                $cleanJson->add($propName, $this->_cleanJsonArray($propVal, $applyBasicFiltering));
+                $cleanJson->add($propName, $this->cleanJsonArray($propVal, $applyBasicFiltering));
             } else if ($propType == 'object') {
-                $cleanJson->add($propName, $this->_jsonBasicClean($propVal, $applyBasicFiltering));
+                $cleanJson->add($propName, $this->jsonBasicClean($propVal, $applyBasicFiltering));
             } else if ($propType == 'string') {
                 if ($applyBasicFiltering) {
                     $cleanJson->add($propName, filter_var($propVal, FILTER_SANITIZE_FULL_SPECIAL_CHARS));
@@ -665,7 +665,7 @@ class APIFilter {
      *
      * @since 1.2.1
      */
-    private static function _parseStringFromArray(string $stringAsArr,int $start,int $len, string $stringEndChar) : array {
+    private static function parseStringFromArray(string $stringAsArr,int $start,int $len, string $stringEndChar) : array {
         $retVal = [
             'end' => 0,
             'string' => '',
@@ -727,9 +727,9 @@ class APIFilter {
             } else if ($paramType == ParamTypes::DOUBLE || $paramType == ParamTypes::INT) {
                 $extraClean->addNumber($name, $toBeFiltered);
             } else if ($paramType == 'string') {
-                $this->_cleanJsonStr($extraClean, $def, $toBeFiltered);
+                $this->cleanJsonStr($extraClean, $def, $toBeFiltered);
             } else if ($paramType == ParamTypes::ARR) {
-                $extraClean->addArray($name, $this->_cleanJsonArray($toBeFiltered, true));
+                $extraClean->addArray($name, $this->cleanJsonArray($toBeFiltered, true));
             } else if ($paramType == ParamTypes::JSON_OBJ) {
                 if ($toBeFiltered instanceof Json) {
                     $extraClean->add($name, $toBeFiltered);
@@ -852,7 +852,7 @@ class APIFilter {
                 if ($testVal instanceof Json) {
                     $propVal = $this->getJsonPropValue($testVal, $propName);
                 } else if (gettype($testVal) == 'array') {
-                    $propVal = $this->_getJsonPropArr($testVal, $propName);
+                    $propVal = $this->getJsonPropArr($testVal, $propName);
                 }
 
                 if ($propVal !== null) {
