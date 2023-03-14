@@ -102,15 +102,6 @@ class APIFilter {
         }
         $this->paramDefs[] = $attribute;
     }
-    private function checkNumericRange(RequestParameter $reqParam, array &$attribute) {
-        if ($reqParam->getMaxVal() !== null) {
-            $attribute['options']['options']['max_range'] = $reqParam->getMaxVal();
-        }
-
-        if ($reqParam->getMinVal() !== null) {
-            $attribute['options']['options']['min_range'] = $reqParam->getMinVal();
-        }
-    }
     /**
      * Clears the arrays that are used to store filtered and not-filtered variables.
      * 
@@ -405,6 +396,98 @@ class APIFilter {
 
         return $returnVal;
     }
+    private function applyJsonBasicFilter(Json $extraClean, $toBeFiltered, $def) {
+        $paramObj = $def['parameter'];
+        $paramType = $paramObj->getType();
+        $name = $paramObj->getName();
+        $toBeFilteredType = gettype($toBeFiltered);
+
+        if ($toBeFilteredType == 'string') {
+            $toBeFiltered = strip_tags($toBeFiltered);
+        }
+
+        if ($paramType == $toBeFilteredType || $toBeFilteredType == 'object' && $paramType == ParamTypes::JSON_OBJ) {
+            if ($paramType == ParamTypes::BOOL) {
+                $extraClean->addBoolean($name, $toBeFiltered);
+            } else if ($paramType == ParamTypes::DOUBLE || $paramType == ParamTypes::INT) {
+                $extraClean->addNumber($name, $toBeFiltered);
+            } else if ($paramType == 'string') {
+                $this->cleanJsonStr($extraClean, $def, $toBeFiltered);
+            } else if ($paramType == ParamTypes::ARR) {
+                $extraClean->addArray($name, $this->cleanJsonArray($toBeFiltered, true));
+            } else if ($paramType == ParamTypes::JSON_OBJ) {
+                if ($toBeFiltered instanceof Json) {
+                    $extraClean->add($name, $toBeFiltered);
+                } else {
+                    $extraClean->add($name, null);
+                }
+            }
+        } else {
+            $extraClean->addNull($name);
+        }
+    }
+    private function checkExtracted(Json $extraClean, $name, $defaultVal) {
+        $extractedVal = $extraClean->get($name);
+
+        if ($extractedVal === null) {
+            if ($defaultVal !== null) {
+                $extraClean->add($name, $defaultVal);
+            } else {
+                $extraClean->add($name, null);
+            }
+        }
+    }
+    /**
+     * Checks if a given string represents an integer or float value. 
+     * 
+     * If the given string represents numeric value, the method will 
+     * convert it to its numerical value.
+     * 
+     * @param string $str A value such as '1' or '7.0'.
+     * 
+     * @return string|int|double If the given string does not represent any 
+     * numerical value, the method will return the string 'APIFilter::INVALID'. If the 
+     * given string represents an integer, an integer value is returned. 
+     * If the given string represents a floating point value, a float number 
+     * is returned.
+     */
+    private static function checkIsNumber(string $str) {
+        $strX = trim($str);
+        $len = strlen($strX);
+        $isFloat = false;
+        $retVal = self::INVALID;
+
+        for ($y = 0 ; $y < $len ; $y++) {
+            $char = $strX[$y];
+
+            if ($char == '.' && !$isFloat) {
+                $isFloat = true;
+            } else if (!($char == '-' && $y == 0)) {
+                if ($char == '.' && $isFloat) {
+                    return $retVal;
+                } else if (!($char <= '9' && $char >= '0')) {
+                    return $retVal;
+                }
+            }
+        }
+
+        if ($isFloat) {
+            $retVal = floatval($strX);
+        } else {
+            $retVal = intval($strX);
+        }
+
+        return $retVal;
+    }
+    private function checkNumericRange(RequestParameter $reqParam, array &$attribute) {
+        if ($reqParam->getMaxVal() !== null) {
+            $attribute['options']['options']['max_range'] = $reqParam->getMaxVal();
+        }
+
+        if ($reqParam->getMinVal() !== null) {
+            $attribute['options']['options']['min_range'] = $reqParam->getMinVal();
+        }
+    }
     private function cleanJsonArray(array $arr, $applyBasicFiltering = false) : array {
         $cleanArr = [];
 
@@ -581,6 +664,52 @@ class APIFilter {
 
         return self::INVALID;
     }
+    /**
+     * 
+     * @param Json $toBeCleaned
+     */
+    private function filterJson(Json $toBeCleaned) {
+        $originalInputs = new Json();
+        $extraClean = new Json();
+        $filterDef = $this->getFilterDef();
+        $paramIdx = 'parameter';
+        $optIdx = 'options';
+
+        foreach ($filterDef as $def) {
+            $requestParam = $def[$paramIdx];
+            $name = $requestParam->getName();
+            $paramType = $requestParam->getType();
+            $defaultVal = $requestParam->getDefault();
+            $requestParamVal = $this->getJsonPropValue($toBeCleaned, $name);
+
+            if ($requestParamVal !== null) {
+                $toBeFiltered = $requestParamVal;
+                $originalInputs->add($name, $toBeFiltered);
+
+                if (isset($def[$optIdx]['filter-func'])) {
+                    $filteredValue = self::applyCustomFilterFunc($def, $toBeFiltered);
+
+                    if ($paramType == ParamTypes::STRING &&
+                        $filteredValue != self::INVALID &&
+                        strlen($filteredValue) == 0 && 
+                        $def[$optIdx][$optIdx]['allow-empty'] === false) {
+                        //Empty not allowed while custom filter function
+                        //returned empty string
+                        $filteredValue = null;
+                    }
+                    $extraClean->add($name, $filteredValue);
+                    continue;
+                } else {
+                    self::applyJsonBasicFilter($extraClean, $toBeFiltered, $def);
+                }
+                $this->checkExtracted($extraClean, $name, $defaultVal);
+            } else if ($requestParam->isOptional()) {
+                $defaultVal !== null ? $extraClean->add($name, $defaultVal) : $extraClean->add($name, null);
+            }
+        }
+        $this->inputs = $extraClean;
+        $this->nonFilteredInputs = $originalInputs;
+    }
     private static function getBasicFilterResultForCustomFilter($def, $toBeFiltered) {
         if (gettype($toBeFiltered) == 'string') {
             $toBeFiltered = strip_tags($toBeFiltered);
@@ -625,6 +754,29 @@ class APIFilter {
 
         return $retVal;
     }
+    private function getJsonPropValue(Json $jsonObj, $propName) {
+        $propVal = $jsonObj->get($propName);
+
+        if ($propVal === null) {
+            $props = $jsonObj->getPropsNames();
+
+            foreach ($props as $propNameX) {
+                $testVal = $jsonObj->get($propNameX);
+
+                if ($testVal instanceof Json) {
+                    $propVal = $this->getJsonPropValue($testVal, $propName);
+                } else if (gettype($testVal) == 'array') {
+                    $propVal = $this->getJsonPropArr($testVal, $propName);
+                }
+
+                if ($propVal !== null) {
+                    return $propVal;
+                }
+            }
+        }
+
+        return $propVal;
+    }
     private function jsonBasicClean(Json $val, $applyBasicFiltering) : Json {
         $cleanJson = new Json();
 
@@ -648,6 +800,23 @@ class APIFilter {
         }
 
         return $cleanJson;
+    }
+
+    /**
+     * @throws Exception
+     */
+    private function parseJsonBody() {
+        if ($this->inputStreamPath !== null) {
+            $body = file_get_contents($this->inputStreamPath);
+        } else {
+            $body = file_get_contents('php://input');
+        }
+        $json = Json::decode($body);
+
+        if (!($json instanceof Json)) {
+            throw new Exception('Request body does not contain valid JSON.');
+        }
+        $this->filterJson($json);
     }
 
     /**
@@ -710,175 +879,6 @@ class APIFilter {
         }
 
         return $retVal;
-    }
-    private function applyJsonBasicFilter(Json $extraClean, $toBeFiltered, $def) {
-        $paramObj = $def['parameter'];
-        $paramType = $paramObj->getType();
-        $name = $paramObj->getName();
-        $toBeFilteredType = gettype($toBeFiltered);
-
-        if ($toBeFilteredType == 'string') {
-            $toBeFiltered = strip_tags($toBeFiltered);
-        }
-
-        if ($paramType == $toBeFilteredType || $toBeFilteredType == 'object' && $paramType == ParamTypes::JSON_OBJ) {
-            if ($paramType == ParamTypes::BOOL) {
-                $extraClean->addBoolean($name, $toBeFiltered);
-            } else if ($paramType == ParamTypes::DOUBLE || $paramType == ParamTypes::INT) {
-                $extraClean->addNumber($name, $toBeFiltered);
-            } else if ($paramType == 'string') {
-                $this->cleanJsonStr($extraClean, $def, $toBeFiltered);
-            } else if ($paramType == ParamTypes::ARR) {
-                $extraClean->addArray($name, $this->cleanJsonArray($toBeFiltered, true));
-            } else if ($paramType == ParamTypes::JSON_OBJ) {
-                if ($toBeFiltered instanceof Json) {
-                    $extraClean->add($name, $toBeFiltered);
-                } else {
-                    $extraClean->add($name, null);
-                }
-            }
-        } else {
-            $extraClean->addNull($name);
-        }
-    }
-    private function checkExtracted(Json $extraClean, $name, $defaultVal) {
-        $extractedVal = $extraClean->get($name);
-
-        if ($extractedVal === null) {
-            if ($defaultVal !== null) {
-                $extraClean->add($name, $defaultVal);
-            } else {
-                $extraClean->add($name, null);
-            }
-        }
-    }
-    /**
-     * Checks if a given string represents an integer or float value. 
-     * 
-     * If the given string represents numeric value, the method will 
-     * convert it to its numerical value.
-     * 
-     * @param string $str A value such as '1' or '7.0'.
-     * 
-     * @return string|int|double If the given string does not represent any 
-     * numerical value, the method will return the string 'APIFilter::INVALID'. If the 
-     * given string represents an integer, an integer value is returned. 
-     * If the given string represents a floating point value, a float number 
-     * is returned.
-     */
-    private static function checkIsNumber(string $str) {
-        $strX = trim($str);
-        $len = strlen($strX);
-        $isFloat = false;
-        $retVal = self::INVALID;
-
-        for ($y = 0 ; $y < $len ; $y++) {
-            $char = $strX[$y];
-
-            if ($char == '.' && !$isFloat) {
-                $isFloat = true;
-            } else if (!($char == '-' && $y == 0)) {
-                if ($char == '.' && $isFloat) {
-                    return $retVal;
-                } else if (!($char <= '9' && $char >= '0')) {
-                    return $retVal;
-                }
-            }
-        }
-
-        if ($isFloat) {
-            $retVal = floatval($strX);
-        } else {
-            $retVal = intval($strX);
-        }
-
-        return $retVal;
-    }
-    /**
-     * 
-     * @param Json $toBeCleaned
-     */
-    private function filterJson(Json $toBeCleaned) {
-        $originalInputs = new Json();
-        $extraClean = new Json();
-        $filterDef = $this->getFilterDef();
-        $paramIdx = 'parameter';
-        $optIdx = 'options';
-
-        foreach ($filterDef as $def) {
-            $requestParam = $def[$paramIdx];
-            $name = $requestParam->getName();
-            $paramType = $requestParam->getType();
-            $defaultVal = $requestParam->getDefault();
-            $requestParamVal = $this->getJsonPropValue($toBeCleaned, $name);
-
-            if ($requestParamVal !== null) {
-                $toBeFiltered = $requestParamVal;
-                $originalInputs->add($name, $toBeFiltered);
-
-                if (isset($def[$optIdx]['filter-func'])) {
-                    $filteredValue = self::applyCustomFilterFunc($def, $toBeFiltered);
-
-                    if ($paramType == ParamTypes::STRING &&
-                        $filteredValue != self::INVALID &&
-                        strlen($filteredValue) == 0 && 
-                        $def[$optIdx][$optIdx]['allow-empty'] === false) {
-                        //Empty not allowed while custom filter function
-                        //returned empty string
-                        $filteredValue = null;
-                    }
-                    $extraClean->add($name, $filteredValue);
-                    continue;
-                } else {
-                    self::applyJsonBasicFilter($extraClean, $toBeFiltered, $def);
-                }
-                $this->checkExtracted($extraClean, $name, $defaultVal);
-            } else if ($requestParam->isOptional()) {
-                $defaultVal !== null ? $extraClean->add($name, $defaultVal) : $extraClean->add($name, null);
-            }
-        }
-        $this->inputs = $extraClean;
-        $this->nonFilteredInputs = $originalInputs;
-    }
-    private function getJsonPropValue(Json $jsonObj, $propName) {
-        $propVal = $jsonObj->get($propName);
-
-        if ($propVal === null) {
-            $props = $jsonObj->getPropsNames();
-
-            foreach ($props as $propNameX) {
-                $testVal = $jsonObj->get($propNameX);
-
-                if ($testVal instanceof Json) {
-                    $propVal = $this->getJsonPropValue($testVal, $propName);
-                } else if (gettype($testVal) == 'array') {
-                    $propVal = $this->getJsonPropArr($testVal, $propName);
-                }
-
-                if ($propVal !== null) {
-                    return $propVal;
-                }
-            }
-        }
-
-        return $propVal;
-    }
-
-    /**
-     * @throws Exception
-     */
-    private function parseJsonBody() {
-        if ($this->inputStreamPath !== null) {
-            $body = file_get_contents($this->inputStreamPath);
-        } else {
-            $body = file_get_contents('php://input');
-        }
-        $json = Json::decode($body);
-
-        if (!($json instanceof Json)) {
-            throw new Exception('Request body does not contain valid JSON.');
-        }
-        $this->filterJson($json);
     }
     private function setInputStreamHelper($trimmed, $mode) : bool {
         $tempStream = fopen($trimmed, $mode);

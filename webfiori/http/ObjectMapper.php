@@ -104,7 +104,7 @@ class ObjectMapper {
      */
     public function map($inputs) {
         $clazzName = $this->getClass();
-        
+
         $instance = new $clazzName();
 
         foreach ($this->getSettersMap() as $method => $paramName) {

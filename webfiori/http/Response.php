@@ -161,6 +161,30 @@ class Response {
 
         return self::get();
     }
+
+    /**
+     * Display dump information of a variable.
+     *
+     * This method uses PHP's 'var_dump' to show information.
+     *
+     * @param mixed $value The value that its dump will be displayed.
+     *
+     * @param bool $send If this parameter is set to true, the response
+     * will be sent and execution will be terminated.
+     *
+     * @return Response
+     */
+    public static function dump($value, bool $send = true): Response {
+        ob_start();
+        var_dump($value);
+        self::get()->body .= '<pre>'.ob_get_clean().'</pre>';
+
+        if ($send) {
+            self::send();
+        }
+
+        return self::get();
+    }
     /**
      * Returns an instance of the class.
      * 
@@ -375,29 +399,6 @@ class Response {
             self::get()->responseCode = $code;
         }
     }
-
-    /**
-     * Display dump information of a variable.
-     *
-     * This method uses PHP's 'var_dump' to show information.
-     *
-     * @param mixed $value The value that its dump will be displayed.
-     *
-     * @param bool $send If this parameter is set to true, the response
-     * will be sent and execution will be terminated.
-     *
-     * @return Response
-     */
-    public static function dump($value, bool $send = true): Response {
-        ob_start();
-        var_dump($value);
-        self::get()->body .= '<pre>' . ob_get_clean(). '</pre>';
-
-        if ($send) {
-            self::send();
-        }
-        return self::get();
-    }
     /**
      * Appends a value to response body.
      *
@@ -420,17 +421,19 @@ class Response {
             'unknown type',
             'NULL'
         ];
+
         if (($type == 'object' && !method_exists($value, '__toString')) || in_array($type, $dumpTypes)) {
             ob_start();
             var_dump($value);
-            self::get()->body .= '<pre>' . ob_get_clean(). '</pre>';
+            self::get()->body .= '<pre>'.ob_get_clean().'</pre>';
         } else {
             self::get()->body .= $value;
         }
+
         if ($sendResponse) {
             self::send();
         }
+
         return self::get();
     }
-
 }
