@@ -83,19 +83,14 @@ class APIFilter {
         $paramType = $reqParam->getType();
 
         if ($paramType == ParamTypes::INT) {
-            if ($reqParam->getMaxVal() !== null) {
-                $attribute[$optIdx][$optIdx]['max_range'] = $reqParam->getMaxVal();
-            }
-
-            if ($reqParam->getMinVal() !== null) {
-                $attribute[$optIdx][$optIdx]['min_range'] = $reqParam->getMinVal();
-            }
             $attribute[$filterIdx][] = FILTER_VALIDATE_INT;
+            $this->checkNumericRange($reqParam, $attribute);
         } else if ($paramType == ParamTypes::STRING) {
             $attribute[$optIdx][$optIdx]['allow-empty'] = $reqParam->isEmptyStringAllowed();
             $attribute[$filterIdx][] = FILTER_DEFAULT;
         } else if ($paramType == ParamTypes::DOUBLE) {
             $attribute[$filterIdx][] = FILTER_VALIDATE_FLOAT;
+            $this->checkNumericRange($reqParam, $attribute);
         } else if ($paramType == ParamTypes::EMAIL) {
             $attribute[$filterIdx][] = FILTER_SANITIZE_EMAIL;
             $attribute[$filterIdx][] = FILTER_VALIDATE_EMAIL;
@@ -174,11 +169,11 @@ class APIFilter {
                 $retVal[$noFIdx][$name] = $toBeFiltered;
 
                 if (isset($def[$optIdx]['filter-func'])) {
-                    $retVal[$filteredIdx][$name] = self::_applyCustomFilterFunc($def, $toBeFiltered);
+                    $retVal[$filteredIdx][$name] = self::applyCustomFilterFunc($def, $toBeFiltered);
                 } else {
-                    $retVal[$filteredIdx][$name] = self::_applyBasicFilterOnly($def, $toBeFiltered);
+                    $retVal[$filteredIdx][$name] = self::applyBasicFilterOnly($def, $toBeFiltered);
                 }
-                $booleanCheck = $paramType == 'boolean' && $retVal[$filteredIdx][$name] === true || $retVal[$filteredIdx][$name] === false;
+                $booleanCheck = $paramType == ParamTypes::BOOL && $retVal[$filteredIdx][$name] === true || $retVal[$filteredIdx][$name] === false;
 
                 if (!$booleanCheck && $retVal[$filteredIdx][$name] == self::INVALID && $defaultVal !== null) {
                     $retVal[$filteredIdx][$name] = $defaultVal;
@@ -342,7 +337,7 @@ class APIFilter {
 
         return false;
     }
-    private static function _applyBasicFilterOnly($def,$toBeFiltered) {
+    private static function applyBasicFilterOnly($def,$toBeFiltered) {
         $toBeFiltered = strip_tags($toBeFiltered);
 
         $paramObj = $def['parameter'];
@@ -350,14 +345,18 @@ class APIFilter {
         $optIdx = 'options'; 
 
         if ($paramType == ParamTypes::BOOL) {
-            $returnVal = self::_filterBoolean($toBeFiltered);
+            $returnVal = self::filterBoolean($toBeFiltered);
         } else if ($paramType == ParamTypes::ARR) {
-            $returnVal = self::_filterArray(filter_var($toBeFiltered));
+            $returnVal = self::filterArray(filter_var($toBeFiltered));
         } else {
             $returnVal = filter_var($toBeFiltered);
 
             foreach ($def['filters'] as $val) {
                 $returnVal = filter_var($returnVal, $val, $def[$optIdx]);
+                
+                if ($paramType == ParamTypes::DOUBLE) {
+                    $returnVal = self::minMaxValueCheck($returnVal, $def['options']['options']);
+                }
             }
 
             if ($returnVal === false || 
@@ -376,14 +375,14 @@ class APIFilter {
 
         return $returnVal;
     }
-    private static function _applyCustomFilterFunc($def, $toBeFiltered) {
+    private static function applyCustomFilterFunc($def, $toBeFiltered) {
         $arrToPass = [
             'original-value' => $toBeFiltered,
         ];
         $paramObj = $def['parameter'];
 
         if ($paramObj->isBasicFilter()) {
-            $arrToPass['basic-filter-result'] = self::_getBasicFilterResultForCustomFilter($def, $toBeFiltered);
+            $arrToPass['basic-filter-result'] = self::getBasicFilterResultForCustomFilter($def, $toBeFiltered);
         } else {
             $arrToPass['basic-filter-result'] = 'NOT_APPLICABLE';
         }
@@ -401,312 +400,6 @@ class APIFilter {
 
         return $returnVal;
     }
-    private function _cleanJsonArray(array $arr, $applyBasicFiltering = false) : array {
-        $cleanArr = [];
-
-        foreach ($arr as $val) {
-            $propType = gettype($val);
-
-            if ($propType == 'string') {
-                if ($applyBasicFiltering) {
-                    $cleanArr[] = filter_var($val, FILTER_SANITIZE_FULL_SPECIAL_CHARS);
-                } else {
-                    $cleanArr[] = $val;
-                }
-            } else if ($propType == 'array') {
-                $cleanArr[] = $this->_cleanJsonArray($val, $applyBasicFiltering);
-            } else if ($propType == 'object' && $val instanceof Json) {
-                $cleanArr[] = $this->_jsonBasicClean($val, $applyBasicFiltering);
-            } else {
-                $cleanArr[] = $val;
-            }
-        }
-
-        return $cleanArr;
-    }
-    private function _cleanJsonStr($extraClean, $def, $toBeFiltered) {
-        $name = $def['parameter']->getName();
-        $extraClean->add($name, filter_var($toBeFiltered));
-
-        foreach ($def['filters'] as $val) {
-            $extraClean->add($name, filter_var($extraClean->get($name), $val, $def['options']));
-        }
-        $cleaned = $extraClean->get($name);
-
-        if (strlen($cleaned) == 0 && $def['options']['options']['allow-empty'] === false) {
-            $extraClean->add($name, null);
-        }
-    }
-    /**
-     * Converts a string to an array.
-     * 
-     * @param string|array $arr A string in the format '[3,"hello",4.8,"",44,...]'.
-     * 
-     * @return string|array If the string has valid array format, an array 
-     * which contains the values is returned. If it has invalid syntax, the 
-     * method will return the string 'APIFilter::INVALID'.
-     * 
-     * @since 1.2.1
-     */
-    private static function _filterArray($arr) {
-        if (gettype($arr) == 'array') {
-            return $arr;
-        }
-        $array = filter_var($arr);
-        $len = strlen($array);
-        $retVal = self::INVALID;
-        $arrayValues = [];
-
-        if ($len >= 2 && ($array[0] == '[' && $array[$len - 1] == ']')) {
-            $tmpArrValue = '';
-
-            for ($x = 1 ; $x < $len - 1 ; $x++) {
-                $char = $array[$x];
-
-                if ($x + 1 == $len - 1) {
-                    $tmpArrValue .= $char;
-                    $number = self::checkIsNumber($tmpArrValue);
-                    $numType = gettype($number);
-
-                    if ($numType == 'integer' || $numType == 'double') {
-                        $arrayValues[] = $number;
-                        continue;
-                    } else {
-                        return $retVal;
-                    }
-                } else if ($char == '"' || $char == "'") {
-                    $tmpArrValue = strtolower(trim($tmpArrValue));
-
-                    if (strlen($tmpArrValue) != 0) {
-                        if ($tmpArrValue == 'true') {
-                            $arrayValues[] = true;
-                        } else if ($tmpArrValue == 'false') {
-                            $arrayValues[] = false;
-                        } else if ($tmpArrValue == 'null') {
-                            $arrayValues[] = null;
-                        } else {
-                            $number = self::checkIsNumber($tmpArrValue);
-                            $numType = gettype($number);
-
-                            if ($numType == 'integer' || $numType == 'double') {
-                                $arrayValues[] = $number;
-                                continue;
-                            } else {
-                                return $retVal;
-                            }
-                        }
-                    } else {
-                        $result = self::_parseStringFromArray($array, $x + 1, $len - 1, $char);
-
-                        if ($result['parsed'] === true) {
-                            $x = $result['end'];
-                            $arrayValues[] = filter_var(strip_tags($result[ParamTypes::STRING]));
-                            $tmpArrValue = '';
-                            continue;
-                        } else {
-                            return $retVal;
-                        }
-                    }
-                }
-
-                if ($char == ',') {
-                    $tmpArrValue = strtolower(trim($tmpArrValue));
-
-                    if ($tmpArrValue == 'true') {
-                        $arrayValues[] = true;
-                    } else if ($tmpArrValue == 'false') {
-                        $arrayValues[] = false;
-                    } else if ($tmpArrValue == 'null') {
-                        $arrayValues[] = null;
-                    } else {
-                        $number = self::checkIsNumber($tmpArrValue);
-                        $numType = gettype($number);
-
-                        if ($numType == 'integer' || $numType == 'double') {
-                            $arrayValues[] = $number;
-                        } else {
-                            return $retVal;
-                        }
-                    }
-                    $tmpArrValue = '';
-                } else if ($x + 1 == $len - 1) {
-                    $arrayValues[] = $tmpArrValue.$char;
-                } else {
-                    $tmpArrValue .= $char;
-                }
-            }
-            $retVal = $arrayValues;
-        }
-
-        return $retVal;
-    }
-    /**
-     * Returns the boolean value of given input.
-     * 
-     * @param mixed $boolean
-     * 
-     * @return bool|string
-     * 
-     * @since 1.1
-     */
-    private static function _filterBoolean($boolean) {
-        if (gettype($boolean) == 'boolean') {
-            return $boolean;
-        }
-
-        $booleanLwr = strtolower(filter_var($boolean));
-        $boolTypes = [
-            't' => true,
-            'f' => false,
-            'yes' => true,
-            'no' => false,
-            '-1' => false,
-            '1' => true,
-            '0' => false,
-            'true' => true,
-            'false' => false,
-            'on' => true,
-            'off' => false,
-            'y' => true,
-            'n' => false,
-            'ok' => true];
-
-        if (isset($boolTypes[$booleanLwr])) {
-            return $boolTypes[$booleanLwr];
-        }
-
-        return self::INVALID;
-    }
-    private static function _getBasicFilterResultForCustomFilter($def, $toBeFiltered) {
-        if (gettype($toBeFiltered) == 'string') {
-            $toBeFiltered = strip_tags($toBeFiltered);
-        }
-        $paramType = $def['parameter']->getType();
-
-        if ($paramType == ParamTypes::BOOL) {
-            $filteredValue = self::_filterBoolean(filter_var($toBeFiltered));
-        } else if ($paramType == ParamTypes::ARR) {
-            $filteredValue = self::_filterArray($toBeFiltered);
-        } else {
-            $filteredValue = filter_var($toBeFiltered);
-
-            foreach ($def['filters'] as $val) {
-                $filteredValue = filter_var($filteredValue, $val, $def['options']);
-            }
-
-            if ($filteredValue === false) {
-                $filteredValue = self::INVALID;
-            }
-
-            if ($paramType == ParamTypes::STRING &&
-            $filteredValue != self::INVALID &&
-            strlen($filteredValue) == 0 && 
-            $def['options']['options']['allow-empty'] === false) {
-                $filteredValue = self::INVALID;
-            }
-        }
-
-        return $filteredValue;
-    }
-    private function _getJsonPropArr($arr, $propName) {
-        $retVal = null;
-
-        foreach ($arr as $val) {
-            if ($val instanceof Json) {
-                $retVal = $this->getJsonPropValue($val, $propName);
-            } else if (gettype($val) == 'array') {
-                $retVal = $this->_getJsonPropArr($val, $propName);
-            }
-        }
-
-        return $retVal;
-    }
-    private function _jsonBasicClean(Json $val, $applyBasicFiltering) : Json {
-        $cleanJson = new Json();
-
-        foreach ($val->getPropsNames() as $propName) {
-            $propVal = $val->get($propName);
-            $propType = gettype($propVal);
-
-            if ($propType == 'array') {
-                $cleanJson->add($propName, $this->_cleanJsonArray($propVal, $applyBasicFiltering));
-            } else if ($propType == 'object') {
-                $cleanJson->add($propName, $this->_jsonBasicClean($propVal, $applyBasicFiltering));
-            } else if ($propType == 'string') {
-                if ($applyBasicFiltering) {
-                    $cleanJson->add($propName, filter_var($propVal, FILTER_SANITIZE_FULL_SPECIAL_CHARS));
-                } else {
-                    $cleanJson->add($propName, $propVal);
-                }
-            } else {
-                $cleanJson->add($propName, $propVal);
-            }
-        }
-
-        return $cleanJson;
-    }
-
-    /**
-     * Extract string value from an array that is formed as string.
-     *
-     * It is a helper method that works with the method APIFilter::_parseStringFromArray().
-     *
-     * @param array $stringAsArr
-     *
-     * @param int $start
-     *
-     * @param int $len
-     * @param string $stringEndChar
-     * @return array
-     *
-     * @since 1.2.1
-     */
-    private static function _parseStringFromArray(string $stringAsArr,int $start,int $len, string $stringEndChar) : array {
-        $retVal = [
-            'end' => 0,
-            'string' => '',
-            'parsed' => false
-        ];
-        $str = "";
-
-        for ($x = $start ; $x < $len ; $x++) {
-            $ch = $stringAsArr[$x];
-
-            if ($ch == $stringEndChar) {
-                $str .= "";
-                $retVal['end'] = $x;
-                $retVal['string'] = urldecode($str);
-                $retVal['parsed'] = true;
-                break;
-            } else if ($ch == '\\') {
-                $x++;
-                $nextCh = $stringAsArr[$x];
-
-                if ($ch != ' ') {
-                    $str .= '\\'.$nextCh;
-                } else {
-                    $str .= '\\ ';
-                }
-            } else {
-                $str .= $ch;
-            }
-        }
-
-        for ($x = $retVal['end'] + 1 ; $x < $len ; $x++) {
-            $ch = $stringAsArr[$x];
-
-            if ($ch == ',') {
-                $retVal['parsed'] = true;
-                $retVal['end'] = $x;
-                break;
-            } else if ($ch != ' ') {
-                $retVal['parsed'] = false;
-                break;
-            }
-        }
-
-        return $retVal;
-    }
     private function applyJsonBasicFilter(Json $extraClean, $toBeFiltered, $def) {
         $paramObj = $def['parameter'];
         $paramType = $paramObj->getType();
@@ -723,9 +416,9 @@ class APIFilter {
             } else if ($paramType == ParamTypes::DOUBLE || $paramType == ParamTypes::INT) {
                 $extraClean->addNumber($name, $toBeFiltered);
             } else if ($paramType == 'string') {
-                $this->_cleanJsonStr($extraClean, $def, $toBeFiltered);
+                $this->cleanJsonStr($extraClean, $def, $toBeFiltered);
             } else if ($paramType == ParamTypes::ARR) {
-                $extraClean->addArray($name, $this->_cleanJsonArray($toBeFiltered, true));
+                $extraClean->addArray($name, $this->cleanJsonArray($toBeFiltered, true));
             } else if ($paramType == ParamTypes::JSON_OBJ) {
                 if ($toBeFiltered instanceof Json) {
                     $extraClean->add($name, $toBeFiltered);
@@ -790,6 +483,191 @@ class APIFilter {
 
         return $retVal;
     }
+    private function checkNumericRange(RequestParameter $reqParam, array &$attribute) {
+        if ($reqParam->getMaxVal() !== null) {
+            $attribute['options']['options']['max_range'] = $reqParam->getMaxVal();
+        }
+
+        if ($reqParam->getMinVal() !== null) {
+            $attribute['options']['options']['min_range'] = $reqParam->getMinVal();
+        }
+    }
+    private function cleanJsonArray(array $arr, $applyBasicFiltering = false) : array {
+        $cleanArr = [];
+
+        foreach ($arr as $val) {
+            $propType = gettype($val);
+
+            if ($propType == 'string') {
+                if ($applyBasicFiltering) {
+                    $cleanArr[] = filter_var($val, FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+                } else {
+                    $cleanArr[] = $val;
+                }
+            } else if ($propType == 'array') {
+                $cleanArr[] = $this->cleanJsonArray($val, $applyBasicFiltering);
+            } else if ($propType == 'object' && $val instanceof Json) {
+                $cleanArr[] = $this->jsonBasicClean($val, $applyBasicFiltering);
+            } else {
+                $cleanArr[] = $val;
+            }
+        }
+
+        return $cleanArr;
+    }
+    private function cleanJsonStr($extraClean, $def, $toBeFiltered) {
+        $name = $def['parameter']->getName();
+        $extraClean->add($name, filter_var($toBeFiltered));
+
+        foreach ($def['filters'] as $val) {
+            $extraClean->add($name, filter_var($extraClean->get($name), $val, $def['options']));
+        }
+        $cleaned = $extraClean->get($name);
+
+        if (strlen($cleaned) == 0 && $def['options']['options']['allow-empty'] === false) {
+            $extraClean->add($name, null);
+        }
+    }
+    /**
+     * Converts a string to an array.
+     * 
+     * @param string|array $arr A string in the format '[3,"hello",4.8,"",44,...]'.
+     * 
+     * @return string|array If the string has valid array format, an array 
+     * which contains the values is returned. If it has invalid syntax, the 
+     * method will return the string 'APIFilter::INVALID'.
+     * 
+     * @since 1.2.1
+     */
+    private static function filterArray($arr) {
+        if (gettype($arr) == 'array') {
+            return $arr;
+        }
+        $array = filter_var($arr);
+        $len = strlen($array);
+        $retVal = self::INVALID;
+        $arrayValues = [];
+
+        if ($len >= 2 && ($array[0] == '[' && $array[$len - 1] == ']')) {
+            $tmpArrValue = '';
+
+            for ($x = 1 ; $x < $len - 1 ; $x++) {
+                $char = $array[$x];
+
+                if ($x + 1 == $len - 1) {
+                    $tmpArrValue .= $char;
+                    $number = self::checkIsNumber($tmpArrValue);
+                    $numType = gettype($number);
+
+                    if ($numType == 'integer' || $numType == 'double') {
+                        $arrayValues[] = $number;
+                        continue;
+                    } else {
+                        return $retVal;
+                    }
+                } else if ($char == '"' || $char == "'") {
+                    $tmpArrValue = strtolower(trim($tmpArrValue));
+
+                    if (strlen($tmpArrValue) != 0) {
+                        if ($tmpArrValue == 'true') {
+                            $arrayValues[] = true;
+                        } else if ($tmpArrValue == 'false') {
+                            $arrayValues[] = false;
+                        } else if ($tmpArrValue == 'null') {
+                            $arrayValues[] = null;
+                        } else {
+                            $number = self::checkIsNumber($tmpArrValue);
+                            $numType = gettype($number);
+
+                            if ($numType == 'integer' || $numType == 'double') {
+                                $arrayValues[] = $number;
+                                continue;
+                            } else {
+                                return $retVal;
+                            }
+                        }
+                    } else {
+                        $result = self::parseStringFromArray($array, $x + 1, $len - 1, $char);
+
+                        if ($result['parsed'] === true) {
+                            $x = $result['end'];
+                            $arrayValues[] = filter_var(strip_tags($result[ParamTypes::STRING]));
+                            $tmpArrValue = '';
+                            continue;
+                        } else {
+                            return $retVal;
+                        }
+                    }
+                }
+
+                if ($char == ',') {
+                    $tmpArrValue = strtolower(trim($tmpArrValue));
+
+                    if ($tmpArrValue == 'true') {
+                        $arrayValues[] = true;
+                    } else if ($tmpArrValue == 'false') {
+                        $arrayValues[] = false;
+                    } else if ($tmpArrValue == 'null') {
+                        $arrayValues[] = null;
+                    } else {
+                        $number = self::checkIsNumber($tmpArrValue);
+                        $numType = gettype($number);
+
+                        if ($numType == 'integer' || $numType == 'double') {
+                            $arrayValues[] = $number;
+                        } else {
+                            return $retVal;
+                        }
+                    }
+                    $tmpArrValue = '';
+                } else if ($x + 1 == $len - 1) {
+                    $arrayValues[] = $tmpArrValue.$char;
+                } else {
+                    $tmpArrValue .= $char;
+                }
+            }
+            $retVal = $arrayValues;
+        }
+
+        return $retVal;
+    }
+    /**
+     * Returns the boolean value of given input.
+     * 
+     * @param mixed $boolean
+     * 
+     * @return bool|string
+     * 
+     * @since 1.1
+     */
+    private static function filterBoolean($boolean) {
+        if (gettype($boolean) == 'boolean') {
+            return $boolean;
+        }
+
+        $booleanLwr = strtolower(filter_var($boolean));
+        $boolTypes = [
+            't' => true,
+            'f' => false,
+            'yes' => true,
+            'no' => false,
+            '-1' => false,
+            '1' => true,
+            '0' => false,
+            'true' => true,
+            'false' => false,
+            'on' => true,
+            'off' => false,
+            'y' => true,
+            'n' => false,
+            'ok' => true];
+
+        if (isset($boolTypes[$booleanLwr])) {
+            return $boolTypes[$booleanLwr];
+        }
+
+        return self::INVALID;
+    }
     /**
      * 
      * @param Json $toBeCleaned
@@ -813,7 +691,7 @@ class APIFilter {
                 $originalInputs->add($name, $toBeFiltered);
 
                 if (isset($def[$optIdx]['filter-func'])) {
-                    $filteredValue = self::_applyCustomFilterFunc($def, $toBeFiltered);
+                    $filteredValue = self::applyCustomFilterFunc($def, $toBeFiltered);
 
                     if ($paramType == ParamTypes::STRING &&
                         $filteredValue != self::INVALID &&
@@ -836,6 +714,67 @@ class APIFilter {
         $this->inputs = $extraClean;
         $this->nonFilteredInputs = $originalInputs;
     }
+    private static function getBasicFilterResultForCustomFilter($def, $toBeFiltered) {
+        if (gettype($toBeFiltered) == 'string') {
+            $toBeFiltered = strip_tags($toBeFiltered);
+        }
+        $paramType = $def['parameter']->getType();
+
+        if ($paramType == ParamTypes::BOOL) {
+            $filteredValue = self::filterBoolean(filter_var($toBeFiltered));
+        } else if ($paramType == ParamTypes::ARR) {
+            $filteredValue = self::filterArray($toBeFiltered);
+        } else {
+            $filteredValue = filter_var($toBeFiltered);
+
+            foreach ($def['filters'] as $val) {
+                $filteredValue = filter_var($filteredValue, $val, $def['options']);
+                
+                if ($paramType == ParamTypes::DOUBLE) {
+                    $filteredValue = self::minMaxValueCheck($filteredValue, $def['options']['options']);
+                }
+            }
+
+            if ($filteredValue === false) {
+                $filteredValue = self::INVALID;
+            }
+
+            if ($paramType == ParamTypes::STRING &&
+            $filteredValue != self::INVALID &&
+            strlen($filteredValue) == 0 && 
+            $def['options']['options']['allow-empty'] === false) {
+                $filteredValue = self::INVALID;
+            }
+        }
+
+        return $filteredValue;
+    }
+    private static function minMaxValueCheck($filteredValue, array $optionsArr) {
+        if (PHP_MAJOR_VERSION == 7 && PHP_MINOR_VERSION <= 3) {
+            //For floats, php 7 does not support 'range' filter.
+            if ($filteredValue > $optionsArr['max_range'] || $filteredValue < $optionsArr['min_range']) {
+                $filteredValue = false;
+            }
+        }
+        if ($filteredValue === false && isset($optionsArr['default'])) {
+            $filteredValue = $optionsArr['default'];
+        }
+        return $filteredValue;
+    }
+
+    private function getJsonPropArr($arr, $propName) {
+        $retVal = null;
+
+        foreach ($arr as $val) {
+            if ($val instanceof Json) {
+                $retVal = $this->getJsonPropValue($val, $propName);
+            } else if (gettype($val) == 'array') {
+                $retVal = $this->getJsonPropArr($val, $propName);
+            }
+        }
+
+        return $retVal;
+    }
     private function getJsonPropValue(Json $jsonObj, $propName) {
         $propVal = $jsonObj->get($propName);
 
@@ -848,7 +787,7 @@ class APIFilter {
                 if ($testVal instanceof Json) {
                     $propVal = $this->getJsonPropValue($testVal, $propName);
                 } else if (gettype($testVal) == 'array') {
-                    $propVal = $this->_getJsonPropArr($testVal, $propName);
+                    $propVal = $this->getJsonPropArr($testVal, $propName);
                 }
 
                 if ($propVal !== null) {
@@ -858,6 +797,30 @@ class APIFilter {
         }
 
         return $propVal;
+    }
+    private function jsonBasicClean(Json $val, $applyBasicFiltering) : Json {
+        $cleanJson = new Json();
+
+        foreach ($val->getPropsNames() as $propName) {
+            $propVal = $val->get($propName);
+            $propType = gettype($propVal);
+
+            if ($propType == 'array') {
+                $cleanJson->add($propName, $this->cleanJsonArray($propVal, $applyBasicFiltering));
+            } else if ($propType == 'object') {
+                $cleanJson->add($propName, $this->jsonBasicClean($propVal, $applyBasicFiltering));
+            } else if ($propType == 'string') {
+                if ($applyBasicFiltering) {
+                    $cleanJson->add($propName, filter_var($propVal, FILTER_SANITIZE_FULL_SPECIAL_CHARS));
+                } else {
+                    $cleanJson->add($propName, $propVal);
+                }
+            } else {
+                $cleanJson->add($propName, $propVal);
+            }
+        }
+
+        return $cleanJson;
     }
 
     /**
@@ -875,6 +838,68 @@ class APIFilter {
             throw new Exception('Request body does not contain valid JSON.');
         }
         $this->filterJson($json);
+    }
+
+    /**
+     * Extract string value from an array that is formed as string.
+     *
+     * It is a helper method that works with the method APIFilter::_parseStringFromArray().
+     *
+     * @param array $stringAsArr
+     *
+     * @param int $start
+     *
+     * @param int $len
+     * @param string $stringEndChar
+     * @return array
+     *
+     * @since 1.2.1
+     */
+    private static function parseStringFromArray(string $stringAsArr,int $start,int $len, string $stringEndChar) : array {
+        $retVal = [
+            'end' => 0,
+            'string' => '',
+            'parsed' => false
+        ];
+        $str = "";
+
+        for ($x = $start ; $x < $len ; $x++) {
+            $ch = $stringAsArr[$x];
+
+            if ($ch == $stringEndChar) {
+                $str .= "";
+                $retVal['end'] = $x;
+                $retVal['string'] = urldecode($str);
+                $retVal['parsed'] = true;
+                break;
+            } else if ($ch == '\\') {
+                $x++;
+                $nextCh = $stringAsArr[$x];
+
+                if ($ch != ' ') {
+                    $str .= '\\'.$nextCh;
+                } else {
+                    $str .= '\\ ';
+                }
+            } else {
+                $str .= $ch;
+            }
+        }
+
+        for ($x = $retVal['end'] + 1 ; $x < $len ; $x++) {
+            $ch = $stringAsArr[$x];
+
+            if ($ch == ',') {
+                $retVal['parsed'] = true;
+                $retVal['end'] = $x;
+                break;
+            } else if ($ch != ' ') {
+                $retVal['parsed'] = false;
+                break;
+            }
+        }
+
+        return $retVal;
     }
     private function setInputStreamHelper($trimmed, $mode) : bool {
         $tempStream = fopen($trimmed, $mode);

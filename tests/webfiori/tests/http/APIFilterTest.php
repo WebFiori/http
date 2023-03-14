@@ -96,7 +96,7 @@ class APIFilterTest extends TestCase {
         $this->assertTrue(isset($filtered['username']));
         $this->assertEquals('Admin',$filtered['username']);
         $this->assertTrue(isset($filtered['password']));
-        $this->assertEquals('INV',$filtered['password']);
+        $this->assertEquals(APIFilter::INVALID,$filtered['password']);
         $nonFiltered = $this->apiFilter->getNonFiltered();
         $this->assertTrue(isset($nonFiltered['username']));
         $this->assertEquals('Admin',$nonFiltered['username']);
@@ -172,9 +172,9 @@ class APIFilterTest extends TestCase {
         $filtered = $this->apiFilter->getInputs();
         $this->assertEquals(2,count($filtered));
         $this->assertTrue(isset($filtered['first-number']));
-        $this->assertEquals('INV',$filtered['first-number']);
+        $this->assertEquals(APIFilter::INVALID,$filtered['first-number']);
         $this->assertTrue(isset($filtered['second-number']));
-        $this->assertEquals('INV',$filtered['second-number']);
+        $this->assertEquals(APIFilter::INVALID,$filtered['second-number']);
         $nonFiltered = $this->apiFilter->getNonFiltered();
         $this->assertTrue(isset($nonFiltered['first-number']));
         $this->assertEquals('Admin',$nonFiltered['first-number']);
@@ -193,7 +193,7 @@ class APIFilterTest extends TestCase {
         $this->apiFilter->addRequestParameter($param00);
         $param01 = new RequestParameter('second-number', 'float');
         $param01->setDefault(1000);
-        $param01->setMinVal(1000000);
+        $this->assertTrue($param01->setMinVal(1000000));
         $this->apiFilter->addRequestParameter($param01);
         $_GET['first-number'] = 'Admin';
         $_GET['second-number'] = "0.15";
@@ -203,9 +203,9 @@ class APIFilterTest extends TestCase {
         
         $this->assertEquals(2,count($filtered));
         $this->assertTrue(isset($filtered['first-number']));
-        $this->assertEquals('INV',$filtered['first-number']);
+        $this->assertEquals(APIFilter::INVALID,$filtered['first-number']);
         $this->assertTrue(isset($filtered['second-number']));
-        $this->assertSame(0.15, $filtered['second-number']);
+        $this->assertSame(1000, $filtered['second-number']);
         
         $nonFiltered = $this->apiFilter->getNonFiltered();
         $this->assertTrue(isset($nonFiltered['first-number']));
@@ -233,7 +233,7 @@ class APIFilterTest extends TestCase {
         $filtered = $this->apiFilter->getInputs();
         $this->assertEquals(2,count($filtered));
         $this->assertTrue(isset($filtered['first-number']));
-        $this->assertEquals('INV',$filtered['first-number']);
+        $this->assertEquals(APIFilter::INVALID,$filtered['first-number']);
         $this->assertTrue(isset($filtered['second-number']));
         $this->assertEquals(1000,$filtered['second-number']);
 
@@ -281,7 +281,7 @@ class APIFilterTest extends TestCase {
         $this->apiFilter->filterGET();
         $filtered = $this->apiFilter->getInputs();
         $this->assertEquals(1,count($filtered));
-        $this->assertEquals('INV',$filtered['my-string']);
+        $this->assertEquals(APIFilter::INVALID,$filtered['my-string']);
     }
     /**
      * @test
@@ -308,7 +308,7 @@ class APIFilterTest extends TestCase {
         $this->apiFilter->filterGET();
         $filtered = $this->apiFilter->getInputs();
         $this->assertEquals(1,count($filtered));
-        $this->assertEquals('INV',$filtered['redirect']);
+        $this->assertEquals(APIFilter::INVALID,$filtered['redirect']);
     }
     /**
      * @test
@@ -322,7 +322,7 @@ class APIFilterTest extends TestCase {
         $this->apiFilter->filterGET();
         $filtered = $this->apiFilter->getInputs();
         $this->assertEquals(1,count($filtered));
-        $this->assertEquals('INV',$filtered['redirect']);
+        $this->assertEquals(APIFilter::INVALID,$filtered['redirect']);
     }
     /**
      * @test
@@ -352,7 +352,7 @@ class APIFilterTest extends TestCase {
         $this->apiFilter->filterGET();
         $filtered = $this->apiFilter->getInputs();
         $this->assertEquals(1,count($filtered));
-        $this->assertEquals('INV',$filtered['send-to']);
+        $this->assertEquals(APIFilter::INVALID,$filtered['send-to']);
     }
     /**
      * @test
@@ -365,7 +365,7 @@ class APIFilterTest extends TestCase {
         $this->apiFilter->filterGET();
         $filtered = $this->apiFilter->getInputs();
         $this->assertEquals(1,count($filtered));
-        $this->assertEquals('INV',$filtered['send-to']);
+        $this->assertEquals(APIFilter::INVALID,$filtered['send-to']);
     }
     /**
      * @test
@@ -558,6 +558,34 @@ class APIFilterTest extends TestCase {
         $nonFiltered = $this->apiFilter->getNonFiltered();
         $this->assertEquals('4488', $nonFiltered['first-number']);
         $this->assertEquals('100076800.776',$nonFiltered['second-number']);
+    }
+    /**
+     * @test
+     */
+     public function testFilterGet29() {
+        foreach ($_GET as $key => $value) {
+            unset($_GET[$key]);
+        }
+        $this->apiFilter = new APIFilter();
+        $param00 = new RequestParameter('first-number','int');
+        $param00->setMaxVal(100);
+        $param00->setMinVal(50);
+        $this->apiFilter->addRequestParameter($param00);
+        $param01 = new RequestParameter('second-number', 'float');
+        $param01->setMaxVal(200); 
+        $this->assertFalse($param01->setMinVal(1000000));
+        $this->apiFilter->addRequestParameter($param01);
+        $_GET['first-number'] = '4488';
+        $_GET['second-number'] = '100076800.777';
+        $this->apiFilter->filterGET();
+        $filtered = $this->apiFilter->getInputs();
+        $this->assertEquals(2,count($filtered));
+        $this->assertEquals(APIFilter::INVALID, $filtered['first-number']);
+        $this->assertEquals(APIFilter::INVALID, $filtered['second-number']);
+
+        $nonFiltered = $this->apiFilter->getNonFiltered();
+        $this->assertEquals('4488', $nonFiltered['first-number']);
+        $this->assertEquals('100076800.777',$nonFiltered['second-number']);
     }
     /**
      * @test
