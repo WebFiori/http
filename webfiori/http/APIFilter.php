@@ -725,6 +725,10 @@ class APIFilter {
 
             foreach ($def['filters'] as $val) {
                 $filteredValue = filter_var($filteredValue, $val, $def['options']);
+                
+                if ($paramType == ParamTypes::DOUBLE) {
+                    $filteredValue = $this->minMaxValueCheck($filteredValue, $def['options']);
+                }
             }
 
             if ($filteredValue === false) {
@@ -741,6 +745,19 @@ class APIFilter {
 
         return $filteredValue;
     }
+    private function minMaxValueCheck($filteredValue, array $optionsArr) {
+        if (PHP_MAJOR_VERSION == 7 && PHP_MINOR_VERSION <= 3) {
+            //For floats, php 7 does not support 'range' filter.
+            if (isset($optionsArr['max_range']) && $filteredValue > $optionsArr['max_range']) {
+                return false;
+            }
+            if (isset($optionsArr['min_range']) && $filteredValue < $optionsArr['min_range']) {
+                return false;
+            }
+        }
+        return $filteredValue;
+    }
+
     private function getJsonPropArr($arr, $propName) {
         $retVal = null;
 
