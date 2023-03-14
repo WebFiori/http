@@ -353,6 +353,10 @@ class APIFilter {
 
             foreach ($def['filters'] as $val) {
                 $returnVal = filter_var($returnVal, $val, $def[$optIdx]);
+                
+                if ($paramType == ParamTypes::DOUBLE) {
+                    $returnVal = self::minMaxValueCheck($returnVal, $def['options']['options']);
+                }
             }
 
             if ($returnVal === false || 
@@ -727,7 +731,7 @@ class APIFilter {
                 $filteredValue = filter_var($filteredValue, $val, $def['options']);
                 
                 if ($paramType == ParamTypes::DOUBLE) {
-                    $filteredValue = $this->minMaxValueCheck($filteredValue, $def['options']);
+                    $filteredValue = self::minMaxValueCheck($filteredValue, $def['options']['options']);
                 }
             }
 
@@ -745,15 +749,15 @@ class APIFilter {
 
         return $filteredValue;
     }
-    private function minMaxValueCheck($filteredValue, array $optionsArr) {
+    private static function minMaxValueCheck($filteredValue, array $optionsArr) {
         if (PHP_MAJOR_VERSION == 7 && PHP_MINOR_VERSION <= 3) {
             //For floats, php 7 does not support 'range' filter.
-            if (isset($optionsArr['max_range']) && $filteredValue > $optionsArr['max_range']) {
-                return false;
+            if ($filteredValue > $optionsArr['max_range'] || $filteredValue < $optionsArr['min_range']) {
+                $filteredValue = false;
             }
-            if (isset($optionsArr['min_range']) && $filteredValue < $optionsArr['min_range']) {
-                return false;
-            }
+        }
+        if ($filteredValue === false && isset($optionsArr['default'])) {
+            $filteredValue = $optionsArr['default'];
         }
         return $filteredValue;
     }
