@@ -562,6 +562,34 @@ class APIFilterTest extends TestCase {
     /**
      * @test
      */
+     public function testFilterGet29() {
+        foreach ($_GET as $key => $value) {
+            unset($_GET[$key]);
+        }
+        $this->apiFilter = new APIFilter();
+        $param00 = new RequestParameter('first-number','int');
+        $param00->setMaxVal(100);
+        $param00->setMinVal(50);
+        $this->apiFilter->addRequestParameter($param00);
+        $param01 = new RequestParameter('second-number', 'float');
+        $param01->setMaxVal(200); 
+        $this->assertFalse($param01->setMinVal(1000000));
+        $this->apiFilter->addRequestParameter($param01);
+        $_GET['first-number'] = '4488';
+        $_GET['second-number'] = '100076800.777';
+        $this->apiFilter->filterGET();
+        $filtered = $this->apiFilter->getInputs();
+        $this->assertEquals(2,count($filtered));
+        $this->assertEquals(APIFilter::INVALID, $filtered['first-number']);
+        $this->assertEquals(APIFilter::INVALID, $filtered['second-number']);
+
+        $nonFiltered = $this->apiFilter->getNonFiltered();
+        $this->assertEquals('4488', $nonFiltered['first-number']);
+        $this->assertEquals('100076800.777',$nonFiltered['second-number']);
+    }
+    /**
+     * @test
+     */
     public function testFilterPost01() {
         $this->apiFilter = new APIFilter();
         $param00 = new RequestParameter('array', 'array');

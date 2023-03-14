@@ -388,7 +388,7 @@ class Response {
      *
      * @return Response
      */
-    public static function dump($value, bool $send = true) {
+    public static function dump($value, bool $send = true): Response {
         ob_start();
         var_dump($value);
         self::get()->body .= '<pre>' . ob_get_clean(). '</pre>';
