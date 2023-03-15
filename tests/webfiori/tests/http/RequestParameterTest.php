@@ -14,14 +14,14 @@ class RequestParameterTest extends TestCase {
      * @test
      */
     public function testCreateParameter00() {
-        $param = RequestParameter::createParam([]);
+        $param = RequestParameter::create([]);
         $this->assertNull($param);
     }
     /**
      * @test
      */
     public function testCreateParameter01() {
-        $param = RequestParameter::createParam([
+        $param = RequestParameter::create([
             'name'=>'invalid name'
         ]);
         $this->assertNotNull($param);
@@ -31,7 +31,7 @@ class RequestParameterTest extends TestCase {
      * @test
      */
     public function testCreateParameter02() {
-        $param = RequestParameter::createParam([
+        $param = RequestParameter::create([
             'name'=>'hello',
             'type' => 'integer',
             'min' => 33,
@@ -45,15 +45,15 @@ class RequestParameterTest extends TestCase {
         $this->assertNotNull($param);
         $this->assertEquals('hello', $param->getName());
         $this->assertEquals('integer', $param->getType());
-        $this->assertEquals(33, $param->getMinVal());
-        $this->assertEquals(100, $param->getMaxVal());
+        $this->assertEquals(33, $param->getMinValue());
+        $this->assertEquals(100, $param->getMaxValue());
         $this->assertTrue(is_callable($param->getCustomFilterFunction()));
     }
     /**
      * @test
      */
     public function testCreateParameter03() {
-        $param = RequestParameter::createParam([
+        $param = RequestParameter::create([
             'name'=>'ok',
             'type' => 'string',
             'default' => 'Ibrahim',
@@ -71,7 +71,7 @@ class RequestParameterTest extends TestCase {
      * @test
      */
     public function testCreateParameter04() {
-        $param = RequestParameter::createParam([
+        $param = RequestParameter::create([
             'name'=>'ok',
             'type' => 'int',
             'default' => 44,
@@ -91,8 +91,10 @@ class RequestParameterTest extends TestCase {
         $this->assertEquals('a-parameter',$requestParam->getName());
         $this->assertFalse($requestParam->isEmptyStringAllowed());
         $this->assertFalse($requestParam->isOptional());
-        $this->assertNull($requestParam->getMaxVal());
-        $this->assertNull($requestParam->getMinVal());
+        $this->assertNull($requestParam->getMaxValue());
+        $this->assertNull($requestParam->getMinValue());
+        $this->assertNull($requestParam->getMaxLength());
+        $this->assertNull($requestParam->getMinLength());
         $this->assertNull($requestParam->getDefault());
         $this->assertNull($requestParam->getDescription());
         $this->assertNull($requestParam->getCustomFilterFunction());
@@ -108,8 +110,8 @@ class RequestParameterTest extends TestCase {
         $this->assertEquals('a-parameter',$requestParam->getName());
         $this->assertFalse($requestParam->isEmptyStringAllowed());
         $this->assertFalse($requestParam->isOptional());
-        $this->assertNull($requestParam->getMaxVal());
-        $this->assertNull($requestParam->getMinVal());
+        $this->assertNull($requestParam->getMaxValue());
+        $this->assertNull($requestParam->getMinValue());
         $this->assertNull($requestParam->getDefault());
         $this->assertNull($requestParam->getDescription());
         $this->assertNull($requestParam->getCustomFilterFunction());
@@ -123,8 +125,8 @@ class RequestParameterTest extends TestCase {
         $this->assertEquals('valid-name-1-2-BUT-not-trimmed',$requestParam->getName());
         $this->assertFalse($requestParam->isEmptyStringAllowed());
         $this->assertFalse($requestParam->isOptional());
-        $this->assertNull($requestParam->getMaxVal());
-        $this->assertNull($requestParam->getMinVal());
+        $this->assertNull($requestParam->getMaxValue());
+        $this->assertNull($requestParam->getMinValue());
         $this->assertNull($requestParam->getDefault());
         $this->assertNull($requestParam->getDescription());
         $this->assertNull($requestParam->getCustomFilterFunction());
@@ -138,8 +140,8 @@ class RequestParameterTest extends TestCase {
         $this->assertEquals('valid',$requestParam->getName());
         $this->assertFalse($requestParam->isEmptyStringAllowed());
         $this->assertTrue($requestParam->isOptional());
-        $this->assertEquals(PHP_INT_MAX, $requestParam->getMaxVal());
-        $this->assertEquals(~PHP_INT_MAX,$requestParam->getMinVal());
+        $this->assertEquals(PHP_INT_MAX, $requestParam->getMaxValue());
+        $this->assertEquals(~PHP_INT_MAX,$requestParam->getMinValue());
         $this->assertNull($requestParam->getDefault());
         $this->assertNull($requestParam->getDescription());
         $this->assertNull($requestParam->getCustomFilterFunction());
@@ -155,8 +157,8 @@ class RequestParameterTest extends TestCase {
         $this->assertEquals('valid',$requestParam->getName());
         $this->assertFalse($requestParam->isEmptyStringAllowed());
         $this->assertTrue($requestParam->isOptional());
-        $this->assertEquals(PHP_INT_MAX, $requestParam->getMaxVal());
-        $this->assertEquals(~PHP_INT_MAX,$requestParam->getMinVal());
+        $this->assertEquals(PHP_INT_MAX, $requestParam->getMaxValue());
+        $this->assertEquals(~PHP_INT_MAX,$requestParam->getMinValue());
         $this->assertNull($requestParam->getDefault());
         $this->assertNull($requestParam->getDescription());
         $this->assertNull($requestParam->getCustomFilterFunction());
@@ -170,8 +172,8 @@ class RequestParameterTest extends TestCase {
         $this->assertEquals('hello',$requestParam->getName());
         $this->assertFalse($requestParam->isEmptyStringAllowed());
         $this->assertFalse($requestParam->isOptional());
-        $this->assertNull($requestParam->getMaxVal());
-        $this->assertNull($requestParam->getMinVal());
+        $this->assertNull($requestParam->getMaxValue());
+        $this->assertNull($requestParam->getMinValue());
         $this->assertNull($requestParam->getDefault());
         $this->assertNull($requestParam->getDescription());
         $this->assertNull($requestParam->getCustomFilterFunction());
@@ -188,11 +190,11 @@ class RequestParameterTest extends TestCase {
         $this->assertTrue($requestParam->isOptional());
 
         if (PHP_MAJOR_VERSION >= 7 && PHP_MINOR_VERSION >= 2) {
-            $this->assertEquals(PHP_FLOAT_MAX, $requestParam->getMaxVal());
-            $this->assertEquals(PHP_FLOAT_MIN,$requestParam->getMinVal());
+            $this->assertEquals(PHP_FLOAT_MAX, $requestParam->getMaxValue());
+            $this->assertEquals(PHP_FLOAT_MIN,$requestParam->getMinValue());
         } else {
-            $this->assertEquals(PHP_INT_MAX, $requestParam->getMaxVal());
-            $this->assertEquals(~PHP_INT_MAX,$requestParam->getMinVal());
+            $this->assertEquals(PHP_INT_MAX, $requestParam->getMaxValue());
+            $this->assertEquals(~PHP_INT_MAX,$requestParam->getMinValue());
         }
         $this->assertNull($requestParam->getDefault());
         $this->assertNull($requestParam->getDescription());
@@ -348,32 +350,32 @@ class RequestParameterTest extends TestCase {
      */
     public function testSetMax00() {
         $rp = new RequestParameter('val');
-        $this->assertFalse($rp->setMaxVal(5));
-        $this->assertNull($rp->getMaxVal());
+        $this->assertFalse($rp->setMaxValue(5));
+        $this->assertNull($rp->getMaxValue());
     }
     /**
      * @test
      */
     public function testSetMax01() {
         $rp = new RequestParameter('val','integer');
-        $this->assertTrue($rp->setMaxVal(5));
-        $this->assertEquals(5,$rp->getMaxVal());
+        $this->assertTrue($rp->setMaxValue(5));
+        $this->assertEquals(5,$rp->getMaxValue());
     }
     /**
      * @test
      */
     public function testSetMax02() {
         $rp = new RequestParameter('val','integer');
-        $this->assertTrue($rp->setMaxVal('5'));
-        $this->assertEquals(5,$rp->getMaxVal());
+        $this->assertTrue($rp->setMaxValue('5'));
+        $this->assertEquals(5,$rp->getMaxValue());
     }
     /**
      * @test
      */
     public function testSetMax03() {
         $rp = new RequestParameter('val','integer');
-        $this->assertTrue($rp->setMaxVal(66.90));
-        $this->assertEquals(66,$rp->getMaxVal());
+        $this->assertTrue($rp->setMaxValue(66.90));
+        $this->assertEquals(66,$rp->getMaxValue());
     }
     /**
      * @test
@@ -381,8 +383,8 @@ class RequestParameterTest extends TestCase {
     public function testSetMax04() {
         $rp = new RequestParameter('val','float');
         $this->assertEquals('double',$rp->getType());
-        $this->assertTrue($rp->setMaxVal(5.6));
-        $this->assertEquals(5.6,$rp->getMaxVal());
+        $this->assertTrue($rp->setMaxValue(5.6));
+        $this->assertEquals(5.6,$rp->getMaxValue());
     }
     /**
      * @test
@@ -390,10 +392,10 @@ class RequestParameterTest extends TestCase {
     public function testSetMax05() {
         $rp = new RequestParameter('val','float');
         $this->assertEquals('double',$rp->getType());
-        $this->assertTrue($rp->setMaxVal('5'));
+        $this->assertTrue($rp->setMaxValue('5'));
 
         
-        $this->assertSame(5.0,$rp->getMaxVal());
+        $this->assertSame(5.0,$rp->getMaxValue());
     }
     /**
      * @test
@@ -401,52 +403,52 @@ class RequestParameterTest extends TestCase {
     public function testSetMax06() {
         $rp = new RequestParameter('val','float');
         $this->assertEquals('double',$rp->getType());
-        $this->assertTrue($rp->setMaxVal(66));
-        $this->assertEquals(66,$rp->getMaxVal());
+        $this->assertTrue($rp->setMaxValue(66));
+        $this->assertEquals(66,$rp->getMaxValue());
     }
     /**
      * @test
      */
     public function testSetMax07() {
         $rp = new RequestParameter('val','integer');
-        $rp->setMinVal(0);
-        $this->assertFalse($rp->setMaxVal(-66));
-        $this->assertEquals(PHP_INT_MAX,$rp->getMaxVal());
-        $this->assertFalse($rp->setMaxVal(0));
-        $this->assertTrue($rp->setMaxVal(1));
-        $this->assertEquals(1,$rp->getMaxVal());
+        $rp->setMinValue(0);
+        $this->assertFalse($rp->setMaxValue(-66));
+        $this->assertEquals(PHP_INT_MAX,$rp->getMaxValue());
+        $this->assertFalse($rp->setMaxValue(0));
+        $this->assertTrue($rp->setMaxValue(1));
+        $this->assertEquals(1,$rp->getMaxValue());
     }
     /**
      * @test
      */
     public function testSetMin00() {
         $rp = new RequestParameter('val');
-        $this->assertFalse($rp->setMinVal(5));
-        $this->assertNull($rp->getMinVal());
+        $this->assertFalse($rp->setMinValue(5));
+        $this->assertNull($rp->getMinValue());
     }
     /**
      * @test
      */
     public function testSetMin01() {
         $rp = new RequestParameter('val','integer');
-        $this->assertTrue($rp->setMinVal(5));
-        $this->assertEquals(5,$rp->getMinVal());
+        $this->assertTrue($rp->setMinValue(5));
+        $this->assertEquals(5,$rp->getMinValue());
     }
     /**
      * @test
      */
     public function testSetMin02() {
         $rp = new RequestParameter('val','integer');
-        $this->assertTrue($rp->setMinVal('5'));
-        $this->assertSame(5,$rp->getMinVal());
+        $this->assertTrue($rp->setMinValue('5'));
+        $this->assertSame(5,$rp->getMinValue());
     }
     /**
      * @test
      */
     public function testSetMin03() {
         $rp = new RequestParameter('val','integer');
-        $this->assertTrue($rp->setMinVal(66.90));
-        $this->assertSame(66,$rp->getMinVal());
+        $this->assertTrue($rp->setMinValue(66.90));
+        $this->assertSame(66,$rp->getMinValue());
     }
     /**
      * @test
@@ -454,8 +456,8 @@ class RequestParameterTest extends TestCase {
     public function testSetMin04() {
         $rp = new RequestParameter('val','float');
         $this->assertEquals('double',$rp->getType());
-        $this->assertTrue($rp->setMinVal(5.6));
-        $this->assertEquals(5.6,$rp->getMinVal());
+        $this->assertTrue($rp->setMinValue(5.6));
+        $this->assertEquals(5.6,$rp->getMinValue());
     }
     /**
      * @test
@@ -463,8 +465,8 @@ class RequestParameterTest extends TestCase {
     public function testSetMin05() {
         $rp = new RequestParameter('val','float');
         $this->assertEquals('double',$rp->getType());
-        $this->assertTrue($rp->setMinVal('5'));
-        $this->assertSame(5.0,$rp->getMinVal());
+        $this->assertTrue($rp->setMinValue('5'));
+        $this->assertSame(5.0,$rp->getMinValue());
     }
     /**
      * @test
@@ -472,20 +474,124 @@ class RequestParameterTest extends TestCase {
     public function testSetMin06() {
         $rp = new RequestParameter('val','float');
         $this->assertEquals('double',$rp->getType());
-        $this->assertTrue($rp->setMinVal(66));
-        $this->assertEquals(66,$rp->getMinVal());
+        $this->assertTrue($rp->setMinValue(66));
+        $this->assertEquals(66,$rp->getMinValue());
     }
     /**
      * @test
      */
     public function testSetMin07() {
         $rp = new RequestParameter('val','integer');
-        $rp->setMaxVal(-100);
-        $this->assertFalse($rp->setMinVal(66));
-        $this->assertEquals(~PHP_INT_MAX,$rp->getMinVal());
-        $this->assertFalse($rp->setMinVal(-100));
-        $this->assertTrue($rp->setMinVal(-101));
-        $this->assertEquals(-101,$rp->getMinVal());
+        $rp->setMaxValue(-100);
+        $this->assertFalse($rp->setMinValue(66));
+        $this->assertEquals(~PHP_INT_MAX,$rp->getMinValue());
+        $this->assertFalse($rp->setMinValue(-100));
+        $this->assertTrue($rp->setMinValue(-101));
+        $this->assertEquals(-101,$rp->getMinValue());
+    }
+    /**
+     * @test
+     */
+    public function testSetMaxLength00() {
+        $rp = new RequestParameter('val');
+        $this->assertFalse($rp->setMaxLength(0));
+        $this->assertNull($rp->getMaxLength());
+    }
+    /**
+     * @test
+     */
+    public function testSetMaxLength01() {
+        $rp = new RequestParameter('val');
+        $this->assertTrue($rp->setMaxLength(5));
+        $this->assertEquals(5,$rp->getMaxLength());
+    }
+    /**
+     * @test
+     */
+    public function testSetMaxLength02() {
+        $rp = new RequestParameter('val','url');
+        $this->assertTrue($rp->setMaxLength('5'));
+        $this->assertEquals(5,$rp->getMaxLength());
+    }
+    /**
+     * @test
+     */
+    public function testSetMaxLength03() {
+        $rp = new RequestParameter('val','email');
+        $this->assertTrue($rp->setMaxLength(66));
+        $this->assertEquals(66,$rp->getMaxLength());
+    }
+    /**
+     * @test
+     */
+    public function testSetMaxlength04() {
+        $rp = new RequestParameter('val','float');
+        $this->assertEquals('double',$rp->getType());
+        $this->assertFalse($rp->setMaxLength(5));
+        $this->assertNull($rp->getMaxLength());
+    }
+    /**
+     * @test
+     */
+    public function testSetMaxLength05() {
+        $rp = new RequestParameter('val','email');
+        $rp->setMinLength(10);
+        $this->assertFalse($rp->setMaxLength(9));
+        $this->assertNull($rp->getMaxLength());
+        $this->assertTrue($rp->setMaxLength(10));
+        $this->assertEquals(10, $rp->getMaxLength());
+    }
+    /**
+     * @test
+     */
+    public function testSetMinLength00() {
+        $rp = new RequestParameter('val');
+        $this->assertFalse($rp->setMinLength(0));
+        $this->assertNull($rp->getMinLength());
+    }
+    /**
+     * @test
+     */
+    public function testSetMinLength01() {
+        $rp = new RequestParameter('val');
+        $this->assertTrue($rp->setMinLength(5));
+        $this->assertEquals(5,$rp->getMinLength());
+    }
+    /**
+     * @test
+     */
+    public function testSetMinLength02() {
+        $rp = new RequestParameter('val','url');
+        $this->assertTrue($rp->setMinLength('5'));
+        $this->assertEquals(5,$rp->getMinLength());
+    }
+    /**
+     * @test
+     */
+    public function testSetMinLength03() {
+        $rp = new RequestParameter('val','email');
+        $this->assertTrue($rp->setMinLength(66));
+        $this->assertEquals(66,$rp->getMinLength());
+    }
+    /**
+     * @test
+     */
+    public function testSetMinlength04() {
+        $rp = new RequestParameter('val','float');
+        $this->assertEquals('double',$rp->getType());
+        $this->assertFalse($rp->setMinLength(5));
+        $this->assertNull($rp->getMinLength());
+    }
+    /**
+     * @test
+     */
+    public function testSetMinLength05() {
+        $rp = new RequestParameter('val','email');
+        $rp->setMaxLength(10);
+        $this->assertFalse($rp->setMinLength(11));
+        $this->assertNull($rp->getMinLength());
+        $this->assertTrue($rp->setMinLength(10));
+        $this->assertEquals(10, $rp->getMinLength());
     }
     /**
      * @test
@@ -495,7 +601,7 @@ class RequestParameterTest extends TestCase {
     public function testToJson00($reqParam) {
         $reqParam->setDescription('Test Parameter.');
         $this->assertEquals('{"name":"a-parameter","type":"string","description":"Test Parameter.",'
-                .'"is-optional":false,"default-value":null,"min-val":null,"max-val":null}',$reqParam->toJSON().'');
+                .'"is-optional":false,"default-value":null,"min-val":null,"max-val":null,"min-length":null,"max-length":null}',$reqParam->toJSON().'');
     }
     /**
      * @test
@@ -505,7 +611,7 @@ class RequestParameterTest extends TestCase {
     public function testToJson01($reqParam) {
         $reqParam->setDescription('Test Parameter.');
         $this->assertEquals('{"name":"valid","type":"integer","description":"Test Parameter.",'
-                .'"is-optional":true,"default-value":null,"min-val":'.~PHP_INT_MAX.',"max-val":'.PHP_INT_MAX.'}',$reqParam->toJSON().'');
+                .'"is-optional":true,"default-value":null,"min-val":'.~PHP_INT_MAX.',"max-val":'.PHP_INT_MAX.',"min-length":null,"max-length":null}',$reqParam->toJSON().'');
     }
     /**
      * 
@@ -520,7 +626,9 @@ class RequestParameterTest extends TestCase {
                 ."    Is Optional => 'false',\n"
                 ."    Default => 'null',\n"
                 ."    Minimum Value => 'null',\n"
-                ."    Maximum Value => 'null'\n"
+                ."    Maximum Value => 'null',\n"
+                ."    Minimum Length => 'null',\n"
+                ."    Maximum Length => 'null'\n"
                 ."]\n",$rp.'');
     }
     /**
@@ -529,8 +637,8 @@ class RequestParameterTest extends TestCase {
      */
     public function testToString01() {
         $rp = new RequestParameter('user-id','integer');
-        $rp->setMinVal(0);
-        $rp->setMaxVal(1000);
+        $rp->setMinValue(0);
+        $rp->setMaxValue(1000);
         $rp->setDescription(' The ID of the user. ');
         $this->assertEquals("RequestParameter[\n"
                 ."    Name => 'user-id',\n"
@@ -539,7 +647,9 @@ class RequestParameterTest extends TestCase {
                 ."    Is Optional => 'false',\n"
                 ."    Default => 'null',\n"
                 ."    Minimum Value => '0',\n"
-                ."    Maximum Value => '1000'\n"
+                ."    Maximum Value => '1000',\n"
+                ."    Minimum Length => 'null',\n"
+                ."    Maximum Length => 'null'\n"
                 ."]\n",$rp.'');
         $rp->setDefault(33);
         $rp->setIsOptional(true);
@@ -550,7 +660,9 @@ class RequestParameterTest extends TestCase {
                 ."    Is Optional => 'true',\n"
                 ."    Default => '33',\n"
                 ."    Minimum Value => '0',\n"
-                ."    Maximum Value => '1000'\n"
+                ."    Maximum Value => '1000',\n"
+                ."    Minimum Length => 'null',\n"
+                ."    Maximum Length => 'null'\n"
                 ."]\n",$rp.'');
     }
 }

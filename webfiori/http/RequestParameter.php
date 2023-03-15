@@ -82,6 +82,12 @@ class RequestParameter implements JsonI {
      */
     private $maxVal;
     /**
+     * The minimum length. Used if the parameter type is string.
+     * 
+     * @var double|null
+     */
+    private $maxLength;
+    /**
      * The minimum value. Used if the parameter type is numeric.
      * 
      * @var double|null
@@ -89,6 +95,13 @@ class RequestParameter implements JsonI {
      * @since 1.1
      */
     private $minVal;
+    /**
+     * The minimum length. Used if the parameter type is string.
+     * 
+     * @var double|null
+     * 
+     */
+    private $minLength;
     /**
      * The name of the parameter.
      * 
@@ -160,7 +173,9 @@ class RequestParameter implements JsonI {
      * &nbsp;&nbsp;&nbsp;&nbsp;Is Optional => 'true'<br/>
      * &nbsp;&nbsp;&nbsp;&nbsp;Default => 'a_default'<br/>
      * &nbsp;&nbsp;&nbsp;&nbsp;Minimum Value => 'a_number'<br/>
-     * &nbsp;&nbsp;&nbsp;&nbsp;Maximum Value => 'a_number'
+     * &nbsp;&nbsp;&nbsp;&nbsp;Maximum Value => 'a_number'<br/>
+     * &nbsp;&nbsp;&nbsp;&nbsp;Minimum Length => 'a_number'<br/>
+     * &nbsp;&nbsp;&nbsp;&nbsp;Maximum Length => 'a_number'
      * <br/>]
      * </p>
      * If any of the values is null, the value will be shown as 'null'.
@@ -177,11 +192,14 @@ class RequestParameter implements JsonI {
         $retVal .= "    Is Optional => '$isOptionalStr',\n";
         $defaultStr = $this->getDefault() === null ? 'null' : $this->getDefault();
         $retVal .= "    Default => '$defaultStr',\n";
-        $min = $this->getMinVal() === null ? 'null' : $this->getMinVal();
+        $min = $this->getMinValue() === null ? 'null' : $this->getMinValue();
         $retVal .= "    Minimum Value => '$min',\n";
-        $max = $this->getMaxVal() === null ? 'null' : $this->getMaxVal();
-
-        return $retVal."    Maximum Value => '$max'\n]\n";
+        $max = $this->getMaxValue() === null ? 'null' : $this->getMaxValue();
+        $retVal.="    Maximum Value => '$max',\n";
+        $minLength = $this->getMinLength() === null ? 'null' : $this->getMinLength();
+        $retVal .= "    Minimum Length => '$minLength',\n";
+        $maxLength = $this->getMaxLength() === null ? 'null' : $this->getMaxLength();
+        return $retVal."    Maximum Length => '$maxLength'\n]\n";
     }
     /**
      * Creates an object of the class given an associative array of options.
@@ -199,6 +217,10 @@ class RequestParameter implements JsonI {
      * numeric types.</li>
      * <li><b>max</b>: Maximum value of the parameter. Applicable only for 
      * numeric types.</li>
+     * <li><b>min-length</b>: Minimum length of the parameter. Applicable only for 
+     * string types.</li>
+     * <li><b>max-length</b>: Maximum length of the parameter. Applicable only for 
+     * string types.</li>
      * <li><b>allow-empty</b>: A boolean. If the type of the parameter is string or string-like 
      * type and this is set to true, then empty strings will be allowed. If 
      * not provided, 'false' is used.</li>
@@ -215,11 +237,11 @@ class RequestParameter implements JsonI {
      * 
      * @since 1.2.3
      */
-    public static function createParam(array $options) {
+    public static function create(array $options) {
         if (isset($options['name'])) {
             $paramType = $options['type'] ?? 'string';
             $param = new RequestParameter($options['name'], $paramType);
-            self::_checkParamAttrs($param, $options);
+            self::checkParamAttrs($param, $options);
 
             return $param;
         }
@@ -263,6 +285,19 @@ class RequestParameter implements JsonI {
         return $this->desc;
     }
     /**
+     * Returns the maximum length the parameter can accept.
+     * 
+     * This method apply if the type of the parameter is string.
+     * 
+     * @return double|null The maximum length the parameter can accept.
+     * If the request parameter type is not string, the method will return 
+     * null.
+     * 
+     */
+    public function getMaxLength() {
+        return $this->maxLength;
+    }
+    /**
      * Returns the maximum numeric value the parameter can accept.
      * 
      * This method apply only to integer type.
@@ -273,13 +308,27 @@ class RequestParameter implements JsonI {
      * 
      * @since 1.1
      */
-    public function getMaxVal() {
+    public function getMaxValue() {
         return $this->maxVal;
+    }
+    /**
+     * Returns the minimum length the parameter can accept.
+     * 
+     * This method apply only to string type.
+     * 
+     * @return double|null The minimum length the parameter can accept.
+     * If the request parameter type is not string, the method will return 
+     * null.
+     * 
+     * @since 1.1
+     */
+    public function getMinLength() {
+        return $this->minLength;
     }
     /**
      * Returns the minimum numeric value the parameter can accept.
      * 
-     * This method apply only to and integer type.
+     * This method apply only to double and integer types.
      * 
      * @return double|null The minimum numeric value the parameter can accept.
      * If the request parameter type is not numeric, the method will return 
@@ -287,7 +336,7 @@ class RequestParameter implements JsonI {
      * 
      * @since 1.1
      */
-    public function getMinVal() {
+    public function getMinValue() {
         return $this->minVal;
     }
     /**
@@ -468,7 +517,7 @@ class RequestParameter implements JsonI {
      * only if:
      * <ul>
      * <li>The request parameter type is numeric ('integer' or 'float').</li>
-     * <li>The given value is greater than RequestParameter::getMinVal()</li>
+     * <li>The given value is greater than RequestParameter::getMinValue()</li>
      * </ul>
      *
      * @param float $val The maximum value to set.
@@ -476,16 +525,77 @@ class RequestParameter implements JsonI {
      * @return bool The method will return true once the maximum value
      * is updated. false if not.
      *
-     * @since 1.1
      */
-    public function setMaxVal(float $val) : bool {
+    public function setMaxValue(float $val) : bool {
         $type = $this->getType();
 
-        if ($type == ParamTypes::INT || $type == ParamTypes::DOUBLE) {
-            $min = $this->getMinVal();
+        if (in_array($type, ParamTypes::getNumericTypes())) {
+            $min = $this->getMinValue();
 
             if ($min !== null && $val > $min) {
                 $this->maxVal = $type === ParamTypes::INT ? intval($val) : $val;
+
+                return true;
+            }
+        }
+
+        return false;
+    }
+    /**
+     * Sets the maximum length that the parameter can accept.
+     * 
+     * The value will be updated 
+     * only if:
+     * <ul>
+     * <li>Provided value must be greater than 0.</li>
+     * <li>The request parameter type is string ('url' or 'string' or 'email').</li>
+     * <li>The given value is greater than RequestParameter::getMinLength()</li>
+     * </ul>
+     * 
+     * @param int $val The maximum length of the parameter.
+     * 
+     * @return bool The method will return true once the maximum length 
+     * is updated. false if not.
+     */
+    public function setMaxLength(int $val) : bool {
+        $type = $this->getType();
+
+        if (in_array($type, ParamTypes::getStringTypes())) {
+            $min = $this->getMinLength() === null ? 0 : $this->getMinLength();
+
+            if ($val >= $min && $val > 0) {
+                $this->maxLength = $val;
+
+                return true;
+            }
+        }
+
+        return false;
+    }
+    /**
+     * Sets the minimum length that the parameter can accept.
+     * 
+     * The value will be updated 
+     * only if:
+     * <ul>
+     * <li>Provided value must be greater than 0.</li>
+     * <li>The request parameter type is string ('url' or 'string' or 'email').</li>
+     * <li>The given value is less than RequestParameter::getMaxLength()</li>
+     * </ul>
+     * 
+     * @param int $val The minimum length of the parameter.
+     * 
+     * @return bool The method will return true once the minimum length 
+     * is updated. false if not.
+     */
+    public function setMinLength(int $val) : bool {
+        $type = $this->getType();
+
+        if (in_array($type, ParamTypes::getStringTypes())) {
+            $max = $this->getMaxLength() === null ? PHP_INT_MAX : $this->getMaxLength();
+
+            if ($val <= $max && $val > 0) {
+                $this->minLength = $val;
 
                 return true;
             }
@@ -500,7 +610,7 @@ class RequestParameter implements JsonI {
      * only if:
      * <ul>
      * <li>The request parameter type is numeric ('integer' or 'float').</li>
-     * <li>The given value is less than RequestParameter::getMaxVal()</li>
+     * <li>The given value is less than RequestParameter::getMaxValue()</li>
      * </ul>
      * 
      * @param float $val The minimum value to set.
@@ -508,13 +618,12 @@ class RequestParameter implements JsonI {
      * @return bool The method will return true once the minimum value 
      * is updated. false if not.
      * 
-     * @since 1.1
      */
-    public function setMinVal(float $val) : bool {
+    public function setMinValue(float $val) : bool {
         $type = $this->getType();
 
-        if ($type == ParamTypes::INT || $type == ParamTypes::DOUBLE) {
-            $max = $this->getMaxVal();
+        if (in_array($type, ParamTypes::getNumericTypes())) {
+            $max = $this->getMaxValue();
 
             if ($max !== null && $val < $max) {
                 $this->minVal = $type == ParamTypes::INT ? intval($val) : $val;
@@ -542,7 +651,6 @@ class RequestParameter implements JsonI {
      * true once the name is set. false is returned if the given 
      * name is invalid.
      * 
-     * @since 1.0
      */
     public function setName(string $name) : bool {
         $nameTrimmed = trim($name);
@@ -564,7 +672,6 @@ class RequestParameter implements JsonI {
      * @return bool true is returned if the type is updated. false 
      * if not.
      * 
-     * @since 1.1
      */
     public function setType(string $type) : bool {
         $sType = strtolower(trim($type));
@@ -618,14 +725,16 @@ class RequestParameter implements JsonI {
      */
     public function toJSON() : Json {
         $json = new Json();
-        $json->add('name', $this->name);
+        $json->add('name', $this->getName());
         $json->add('type', $this->getType());
         $json->add('description', $this->getDescription());
         $json->add('is-optional', $this->isOptional());
         $json->add('default-value', $this->getDefault());
-        $json->add('min-val', $this->getMinVal());
-        $json->add('max-val', $this->getMaxVal());
-
+        $json->add('min-val', $this->getMinValue());
+        $json->add('max-val', $this->getMaxValue());
+        $json->add('min-length', $this->getMinLength());
+        $json->add('max-length', $this->getMaxLength());
+        
         return $json;
     }
     /**
@@ -633,7 +742,7 @@ class RequestParameter implements JsonI {
      * @param RequestParameter $param
      * @param array $options
      */
-    private static function _checkParamAttrs(RequestParameter $param, array $options) {
+    private static function checkParamAttrs(RequestParameter $param, array $options) {
         $isOptional = $options['optional'] ?? false;
         $param->setIsOptional($isOptional);
 
@@ -642,11 +751,19 @@ class RequestParameter implements JsonI {
         }
 
         if (isset($options['min'])) {
-            $param->setMinVal($options['min']);
+            $param->setMinValue($options['min']);
         }
 
         if (isset($options['max'])) {
-            $param->setMaxVal($options['max']);
+            $param->setMaxValue($options['max']);
+        }
+        
+        if (isset($options['min-length'])) {
+            $param->setMinLength($options['min-length']);
+        }
+
+        if (isset($options['max-length'])) {
+            $param->setMaxLength($options['max-length']);
         }
 
         if (isset($options['allow-empty'])) {
