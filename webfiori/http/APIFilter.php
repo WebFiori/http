@@ -356,10 +356,11 @@ class APIFilter {
 
             foreach ($def['filters'] as $val) {
                 $returnVal = filter_var($returnVal, $val, $def[$optIdx]);
-                
+
                 if ($paramType == ParamTypes::DOUBLE) {
                     $returnVal = self::minMaxValueCheck($returnVal, $def['options']['options']);
                 }
+
                 if (in_array($paramType, ParamTypes::getStringTypes())) {
                     $returnVal = self::minMaxLengthCheck($returnVal, $def['options']['options']);
                 }
@@ -744,10 +745,11 @@ class APIFilter {
 
             foreach ($def['filters'] as $val) {
                 $filteredValue = filter_var($filteredValue, $val, $def['options']);
-                
+
                 if ($paramType == ParamTypes::DOUBLE) {
                     $filteredValue = self::minMaxValueCheck($filteredValue, $def['options']['options']);
                 }
+
                 if (in_array($paramType, ParamTypes::getStringTypes())) {
                     $filteredValue = self::minMaxLengthCheck($filteredValue, $def['options']['options']);
                 }
@@ -765,34 +767,6 @@ class APIFilter {
             }
         }
 
-        return $filteredValue;
-    }
-    private static function minMaxLengthCheck($filteredValue, array $optionsArr) {
-        $maxLen = isset($optionsArr['max_length']) ? $optionsArr['max_length'] : PHP_INT_MAX;
-        $minLen = isset($optionsArr['max_length']) ? $optionsArr['max_length'] : 1;
-        $len = strlen($filteredValue);
-        $isEmptyAllowed = isset($optionsArr['allow-empty']) ? $optionsArr['allow-empty'] : false;
-        
-        if ($len > $maxLen || $len < $minLen) {
-            if (!$isEmptyAllowed) {
-                $filteredValue = false;
-            }
-        }
-        if ($filteredValue === false && isset($optionsArr['default'])) {
-            $filteredValue = $optionsArr['default'];
-        }
-        return $filteredValue;
-    }
-    private static function minMaxValueCheck($filteredValue, array $optionsArr) {
-        if (PHP_MAJOR_VERSION == 7 && PHP_MINOR_VERSION <= 3) {
-            //For floats, php 7 does not support 'range' filter.
-            if ($filteredValue > $optionsArr['max_range'] || $filteredValue < $optionsArr['min_range']) {
-                $filteredValue = false;
-            }
-        }
-        if ($filteredValue === false && isset($optionsArr['default'])) {
-            $filteredValue = $optionsArr['default'];
-        }
         return $filteredValue;
     }
 
@@ -855,6 +829,38 @@ class APIFilter {
         }
 
         return $cleanJson;
+    }
+    private static function minMaxLengthCheck($filteredValue, array $optionsArr) {
+        $maxLen = isset($optionsArr['max_length']) ? $optionsArr['max_length'] : PHP_INT_MAX;
+        $minLen = isset($optionsArr['max_length']) ? $optionsArr['max_length'] : 1;
+        $len = strlen($filteredValue);
+        $isEmptyAllowed = isset($optionsArr['allow-empty']) ? $optionsArr['allow-empty'] : false;
+
+        if ($len > $maxLen || $len < $minLen) {
+            if (!$isEmptyAllowed) {
+                $filteredValue = false;
+            }
+        }
+
+        if ($filteredValue === false && isset($optionsArr['default'])) {
+            $filteredValue = $optionsArr['default'];
+        }
+
+        return $filteredValue;
+    }
+    private static function minMaxValueCheck($filteredValue, array $optionsArr) {
+        if (PHP_MAJOR_VERSION == 7 && PHP_MINOR_VERSION <= 3) {
+            //For floats, php 7 does not support 'range' filter.
+            if ($filteredValue > $optionsArr['max_range'] || $filteredValue < $optionsArr['min_range']) {
+                $filteredValue = false;
+            }
+        }
+
+        if ($filteredValue === false && isset($optionsArr['default'])) {
+            $filteredValue = $optionsArr['default'];
+        }
+
+        return $filteredValue;
     }
 
     /**
