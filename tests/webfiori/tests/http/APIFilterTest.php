@@ -86,7 +86,7 @@ class APIFilterTest extends TestCase {
         $param00 = new RequestParameter('username');
         $this->apiFilter->addRequestParameter($param00);
         $param01 = new RequestParameter('password', 'integer');
-        $param01->setMinVal(1000000);
+        $param01->setMinValue(1000000);
         $this->apiFilter->addRequestParameter($param01);
         $_GET['username'] = 'Admin';
         $_GET['password'] = '100';
@@ -111,7 +111,7 @@ class APIFilterTest extends TestCase {
         $param00 = new RequestParameter('username');
         $this->apiFilter->addRequestParameter($param00);
         $param01 = new RequestParameter('password', 'integer');
-        $param01->setMinVal(1000000);
+        $param01->setMinValue(1000000);
         $this->apiFilter->addRequestParameter($param01);
         $_GET['username'] = 'Admin';
         $_GET['password'] = '1002000';
@@ -136,7 +136,7 @@ class APIFilterTest extends TestCase {
         $param00 = new RequestParameter('username');
         $this->apiFilter->addRequestParameter($param00);
         $param01 = new RequestParameter('password', 'integer');
-        $param01->setMinVal(1000000);
+        $param01->setMinValue(1000000);
         $this->apiFilter->addRequestParameter($param01);
         $_GET['username'] = 'Admin';
         $_GET['password'] = '1002000with some text<script></script>';
@@ -163,7 +163,7 @@ class APIFilterTest extends TestCase {
         $this->apiFilter->addRequestParameter($param00);
         $param01 = new RequestParameter('second-number', 'float');
         $this->assertEquals('double', $param01->getType());
-        $param01->setMinVal(1000000);
+        $param01->setMinValue(1000000);
         $this->apiFilter->addRequestParameter($param01);
         $_GET['first-number'] = 'Admin';
         $_GET['second-number'] = 'yc with some text<script></script>';
@@ -193,7 +193,7 @@ class APIFilterTest extends TestCase {
         $this->apiFilter->addRequestParameter($param00);
         $param01 = new RequestParameter('second-number', 'float');
         $param01->setDefault(1000);
-        $this->assertTrue($param01->setMinVal(1000000));
+        $this->assertTrue($param01->setMinValue(1000000));
         $this->apiFilter->addRequestParameter($param01);
         $_GET['first-number'] = 'Admin';
         $_GET['second-number'] = "0.15";
@@ -223,7 +223,7 @@ class APIFilterTest extends TestCase {
         $param01 = new RequestParameter('second-number', 'float');
         $param01->setDefault(1000);
         $this->assertEquals(1000, $param01->getDefault());
-        $param01->setMinVal(1000000);
+        $param01->setMinValue(1000000);
         
         $this->apiFilter->addRequestParameter($param01);
         $_GET = [];
@@ -255,7 +255,7 @@ class APIFilterTest extends TestCase {
         $this->apiFilter->addRequestParameter($param00);
         $param01 = new RequestParameter('second-number', 'float');
         $param01->setDefault(1000);
-        $param01->setMinVal(1000000);
+        $param01->setMinValue(1000000);
         $this->apiFilter->addRequestParameter($param01);
         $_GET['second-number'] = '100076800';
         $this->apiFilter->filterGET();
@@ -519,7 +519,7 @@ class APIFilterTest extends TestCase {
         $this->apiFilter->addRequestParameter($param00);
         $param01 = new RequestParameter('second-number', 'float');
   
-        $param01->setMinVal(1000000);
+        $param01->setMinValue(1000000);
         $this->apiFilter->addRequestParameter($param01);
         $_GET['first-number'] = '44.88';
         $_GET['second-number'] = 'x100076800 inv with str';
@@ -545,7 +545,7 @@ class APIFilterTest extends TestCase {
         $this->apiFilter->addRequestParameter($param00);
         $param01 = new RequestParameter('second-number', 'float');
   
-        $param01->setMinVal(1000000);
+        $param01->setMinValue(1000000);
         $this->apiFilter->addRequestParameter($param01);
         $_GET['first-number'] = '4488';
         $_GET['second-number'] = '100076800.776';
@@ -568,12 +568,12 @@ class APIFilterTest extends TestCase {
         }
         $this->apiFilter = new APIFilter();
         $param00 = new RequestParameter('first-number','int');
-        $param00->setMaxVal(100);
-        $param00->setMinVal(50);
+        $param00->setMaxValue(100);
+        $param00->setMinValue(50);
         $this->apiFilter->addRequestParameter($param00);
         $param01 = new RequestParameter('second-number', 'float');
-        $param01->setMaxVal(200); 
-        $this->assertFalse($param01->setMinVal(1000000));
+        $param01->setMaxValue(200); 
+        $this->assertFalse($param01->setMinValue(1000000));
         $this->apiFilter->addRequestParameter($param01);
         $_GET['first-number'] = '4488';
         $_GET['second-number'] = '100076800.777';
@@ -586,6 +586,34 @@ class APIFilterTest extends TestCase {
         $nonFiltered = $this->apiFilter->getNonFiltered();
         $this->assertEquals('4488', $nonFiltered['first-number']);
         $this->assertEquals('100076800.777',$nonFiltered['second-number']);
+    }
+    /**
+     * @test
+     */
+     public function testFilterGet30() {
+        foreach ($_GET as $key => $value) {
+            unset($_GET[$key]);
+        }
+        $this->apiFilter = new APIFilter();
+        $param00 = new RequestParameter('first-name');
+        $param00->setMaxLength(15);
+        $param00->setMinLength(5);
+        $this->apiFilter->addRequestParameter($param00);
+        $param01 = new RequestParameter('family-name');
+        $this->assertTrue($param01->setMaxLength(20)); 
+        $this->assertFalse($param01->setMinLength(-1));
+        $this->apiFilter->addRequestParameter($param01);
+        $_GET['first-name'] = 'Ibr';
+        $_GET['family-name'] = 'Bin Alshikh Ali BinShikhx';
+        $this->apiFilter->filterGET();
+        $filtered = $this->apiFilter->getInputs();
+        $this->assertEquals(2,count($filtered));
+        $this->assertEquals(APIFilter::INVALID, $filtered['first-name']);
+        $this->assertEquals(APIFilter::INVALID, $filtered['family-name']);
+
+        $nonFiltered = $this->apiFilter->getNonFiltered();
+        $this->assertEquals('Ibr', $nonFiltered['first-name']);
+        $this->assertEquals('Bin Alshikh Ali BinShikhx',$nonFiltered['family-name']);
     }
     /**
      * @test

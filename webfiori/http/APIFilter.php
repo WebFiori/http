@@ -88,15 +88,18 @@ class APIFilter {
         } else if ($paramType == ParamTypes::STRING) {
             $attribute[$optIdx][$optIdx]['allow-empty'] = $reqParam->isEmptyStringAllowed();
             $attribute[$filterIdx][] = FILTER_DEFAULT;
+            $this->checkStringLength($reqParam, $attribute);
         } else if ($paramType == ParamTypes::DOUBLE) {
             $attribute[$filterIdx][] = FILTER_VALIDATE_FLOAT;
             $this->checkNumericRange($reqParam, $attribute);
         } else if ($paramType == ParamTypes::EMAIL) {
             $attribute[$filterIdx][] = FILTER_SANITIZE_EMAIL;
             $attribute[$filterIdx][] = FILTER_VALIDATE_EMAIL;
+            $this->checkStringLength($reqParam, $attribute);
         } else if ($paramType == ParamTypes::URL) {
             $attribute[$filterIdx][] = FILTER_SANITIZE_URL;
             $attribute[$filterIdx][] = FILTER_VALIDATE_URL;
+            $this->checkStringLength($reqParam, $attribute);
         } else {
             $attribute[$filterIdx][] = FILTER_DEFAULT;
         }
@@ -357,6 +360,9 @@ class APIFilter {
                 if ($paramType == ParamTypes::DOUBLE) {
                     $returnVal = self::minMaxValueCheck($returnVal, $def['options']['options']);
                 }
+                if (in_array($paramType, ParamTypes::getStringTypes())) {
+                    $returnVal = self::minMaxLengthCheck($returnVal, $def['options']['options']);
+                }
             }
 
             if ($returnVal === false || 
@@ -484,12 +490,21 @@ class APIFilter {
         return $retVal;
     }
     private function checkNumericRange(RequestParameter $reqParam, array &$attribute) {
-        if ($reqParam->getMaxVal() !== null) {
-            $attribute['options']['options']['max_range'] = $reqParam->getMaxVal();
+        if ($reqParam->getMaxValue() !== null) {
+            $attribute['options']['options']['max_range'] = $reqParam->getMaxValue();
         }
 
-        if ($reqParam->getMinVal() !== null) {
-            $attribute['options']['options']['min_range'] = $reqParam->getMinVal();
+        if ($reqParam->getMinValue() !== null) {
+            $attribute['options']['options']['min_range'] = $reqParam->getMinValue();
+        }
+    }
+    private function checkStringLength(RequestParameter $reqParam, array &$attribute) {
+        if ($reqParam->getMaxLength() !== null) {
+            $attribute['options']['options']['max_length'] = $reqParam->getMaxLength();
+        }
+
+        if ($reqParam->getMinLength() !== null) {
+            $attribute['options']['options']['min_length'] = $reqParam->getMinLength();
         }
     }
     private function cleanJsonArray(array $arr, $applyBasicFiltering = false) : array {
@@ -733,6 +748,9 @@ class APIFilter {
                 if ($paramType == ParamTypes::DOUBLE) {
                     $filteredValue = self::minMaxValueCheck($filteredValue, $def['options']['options']);
                 }
+                if (in_array($paramType, ParamTypes::getStringTypes())) {
+                    $filteredValue = self::minMaxLengthCheck($filteredValue, $def['options']['options']);
+                }
             }
 
             if ($filteredValue === false) {
@@ -747,6 +765,22 @@ class APIFilter {
             }
         }
 
+        return $filteredValue;
+    }
+    private static function minMaxLengthCheck($filteredValue, array $optionsArr) {
+        $maxLen = isset($optionsArr['max_length']) ? $optionsArr['max_length'] : PHP_INT_MAX;
+        $minLen = isset($optionsArr['max_length']) ? $optionsArr['max_length'] : 1;
+        $len = strlen($filteredValue);
+        $isEmptyAllowed = isset($optionsArr['allow-empty']) ? $optionsArr['allow-empty'] : false;
+        
+        if ($len > $maxLen || $len < $minLen) {
+            if (!$isEmptyAllowed) {
+                $filteredValue = false;
+            }
+        }
+        if ($filteredValue === false && isset($optionsArr['default'])) {
+            $filteredValue = $optionsArr['default'];
+        }
         return $filteredValue;
     }
     private static function minMaxValueCheck($filteredValue, array $optionsArr) {

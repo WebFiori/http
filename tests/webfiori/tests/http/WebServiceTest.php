@@ -297,12 +297,14 @@ class WebServiceTest extends TestCase {
                 .'"is-optional":false,'
                 .'"default-value":null,'
                 .'"min-val":null,'
-                .'"max-val":null}'
+                .'"max-val":null,'
+                .'"min-length":null,'
+                .'"max-length":null}'
                 .'],'
                 .'"responses":[]}',$action->toJSON().'');
         $action->addParameter(new RequestParameter('password', 'integer'));
         $action->getParameterByName('password')->setDescription('The password of the user.');
-        $action->getParameterByName('password')->setMinVal(1000000);
+        $action->getParameterByName('password')->setMinValue(1000000);
         $this->assertEquals(''
                 .'{"name":"login",'
                 .'"since":"1.0.1",'

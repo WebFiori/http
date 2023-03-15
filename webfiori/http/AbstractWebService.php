@@ -232,9 +232,9 @@ abstract class AbstractWebService implements JsonI {
             $paramsStr .= "            Is Optional => '$isOptional',\n";
             $defaultStr = $param->getDefault() === null ? 'null' : $param->getDefault();
             $paramsStr .= "            Default => '$defaultStr',\n";
-            $min = $param->getMinVal() === null ? 'null' : $param->getMinVal();
+            $min = $param->getMinValue() === null ? 'null' : $param->getMinValue();
             $paramsStr .= "            Minimum Value => '$min',\n";
-            $max = $param->getMaxVal() === null ? 'null' : $param->getMaxVal();
+            $max = $param->getMaxValue() === null ? 'null' : $param->getMaxValue();
 
             if ($x + 1 == $count) {
                 $comma = '';
@@ -293,7 +293,7 @@ abstract class AbstractWebService implements JsonI {
      */
     public function addParameter($param) : bool {
         if (gettype($param) == 'array') {
-            $param = RequestParameter::createParam($param);
+            $param = RequestParameter::create($param);
         }
 
         if ($param instanceof RequestParameter && !$this->hasParameter($param->getName())) {
@@ -320,7 +320,7 @@ abstract class AbstractWebService implements JsonI {
                 $this->addParameter($param);
             } else if (gettype($param) == 'array') {
                 $param['name'] = $paramIndex;
-                $this->addParameter(RequestParameter::createParam($param));
+                $this->addParameter(RequestParameter::create($param));
             }
         }
     }
