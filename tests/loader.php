@@ -47,7 +47,7 @@ require_once $rootDir.'vendor'.$DS.'webfiori'.$DS.'jsonx'.$DS.'webfiori'.$DS.'js
 require_once $rootDir.'vendor'.$DS.'webfiori'.$DS.'jsonx'.$DS.'webfiori'.$DS.'json'.$DS.'CaseConverter.php';
 require_once $rootDir.'vendor'.$DS.'webfiori'.$DS.'jsonx'.$DS.'webfiori'.$DS.'json'.$DS.'Property.php';
 require_once $rootDir.'vendor'.$DS.'webfiori'.$DS.'jsonx'.$DS.'webfiori'.$DS.'json'.$DS.'JsonConverter.php';
-
+require_once $rootDir.'vendor'.$DS.'webfiori'.$DS.'jsonx'.$DS.'webfiori'.$DS.'json'.$DS.'JsonException.php';
 
 require_once $rootDir.'webfiori'.$DS.'http'.$DS.'UriParameter.php';
 require_once $rootDir.'webfiori'.$DS.'http'.$DS.'HttpHeader.php';
