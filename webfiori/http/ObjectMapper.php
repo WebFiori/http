@@ -138,7 +138,7 @@ class ObjectMapper {
         }
     }
     private function paramNameToMethodName($paramName) {
-        $expl = explode('_', $paramName);
+        $expl = explode('_', str_replace('-', '_', $paramName));
         $methName = '';
 
         for ($x = 0 ; $x < count($expl) ; $x++) {
