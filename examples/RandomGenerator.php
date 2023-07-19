@@ -1,8 +1,9 @@
 <?php
+
 require 'loader.php';
 
-use webfiori\http\WebServicesManager;
 use GetRandomService;
+use webfiori\http\WebServicesManager;
 
 class RandomGenerator extends WebServicesManager {
     public function __construct() {

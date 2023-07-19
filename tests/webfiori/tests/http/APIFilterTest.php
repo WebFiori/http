@@ -86,7 +86,7 @@ class APIFilterTest extends TestCase {
         $param00 = new RequestParameter('username');
         $this->apiFilter->addRequestParameter($param00);
         $param01 = new RequestParameter('password', 'integer');
-        $param01->setMinVal(1000000);
+        $param01->setMinValue(1000000);
         $this->apiFilter->addRequestParameter($param01);
         $_GET['username'] = 'Admin';
         $_GET['password'] = '100';
@@ -96,7 +96,7 @@ class APIFilterTest extends TestCase {
         $this->assertTrue(isset($filtered['username']));
         $this->assertEquals('Admin',$filtered['username']);
         $this->assertTrue(isset($filtered['password']));
-        $this->assertEquals('INV',$filtered['password']);
+        $this->assertEquals(APIFilter::INVALID,$filtered['password']);
         $nonFiltered = $this->apiFilter->getNonFiltered();
         $this->assertTrue(isset($nonFiltered['username']));
         $this->assertEquals('Admin',$nonFiltered['username']);
@@ -111,7 +111,7 @@ class APIFilterTest extends TestCase {
         $param00 = new RequestParameter('username');
         $this->apiFilter->addRequestParameter($param00);
         $param01 = new RequestParameter('password', 'integer');
-        $param01->setMinVal(1000000);
+        $param01->setMinValue(1000000);
         $this->apiFilter->addRequestParameter($param01);
         $_GET['username'] = 'Admin';
         $_GET['password'] = '1002000';
@@ -136,7 +136,7 @@ class APIFilterTest extends TestCase {
         $param00 = new RequestParameter('username');
         $this->apiFilter->addRequestParameter($param00);
         $param01 = new RequestParameter('password', 'integer');
-        $param01->setMinVal(1000000);
+        $param01->setMinValue(1000000);
         $this->apiFilter->addRequestParameter($param01);
         $_GET['username'] = 'Admin';
         $_GET['password'] = '1002000with some text<script></script>';
@@ -163,7 +163,7 @@ class APIFilterTest extends TestCase {
         $this->apiFilter->addRequestParameter($param00);
         $param01 = new RequestParameter('second-number', 'float');
         $this->assertEquals('double', $param01->getType());
-        $param01->setMinVal(1000000);
+        $param01->setMinValue(1000000);
         $this->apiFilter->addRequestParameter($param01);
         $_GET['first-number'] = 'Admin';
         $_GET['second-number'] = 'yc with some text<script></script>';
@@ -172,9 +172,9 @@ class APIFilterTest extends TestCase {
         $filtered = $this->apiFilter->getInputs();
         $this->assertEquals(2,count($filtered));
         $this->assertTrue(isset($filtered['first-number']));
-        $this->assertEquals('INV',$filtered['first-number']);
+        $this->assertEquals(APIFilter::INVALID,$filtered['first-number']);
         $this->assertTrue(isset($filtered['second-number']));
-        $this->assertEquals('INV',$filtered['second-number']);
+        $this->assertEquals(APIFilter::INVALID,$filtered['second-number']);
         $nonFiltered = $this->apiFilter->getNonFiltered();
         $this->assertTrue(isset($nonFiltered['first-number']));
         $this->assertEquals('Admin',$nonFiltered['first-number']);
@@ -193,7 +193,7 @@ class APIFilterTest extends TestCase {
         $this->apiFilter->addRequestParameter($param00);
         $param01 = new RequestParameter('second-number', 'float');
         $param01->setDefault(1000);
-        $param01->setMinVal(1000000);
+        $this->assertTrue($param01->setMinValue(1000000));
         $this->apiFilter->addRequestParameter($param01);
         $_GET['first-number'] = 'Admin';
         $_GET['second-number'] = "0.15";
@@ -203,9 +203,9 @@ class APIFilterTest extends TestCase {
         
         $this->assertEquals(2,count($filtered));
         $this->assertTrue(isset($filtered['first-number']));
-        $this->assertEquals('INV',$filtered['first-number']);
+        $this->assertEquals(APIFilter::INVALID,$filtered['first-number']);
         $this->assertTrue(isset($filtered['second-number']));
-        $this->assertSame(0.15, $filtered['second-number']);
+        $this->assertSame(1000, $filtered['second-number']);
         
         $nonFiltered = $this->apiFilter->getNonFiltered();
         $this->assertTrue(isset($nonFiltered['first-number']));
@@ -223,7 +223,7 @@ class APIFilterTest extends TestCase {
         $param01 = new RequestParameter('second-number', 'float');
         $param01->setDefault(1000);
         $this->assertEquals(1000, $param01->getDefault());
-        $param01->setMinVal(1000000);
+        $param01->setMinValue(1000000);
         
         $this->apiFilter->addRequestParameter($param01);
         $_GET = [];
@@ -233,7 +233,7 @@ class APIFilterTest extends TestCase {
         $filtered = $this->apiFilter->getInputs();
         $this->assertEquals(2,count($filtered));
         $this->assertTrue(isset($filtered['first-number']));
-        $this->assertEquals('INV',$filtered['first-number']);
+        $this->assertEquals(APIFilter::INVALID,$filtered['first-number']);
         $this->assertTrue(isset($filtered['second-number']));
         $this->assertEquals(1000,$filtered['second-number']);
 
@@ -255,7 +255,7 @@ class APIFilterTest extends TestCase {
         $this->apiFilter->addRequestParameter($param00);
         $param01 = new RequestParameter('second-number', 'float');
         $param01->setDefault(1000);
-        $param01->setMinVal(1000000);
+        $param01->setMinValue(1000000);
         $this->apiFilter->addRequestParameter($param01);
         $_GET['second-number'] = '100076800';
         $this->apiFilter->filterGET();
@@ -281,7 +281,7 @@ class APIFilterTest extends TestCase {
         $this->apiFilter->filterGET();
         $filtered = $this->apiFilter->getInputs();
         $this->assertEquals(1,count($filtered));
-        $this->assertEquals('INV',$filtered['my-string']);
+        $this->assertEquals(APIFilter::INVALID,$filtered['my-string']);
     }
     /**
      * @test
@@ -308,7 +308,7 @@ class APIFilterTest extends TestCase {
         $this->apiFilter->filterGET();
         $filtered = $this->apiFilter->getInputs();
         $this->assertEquals(1,count($filtered));
-        $this->assertEquals('INV',$filtered['redirect']);
+        $this->assertEquals(APIFilter::INVALID,$filtered['redirect']);
     }
     /**
      * @test
@@ -322,7 +322,7 @@ class APIFilterTest extends TestCase {
         $this->apiFilter->filterGET();
         $filtered = $this->apiFilter->getInputs();
         $this->assertEquals(1,count($filtered));
-        $this->assertEquals('INV',$filtered['redirect']);
+        $this->assertEquals(APIFilter::INVALID,$filtered['redirect']);
     }
     /**
      * @test
@@ -352,7 +352,7 @@ class APIFilterTest extends TestCase {
         $this->apiFilter->filterGET();
         $filtered = $this->apiFilter->getInputs();
         $this->assertEquals(1,count($filtered));
-        $this->assertEquals('INV',$filtered['send-to']);
+        $this->assertEquals(APIFilter::INVALID,$filtered['send-to']);
     }
     /**
      * @test
@@ -365,7 +365,7 @@ class APIFilterTest extends TestCase {
         $this->apiFilter->filterGET();
         $filtered = $this->apiFilter->getInputs();
         $this->assertEquals(1,count($filtered));
-        $this->assertEquals('INV',$filtered['send-to']);
+        $this->assertEquals(APIFilter::INVALID,$filtered['send-to']);
     }
     /**
      * @test
@@ -519,7 +519,7 @@ class APIFilterTest extends TestCase {
         $this->apiFilter->addRequestParameter($param00);
         $param01 = new RequestParameter('second-number', 'float');
   
-        $param01->setMinVal(1000000);
+        $param01->setMinValue(1000000);
         $this->apiFilter->addRequestParameter($param01);
         $_GET['first-number'] = '44.88';
         $_GET['second-number'] = 'x100076800 inv with str';
@@ -545,7 +545,7 @@ class APIFilterTest extends TestCase {
         $this->apiFilter->addRequestParameter($param00);
         $param01 = new RequestParameter('second-number', 'float');
   
-        $param01->setMinVal(1000000);
+        $param01->setMinValue(1000000);
         $this->apiFilter->addRequestParameter($param01);
         $_GET['first-number'] = '4488';
         $_GET['second-number'] = '100076800.776';
@@ -558,6 +558,62 @@ class APIFilterTest extends TestCase {
         $nonFiltered = $this->apiFilter->getNonFiltered();
         $this->assertEquals('4488', $nonFiltered['first-number']);
         $this->assertEquals('100076800.776',$nonFiltered['second-number']);
+    }
+    /**
+     * @test
+     */
+     public function testFilterGet29() {
+        foreach ($_GET as $key => $value) {
+            unset($_GET[$key]);
+        }
+        $this->apiFilter = new APIFilter();
+        $param00 = new RequestParameter('first-number','int');
+        $param00->setMaxValue(100);
+        $param00->setMinValue(50);
+        $this->apiFilter->addRequestParameter($param00);
+        $param01 = new RequestParameter('second-number', 'float');
+        $param01->setMaxValue(200); 
+        $this->assertFalse($param01->setMinValue(1000000));
+        $this->apiFilter->addRequestParameter($param01);
+        $_GET['first-number'] = '4488';
+        $_GET['second-number'] = '100076800.777';
+        $this->apiFilter->filterGET();
+        $filtered = $this->apiFilter->getInputs();
+        $this->assertEquals(2,count($filtered));
+        $this->assertEquals(APIFilter::INVALID, $filtered['first-number']);
+        $this->assertEquals(APIFilter::INVALID, $filtered['second-number']);
+
+        $nonFiltered = $this->apiFilter->getNonFiltered();
+        $this->assertEquals('4488', $nonFiltered['first-number']);
+        $this->assertEquals('100076800.777',$nonFiltered['second-number']);
+    }
+    /**
+     * @test
+     */
+     public function testFilterGet30() {
+        foreach ($_GET as $key => $value) {
+            unset($_GET[$key]);
+        }
+        $this->apiFilter = new APIFilter();
+        $param00 = new RequestParameter('first-name');
+        $param00->setMaxLength(15);
+        $param00->setMinLength(5);
+        $this->apiFilter->addRequestParameter($param00);
+        $param01 = new RequestParameter('family-name');
+        $this->assertTrue($param01->setMaxLength(20)); 
+        $this->assertFalse($param01->setMinLength(-1));
+        $this->apiFilter->addRequestParameter($param01);
+        $_GET['first-name'] = 'Ibr';
+        $_GET['family-name'] = 'Bin Alshikh Ali BinShikhx';
+        $this->apiFilter->filterGET();
+        $filtered = $this->apiFilter->getInputs();
+        $this->assertEquals(2,count($filtered));
+        $this->assertEquals(APIFilter::INVALID, $filtered['first-name']);
+        $this->assertEquals(APIFilter::INVALID, $filtered['family-name']);
+
+        $nonFiltered = $this->apiFilter->getNonFiltered();
+        $this->assertEquals('Ibr', $nonFiltered['first-name']);
+        $this->assertEquals('Bin Alshikh Ali BinShikhx',$nonFiltered['family-name']);
     }
     /**
      * @test
@@ -838,7 +894,7 @@ class APIFilterTest extends TestCase {
      */
     public function testFilterPost17() {
         $jsonTestFile = __DIR__.DIRECTORY_SEPARATOR.'json.json';
-        self::setTestJson($jsonTestFile, '{"json-array":[], "another-param":"It should be ignored."}');
+        self::setJsonInput($jsonTestFile, '{"json-array":[], "another-param":"It should be ignored."}');
         $apiFilter = new APIFilter();
         $apiFilter->setInputStream($jsonTestFile);
         $param00 = new RequestParameter('json-array', 'array');
@@ -860,7 +916,7 @@ class APIFilterTest extends TestCase {
      */
     public function testFilterPost18() {
         $jsonTestFile = __DIR__.DIRECTORY_SEPARATOR.'json.json';
-        self::setTestJson($jsonTestFile, '{"json-array":[], "another-param":');
+        self::setJsonInput($jsonTestFile, '{"json-array":[], "another-param":');
         $apiFilter = new APIFilter();
         $apiFilter->setInputStream($jsonTestFile);
         $param00 = new RequestParameter('json-array', 'array');
@@ -880,7 +936,7 @@ class APIFilterTest extends TestCase {
      */
     public function testFilterPost19() {
         $jsonTestFile = __DIR__.DIRECTORY_SEPARATOR.'json.json';
-        self::setTestJson($jsonTestFile, '{"json-array":[], "another-param":');
+        self::setJsonInput($jsonTestFile, '{"json-array":[], "another-param":');
         $apiFilter = new APIFilter();
         $apiFilter->setInputStream($jsonTestFile);
         $param00 = new RequestParameter('json-array', 'array');
@@ -896,7 +952,7 @@ class APIFilterTest extends TestCase {
      */
     public function testFilterPost21() {
         $jsonTestFile = __DIR__.DIRECTORY_SEPARATOR.'json.json';
-        self::setTestJson($jsonTestFile, ''
+        self::setJsonInput($jsonTestFile, ''
                 . '{'
                 . '    "json-array":['
                 . '        "hello",'
@@ -939,7 +995,7 @@ class APIFilterTest extends TestCase {
      */
     public function testFilterPost22() {
         $jsonTestFile = __DIR__.DIRECTORY_SEPARATOR.'json.json';
-        self::setTestJson($jsonTestFile, ''
+        self::setJsonInput($jsonTestFile, ''
                 . '{'
                 . '    "string":" My Super String"'
                 . '}');
@@ -963,7 +1019,7 @@ class APIFilterTest extends TestCase {
      */
     public function testFilterPost23() {
         $jsonTestFile = __DIR__.DIRECTORY_SEPARATOR.'json.json';
-        self::setTestJson($jsonTestFile, ''
+        self::setJsonInput($jsonTestFile, ''
                 . '{'
                 . '    "number":" My Super String"'
                 . '}');
@@ -985,7 +1041,7 @@ class APIFilterTest extends TestCase {
      */
     public function testFilterPost24() {
         $jsonTestFile = __DIR__.DIRECTORY_SEPARATOR.'json.json';
-        self::setTestJson($jsonTestFile, ''
+        self::setJsonInput($jsonTestFile, ''
                 . '{'
                 . '    "number":1,'
                 . '    "another-number":1.5,'
@@ -1026,7 +1082,7 @@ class APIFilterTest extends TestCase {
      */
     public function testFilterPost25() {
         $jsonTestFile = __DIR__.DIRECTORY_SEPARATOR.'json.json';
-        self::setTestJson($jsonTestFile, ''
+        self::setJsonInput($jsonTestFile, ''
                 . '{'
                 . '    "obj-00":{'
                 . '        "deep-obj":{'
@@ -1081,7 +1137,7 @@ class APIFilterTest extends TestCase {
      */
     public function testFilterPost26() {
         $jsonTestFile = __DIR__.DIRECTORY_SEPARATOR.'json.json';
-        self::setTestJson($jsonTestFile, ''
+        self::setJsonInput($jsonTestFile, ''
                 . '{'
                 . '    "json-obj":{'
                 . '        "one":1,'
@@ -1127,7 +1183,7 @@ class APIFilterTest extends TestCase {
      */
     public function testFilterPost27() {
         $jsonTestFile = __DIR__.DIRECTORY_SEPARATOR.'json.json';
-        self::setTestJson($jsonTestFile, ''
+        self::setJsonInput($jsonTestFile, ''
                 . '{'
                 . '    "json-obj":{'
                 . '        "first-string":"<script>Not Safe.<?php",'
@@ -1173,11 +1229,16 @@ class APIFilterTest extends TestCase {
      */
     public function testFilterPost28() {
         $jsonTestFile = __DIR__.DIRECTORY_SEPARATOR.'json.json';
-        self::setTestJson($jsonTestFile, ''
+        self::setJsonInput($jsonTestFile, ''
                 . '{'
                 . '    "json-obj":{'
                 . '        "invalid-param":77,'
                 . '        "one":1,'
+                . '        "sub-obj":{'
+                . '            "arr":['
+                . '                "with arr"'
+                . '            ]'
+                . '        },'
                 . '        "array-of-arrays":['
                 . '            ['
                 . '                "hello",'
@@ -1218,7 +1279,13 @@ class APIFilterTest extends TestCase {
         $_SERVER['CONTENT_TYPE'] = 'application/json';
         $apiFilter->filterPOST();
         $json = $apiFilter->getInputs();
-        $this->assertEquals(4, count($json->getPropsNames()));
+        $this->assertEquals(4, count($apiFilter->getFilterDef()));
+        $this->assertEquals([
+            'array-of-arrays',
+            'sub-obj',
+            'with-default',
+            'invalid-param'
+        ], $json->getPropsNames());
         $this->assertEquals(44, $json->get('with-default'));
         $this->assertNull($json->get('invalid-param'));
         $this->assertEquals(1, count($json->get('array-of-arrays')));
@@ -1228,7 +1295,7 @@ class APIFilterTest extends TestCase {
         $this->assertTrue($subObj instanceof Json);
         $this->assertEquals(['with arr'], $subObj->get('arr'));
     }
-    public static function setTestJson($fName, $jsonData) {
+    public static function setJsonInput($fName, $jsonData) {
         $stream = fopen($fName, 'w+');
         fwrite($stream, $jsonData);
         fclose($stream);

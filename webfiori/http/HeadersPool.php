@@ -55,12 +55,9 @@ class HeadersPool {
 
             if ($hasHeader) {
                 $this->removeHeader($trimmedHeader, $replaceValue);
-                $this->headersArr[] = $header;
-                $retVal = true;
-            } else {
-                $this->headersArr[] = $header;
-                $retVal = true;
             }
+            $this->headersArr[] = $header;
+            $retVal = true;
         }
 
         return $retVal;
@@ -87,15 +84,15 @@ class HeadersPool {
             return $headerObj->getValue();
         }, $this->getHeaderAsObj($name));
     }
+
     /**
      * Returns the value(s) of specific HTTP header as an array of objects.
-     * 
-     * @param array $name The name of the header.
-     * 
-     * @return array If such header exist, the method will return an array 
+     *
+     * @param string $name The name of the header.
+     *
+     * @return array If such header exist, the method will return an array
      * that contains the values of the header stored as objects of type
      * HttpHeader. If the header does not exist, the array will be empty.
-     * 
      */
     public function getHeaderAsObj(string $name) : array {
         $retVal = [];
@@ -158,8 +155,10 @@ class HeadersPool {
      * @param string $val If the header is added with multiple values, this
      * can be used to remove specific one with specific value. If not provided,
      * all headers will be removed.
+     *
+     * @return bool If removed, true is returned. False otherwise.
      */
-    public function removeHeader(string $name, string $val = null) {
+    public function removeHeader(string $name, string $val = null) : bool {
         $tempArr = [];
         $trimmed = strtolower(trim($name));
         $removed = false;

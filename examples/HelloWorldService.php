@@ -15,11 +15,9 @@ class HelloWorldService extends AbstractWebService {
         $this->addRequestMethod('get');
     }
     public function isAuthorized() {
-        
     }
 
     public function processRequest() {
         $this->getManager()->sendResponse('Hello World!');
     }
-
 }

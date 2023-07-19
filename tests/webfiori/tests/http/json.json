@@ -1,1 +1,1 @@
-{"service":"sum-array","pass":"123","numbers":[1,5,4,1.5]}
+{"service":"create-user-profile","pass":"123","name":"Me", "username":"Cpool", "id":54}

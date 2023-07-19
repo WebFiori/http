@@ -68,13 +68,40 @@ class ParamTypes {
      */
     const URL = 'url';
     /**
+     * Returns an array that contains names of types which are considered as
+     * numeric.
+     * 
+     * @return array An array that contains names of types which are considered as
+     * numeric.
+     */
+    public static function getNumericTypes() : array {
+        return [
+            self::DOUBLE, 
+            self::INT, 
+        ];
+    }
+    /**
+     * Returns an array that contains names of types which are considered as
+     * string.
+     * 
+     * @return array An array that contains names of types which are considered as
+     * string.
+     */
+    public static function getStringTypes() : array {
+        return [
+            self::EMAIL, 
+            self::STRING,
+            self::URL
+        ];
+    }
+    /**
      * Returns an array that contains all supported parameters types.
      * 
      * @return array An array that contains all supported parameters types.
      * 
      * @since 1.0
      */
-    public static function getTypes() {
+    public static function getTypes() : array {
         return [
             self::ARR, 
             self::BOOL, 

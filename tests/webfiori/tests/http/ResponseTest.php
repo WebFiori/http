@@ -3,8 +3,9 @@
 namespace webfiori\tests\http;
 
 use PHPUnit\Framework\TestCase;
-use webfiori\http\Response;
 use webfiori\http\HttpCookie;
+use webfiori\http\Response;
+use webfiori\tests\http\testServices\TestUserObj;
 
 /**
  * Description of RequestTest
@@ -145,5 +146,57 @@ class ResponseTest extends TestCase {
         $this->assertTrue(Response::hasCookie('cool'));
         $this->assertEquals([$coolCookie], Response::getCookies());
         $this->assertNotNull(Response::getCookie('cool'));
+    }
+    /**
+     * @test
+     */
+    public function testDump00() {
+        $bool = true;
+        Response::clear();
+        Response::write($bool);
+        $this->assertEquals(""
+                . "<pre>"
+                . "bool(true)\n"
+                . "</pre>", Response::getBody());
+    }
+    /**
+     * @test
+     */
+    public function testDump01() {
+        $null = null;
+        Response::clear();
+        Response::write($null);
+        $this->assertEquals(""
+                . "<pre>"
+                . "NULL\n"
+                . "</pre>", Response::getBody());
+    }
+    /**
+     * @test
+     */
+    public function testDump02() {
+        Response::clear();
+        Response::write([1,2,3]);
+        $this->assertEquals(""
+                . "<pre>array(3) {\n"
+                . "  [0]=>\n"
+                . "  int(1)\n"
+                . "  [1]=>\n"
+                . "  int(2)\n"
+                . "  [2]=>\n"
+                . "  int(3)\n"
+                . "}\n</pre>", Response::getBody());
+    }
+    /**
+     * @test
+     */
+    public function testDump03() {
+        $null = null;
+        Response::clear();
+        Response::dump(61);
+        $this->assertEquals(""
+                . "<pre>"
+                . "int(61)\n"
+                . "</pre>", Response::getBody());
     }
 }

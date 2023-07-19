@@ -8,9 +8,9 @@
  * https://github.com/WebFiori/.github/blob/main/LICENSE
  * 
  */
-
 namespace webfiori\http;
 
+use Exception;
 use Throwable;
 use webfiori\json\Json;
 
@@ -22,15 +22,17 @@ use webfiori\json\Json;
 class ObjectMapper {
     private $clazzName;
     private $settersMap;
+
     /**
      * Creates new instance of the class.
-     * 
-     * @param string $clazz The name of the class that a API request will be mapped
+     *
+     * @param string $clazz The name of the class that API request will be mapped
      * to. Usually obtained using the syntax 'Class::class'.
-     * 
+     *
      * @param AbstractWebService $service The service at which its parameters
      * will be mapped to the object.
-     * 
+     *
+     * @throws Exception
      */
     public function __construct(string $clazz, AbstractWebService $service) {
         $this->settersMap = [];
@@ -46,7 +48,7 @@ class ObjectMapper {
      * @param string $paramName The name of the parameter as it appears in request
      * body.
      * 
-     * @param string $methodName The name of the method that the parameter will
+     * @param string|null $methodName The name of the method that the parameter will
      * be mapped to. If not provided, the name of the parameter will be used to
      * generate the name of the method as follows: Replacing every space in the
      * name by underscore. Then appending the string 'set' and capitalizing
@@ -54,7 +56,7 @@ class ObjectMapper {
      * after the underscore.
      * 
      */
-    public function addSetterMap(string $paramName, $methodName = null) {
+    public function addSetterMap(string $paramName, string $methodName = null) {
         $trimmedParamName = trim($paramName);
 
         if (strlen($trimmedParamName) == 0) {
@@ -82,7 +84,7 @@ class ObjectMapper {
      * @return array An associative array. The indices will represent methods
      * names and the values are parameters names.
      */
-    public function getSettrsMap() : array {
+    public function getSettersMap() : array {
         return $this->settersMap;
     }
     /**
@@ -101,9 +103,11 @@ class ObjectMapper {
      * If no class was specified, the method will return null.
      */
     public function map($inputs) {
-        $instance = new $this->clazzName();
+        $clazzName = $this->getClass();
 
-        foreach ($this->getSettrsMap() as $method => $paramName) {
+        $instance = new $clazzName();
+
+        foreach ($this->getSettersMap() as $method => $paramName) {
             if (is_callable([$instance, $method])) {
                 try {
                     if ($inputs instanceof Json) {
@@ -118,26 +122,38 @@ class ObjectMapper {
 
         return $instance;
     }
+
     /**
      * Sets the class that the records will be mapped to.
-     * 
+     *
      * Note that the method will throw an exception if the class
      * does not exist.
-     * 
+     *
      * @param string $clazz The name of the class (including namespace).
-     * 
-     * @throws DatabaseException
+     *
+     * @throws Exception
      */
-    public function setClass($clazz) {
+    public function setClass(string $clazz) {
         $trimmed = trim($clazz);
 
         if (class_exists($trimmed)) {
             $this->clazzName = $clazz;
         } else {
-            throw new DatabaseException('Class not found: '.$clazz);
+            throw new Exception('Class not found: '.$clazz);
         }
     }
-    private function paramNameToMethodName($paramName) {
+    private function extractMethodsNames($inputs) {
+        if ($inputs instanceof Json) {
+            foreach ($inputs->getProperties() as $prop) {
+                $this->addSetterMap($prop->getName());
+            }
+        } else if (gettype($inputs) == 'array') {
+            foreach (array_keys($inputs) as $name) {
+                $this->addSetterMap($name);
+            }
+        }
+    }
+    private function paramNameToMethodName($paramName) : string {
         $expl = explode('_', str_replace('-', '_', $paramName));
         $methName = '';
 
@@ -153,16 +169,5 @@ class ObjectMapper {
         }
 
         return $methName;
-    }
-    private function extractMethodsNames($inputs) {
-        if ($inputs instanceof Json) {
-            foreach ($inputs->getProperties() as $prop) {
-                $this->addSetterMap($prop->getName());
-            }
-        } else if (gettype($inputs) == 'array') {
-            foreach (array_keys($inputs) as $name) {
-                $this->addSetterMap($name);
-            }
-        }
     }
 }

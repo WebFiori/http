@@ -167,13 +167,12 @@ class Request {
 
         return self::getHeadersPool()->getHeader($name);
     }
-    
+
     /**
      * Returns HTTP request headers.
      * 
      * This method will try to extract request headers using two ways, 
-     * first, it will check if the method 'apache_request_headers()' is 
-     * exist or not. If it does, then request headers will be taken from 
+     * first, it will check if the method 'apache_request_headers()' is existed or not. If it does, then request headers will be taken from
      * there. If it does not exist, it will try to extract request headers 
      * from the super global $_SERVER.
      * 
@@ -183,12 +182,8 @@ class Request {
      * @since 1.0
      */
     public static function getHeaders() : array {
-        if (defined('__PHPUNIT_PHAR__')) {
+        if (defined('__PHPUNIT_PHAR__') || self::get()->headersPool === null) {
             //Always Refresh headers if in testing environment.
-            self::extractHeaders();
-        }
-        
-        if (self::get()->headersPool === null) {
             self::extractHeaders();
         }
 
@@ -203,35 +198,15 @@ class Request {
     public static function getHeadersAssoc() : array {
         $retVal = [];
         $headers = self::getHeaders();
-        
+
         foreach ($headers as $headerObj) {
-            
             if (!isset($retVal[$headerObj->getName()])) {
                 $retVal[$headerObj->getName()] = [];
             }
             $retVal[$headerObj->getName()][] = $headerObj->getValue();
         }
-        
+
         return $retVal;
-    }
-    private static function extractHeaders() {
-        self::get()->headersPool = new HeadersPool();
-
-        if (function_exists('apache_request_headers')) {
-            $headers = apache_request_headers();
-
-            foreach ($headers as $k => $v) {
-                self::get()->headersPool->addHeader($k, filter_var($v, FILTER_SANITIZE_FULL_SPECIAL_CHARS));
-            }
-        } 
-
-        if (isset($_SERVER)) {
-            $headersArr = self::_getRequestHeadersFromServer();
-
-            foreach ($headersArr as $header) {
-                self::get()->headersPool->addHeader($header->getName(), $header->getValue());
-            }
-        }
     }
 
     /**
@@ -257,7 +232,7 @@ class Request {
         $meth = getenv('REQUEST_METHOD');
 
         if ($meth === false) {
-            $meth = isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : '';
+            $meth = $_SERVER['REQUEST_METHOD'] ?? '';
         }
         $method = filter_var($meth, FILTER_SANITIZE_FULL_SPECIAL_CHARS);
 
@@ -284,7 +259,6 @@ class Request {
      * @since 1.0.1
      */
     public static function getParam(string $paramName) {
-
         $trimmed = trim($paramName);
         $params = self::getParams();
 
@@ -302,43 +276,45 @@ class Request {
      * is the value of the parameter.
      */
     public static function getParams() : array {
-        $requMethod = self::getMethod();
+        $requestMethod = self::getMethod();
         $retVal = [];
-        
-        if ($requMethod == 'POST' || $requMethod == 'PUT') {
+
+        if ($requestMethod == 'POST' || $requestMethod == 'PUT') {
             foreach (array_keys($_POST) as $name) {
                 $retVal[$name] = self::filter(INPUT_POST, $name);
             }
-        } else if ($requMethod == 'DELETE' || $requMethod == 'GET') {
+        } else if ($requestMethod == 'DELETE' || $requestMethod == 'GET') {
             foreach (array_keys($_GET) as $name) {
                 $retVal[$name] = self::filter(INPUT_GET, $name);
             }
         }
+
         return $retVal;
     }
     /**
      * Returns the URI of the requested resource.
+     * 
+     * @param string $pathToAppend If provided, this part will be 
+     * appended to the final URI. It is useful in case of having multiple
+     * applications on same domain to have different paths.
      * 
      * @return string The URI of the requested resource 
      * (e.g. http://example.com/get-random?range=[1,100]). 
      * 
      * @since 1.0
      */
-    public static function getRequestedURI() : string {
+    public static function getRequestedURI(string $pathToAppend = '') : string {
         $base = Uri::getBaseURL();
         $path = getenv('REQUEST_URI');
 
         if ($path === false) {
             // Using built-in server, it will be false
-            $path = isset($_SERVER['PATH_INFO']) ? $_SERVER['PATH_INFO'] : '';
+            $path = $_SERVER['PATH_INFO'] ?? '';
         } 
-        $toAppend = trim(filter_var($path),'/');
 
-        if (defined('WF_PATH_TO_APPEND')) {
-            $toAppend = str_replace(trim(str_replace('\\', '/', WF_PATH_TO_APPEND), '/'),'' ,$toAppend);
-        }
+        $cleanedPath = str_replace(trim(str_replace('\\', '/', $pathToAppend), '/'),'' ,trim(filter_var($path),'/'));
 
-        return $base.'/'.trim($toAppend, '/');
+        return $base.'/'.trim($cleanedPath, '/');
     }
     /**
      * Returns an object that holds all information about requested URI.
@@ -350,34 +326,24 @@ class Request {
     public static function getUri() : Uri {
         return new Uri(self::getRequestedURI());
     }
-    /**
-     * Collect request headers from the array $_SERVER.
-     * @return array
-     */
-    private static function _getRequestHeadersFromServer() {
-        $retVal = [];
+    private static function extractHeaders() {
+        self::get()->headersPool = new HeadersPool();
 
-        foreach ($_SERVER as $k => $v) {
-            $split = explode('_', $k);
+        if (function_exists('apache_request_headers')) {
+            $headers = apache_request_headers();
 
-            if ($split[0] == 'HTTP') {
-                $headerName = '';
-                $count = count($split);
+            foreach ($headers as $k => $v) {
+                self::get()->headersPool->addHeader($k, filter_var($v, FILTER_SANITIZE_FULL_SPECIAL_CHARS));
+            }
+        } 
 
-                for ($x = 0 ; $x < $count ; $x++) {
-                    if ($x + 1 == $count && $split[$x] != 'HTTP') {
-                        $headerName = $headerName.$split[$x];
-                    } else if ($x == 1 && $split[$x] != 'HTTP') {
-                            $headerName = $split[$x].'-';
-                    } else if ($split[$x] != 'HTTP') {
-                        $headerName = $headerName.$split[$x].'-';
-                    }
-                }
-                $retVal[] = new HttpHeader($headerName, filter_var($v, FILTER_SANITIZE_FULL_SPECIAL_CHARS));
+        if (isset($_SERVER)) {
+            $headersArr = self::getRequestHeadersFromServer();
+
+            foreach ($headersArr as $header) {
+                self::get()->headersPool->addHeader($header->getName(), $header->getValue());
             }
         }
-
-        return $retVal;
     }
     private  static function filter($inputSource, $varName) {
         $val = filter_input($inputSource, $varName);
@@ -391,5 +357,34 @@ class Request {
         }
 
         return $val;
+    }
+    /**
+     * Collect request headers from the array $_SERVER.
+     * @return array
+     */
+    private static function getRequestHeadersFromServer() : array {
+        $retVal = [];
+
+        foreach ($_SERVER as $k => $v) {
+            $split = explode('_', $k);
+
+            if ($split[0] == 'HTTP') {
+                $headerName = '';
+                $count = count($split);
+
+                for ($x = 0 ; $x < $count ; $x++) {
+                    if ($x + 1 == $count && $split[$x] != 'HTTP') {
+                        $headerName = $headerName.$split[$x];
+                    } else if ($x == 1 && $split[$x] != 'HTTP') {
+                        $headerName = $split[$x].'-';
+                    } else if ($split[$x] != 'HTTP') {
+                        $headerName = $headerName.$split[$x].'-';
+                    }
+                }
+                $retVal[] = new HttpHeader($headerName, filter_var($v, FILTER_SANITIZE_FULL_SPECIAL_CHARS));
+            }
+        }
+
+        return $retVal;
     }
 }
