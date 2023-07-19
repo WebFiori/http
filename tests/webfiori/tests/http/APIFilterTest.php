@@ -5,6 +5,7 @@ use PHPUnit\Framework\TestCase;
 use webfiori\http\APIFilter;
 use webfiori\http\RequestParameter;
 use webfiori\json\Json;
+use webfiori\json\JsonException;
 /**
  * Description of APIFilterTest
  *
@@ -928,7 +929,7 @@ class APIFilterTest extends TestCase {
         $this->assertEquals('array', $param00->getType());
         putenv('REQUEST_METHOD=POST');
         $_SERVER['CONTENT_TYPE'] = 'application/json';
-        $this->expectException('Exception');
+        $this->expectException(JsonException::class);
         $apiFilter->filterPOST();
     }
     /**
@@ -944,7 +945,7 @@ class APIFilterTest extends TestCase {
         $this->assertEquals('array', $param00->getType());
         putenv('REQUEST_METHOD=PUT');
         $_SERVER['CONTENT_TYPE'] = 'application/json';
-        $this->expectException('Exception');
+        $this->expectException(JsonException::class);
         $apiFilter->filterPOST();
     }
     /**
