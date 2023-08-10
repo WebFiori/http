@@ -467,6 +467,32 @@ class APIFilterTest extends TestCase {
     /**
      * @test
      */
+    public function testFilterGet31() {
+        $this->apiFilter = new APIFilter();
+        $param00 = new RequestParameter('array', 'array');
+        $this->apiFilter->addRequestParameter($param00);
+        $_GET['array'] = [false, "Hello", null, "World"];
+        $this->apiFilter->filterGET();
+        $filtered = $this->apiFilter->getInputs();
+        $this->assertEquals(1,count($filtered));
+        $this->assertEquals([false, "Hello", null, "World"],$filtered['array']);
+    }
+    /**
+     * @test
+     */
+    public function testFilterGet32() {
+        $this->apiFilter = new APIFilter();
+        $param00 = new RequestParameter('array', 'array');
+        $this->apiFilter->addRequestParameter($param00);
+        $_GET['array'] = [false, ["Hello"], null, "World"];
+        $this->apiFilter->filterGET();
+        $filtered = $this->apiFilter->getInputs();
+        $this->assertEquals(1,count($filtered));
+        $this->assertEquals([false, ["Hello"], null, "World"],$filtered['array']);
+    }
+    /**
+     * @test
+     */
     public function testFilterGet24() {
         $this->apiFilter = new APIFilter();
         $param00 = new RequestParameter('array', 'array');
