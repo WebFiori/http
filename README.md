@@ -38,9 +38,10 @@ This library is a part of <a>WebFiori Framework</a>. To access API docs of the l
 ## Terminology
 
 Following terminology is used by the library: 
-
-| Web Service | A single end pont that implements a REST service. It is represented as an instance of the class `AbstractWebService`.|
-| Services Manager  | An entity which is used to manage a set of web services. Represented by the class `WebServicesManager`.|
+| Term | Definition|
+|:------------:|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
+| Web Service | A single end pont that implements a REST service. It is represented as an instance of the class `AbstractWebService`. |
+| Services Manager  | An entity which is used to manage a set of web services. Represented by the class `WebServicesManager`. |
 | Request Parameter | A way to pass values from a client such as a web browser to the server. Represented by the class `RequestParameter`. |
 
 ## The Idea
