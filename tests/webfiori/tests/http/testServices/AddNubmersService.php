@@ -13,6 +13,7 @@ class AddNubmersService extends AbstractNumbersService {
         parent::__construct('add-two-integers');
         $this->setDescription('Returns a JSON string that has the sum of two integers.');
         $this->addRequestMethod('get');
+        
         $this->addParameter(new RequestParameter('first-number', 'integer'));
         $this->addParameter(new RequestParameter('second-number', 'integer'));
     }

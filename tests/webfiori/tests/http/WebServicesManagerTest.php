@@ -167,7 +167,7 @@ class WebServicesManagerTest extends TestCase {
         $this->assertEquals('1.0.1',$api->getVersion());
         $this->assertEquals('NO DESCRIPTION',$api->getDescription());
         $api->setDescription('Test API.');
-        $this->assertEquals(4,count($api->getServices()));
+        $this->assertEquals(5,count($api->getServices()));
         $this->assertEquals('Test API.',$api->getDescription());
         $this->assertTrue($api->getServiceByName('sum-array') instanceof AbstractWebService);
         $this->assertNull($api->getServiceByName('request-info'));
@@ -535,6 +535,35 @@ class WebServicesManagerTest extends TestCase {
         $api->setOutputStream($this->outputStreamName);
         $api->process();
         $this->assertEquals('{"message":"Method Not Allowed.","type":"error","http-code":405}', $api->readOutputStream());
+    }
+    /**
+     * @test
+     */
+    public function testMulTwoIntegers00() {
+        $this->clrearVars();
+        putenv('REQUEST_METHOD=GET');
+        $_GET['first-number'] = '100';
+        $_GET['second-number'] = '300';
+        $_GET['action'] = 'mul-two-integers';
+        $api = new SampleServicesManager();
+        $api->setOutputStream($this->outputStreamName);
+        $api->process();
+        $this->assertEquals('{"message":"The multiplication of 100 and 300 is 30000.","http-code":200}', $api->readOutputStream());
+    }
+    /**
+     * @test
+     */
+    public function testMulTwoIntegers01() {
+        $this->clrearVars();
+        putenv('REQUEST_METHOD=GET');
+        $_GET['first-number'] = '-100';
+        $_GET['second-number'] = '300';
+        $_GET['action'] = 'mul-two-integers';
+        $api = new SampleServicesManager();
+        $api->setOutputStream($this->outputStreamName);
+        ResponseMessage::set(401, 'First number must be positive!');
+        $api->process();
+        $this->assertEquals('{"message":"First number must be positive!","type":"error","http-code":401}', $api->readOutputStream());
     }
     /**
      * @test

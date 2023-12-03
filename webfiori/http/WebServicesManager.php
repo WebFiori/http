@@ -816,14 +816,33 @@ class WebServicesManager implements JsonI {
 
         return $json;
     }
+    private function isAuth(AbstractWebService $service) {
+        if ($service->isAuthRequired()) {
+            $isAuthCheck = 'isAuthorized'.Request::getMethod();
+            if (!method_exists($service, $isAuthCheck)) {
+                return $service->isAuthorized() === null || $service->isAuthorized();
+            }
+            return $service->$isAuthCheck() === null || $service->$isAuthCheck();
+        }
+        return true;
+    }
+    private function processService(AbstractWebService $service) {
+        $processMethod = 'process'.Request::getMethod();
+        
+        if (!method_exists($service, $processMethod)) {
+            $service->processRequest();
+        } else {
+            $service->$processMethod();
+        }
+    }
     private function _AfterParamsCheck($processReq) {
         if ($processReq) {
             
             $service = $this->getServiceByName($this->getCalledServiceName());
-            $isAuth = !$service->isAuthRequired() || $service->isAuthorized() === null || $service->isAuthorized();
+            
 
-            if ($isAuth) {
-                $service->processRequest();
+            if ($this->isAuth($service)) {
+                $this->processService($service);
             } else {
                 $this->notAuth();
             }
