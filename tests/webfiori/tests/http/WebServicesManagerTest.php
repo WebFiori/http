@@ -561,8 +561,9 @@ class WebServicesManagerTest extends TestCase {
         $_GET['action'] = 'mul-two-integers';
         $api = new SampleServicesManager();
         $api->setOutputStream($this->outputStreamName);
+        ResponseMessage::set(401, 'First number must be positive!');
         $api->process();
-        $this->assertEquals('{"message":"Not Authorized.","type":"error","http-code":401}', $api->readOutputStream());
+        $this->assertEquals('{"message":"First number must be positive!","type":"error","http-code":401}', $api->readOutputStream());
     }
     /**
      * @test
