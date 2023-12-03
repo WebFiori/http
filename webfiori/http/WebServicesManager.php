@@ -106,7 +106,6 @@ class WebServicesManager implements JsonI {
      * @var string|null 
      */
     private $outputStreamPath;
-    private $responseMessages;
     /**
      * An array that contains the web services that can be performed by the API.
      * 
@@ -141,17 +140,6 @@ class WebServicesManager implements JsonI {
         $this->services = [];
         $this->invParamsArr = [];
         $this->missingParamsArr = [];
-        $this->responseMessages = [
-            '401' => 'Not Authorized.',
-            '404-1' => 'The following parameter(s) has invalid values: ',
-            '404-2' => 'The following required parameter(s) where missing from the request body: ',
-            '404-3' => 'Service name is not set.',
-            '404-4' => 'Service not implemented.',
-            '404-5' => 'Service not supported.',
-            '404-6' => 'Request methods of the service are not set in code.',
-            '405' => 'Method Not Allowed.',
-            '415' => 'Content type not supported.'
-        ];
     }
     /**
      * Adds new web service to the set of web services.
@@ -186,7 +174,7 @@ class WebServicesManager implements JsonI {
     public function contentTypeNotSupported(string $cType = '') {
         $j = new Json();
         $j->add('request-content-type', $cType);
-        $this->sendResponse($this->getResponseMessage('415'), self::E, 415,$j);
+        $this->sendResponse(ResponseMessages::get('415'), self::E, 415,$j);
     }
     /**
      * Returns the name of the service which is being called.
@@ -296,21 +284,6 @@ class WebServicesManager implements JsonI {
         return $this->outputStreamPath;
     }
     /**
-     * Returns the value of response message given its code.
-     * 
-     * @param string $code The code of the message such as 415.
-     * 
-     * @return string If the code has an error message set, the method will
-     * return it. Other than that, the string '-' is returned.
-     */
-    public function getResponseMessage(string $code) : string {
-        if (isset($this->responseMessages[$code])) {
-            return $this->responseMessages[$code];
-        }
-
-        return '-';
-    }
-    /**
      * Returns a web service given its name.
      * 
      * @param string $serviceName The name of the service.
@@ -380,7 +353,7 @@ class WebServicesManager implements JsonI {
             }
             $i++;
         }
-        $this->sendResponse($this->getResponseMessage('404-1').$val.'.', self::E, 404, new Json([
+        $this->sendResponse(ResponseMessages::get('404-1').$val.'.', self::E, 404, new Json([
             'invalid' => $paramsNamesArr
         ]));
     }
@@ -399,9 +372,9 @@ class WebServicesManager implements JsonI {
         $c = Request::getContentType();
         $rm = Request::getMethod();
 
-        if ($c !== null && ($rm == 'POST' || $rm == 'PUT')) {
+        if ($c !== null && ($rm == RequestMethod::POST || $rm == RequestMethod::PUT)) {
             return in_array($c, self::POST_CONTENT_TYPES);
-        } else if ($c === null && ($rm == 'POST' || $rm == 'PUT')) {
+        } else if ($c === null && ($rm == RequestMethod::POST || $rm == RequestMethod::PUT)) {
             return false;
         }
 
@@ -435,7 +408,7 @@ class WebServicesManager implements JsonI {
             }
             $i++;
         }
-        $this->sendResponse($this->getResponseMessage('404-2').$val.'.', self::E, 404, new Json([
+        $this->sendResponse(ResponseMessages::get('404-2').$val.'.', self::E, 404, new Json([
             'missing' => $paramsNamesArr
         ]));
     }
@@ -455,7 +428,7 @@ class WebServicesManager implements JsonI {
      * @since 1.3.1
      */
     public function missingServiceName() {
-        $this->sendResponse($this->getResponseMessage('404-3'), self::E, 404);
+        $this->sendResponse(ResponseMessages::get('404-3'), self::E, 404);
     }
     /**
      * Sends a response message to indicate that a user is not authorized call a 
@@ -473,7 +446,7 @@ class WebServicesManager implements JsonI {
      * @since 1.0
      */
     public function notAuth() {
-        $this->sendResponse($this->getResponseMessage('401'), self::E, 401);
+        $this->sendResponse(ResponseMessages::get('401'), self::E, 401);
     }
 
     /**
@@ -586,7 +559,7 @@ class WebServicesManager implements JsonI {
      * @since 1.0
      */
     public function requestMethodNotAllowed() {
-        $this->sendResponse($this->getResponseMessage('405'), self::E, 405);
+        $this->sendResponse(ResponseMessages::get('405'), self::E, 405);
     }
     /**
      * Sends Back a data using specific content type and specific response code.
@@ -691,7 +664,7 @@ class WebServicesManager implements JsonI {
      * @since 1.0
      */
     public function serviceNotImplemented() {
-        $this->sendResponse($this->getResponseMessage('404-4'), self::E, 404);
+        $this->sendResponse(ResponseMessages::get('404-4'), self::E, 404);
     }
     /**
      * Sends a response message to indicate that called web service is not supported by the API.
@@ -708,7 +681,7 @@ class WebServicesManager implements JsonI {
      * @since 1.0
      */
     public function serviceNotSupported() {
-        $this->sendResponse($this->getResponseMessage('404-5'), self::E, 404);
+        $this->sendResponse(ResponseMessages::get('404-5'), self::E, 404);
     }
     /**
      * Sets the description of the web services set.
@@ -779,32 +752,6 @@ class WebServicesManager implements JsonI {
         return false;
     }
     /**
-     * Sets a custom HTTP response message for specific error code.
-     * 
-     * This method is used to customize the message that will be sent back to
-     * the client in case of using a method such as WebServicesManager::notAuth().
-     * Also, this method can be used to add custom code with error message.
-     * 
-     * @param string $code A string that represent the error code. By default,
-     * the class has the following error codes pre-defined:
-     * <ul>
-     * <li>'401': 'Not Authorized.'</li>
-     * <li>'404-1': 'The following parameter(s) has invalid values: '</li>
-     * <li>'404-2': 'The following required parameter(s) where missing from the request body: '</li>
-     * <li>'404-3': 'Service name is not set.'</li>
-     * <li>'404-4': 'Service not implemented.'</li>
-     * <li>'404-5': 'Service not supported.'</li>
-     * <li>'404-6': 'Request methods of the service are not set in code.'</li>
-     * <li>'405': 'Method Not Allowed.'</li>
-     * <li>'415': 'Content type not supported.'</li>
-     * </ul>
-     * 
-     * @param string $msg A string that represents the error message.
-     */
-    public function setResponseMessage(string $code, string $msg) {
-        $this->responseMessages[$code] = $msg;
-    }
-    /**
      * Sets version number of the set.
      * 
      * @param string $val Version number (such as 1.0.0). Version number 
@@ -871,6 +818,7 @@ class WebServicesManager implements JsonI {
     }
     private function _AfterParamsCheck($processReq) {
         if ($processReq) {
+            
             $service = $this->getServiceByName($this->getCalledServiceName());
             $isAuth = !$service->isAuthRequired() || $service->isAuthorized() === null || $service->isAuthorized();
 
@@ -919,7 +867,7 @@ class WebServicesManager implements JsonI {
                         return true;
                     }
                 } else {
-                    $this->sendResponse($this->getResponseMessage('404-6'), self::E, 404);
+                    $this->sendResponse(ResponseMessages::get('404-6'), self::E, 404);
                 }
             } else {
                 $this->serviceNotSupported();
@@ -986,13 +934,13 @@ class WebServicesManager implements JsonI {
         $reqMeth = Request::getMethod();
         $contentType = Request::getContentType();
 
-        if ($reqMeth == 'GET' || 
-            $reqMeth == 'DELETE' || 
-            ($reqMeth == 'PUT' && $contentType != 'application/json') || 
-            $reqMeth == 'OPTIONS' || 
-            $reqMeth == 'PATCH') {
+        if ($reqMeth == RequestMethod::GET || 
+            $reqMeth == RequestMethod::DELETE || 
+            ($reqMeth == RequestMethod::PUT && $contentType != 'application/json') || 
+            $reqMeth == RequestMethod::HEAD || 
+            $reqMeth == RequestMethod::PATCH) {
             $this->filter->filterGET();
-        } else if ($reqMeth == 'POST' || ($reqMeth == 'PUT' && $contentType == 'application/json')) {
+        } else if ($reqMeth == RequestMethod::POST || ($reqMeth == RequestMethod::PUT && $contentType == 'application/json')) {
             $this->filter->filterPOST();
         }
     }
@@ -1037,12 +985,12 @@ class WebServicesManager implements JsonI {
         }
 
         foreach ($serviceIdx as $serviceNameIndex) {
-            if (($reqMeth == 'GET' || 
-               $reqMeth == 'DELETE' ||  
-               $reqMeth == 'OPTIONS' || 
-               $reqMeth == 'PATCH') && isset($_GET[$serviceNameIndex])) {
+            if (($reqMeth == RequestMethod::GET || 
+               $reqMeth == RequestMethod::DELETE ||  
+               $reqMeth == RequestMethod::OPTIONS || 
+               $reqMeth == RequestMethod::PATCH) && isset($_GET[$serviceNameIndex])) {
                 $retVal = filter_var($_GET[$serviceNameIndex]);
-            } else if (($reqMeth == 'POST' || $reqMeth == 'PUT') && isset($_POST[$serviceNameIndex])) {
+            } else if (($reqMeth == RequestMethod::POST || $reqMeth == RequestMethod::PUT) && isset($_POST[$serviceNameIndex])) {
                 $retVal = filter_var($_POST[$serviceNameIndex]);
             }
         }

@@ -40,37 +40,7 @@ abstract class AbstractWebService implements JsonI {
      * @since 1.0.2
      */
     const I = 'info';
-    /**
-     * An array that contains the names of request methods.
-     * 
-     * This array contains the following strings:
-     * <ul>
-     * <li>GET</li>
-     * <li>HEAD</li>
-     * <li>POST</li>
-     * <li>PUT</li>
-     * <li>DELETE</li>
-     * <li>TRACE</li>
-     * <li>OPTIONS</li>
-     * <li>PATCH</li>
-     * <li>CONNECT</li>
-     * </ul>
-     * 
-     * @var array An array that contains the names of request methods.
-     * 
-     * @since 1.0
-     */
-    const METHODS = [
-        'GET',
-        'HEAD',
-        'POST',
-        'PUT',
-        'DELETE',
-        'TRACE',
-        'OPTIONS',
-        'PATCH',
-        'CONNECT'
-    ];
+    
     /**
      * The name of the service.
      * 
@@ -342,7 +312,7 @@ abstract class AbstractWebService implements JsonI {
     public final function addRequestMethod(string $method) : bool {
         $uMethod = strtoupper(trim($method));
 
-        if (in_array($uMethod, self::METHODS) && !in_array($uMethod, $this->reqMethods)) {
+        if (in_array($uMethod, RequestMethod::getAll()) && !in_array($uMethod, $this->reqMethods)) {
             $this->reqMethods[] = $uMethod;
 
             return true;
