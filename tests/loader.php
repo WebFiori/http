@@ -63,6 +63,8 @@ require_once $rootDir.'webfiori'.$DS.'http'.$DS.'Uri.php';
 require_once $rootDir.'webfiori'.$DS.'http'.$DS.'Request.php';
 require_once $rootDir.'webfiori'.$DS.'http'.$DS.'Response.php';
 require_once $rootDir.'webfiori'.$DS.'http'.$DS.'ObjectMapper.php';
+require_once $rootDir.'webfiori'.$DS.'http'.$DS.'RequestMethod.php';
+require_once $rootDir.'webfiori'.$DS.'http'.$DS.'ResponseMessage.php';
 
 require_once $rootDir.'tests'.$DS.'webfiori'.$DS.'tests'.$DS.'http'.$DS.'testServices'.$DS.'TestServiceObj.php';
 require_once $rootDir.'tests'.$DS.'webfiori'.$DS.'tests'.$DS.'http'.$DS.'testServices'.$DS.'SampleServicesManager.php';

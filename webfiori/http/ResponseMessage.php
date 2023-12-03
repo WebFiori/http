@@ -19,16 +19,16 @@ namespace webfiori\http;
  * 
  * @author Ibrahim
  */
-class ResponseMessages {
+class ResponseMessage {
     private $messages;
     private static $inst;
     /**
      * 
-     * @return ResponseMessages
+     * @return ResponseMessage
      */
-    private static function getInstance() : ResponseMessages {
+    private static function getInstance() : ResponseMessage {
         if (self::$inst === null) {
-            self::$inst = new ResponseMessages();
+            self::$inst = new ResponseMessage();
         }
         return self::$inst;
     }
@@ -67,7 +67,13 @@ class ResponseMessages {
      * return it. Other than that, the string '-' is returned.
      */
     public static function get(string $code) : string {
-        return isset(self::getInstance()->messages[trim($code)]) ?? '-';
+        $tr = trim($code);
+        
+        if (isset(self::getInstance()->messages[$tr])) {
+            return self::getInstance()->messages[$tr];
+        }
+        
+        return '-';
     }
     private function __construct() {
         $this->messages = [

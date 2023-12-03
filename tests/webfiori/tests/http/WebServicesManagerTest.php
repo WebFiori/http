@@ -4,7 +4,7 @@ namespace webfiori\tests\http;
 use PHPUnit\Framework\TestCase;
 use webfiori\http\AbstractWebService;
 use webfiori\http\Request;
-use webfiori\http\ResponseMessages;
+use webfiori\http\ResponseMessage;
 use webfiori\http\WebServicesManager;
 use webfiori\json\Json;
 use webfiori\tests\http\testServices\NoAuthService;
@@ -395,7 +395,7 @@ class WebServicesManagerTest extends TestCase {
         $_POST['numbers'] = '[1,2,"as",1.9,\'hello\',10]';
         $_POST['pass'] = '1234';
         $api = new SampleServicesManager();
-        ResponseMessages::set('401', 'Your password is inncorrect.');
+        ResponseMessage::set('401', 'Your password is inncorrect.');
         $api->setOutputStream($this->outputStreamName);
         $api->process();
         $this->assertEquals('{"message":"Your password is inncorrect.","type":"error","http-code":401}', $api->readOutputStream());
