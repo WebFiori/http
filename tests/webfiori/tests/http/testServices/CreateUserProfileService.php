@@ -2,9 +2,12 @@
 
 namespace webfiori\tests\http\testServices;
 
+use Exception;
+use webfiori\http\ParamOption;
+use webfiori\http\ParamTypes;
+use webfiori\http\RequestMethod;
 use webfiori\http\RequestParameter;
 use webfiori\json\Json;
-use Exception;
 /**
  * Description of CreateUserProfileService
  *
@@ -13,20 +16,20 @@ use Exception;
 class CreateUserProfileService extends AbstractNumbersService {
     public function __construct() {
         parent::__construct('create-user-profile');
-        $this->addRequestMethod('post');
+        $this->addRequestMethod(RequestMethod::POST);
         $this->addParameter(new RequestParameter('id', 'integer'));
         $this->getParameterByName('id')->setIsOptional(true);
         $this->addParameters([
             'name' => [
-                'type' => 'string'
+                ParamOption::TYPE => ParamTypes::STRING
             ],
             'username' => [
-                'type' => 'string'
+                ParamOption::TYPE => ParamTypes::STRING
             ],
             'x' => [
-                'type' => 'int',
-                'optional' => true,
-                'default' => 3
+                ParamOption::TYPE => ParamTypes::INT,
+                ParamOption::OPTIONAL => true,
+                ParamOption::DEFAULT => 3
             ]
         ]);
     }

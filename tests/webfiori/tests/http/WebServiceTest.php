@@ -2,9 +2,12 @@
 namespace webfiori\tests\http;
 
 use PHPUnit\Framework\TestCase;
-use webfiori\tests\http\testServices\TestServiceObj;
+use webfiori\http\ParamOption;
+use webfiori\http\ParamTypes;
+use webfiori\http\RequestMethod;
 use webfiori\http\RequestParameter;
 use webfiori\tests\http\testServices\NoAuthService;
+use webfiori\tests\http\testServices\TestServiceObj;
 
 class WebServiceTest extends TestCase {
     /**
@@ -71,8 +74,8 @@ class WebServiceTest extends TestCase {
     public function testAddParameter01() {
         $action = new TestServiceObj('add-user');
         $this->assertTrue($action->addParameter([
-            'name' => 'new-param',
-            'type' => 'boolean'
+            ParamOption::NAME => 'new-param',
+            ParamOption::TYPE => ParamTypes::BOOL
         ]));
         
         $this->assertEquals(1,count($action->getParameters()));
@@ -111,9 +114,9 @@ class WebServiceTest extends TestCase {
         $action->addParameters([
             new RequestParameter('username'),
             'password' => [
-                'optional' => true,
-                'default' => 1234,
-                'type' => 'integer'
+                ParamOption::OPTIONAL => true,
+                ParamOption::DEFAULT => 1234,
+                ParamOption::TYPE => 'integer'
             ]
         ]);
         $this->assertEquals(2,count($action->getParameters()));
@@ -273,9 +276,8 @@ class WebServiceTest extends TestCase {
                 .'"request-methods":[],'
                 .'"parameters":[],'
                 .'"responses":[]}',$action->toJSON().'');
-        $action->addRequestMethod('get');
-        $action->addRequestMethod('put');
-        $action->addRequestMethod('post');
+        $action->setRequestMethods([RequestMethod::GET, RequestMethod::POST, RequestMethod::PUT]);
+
         $this->assertEquals(''
                 .'{"name":"login",'
                 .'"since":"1.0.1",'
@@ -337,7 +339,7 @@ class WebServiceTest extends TestCase {
      */
     public function testToString00() {
         $action = new TestServiceObj('get-user');
-        $action->addRequestMethod('get');
+        $action->addRequestMethod(RequestMethod::GET);
         $action->addParameter(new RequestParameter('user-id', 'integer'));
         $action->getParameterByName('user-id')->setDescription('The ID of the user.');
         $action->setDescription('Returns a JSON string which holds user profile info.');
@@ -367,8 +369,7 @@ class WebServiceTest extends TestCase {
      */
     public function testToString01() {
         $action = new TestServiceObj('add-user');
-        $action->addRequestMethod('post');
-        $action->addRequestMethod('put');
+        $action->setRequestMethods([RequestMethod::POST, RequestMethod::PUT]);
         $action->addParameter(new RequestParameter('username'));
         $action->addParameter(new RequestParameter('email'));
         $action->getParameterByName('username')->setDescription('The username of the user.');

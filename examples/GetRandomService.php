@@ -8,8 +8,7 @@ use webfiori\http\RequestParameter;
 class GetRandomService extends AbstractWebService {
     public function __construct() {
         parent::__construct('get-random-number');
-        $this->addRequestMethod('get');
-        $this->addRequestMethod('post');
+        $this->setRequestMethods(['get', 'post']);
 
         $this->addParameter(new RequestParameter('min', 'integer', true));
         $this->addParameter(new RequestParameter('max', 'integer', true));
