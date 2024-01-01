@@ -321,6 +321,16 @@ abstract class AbstractWebService implements JsonI {
         return false;
     }
     /**
+     * Adds multiple request methods as one group.
+     * 
+     * @param array $methods
+     */
+    public function setRequestMethods(array $methods) {
+        foreach ($methods as $m) {
+            $this->addRequestMethod($m);
+        }
+    }
+    /**
      * Adds response description.
      * 
      * It is used to describe the API for front-end developers and help them 

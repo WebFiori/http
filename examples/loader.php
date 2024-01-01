@@ -14,5 +14,6 @@ require_once '../src/WebServicesManager.php';
 require_once '../src/RequestParameter.php';
 require_once '../src/Request.php';
 require_once '../src/Response.php';
+require_once '../src/ParamOption.php';
 require_once '../src/Uri.php';
 require_once 'GetRandomService.php';

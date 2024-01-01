@@ -1,9 +1,12 @@
 <?php
 namespace webfiori\tests\http;
 
+use Exception;
 use PHPUnit\Framework\TestCase;
-use webfiori\http\RequestParameter;
 use webfiori\http\APIFilter;
+use webfiori\http\ParamOption;
+use webfiori\http\ParamTypes;
+use webfiori\http\RequestParameter;
 /**
  * Description of RequestParameterTest
  *
@@ -32,8 +35,8 @@ class RequestParameterTest extends TestCase {
      */
     public function testCreateParameter02() {
         $param = RequestParameter::create([
-            'name'=>'hello',
-            'type' => 'integer',
+            ParamOption::NAME =>'hello',
+            ParamOption::TYPE => 'integer',
             'min' => 33,
             'max' => 100,
             'custom-filter' => function ($original, $basicFilterResult, $param) {
@@ -55,10 +58,10 @@ class RequestParameterTest extends TestCase {
     public function testCreateParameter03() {
         $param = RequestParameter::create([
             'name'=>'ok',
-            'type' => 'string',
-            'default' => 'Ibrahim',
-            'allow-empty' => true,
-            'description' => 'Super param.'
+            ParamOption::TYPE => ParamTypes::STRING,
+            ParamOption::DEFAULT => 'Ibrahim',
+            ParamOption::EMPTY => true,
+            ParamOption::DESCRIPTION => 'Super param.'
         ]);
         $this->assertNotNull($param);
         $this->assertEquals('ok', $param->getName());
@@ -73,9 +76,9 @@ class RequestParameterTest extends TestCase {
     public function testCreateParameter04() {
         $param = RequestParameter::create([
             'name'=>'ok',
-            'type' => 'int',
-            'default' => 44,
-            'description' => 'Super param.'
+            ParamOption::TYPE => 'int',
+            ParamOption::DEFAULT => 44,
+            ParamOption::DESCRIPTION => 'Super param.'
         ]);
         $this->assertNotNull($param);
         $this->assertEquals('ok', $param->getName());
@@ -234,7 +237,7 @@ class RequestParameterTest extends TestCase {
         $this->assertEquals('A string.',$rp->getDefault());
         $this->assertFalse($rp->setDefault(44.99));
         $this->assertFalse($rp->setDefault([]));
-        $this->assertFalse($rp->setDefault(new \Exception()));
+        $this->assertFalse($rp->setDefault(new Exception()));
         $this->assertFalse($rp->setDefault(null));
         $this->assertFalse($rp->setDefault(false));
     }
@@ -249,7 +252,7 @@ class RequestParameterTest extends TestCase {
         $this->assertEquals('A string.',$rp->getDefault());
         $this->assertFalse($rp->setDefault(44.99));
         $this->assertFalse($rp->setDefault([]));
-        $this->assertFalse($rp->setDefault(new \Exception()));
+        $this->assertFalse($rp->setDefault(new Exception()));
         $this->assertFalse($rp->setDefault(null));
         $this->assertFalse($rp->setDefault(false));
     }
@@ -264,7 +267,7 @@ class RequestParameterTest extends TestCase {
         $this->assertEquals('A string.',$rp->getDefault());
         $this->assertFalse($rp->setDefault(44.99));
         $this->assertFalse($rp->setDefault([]));
-        $this->assertFalse($rp->setDefault(new \Exception()));
+        $this->assertFalse($rp->setDefault(new Exception()));
         $this->assertFalse($rp->setDefault(null));
         $this->assertFalse($rp->setDefault(false));
     }
@@ -278,7 +281,7 @@ class RequestParameterTest extends TestCase {
         $this->assertEquals(44,$rp->getDefault());
         $this->assertFalse($rp->setDefault(44.99));
         $this->assertFalse($rp->setDefault([]));
-        $this->assertFalse($rp->setDefault(new \Exception()));
+        $this->assertFalse($rp->setDefault(new Exception()));
         $this->assertFalse($rp->setDefault(null));
         $this->assertFalse($rp->setDefault(false));
     }
@@ -291,7 +294,7 @@ class RequestParameterTest extends TestCase {
         $this->assertTrue($rp->setDefault(44));
         $this->assertTrue($rp->setDefault(44.99));
         $this->assertFalse($rp->setDefault([]));
-        $this->assertFalse($rp->setDefault(new \Exception()));
+        $this->assertFalse($rp->setDefault(new Exception()));
         $this->assertFalse($rp->setDefault(null));
         $this->assertFalse($rp->setDefault(false));
     }
@@ -304,7 +307,7 @@ class RequestParameterTest extends TestCase {
         $this->assertFalse($rp->setDefault(44));
         $this->assertFalse($rp->setDefault(44.99));
         $this->assertFalse($rp->setDefault([]));
-        $this->assertFalse($rp->setDefault(new \Exception()));
+        $this->assertFalse($rp->setDefault(new Exception()));
         $this->assertFalse($rp->setDefault(null));
         $this->assertTrue($rp->setDefault(false));
     }
@@ -317,7 +320,7 @@ class RequestParameterTest extends TestCase {
         $this->assertFalse($rp->setDefault(44));
         $this->assertFalse($rp->setDefault(44.99));
         $this->assertTrue($rp->setDefault([]));
-        $this->assertFalse($rp->setDefault(new \Exception()));
+        $this->assertFalse($rp->setDefault(new Exception()));
         $this->assertFalse($rp->setDefault(null));
         $this->assertFalse($rp->setDefault(false));
     }

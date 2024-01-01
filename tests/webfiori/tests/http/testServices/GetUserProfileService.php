@@ -2,6 +2,7 @@
 
 namespace webfiori\tests\http\testServices;
 
+use webfiori\http\RequestMethod;
 use webfiori\http\RequestParameter;
 use webfiori\json\Json;
 /**
@@ -12,7 +13,7 @@ use webfiori\json\Json;
 class GetUserProfileService extends AbstractNumbersService {
     public function __construct() {
         parent::__construct('get-user-profile');
-        $this->addRequestMethod('post');
+        $this->addRequestMethod(RequestMethod::POST);
         $this->setDescription('Returns a JSON string that has user profile info.');
         $this->addParameter(new RequestParameter('user-id', 'integer'));
     }

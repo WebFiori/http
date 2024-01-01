@@ -31,15 +31,14 @@ abstract class ManagerInfoService extends AbstractWebService {
                 .'needed information about all end points which are registered '
                 .'under given manager.');
         $this->addParameter([
-            'name' => 'version',
-            'type' => 'string',
-            'optional' => true,
-            'description' => 'Optional parameter. '
+            ParamOption::NAME => 'version',
+            ParamOption::TYPE => ParamTypes::STRING,
+            ParamOption::OPTIONAL => true,
+            ParamOption::DESCRIPTION => 'Optional parameter. '
                 .'If set, the information that will be returned will be specific '
                 .'to the given version number.'
         ]);
-        $this->addRequestMethod('get');
-        $this->addRequestMethod('post');
+        $this->setRequestMethods(RequestMethod::GET, RequestMethod::POST);
     }
     /**
      * Sends back JSON response that contains information about the services 
