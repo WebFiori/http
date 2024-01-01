@@ -282,7 +282,7 @@ class WebServiceTest extends TestCase {
                 .'{"name":"login",'
                 .'"since":"1.0.1",'
                 .'"description":"Allow the user to login to the system.",'
-                .'"request-methods":["GET","PUT","POST"],'
+                .'"request-methods":["GET","POST","PUT"],'
                 .'"parameters":[],'
                 .'"responses":[]}',$action->toJSON().'');
         $action->removeRequestMethod('put');
