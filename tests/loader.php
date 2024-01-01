@@ -54,6 +54,7 @@ require_once $rootDir.'webfiori'.$DS.'http'.$DS.'HttpHeader.php';
 require_once $rootDir.'webfiori'.$DS.'http'.$DS.'HttpCookie.php';
 require_once $rootDir.'webfiori'.$DS.'http'.$DS.'HeadersPool.php';
 require_once $rootDir.'webfiori'.$DS.'http'.$DS.'ParamTypes.php';
+require_once $rootDir.'webfiori'.$DS.'http'.$DS.'ParamOption.php';
 require_once $rootDir.'webfiori'.$DS.'http'.$DS.'AbstractWebService.php';
 require_once $rootDir.'webfiori'.$DS.'http'.$DS.'APIFilter.php';
 require_once $rootDir.'webfiori'.$DS.'http'.$DS.'RequestParameter.php';
