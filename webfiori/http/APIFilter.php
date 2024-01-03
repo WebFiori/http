@@ -82,21 +82,21 @@ class APIFilter {
         }
         $paramType = $reqParam->getType();
 
-        if ($paramType == ParamTypes::INT) {
+        if ($paramType == ParamType::INT) {
             $attribute[$filterIdx][] = FILTER_VALIDATE_INT;
             $this->checkNumericRange($reqParam, $attribute);
-        } else if ($paramType == ParamTypes::STRING) {
+        } else if ($paramType == ParamType::STRING) {
             $attribute[$optIdx][$optIdx]['allow-empty'] = $reqParam->isEmptyStringAllowed();
             $attribute[$filterIdx][] = FILTER_DEFAULT;
             $this->checkStringLength($reqParam, $attribute);
-        } else if ($paramType == ParamTypes::DOUBLE) {
+        } else if ($paramType == ParamType::DOUBLE) {
             $attribute[$filterIdx][] = FILTER_VALIDATE_FLOAT;
             $this->checkNumericRange($reqParam, $attribute);
-        } else if ($paramType == ParamTypes::EMAIL) {
+        } else if ($paramType == ParamType::EMAIL) {
             $attribute[$filterIdx][] = FILTER_SANITIZE_EMAIL;
             $attribute[$filterIdx][] = FILTER_VALIDATE_EMAIL;
             $this->checkStringLength($reqParam, $attribute);
-        } else if ($paramType == ParamTypes::URL) {
+        } else if ($paramType == ParamType::URL) {
             $attribute[$filterIdx][] = FILTER_SANITIZE_URL;
             $attribute[$filterIdx][] = FILTER_VALIDATE_URL;
             $this->checkStringLength($reqParam, $attribute);
@@ -176,7 +176,7 @@ class APIFilter {
                 } else {
                     $retVal[$filteredIdx][$name] = self::applyBasicFilterOnly($def, $toBeFiltered);
                 }
-                $booleanCheck = $paramType == ParamTypes::BOOL && $retVal[$filteredIdx][$name] === true || $retVal[$filteredIdx][$name] === false;
+                $booleanCheck = $paramType == ParamType::BOOL && $retVal[$filteredIdx][$name] === true || $retVal[$filteredIdx][$name] === false;
 
                 if (!$booleanCheck && $retVal[$filteredIdx][$name] == self::INVALID && $defaultVal !== null) {
                     $retVal[$filteredIdx][$name] = $defaultVal;
@@ -347,9 +347,9 @@ class APIFilter {
         $paramType = $paramObj->getType();
         $optIdx = 'options'; 
 
-        if ($paramType == ParamTypes::BOOL) {
+        if ($paramType == ParamType::BOOL) {
             $returnVal = self::filterBoolean($toBeFiltered);
-        } else if ($paramType == ParamTypes::ARR) {
+        } else if ($paramType == ParamType::ARR) {
             $returnVal = self::filterArray(filter_var($toBeFiltered));
         } else {
             $returnVal = filter_var($toBeFiltered);
@@ -357,22 +357,22 @@ class APIFilter {
             foreach ($def['filters'] as $val) {
                 $returnVal = filter_var($returnVal, $val, $def[$optIdx]);
 
-                if ($paramType == ParamTypes::DOUBLE) {
+                if ($paramType == ParamType::DOUBLE) {
                     $returnVal = self::minMaxValueCheck($returnVal, $def['options']['options']);
                 }
 
-                if (in_array($paramType, ParamTypes::getStringTypes())) {
+                if (in_array($paramType, ParamType::getStringTypes())) {
                     $returnVal = self::minMaxLengthCheck($returnVal, $def['options']['options']);
                 }
             }
 
             if ($returnVal === false || 
-            (($paramType == ParamTypes::URL || $paramType == ParamTypes::EMAIL) && strlen($returnVal) == 0) || 
-            (($paramType == ParamTypes::INT || $paramType == ParamTypes::DOUBLE) && strlen($returnVal) == 0)) {
+            (($paramType == ParamType::URL || $paramType == ParamType::EMAIL) && strlen($returnVal) == 0) || 
+            (($paramType == ParamType::INT || $paramType == ParamType::DOUBLE) && strlen($returnVal) == 0)) {
                 $returnVal = self::INVALID;
             }
 
-            if ($paramType == ParamTypes::STRING &&
+            if ($paramType == ParamType::STRING &&
             $returnVal != self::INVALID &&
             strlen($returnVal) == 0 && 
             $def['options']['options']['allow-empty'] === false) {
@@ -401,7 +401,7 @@ class APIFilter {
             $returnVal = $filterFuncResult;
         }
 
-        if ($returnVal === false && $paramObj->getType() != ParamTypes::BOOL) {
+        if ($returnVal === false && $paramObj->getType() != ParamType::BOOL) {
             $returnVal = self::INVALID;
         }
 
@@ -417,16 +417,16 @@ class APIFilter {
             $toBeFiltered = strip_tags($toBeFiltered);
         }
 
-        if ($paramType == $toBeFilteredType || $toBeFilteredType == 'object' && $paramType == ParamTypes::JSON_OBJ) {
-            if ($paramType == ParamTypes::BOOL) {
+        if ($paramType == $toBeFilteredType || $toBeFilteredType == 'object' && $paramType == ParamType::JSON_OBJ) {
+            if ($paramType == ParamType::BOOL) {
                 $extraClean->addBoolean($name, $toBeFiltered);
-            } else if ($paramType == ParamTypes::DOUBLE || $paramType == ParamTypes::INT) {
+            } else if ($paramType == ParamType::DOUBLE || $paramType == ParamType::INT) {
                 $extraClean->addNumber($name, $toBeFiltered);
             } else if ($paramType == 'string') {
                 $this->cleanJsonStr($extraClean, $def, $toBeFiltered);
-            } else if ($paramType == ParamTypes::ARR) {
+            } else if ($paramType == ParamType::ARR) {
                 $extraClean->addArray($name, $this->cleanJsonArray($toBeFiltered, true));
-            } else if ($paramType == ParamTypes::JSON_OBJ) {
+            } else if ($paramType == ParamType::JSON_OBJ) {
                 if ($toBeFiltered instanceof Json) {
                     $extraClean->add($name, $toBeFiltered);
                 } else {
@@ -607,7 +607,7 @@ class APIFilter {
 
                         if ($result['parsed'] === true) {
                             $x = $result['end'];
-                            $arrayValues[] = filter_var(strip_tags($result[ParamTypes::STRING]));
+                            $arrayValues[] = filter_var(strip_tags($result[ParamType::STRING]));
                             $tmpArrValue = '';
                             continue;
                         } else {
@@ -709,7 +709,7 @@ class APIFilter {
                 if (isset($def[$optIdx]['filter-func'])) {
                     $filteredValue = self::applyCustomFilterFunc($def, $toBeFiltered);
 
-                    if ($paramType == ParamTypes::STRING &&
+                    if ($paramType == ParamType::STRING &&
                         $filteredValue != self::INVALID &&
                         strlen($filteredValue) == 0 && 
                         $def[$optIdx][$optIdx]['allow-empty'] === false) {
@@ -736,9 +736,9 @@ class APIFilter {
         }
         $paramType = $def['parameter']->getType();
 
-        if ($paramType == ParamTypes::BOOL) {
+        if ($paramType == ParamType::BOOL) {
             $filteredValue = self::filterBoolean(filter_var($toBeFiltered));
-        } else if ($paramType == ParamTypes::ARR) {
+        } else if ($paramType == ParamType::ARR) {
             $filteredValue = self::filterArray($toBeFiltered);
         } else {
             $filteredValue = filter_var($toBeFiltered);
@@ -746,11 +746,11 @@ class APIFilter {
             foreach ($def['filters'] as $val) {
                 $filteredValue = filter_var($filteredValue, $val, $def['options']);
 
-                if ($paramType == ParamTypes::DOUBLE) {
+                if ($paramType == ParamType::DOUBLE) {
                     $filteredValue = self::minMaxValueCheck($filteredValue, $def['options']['options']);
                 }
 
-                if (in_array($paramType, ParamTypes::getStringTypes())) {
+                if (in_array($paramType, ParamType::getStringTypes())) {
                     $filteredValue = self::minMaxLengthCheck($filteredValue, $def['options']['options']);
                 }
             }
@@ -759,7 +759,7 @@ class APIFilter {
                 $filteredValue = self::INVALID;
             }
 
-            if ($paramType == ParamTypes::STRING &&
+            if ($paramType == ParamType::STRING &&
             $filteredValue != self::INVALID &&
             strlen($filteredValue) == 0 && 
             $def['options']['options']['allow-empty'] === false) {

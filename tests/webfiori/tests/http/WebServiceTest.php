@@ -3,7 +3,7 @@ namespace webfiori\tests\http;
 
 use PHPUnit\Framework\TestCase;
 use webfiori\http\ParamOption;
-use webfiori\http\ParamTypes;
+use webfiori\http\ParamType;
 use webfiori\http\RequestMethod;
 use webfiori\http\RequestParameter;
 use webfiori\tests\http\testServices\NoAuthService;
@@ -75,7 +75,7 @@ class WebServiceTest extends TestCase {
         $action = new TestServiceObj('add-user');
         $this->assertTrue($action->addParameter([
             ParamOption::NAME => 'new-param',
-            ParamOption::TYPE => ParamTypes::BOOL
+            ParamOption::TYPE => ParamType::BOOL
         ]));
         
         $this->assertEquals(1,count($action->getParameters()));
