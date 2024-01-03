@@ -4,7 +4,7 @@ namespace webfiori\tests\http\testServices;
 
 use Exception;
 use webfiori\http\ParamOption;
-use webfiori\http\ParamTypes;
+use webfiori\http\ParamType;
 use webfiori\http\RequestMethod;
 use webfiori\http\RequestParameter;
 use webfiori\json\Json;
@@ -21,13 +21,13 @@ class CreateUserProfileService extends AbstractNumbersService {
         $this->getParameterByName('id')->setIsOptional(true);
         $this->addParameters([
             'name' => [
-                ParamOption::TYPE => ParamTypes::STRING
+                ParamOption::TYPE => ParamType::STRING
             ],
             'username' => [
-                ParamOption::TYPE => ParamTypes::STRING
+                ParamOption::TYPE => ParamType::STRING
             ],
             'x' => [
-                ParamOption::TYPE => ParamTypes::INT,
+                ParamOption::TYPE => ParamType::INT,
                 ParamOption::OPTIONAL => true,
                 ParamOption::DEFAULT => 3
             ]

@@ -32,7 +32,7 @@ abstract class ManagerInfoService extends AbstractWebService {
                 .'under given manager.');
         $this->addParameter([
             ParamOption::NAME => 'version',
-            ParamOption::TYPE => ParamTypes::STRING,
+            ParamOption::TYPE => ParamType::STRING,
             ParamOption::OPTIONAL => true,
             ParamOption::DESCRIPTION => 'Optional parameter. '
                 .'If set, the information that will be returned will be specific '

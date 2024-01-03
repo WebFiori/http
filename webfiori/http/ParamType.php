@@ -18,7 +18,7 @@ namespace webfiori\http;
  * 
  * @since 1.5.2
  */
-class ParamTypes {
+class ParamType {
     /**
      * A constant to indicate that a parameter is of type array.
      * 

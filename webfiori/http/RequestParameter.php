@@ -451,9 +451,9 @@ class RequestParameter implements JsonI {
         $RPType = $this->getType();
 
         if ($valType == $RPType || 
-           ($valType == 'integer' && $RPType == ParamTypes::DOUBLE) ||
-           ($valType == 'double' && $RPType == ParamTypes::DOUBLE) ||
-           (($RPType == ParamTypes::EMAIL || $RPType == ParamTypes::URL) && $valType == ParamTypes::STRING) || 
+           ($valType == 'integer' && $RPType == ParamType::DOUBLE) ||
+           ($valType == 'double' && $RPType == ParamType::DOUBLE) ||
+           (($RPType == ParamType::EMAIL || $RPType == ParamType::URL) && $valType == ParamType::STRING) || 
            ($val instanceof Json && $RPType == 'json-obj')) {
             $this->default = $val;
 
@@ -490,7 +490,7 @@ class RequestParameter implements JsonI {
      * @since 1.2.1
      */
     public function setIsEmptyStringAllowed(bool $bool) : bool {
-        if ($this->getType() == ParamTypes::STRING) {
+        if ($this->getType() == ParamType::STRING) {
             //in php 5.6, primitive type hinting is not allowed.
             //this will resolve the issue.
             $this->isEmptyStrAllowed = $bool;
@@ -529,7 +529,7 @@ class RequestParameter implements JsonI {
     public function setMaxLength(int $val) : bool {
         $type = $this->getType();
 
-        if (in_array($type, ParamTypes::getStringTypes())) {
+        if (in_array($type, ParamType::getStringTypes())) {
             $min = $this->getMinLength() === null ? 0 : $this->getMinLength();
 
             if ($val >= $min && $val > 0) {
@@ -561,11 +561,11 @@ class RequestParameter implements JsonI {
     public function setMaxValue(float $val) : bool {
         $type = $this->getType();
 
-        if (in_array($type, ParamTypes::getNumericTypes())) {
+        if (in_array($type, ParamType::getNumericTypes())) {
             $min = $this->getMinValue();
 
             if ($min !== null && $val > $min) {
-                $this->maxVal = $type === ParamTypes::INT ? intval($val) : $val;
+                $this->maxVal = $type === ParamType::INT ? intval($val) : $val;
 
                 return true;
             }
@@ -592,7 +592,7 @@ class RequestParameter implements JsonI {
     public function setMinLength(int $val) : bool {
         $type = $this->getType();
 
-        if (in_array($type, ParamTypes::getStringTypes())) {
+        if (in_array($type, ParamType::getStringTypes())) {
             $max = $this->getMaxLength() === null ? PHP_INT_MAX : $this->getMaxLength();
 
             if ($val <= $max && $val > 0) {
@@ -623,11 +623,11 @@ class RequestParameter implements JsonI {
     public function setMinValue(float $val) : bool {
         $type = $this->getType();
 
-        if (in_array($type, ParamTypes::getNumericTypes())) {
+        if (in_array($type, ParamType::getNumericTypes())) {
             $max = $this->getMaxValue();
 
             if ($max !== null && $val < $max) {
-                $this->minVal = $type == ParamTypes::INT ? intval($val) : $val;
+                $this->minVal = $type == ParamType::INT ? intval($val) : $val;
 
                 return true;
             }
@@ -683,13 +683,13 @@ class RequestParameter implements JsonI {
             $sType = 'integer';
         }
 
-        if (in_array($sType, ParamTypes::getTypes())) {
+        if (in_array($sType, ParamType::getTypes())) {
             $this->type = $sType;
 
-            if ($sType == ParamTypes::DOUBLE && PHP_MAJOR_VERSION >= 7 && PHP_MINOR_VERSION >= 2) {
+            if ($sType == ParamType::DOUBLE && PHP_MAJOR_VERSION >= 7 && PHP_MINOR_VERSION >= 2) {
                 $this->maxVal = PHP_FLOAT_MAX;
                 $this->minVal = PHP_FLOAT_MIN;
-            } else if ($sType == ParamTypes::INT || $sType == ParamTypes::DOUBLE) {
+            } else if ($sType == ParamType::INT || $sType == ParamType::DOUBLE) {
                 $this->minVal = defined('PHP_INT_MIN') ? PHP_INT_MIN : ~PHP_INT_MAX;
                 $this->maxVal = PHP_INT_MAX;
             } else {

@@ -5,7 +5,7 @@ use Exception;
 use PHPUnit\Framework\TestCase;
 use webfiori\http\APIFilter;
 use webfiori\http\ParamOption;
-use webfiori\http\ParamTypes;
+use webfiori\http\ParamType;
 use webfiori\http\RequestParameter;
 /**
  * Description of RequestParameterTest
@@ -58,7 +58,7 @@ class RequestParameterTest extends TestCase {
     public function testCreateParameter03() {
         $param = RequestParameter::create([
             'name'=>'ok',
-            ParamOption::TYPE => ParamTypes::STRING,
+            ParamOption::TYPE => ParamType::STRING,
             ParamOption::DEFAULT => 'Ibrahim',
             ParamOption::EMPTY => true,
             ParamOption::DESCRIPTION => 'Super param.'
