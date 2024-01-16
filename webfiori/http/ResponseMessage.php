@@ -1,5 +1,4 @@
 <?php
-
 namespace webfiori\http;
 
 /**
@@ -20,17 +19,37 @@ namespace webfiori\http;
  * @author Ibrahim
  */
 class ResponseMessage {
-    private $messages;
     private static $inst;
+    private $messages;
+    private function __construct() {
+        $this->messages = [
+            '401' => 'Not Authorized.',
+            '404-1' => 'The following parameter(s) has invalid values: ',
+            '404-2' => 'The following required parameter(s) where missing from the request body: ',
+            '404-3' => 'Service name is not set.',
+            '404-4' => 'Service not implemented.',
+            '404-5' => 'Service not supported.',
+            '404-6' => 'Request methods of the service are not set in code.',
+            '405' => 'Method Not Allowed.',
+            '415' => 'Content type not supported.'
+        ];
+    }
     /**
+     * Returns the value of response message given its code.
      * 
-     * @return ResponseMessage
+     * @param string $code The code of the message such as 415.
+     * 
+     * @return string If the code has an error message set, the method will
+     * return it. Other than that, the string '-' is returned.
      */
-    private static function getInstance() : ResponseMessage {
-        if (self::$inst === null) {
-            self::$inst = new ResponseMessage();
+    public static function get(string $code) : string {
+        $tr = trim($code);
+
+        if (isset(self::getInstance()->messages[$tr])) {
+            return self::getInstance()->messages[$tr];
         }
-        return self::$inst;
+
+        return '-';
     }
     /**
      * Sets a custom HTTP response message for specific error code.
@@ -59,33 +78,14 @@ class ResponseMessage {
         self::getInstance()->messages[trim($code)] = $message;
     }
     /**
-     * Returns the value of response message given its code.
      * 
-     * @param string $code The code of the message such as 415.
-     * 
-     * @return string If the code has an error message set, the method will
-     * return it. Other than that, the string '-' is returned.
+     * @return ResponseMessage
      */
-    public static function get(string $code) : string {
-        $tr = trim($code);
-        
-        if (isset(self::getInstance()->messages[$tr])) {
-            return self::getInstance()->messages[$tr];
+    private static function getInstance() : ResponseMessage {
+        if (self::$inst === null) {
+            self::$inst = new ResponseMessage();
         }
-        
-        return '-';
-    }
-    private function __construct() {
-        $this->messages = [
-            '401' => 'Not Authorized.',
-            '404-1' => 'The following parameter(s) has invalid values: ',
-            '404-2' => 'The following required parameter(s) where missing from the request body: ',
-            '404-3' => 'Service name is not set.',
-            '404-4' => 'Service not implemented.',
-            '404-5' => 'Service not supported.',
-            '404-6' => 'Request methods of the service are not set in code.',
-            '405' => 'Method Not Allowed.',
-            '415' => 'Content type not supported.'
-        ];
+
+        return self::$inst;
     }
 }

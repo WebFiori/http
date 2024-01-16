@@ -40,7 +40,7 @@ abstract class AbstractWebService implements JsonI {
      * @since 1.0.2
      */
     const I = 'info';
-    
+
     /**
      * The name of the service.
      * 
@@ -319,16 +319,6 @@ abstract class AbstractWebService implements JsonI {
         }
 
         return false;
-    }
-    /**
-     * Adds multiple request methods as one group.
-     * 
-     * @param array $methods
-     */
-    public function setRequestMethods(array $methods) {
-        foreach ($methods as $m) {
-            $this->addRequestMethod($m);
-        }
     }
     /**
      * Adds response description.
@@ -814,6 +804,16 @@ abstract class AbstractWebService implements JsonI {
         }
 
         return false;
+    }
+    /**
+     * Adds multiple request methods as one group.
+     * 
+     * @param array $methods
+     */
+    public function setRequestMethods(array $methods) {
+        foreach ($methods as $m) {
+            $this->addRequestMethod($m);
+        }
     }
     /**
      * Sets version number or name at which the service was added to a manager.
