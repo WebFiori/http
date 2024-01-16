@@ -1,5 +1,4 @@
 <?php
-
 namespace webfiori\http;
 
 /**
@@ -9,11 +8,41 @@ namespace webfiori\http;
  */
 class RequestMethod {
     /**
+     * A constant which is used to represent 'connect' request method.
+     * 
+     * @var string
+     */
+    const CONNECT = 'CONNECT';
+    /**
+     * A constant which is used to represent 'delete' request method.
+     * 
+     * @var string
+     */
+    const DELETE = 'DELETE';
+    /**
      * A constant which is used to represent 'GET' request method.
      * 
      * @var string
      */
     const GET = 'GET';
+    /**
+     * A constant which is used to represent 'head' request method.
+     * 
+     * @var string
+     */
+    const HEAD = 'HEAD';
+    /**
+     * A constant which is used to represent 'options' request method.
+     * 
+     * @var string
+     */
+    const OPTIONS = 'OPTIONS';
+    /**
+     * A constant which is used to represent 'patch' request method.
+     * 
+     * @var string
+     */
+    const PATCH = 'PATCH';
     /**
      * A constant which is used to represent 'GET' request method.
      * 
@@ -27,41 +56,11 @@ class RequestMethod {
      */
     const PUT = 'PUT';
     /**
-     * A constant which is used to represent 'head' request method.
-     * 
-     * @var string
-     */
-    const HEAD = 'HEAD';
-    /**
-     * A constant which is used to represent 'patch' request method.
-     * 
-     * @var string
-     */
-    const PATCH = 'PATCH';
-    /**
-     * A constant which is used to represent 'delete' request method.
-     * 
-     * @var string
-     */
-    const DELETE = 'DELETE';
-    /**
      * A constant which is used to represent 'trace' request method.
      * 
      * @var string
      */
     const TRACE = 'TRACE';
-    /**
-     * A constant which is used to represent 'options' request method.
-     * 
-     * @var string
-     */
-    const OPTIONS = 'OPTIONS';
-    /**
-     * A constant which is used to represent 'connect' request method.
-     * 
-     * @var string
-     */
-    const CONNECT = 'CONNECT';
     /**
      * Returns an array that holds request methods in upper case.
      * 
