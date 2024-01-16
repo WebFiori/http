@@ -192,7 +192,7 @@ class RequestParameterTest extends TestCase {
         $this->assertFalse($requestParam->isEmptyStringAllowed());
         $this->assertTrue($requestParam->isOptional());
 
-        $this->assertEquals(defined('PHP_FLOAT_MAX') ? PHP_FLOAT_MAX : 1.7976931348623157E+308, $requestParam->getMaxValue());
+        $this->assertEquals(defined('PHP_FLOAT_MAX') ? PHP_FLOAT_MAX : 1.7976931348623E+308, $requestParam->getMaxValue());
         $this->assertEquals(defined('PHP_FLOAT_MIN') ? PHP_FLOAT_MIN : 2.2250738585072E-308,$requestParam->getMinValue());
         $this->assertNull($requestParam->getDefault());
         $this->assertNull($requestParam->getDescription());
