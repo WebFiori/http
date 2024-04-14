@@ -850,9 +850,11 @@ class WebServicesManager implements JsonI {
      */
     private function _checkAction(): bool {
         $serviceName = $this->getCalledServiceName();
+
         //first, check if action is set and not null
         if ($serviceName !== null) {
             $calledService = $this->getServiceByName($serviceName);
+
             //after that, check if action is supported by the API.
             if ($calledService !== null) {
                 $allowedMethods = $calledService->getRequestMethods();
