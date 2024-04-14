@@ -1,8 +1,8 @@
 <?php
 namespace webfiori\tests\http;
 
-use PHPUnit\Framework\TestCase;
 use webfiori\http\AbstractWebService;
+use webfiori\http\APITestCase;
 use webfiori\http\Request;
 use webfiori\http\ResponseMessage;
 use webfiori\http\WebServicesManager;
@@ -15,20 +15,12 @@ use webfiori\tests\http\testServices\SampleServicesManager;
  *
  * @author Eng.Ibrahim
  */
-class WebServicesManagerTest extends TestCase {
+class WebServicesManagerTest extends APITestCase {
     private $outputStreamName = __DIR__.DIRECTORY_SEPARATOR.'outputStream.txt';
-    /**
-     * @test
-     */
-
     public function test00() {
-        $this->clrearVars();
         $manager = new WebServicesManager();
         $manager->addService(new NoAuthService());
-        $_GET['service'] = 'ok-service';
-        $manager->setOutputStream(fopen($this->outputStreamName,'w'));
-        $manager->process();
-        $this->assertEquals('{"message":"You are authorized.","http-code":200}', $manager->readOutputStream());
+        $this->assertEquals('{"message":"You are authorized.","http-code":200}', $this->getRequest($manager, 'ok-service'));
         return $manager;
     }
     /**
@@ -36,15 +28,9 @@ class WebServicesManagerTest extends TestCase {
      */
 
     public function test01() {
-        $this->clrearVars();
-        putenv('REQUEST_METHOD=POST');
         $manager = new WebServicesManager();
         $manager->addService(new NotImplService());
-        $_SERVER['CONTENT_TYPE'] = 'multipart/form-data';
-        $_POST['service'] = 'not-implemented';
-        $manager->setOutputStream(fopen($this->outputStreamName,'w'));
-        $manager->process();
-        $this->assertEquals('{"message":"Service not implemented.","type":"error","http-code":404}', $manager->readOutputStream());
+        $this->assertEquals('{"message":"Service not implemented.","type":"error","http-code":404}', $this->postRequest($manager, 'not-implemented'));
         return $manager;
     }
     /**
@@ -179,14 +165,8 @@ class WebServicesManagerTest extends TestCase {
      * @test
      */
     public function testDoNothing00() {
-        $this->clrearVars();
-        putenv('REQUEST_METHOD=DELETE');
-        $_GET['action'] = 'do-nothing';
-        $_GET['pass'] = '123';
         $api = new SampleServicesManager();
-        $api->setOutputStream($this->outputStreamName);
-        $api->process();
-        $this->assertEquals('{"message":"Service not supported.","type":"error","http-code":404}', $api->readOutputStream());
+        $this->assertEquals('{"message":"Service not supported.","type":"error","http-code":404}', $this->getRequest($api, 'do-nothen'));
     }
     /**
      * @depends testSumTwoIntegers05
@@ -204,45 +184,35 @@ class WebServicesManagerTest extends TestCase {
      * @test
      */
     public function testGetUser00() {
-        $this->clrearVars();
-        putenv('REQUEST_METHOD=GET');
-        $_GET['action'] = 'get-user-profile';
-        $_GET['user-id'] = '-9';
-        $_GET['pass'] = '123';
         $api = new SampleServicesManager();
-        $api->setOutputStream($this->outputStreamName);
-        $api->process();
-        $this->assertEquals('{"message":"Method Not Allowed.","type":"error","http-code":405}', $api->readOutputStream());
+        $this->assertEquals('{"message":"Method Not Allowed.","type":"error","http-code":405}', $this->getRequest($api, 'get-user-profile', [
+            'user-id' => -9,
+            'pass' => '123'
+        ]));
     }
     /**
      * @test
      */
     public function testGetUser01() {
-        $this->clrearVars();
-        putenv('REQUEST_METHOD=POST');
         $_SERVER['CONTENT_TYPE'] = 'application/x-www-form-urlencoded';
-        $_POST['action'] = 'get-user-profile';
-        $_POST['user-id'] = '-9';
-        $_POST['pass'] = '123';
         $api = new SampleServicesManager();
-        $api->setOutputStream($this->outputStreamName);
-        $api->process();
-        $this->assertEquals('{"message":"Database Error.","type":"error","http-code":500}', $api->readOutputStream());
+        $this->assertEquals('{"message":"Database Error.","type":"error","http-code":500}', $this->postRequest($api, 'get-user-profile', [
+            'user-id' => -9,
+            'pass' => '123'
+        ]));
+
     }
     /**
      * @test
      */
     public function testGetUser02() {
-        $this->clrearVars();
-        putenv('REQUEST_METHOD=POST');
-        $_SERVER['CONTENT_TYPE'] = 'application/x-www-form-urlencoded';
-        $_POST['action'] = 'get-user-profile';
-        $_POST['user-id'] = '99';
-        $_POST['pass'] = '123';
         $api = new SampleServicesManager();
-        $api->setOutputStream($this->outputStreamName);
-        $api->process();
-        $this->assertEquals('{"user-name":"Ibrahim","bio":"A software engineer who is ready to help anyone in need."}', $api->readOutputStream());
+
+        $this->assertEquals('{"user-name":"Ibrahim","bio":"A software engineer who is ready to help anyone in need."}', $this->postRequest($api, 'get-user-profile', [
+            'user-id' => '99',
+            'pass' => '123'
+        ]));
+
     }
     /**
      * @test
