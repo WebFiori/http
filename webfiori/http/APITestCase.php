@@ -110,6 +110,14 @@ class APITestCase extends TestCase {
         return $this->callEndpoint($manager, RequestMethod::DELETE, $endpoint, $parameters);
     }
     /**
+     * Returns HTTP response code that will be sent by the call.
+     * 
+     * @return int An integer that represent HTTP response code.
+     */
+    public function getResponseCode() : int {
+        return Response::getCode();
+    }
+    /**
      * Sends a GET request to specific endpoint.
      * 
      * @param WebServicesManager $manager The manager which is used to manage the endpoint.
