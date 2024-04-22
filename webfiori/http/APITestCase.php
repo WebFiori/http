@@ -47,7 +47,7 @@ class APITestCase extends TestCase {
 
         $_FILES[$fileIdx]['name'][] = $info['name'];
         $_FILES[$fileIdx]['type'][] = mime_content_type($path);
-        $_FILES[$fileIdx]['size'][] = filesize($this->getAbsolutePath());
+        $_FILES[$fileIdx]['size'][] = filesize($path);
         $_FILES[$fileIdx]['tmp_name'][] = $path;
         $_FILES[$fileIdx]['error'][] = 0;
     }
