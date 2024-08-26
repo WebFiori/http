@@ -75,13 +75,13 @@ class APITestCase extends TestCase {
 
         if ($method == 'GET' || $method == 'DELETE') {
             foreach ($parameters as $key => $val) {
-                $_GET[$key] = $val;
+                $_GET[$key] = $this->parseVal($val);
             }
             $_GET['service'] = $apiEndpointName;
             $this->unset($_GET, $parameters, $manager);
         } else if ($method == 'POST' || $method == 'PUT') {
             foreach ($parameters as $key => $val) {
-                $_POST[$key] = $val;
+                $_POST[$key] = $this->parseVal($val);
             }
             $_POST['service'] = $apiEndpointName;
             $_SERVER['CONTENT_TYPE'] = 'multipart/form-data';
@@ -92,6 +92,26 @@ class APITestCase extends TestCase {
         unlink(self::OUTPUT_STREAM);
 
         return $retVal;
+    }
+    private function parseVal($val) {
+        $type = gettype($val);
+        
+        if ($type == 'array') {
+            $array = [];
+            
+            foreach ($val as $arrVal) {
+                if (gettype($val) == 'string') {
+                    $array[] = "'".$arrVal."'";
+                } else {
+                    $array[] = $arrVal;
+                }
+            }
+            
+            return implode(',', $array);
+        } else if ($type == 'boolean') {
+            return $type === true ? 'y' : 'n';
+        }
+        return $val;
     }
     /**
      * Sends a DELETE request to specific endpoint.
