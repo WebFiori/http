@@ -168,7 +168,11 @@ class APIFilter {
             $defaultVal = $def[$paramIdx]->getDefault();
 
             if (isset($arr[$name])) {
-                $toBeFiltered = urldecode($arr[$name]);
+                if (gettype($arr[$name]) != 'array') {
+                    $toBeFiltered = urldecode($arr[$name]);
+                } else {
+                    $toBeFiltered = self::decodeArray($arr[$name]);
+                }
                 $retVal[$noFIdx][$name] = $toBeFiltered;
 
                 if (isset($def[$optIdx]['filter-func'])) {
@@ -192,6 +196,17 @@ class APIFilter {
             }
         }
 
+        return $retVal;
+    }
+    private static function decodeArray(array $array) {
+        $retVal = [];
+        foreach ($array as $arrEl) {
+            if (gettype($arrEl) == 'array') {
+                $retVal[] = self::decodeArray($arrEl);
+            } else {
+                $retVal[] = urldecode($arrEl.'');
+            }
+        }
         return $retVal;
     }
     /**
@@ -341,6 +356,9 @@ class APIFilter {
         return false;
     }
     private static function applyBasicFilterOnly($def,$toBeFiltered) {
+        if (gettype($toBeFiltered) == 'array') {
+            return $toBeFiltered;
+        }
         $toBeFiltered = strip_tags($toBeFiltered);
 
         $paramObj = $def['parameter'];
