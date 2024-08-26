@@ -61,6 +61,8 @@ class APITestCase extends TestCase {
      * method such as 'get' or 'post'.
      * 
      * @param string $apiEndpointName The name of the endpoint that will be called such as 'add-user'.
+     * This also can be the name of the class that implement the service such
+     * as 'AddUserService::class'.
      * 
      * @param array $parameters A dictionary thar represents the parameters that
      * will be sent to the endpoint. The name is parameter name as it appears in
@@ -72,7 +74,14 @@ class APITestCase extends TestCase {
         $manager->setOutputStream(fopen(self::OUTPUT_STREAM,'w'));
         $method = strtoupper($requestMethod);
         putenv('REQUEST_METHOD='.$method);
-
+        
+        if (class_exists($apiEndpointName)) {
+            $service = new $apiEndpointName();
+            
+            if ($service instanceof AbstractWebService) {
+                $apiEndpointName = $service->getName();
+            }
+        }
         if ($method == 'GET' || $method == 'DELETE') {
             foreach ($parameters as $key => $val) {
                 $_GET[$key] = $this->parseVal($val);
