@@ -10,6 +10,8 @@
 namespace webfiori\http;
 
 use PHPUnit\Framework\TestCase;
+use webfiori\json\Json;
+use webfiori\json\JsonException;
 /**
  * A helper class which is used to implement test cases for API calls.
  *
@@ -101,8 +103,15 @@ class APITestCase extends TestCase {
 
         $retVal = $manager->readOutputStream();
         unlink(self::OUTPUT_STREAM);
-
-        return $retVal;
+        
+        try {
+            $json = Json::decode($retVal);
+            $json->setIsFormatted(true);
+            return $json.'';
+        } catch (JsonException $ex) {
+            return $retVal;
+        }
+        
     }
     private function parseVal($val) {
         $type = gettype($val);

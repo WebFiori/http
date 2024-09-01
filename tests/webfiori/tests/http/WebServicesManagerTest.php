@@ -20,7 +20,10 @@ class WebServicesManagerTest extends APITestCase {
     public function test00() {
         $manager = new WebServicesManager();
         $manager->addService(new NoAuthService());
-        $this->assertEquals('{"message":"You are authorized.","http-code":200}', $this->getRequest($manager, 'ok-service'));
+        $this->assertEquals('{'.self::NL
+                . '    "message":"You are authorized.",'.self::NL
+                . '    "http-code":200'.self::NL
+                . '}', $this->getRequest($manager, 'ok-service'));
         return $manager;
     }
     /**
@@ -30,7 +33,11 @@ class WebServicesManagerTest extends APITestCase {
     public function test01() {
         $manager = new WebServicesManager();
         $manager->addService(new NotImplService());
-        $this->assertEquals('{"message":"Service not implemented.","type":"error","http-code":404}', $this->postRequest($manager, 'not-implemented'));
+        $this->assertEquals('{'.self::NL
+                . '    "message":"Service not implemented.",'.self::NL
+                . '    "type":"error",'.self::NL
+                . '    "http-code":404'.self::NL
+                . '}', $this->postRequest($manager, 'not-implemented'));
         return $manager;
     }
     /**
@@ -166,7 +173,11 @@ class WebServicesManagerTest extends APITestCase {
      */
     public function testDoNothing00() {
         $api = new SampleServicesManager();
-        $this->assertEquals('{"message":"Service not supported.","type":"error","http-code":404}', $this->getRequest($api, 'do-nothen'));
+        $this->assertEquals('{'.self::NL
+                . '    "message":"Service not supported.",'.self::NL
+                . '    "type":"error",'.self::NL
+                . '    "http-code":404'.self::NL
+                . '}', $this->getRequest($api, 'do-nothen'));
     }
     /**
      * @depends testSumTwoIntegers05
@@ -185,7 +196,11 @@ class WebServicesManagerTest extends APITestCase {
      */
     public function testGetUser00() {
         $api = new SampleServicesManager();
-        $this->assertEquals('{"message":"Method Not Allowed.","type":"error","http-code":405}', $this->getRequest($api, 'get-user-profile', [
+        $this->assertEquals('{'.self::NL
+                . '    "message":"Method Not Allowed.",'.self::NL
+                . '    "type":"error",'.self::NL
+                . '    "http-code":405'.self::NL
+                . '}', $this->getRequest($api, 'get-user-profile', [
             'user-id' => -9,
             'pass' => '123'
         ]));
@@ -196,7 +211,11 @@ class WebServicesManagerTest extends APITestCase {
     public function testGetUser01() {
         $_SERVER['CONTENT_TYPE'] = 'application/x-www-form-urlencoded';
         $api = new SampleServicesManager();
-        $this->assertEquals('{"message":"Database Error.","type":"error","http-code":500}', $this->postRequest($api, 'get-user-profile', [
+        $this->assertEquals('{'.self::NL
+                . '    "message":"Database Error.",'.self::NL
+                . '    "type":"error",'.self::NL
+                . '    "http-code":500'.self::NL
+                . '}', $this->postRequest($api, 'get-user-profile', [
             'user-id' => -9,
             'pass' => '123'
         ]));
@@ -208,7 +227,10 @@ class WebServicesManagerTest extends APITestCase {
     public function testGetUser02() {
         $api = new SampleServicesManager();
 
-        $this->assertEquals('{"user-name":"Ibrahim","bio":"A software engineer who is ready to help anyone in need."}', $this->postRequest($api, 'get-user-profile', [
+        $this->assertEquals('{'.self::NL
+                . '    "user-name":"Ibrahim",'.self::NL
+                . '    "bio":"A software engineer who is ready to help anyone in need."'.self::NL
+                . '}', $this->postRequest($api, 'get-user-profile', [
             'user-id' => '99',
             'pass' => '123'
         ]));
