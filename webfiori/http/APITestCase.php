@@ -84,13 +84,7 @@ class APITestCase extends TestCase {
                 $apiEndpointName = $service->getName();
             }
         }
-        if ($method == RequestMethod::GET || $method == RequestMethod::DELETE) {
-            foreach ($parameters as $key => $val) {
-                $_GET[$key] = $this->parseVal($val);
-            }
-            $_GET['service'] = $apiEndpointName;
-            $this->unset($_GET, $parameters, $manager);
-        } else if ($method == RequestMethod::POST || $method == RequestMethod::PUT || $method == RequestMethod::PATCH) {
+        if ($method == RequestMethod::POST || $method == RequestMethod::PUT || $method == RequestMethod::PATCH) {
             foreach ($parameters as $key => $val) {
                 $_POST[$key] = $this->parseVal($val);
             }
@@ -98,7 +92,11 @@ class APITestCase extends TestCase {
             $_SERVER['CONTENT_TYPE'] = 'multipart/form-data';
             $this->unset($_POST, $parameters, $manager);
         } else {
-            $manager->process();
+            foreach ($parameters as $key => $val) {
+                $_GET[$key] = $this->parseVal($val);
+            }
+            $_GET['service'] = $apiEndpointName;
+            $this->unset($_GET, $parameters, $manager);
         }
 
         $retVal = $manager->readOutputStream();

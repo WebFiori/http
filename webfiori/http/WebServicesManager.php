@@ -988,10 +988,14 @@ class WebServicesManager implements JsonI {
         foreach ($serviceIdx as $serviceNameIndex) {
             if (($reqMeth == RequestMethod::GET || 
                $reqMeth == RequestMethod::DELETE ||  
-               $reqMeth == RequestMethod::OPTIONS || 
-               $reqMeth == RequestMethod::PATCH) && isset($_GET[$serviceNameIndex])) {
+               $reqMeth == RequestMethod::CONNECT || 
+               $reqMeth == RequestMethod::HEAD || 
+               $reqMeth == RequestMethod::TRACE || 
+               $reqMeth == RequestMethod::OPTIONS) && isset($_GET[$serviceNameIndex])) {
                 $retVal = filter_var($_GET[$serviceNameIndex]);
-            } else if (($reqMeth == RequestMethod::POST || $reqMeth == RequestMethod::PUT) && isset($_POST[$serviceNameIndex])) {
+            } else if (($reqMeth == RequestMethod::POST || 
+                    $reqMeth == RequestMethod::PUT || 
+                    $reqMeth == RequestMethod::PATCH) && isset($_POST[$serviceNameIndex])) {
                 $retVal = filter_var($_POST[$serviceNameIndex]);
             }
         }
