@@ -3,21 +3,26 @@
     "type": "library",
     "description": "Basic library that can help in creating RESTful APIs using PHP.",
     "keywords": [
-        "JSON","PHP","API","Web APIs","Library","HTTP","PSR-7", "JSONx"
+        "JSON",
+        "PHP",
+        "API",
+        "Web APIs",
+        "Library",
+        "HTTP",
+        "PSR-7",
+        "JSONx"
     ],
     "license": "MIT",
     "require": {
         "php": ">=7.0",
-        "webfiori/jsonx":"3.3.x",
+        "webfiori/jsonx": "3.3.x",
         "ext-json": "*",
         "ext-mbstring": "*"
     },
-    "autoload" :{
-        "psr-4":{
-            "webfiori\\http\\":"webfiori\\http"
+    "autoload": {
+        "psr-4": {
+            "webfiori\\http\\": "webfiori\\http"
         }
     },
-    "require-dev": {
-        
-    }
+    "require-dev": {}
 }
