@@ -31,6 +31,7 @@ class RequestTest extends TestCase {
         putenv('REQUEST_METHOD=GET');
         $_GET['ok'] = 'I not Ok';
         $this->assertEquals('I not Ok', Request::getParam('ok'));
+        $_GET = [];
     }
     /**
      * @test
@@ -53,6 +54,7 @@ class RequestTest extends TestCase {
         putenv('REQUEST_METHOD=GET');
         $_GET['hello'] = 'This%20is%20an%20encoded%20string.';
         $this->assertEquals('This is an encoded string.', Request::getParam('hello'));
+        $_GET = [];
     }
     /**
      * @test
@@ -61,6 +63,7 @@ class RequestTest extends TestCase {
         putenv('REQUEST_METHOD=GET');
         $_GET['hello'] = 'This+is+an+encoded%20string.';
         $this->assertEquals('This is an encoded string.', Request::getParam('hello'));
+        $_GET = [];
     }
     /**
      * @test
@@ -69,6 +72,7 @@ class RequestTest extends TestCase {
         putenv('REQUEST_METHOD=GET');
         $_GET['arabic'] = '%D9%86%D8%B5%20%D8%B9%D8%B1%D8%A8%D9%8A';
         $this->assertEquals('نص عربي', Request::getParam('arabic'));
+        $_GET = [];
     }
     /**
      * @test
@@ -103,6 +107,16 @@ class RequestTest extends TestCase {
     public function testGetRequestedURL00() {
         $_SERVER['PATH_INFO'] = '/my/app';
         $this->assertEquals('http://127.0.0.1/my/app', Request::getRequestedURI());
+    }
+    /**
+     * @test
+     */
+    public function testGetRequestedURL01() {
+        $_SERVER['PATH_INFO'] = '/my/app';
+        $_GET['param1'] = 'something';
+        $_GET['param2'] = 'something_else';
+        $this->assertEquals('http://127.0.0.1/my/app?param1=something&param2=something_else', Request::getRequestedURI());
+        $_GET = [];
     }
     /**
      * @test
