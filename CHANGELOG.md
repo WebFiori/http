@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.4.0](https://github.com/WebFiori/http/compare/v3.3.15...v3.4.0) (2024-11-27)
+
+
+### Features
+
+* Added Ability to Mimic HTTP Request Headers ([f440e07](https://github.com/WebFiori/http/commit/f440e07d53fc08167e83550508af43029a4a8c70))
+
 ## [3.3.15](https://github.com/WebFiori/http/compare/v3.3.14...v3.3.15) (2024-11-20)
 
 
