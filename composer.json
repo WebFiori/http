@@ -5,6 +5,7 @@
     "keywords": [
         "JSON","PHP","API","Web APIs","Library","HTTP","PSR-7", "JSONx"
     ],
+    "version":"3.3.15",
     "license": "MIT",
     "require": {
         "php": ">=7.0",
