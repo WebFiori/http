@@ -311,10 +311,16 @@ class Request {
             // Using built-in server, it will be false
             $path = $_SERVER['PATH_INFO'] ?? '';
         } 
-
+        
+        if (strpos($path, '?') !== false) {
+            $split = explode('?', $path);
+            $path = $split[0];
+        }
+        
         $cleanedPath = str_replace(trim(str_replace('\\', '/', $pathToAppend), '/'),'' ,trim(filter_var($path),'/'));
         $requestMethod = self::getMethod();
         $queryString = '';
+        
         
         if ($requestMethod == RequestMethod::DELETE || $requestMethod == RequestMethod::GET) {
             $getParams = Request::getParams();
