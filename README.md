@@ -4,7 +4,7 @@ It includes inputs feltering and data validation in addion to creating user-defi
 
 <p align="center">
   <a href="https://github.com/WebFiori/http/actions">
-    <img src="https://github.com/WebFiori/http/actions/workflows/php83.yml/badge.svg?branch=master">
+    <img src="https://github.com/WebFiori/http/actions/workflows/php84.yml/badge.svg?branch=master">
   </a>
   <a href="https://codecov.io/gh/WebFiori/http">
     <img src="https://codecov.io/gh/WebFiori/http/branch/master/graph/badge.svg" />
@@ -32,6 +32,7 @@ It includes inputs feltering and data validation in addion to creating user-defi
 | <a target="_blank" href="https://github.com/WebFiori/http/actions/workflows/php81.yml"><img src="https://github.com/WebFiori/http/actions/workflows/php81.yml/badge.svg?branch=master"></a> |
 | <a target="_blank" href="https://github.com/WebFiori/http/actions/workflows/php82.yml"><img src="https://github.com/WebFiori/http/actions/workflows/php82.yml/badge.svg?branch=master"></a> |
 | <a target="_blank" href="https://github.com/WebFiori/http/actions/workflows/php83.yml"><img src="https://github.com/WebFiori/http/actions/workflows/php83.yml/badge.svg?branch=master"></a> |
+| <a target="_blank" href="https://github.com/WebFiori/http/actions/workflows/php84.yml"><img src="https://github.com/WebFiori/http/actions/workflows/php84.yml/badge.svg?branch=master"></a> |
 
 ## API Docs
 This library is a part of <a>WebFiori Framework</a>. To access API docs of the library, you can visid the following link: https://webfiori.com/docs/webfiori/http .
