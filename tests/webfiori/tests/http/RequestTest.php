@@ -121,6 +121,22 @@ class RequestTest extends TestCase {
     /**
      * @test
      */
+    public function testGetRequestedURL03() {
+        putenv('REQUEST_URI=/my/app/x');
+        $this->assertEquals('http://127.0.0.1/my/app/x', Request::getRequestedURI());
+    }
+    /**
+     * @test
+     */
+    public function testGetRequestedURL04() {
+        putenv('REQUEST_URI=/my/app/x?b=p');
+        $_GET['c'] = 'k';
+        $this->assertEquals('http://127.0.0.1/my/app/x?c=k', Request::getRequestedURI());
+        $_GET = [];
+    }
+    /**
+     * @test
+     */
     public function testGetHeaders00() {
         $_SERVER['HTTP_CONTENT_TYPE'] = "application/json";
         $_SERVER['HTTP_X_HOST'] = "Custom H";
