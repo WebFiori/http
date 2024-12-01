@@ -1,5 +1,17 @@
 # Changelog
 
+## [3.4.1](https://github.com/WebFiori/http/compare/v3.4.0...v3.4.1) (2024-12-01)
+
+
+### Bug Fixes
+
+* Bug on Adding Query String ([0234fdb](https://github.com/WebFiori/http/commit/0234fdb9b452255d8d180f29962eb9564c37632b))
+
+
+### Miscellaneous Chores
+
+* Added PHP 8.4 Status to README ([2bdb197](https://github.com/WebFiori/http/commit/2bdb197fed8ca579f0388e75840707aa5e553e6d))
+
 ## [3.4.0](https://github.com/WebFiori/http/compare/v3.3.15...v3.4.0) (2024-11-27)
 
 
