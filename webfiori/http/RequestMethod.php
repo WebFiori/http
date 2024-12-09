@@ -88,7 +88,8 @@ class RequestMethod {
             self::OPTIONS,
             self::POST,
             self::PUT,
-            self::TRACE
+            self::TRACE,
+            self::PATCH
         ];
     }
 }

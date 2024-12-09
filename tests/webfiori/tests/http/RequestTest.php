@@ -149,4 +149,12 @@ class RequestTest extends TestCase {
             ]
         ], Request::getHeadersAssoc());
     }
+    /**
+     * @test
+     */
+    public function testGetCookie00() {
+        $this->assertNull(Request::getCookieValue('not-exist'));
+        $_COOKIE['cool'] = 'cool_cookie';
+        $this->assertEquals('cool_cookie', Request::getCookieValue('cool'));
+    }
 }

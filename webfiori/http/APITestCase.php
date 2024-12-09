@@ -15,11 +15,35 @@ use webfiori\json\JsonException;
 /**
  * A helper class which is used to implement test cases for API calls.
  *
+ * This class will mimic the process of sending HTTP request to an endpoint and
+ * store the output temporarily on a file. At second stage, the developer
+ * can read the output and compare it to an expected output.
+ * 
  * @author Ibrahim
  */
 class APITestCase extends TestCase {
     const NL = "\r\n";
-    const OUTPUT_STREAM = __DIR__.DIRECTORY_SEPARATOR.'outputStream.txt';
+    const DEFAULT_OUTPUT_STREAM = __DIR__.DIRECTORY_SEPARATOR.'outputStream.txt';
+    private $outputStreamPath;
+    /**
+     * Sets the path to the file which is used to store API output temporarily.
+     * 
+     * @param string $path The absolute path to the file.
+     */
+    public function setOutputFile(string $path) {
+        $this->outputStreamPath = $path;
+    }
+    /**
+     * Returns the path to the file which is used to store API output temporarily.
+     * 
+     * @return string
+     */
+    public function getOutputFile() : string {
+        if ($this->outputStreamPath === null) {
+            $this->outputStreamPath = self::DEFAULT_OUTPUT_STREAM;
+        }
+        return $this->outputStreamPath;
+    }
     /**
      * Adds a file to the array $_FILES for testing API with upload.
      * 
@@ -77,7 +101,7 @@ class APITestCase extends TestCase {
      * @return string The method will return the output of the endpoint.
      */
     public function callEndpoint(WebServicesManager $manager, string $requestMethod, string $apiEndpointName, array $parameters = [], array $httpHeaders = []) : string {
-        $manager->setOutputStream(fopen(self::OUTPUT_STREAM,'w'));
+        $manager->setOutputStream(fopen(self::DEFAULT_OUTPUT_STREAM,'w'));
         $method = strtoupper($requestMethod);
         putenv('REQUEST_METHOD='.$method);
         
@@ -104,7 +128,7 @@ class APITestCase extends TestCase {
         }
 
         $retVal = $manager->readOutputStream();
-        unlink(self::OUTPUT_STREAM);
+        unlink(self::DEFAULT_OUTPUT_STREAM);
         
         try {
             $json = Json::decode($retVal);

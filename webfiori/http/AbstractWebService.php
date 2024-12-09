@@ -339,18 +339,17 @@ abstract class AbstractWebService implements JsonI {
         }
     }
     /**
-     * Returns an array that contains the value of the header 'authorization'.
+     * Returns an object that contains the value of the header 'authorization'.
      * 
-     * 
-     * @return array The array will have two indices, the first one with 
-     * name 'scheme' and the second one with name 'credentials'. The index 'scheme' 
+     * @return AuthHeader|null The object will have two primary attributes, the first is 
+     * the 'scheme' and the second one is 'credentials'. The 'scheme' 
      * will contain the name of the scheme which is used to authenticate 
-     * ('Basic', 'Bearer', 'Digest', etc...). The index 'credentials' will contain 
+     * ('basic', 'bearer', 'digest', etc...). The 'credentials' will contain 
      * the credentials which can be used to authenticate the client.
      * 
-     *  @since 1.0.1
+     * @throws InvalidArgumentException
      */
-    public function getAuthHeader() : array {
+    public function getAuthHeader() {
         return Request::getAuthHeader();
     }
     /**
