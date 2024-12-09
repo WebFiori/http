@@ -256,6 +256,20 @@ class Request {
         return null;
     }
     /**
+     * Returns the value of HTTP cookie given its name.
+     * 
+     * @param string $cookieName The name of the cookie as it was sent from the client.
+     * 
+     * @return string|null If a cookie with given name exist on the request,
+     * its value is returned. Other than that, null is returned.
+     */
+    public static function getCookieValue(string $cookieName) {
+        $trimmedName = trim($cookieName);
+        
+        return self::filter(INPUT_COOKIE, $trimmedName);
+        
+    }
+    /**
      * Returns an array that contains all POST or GET parameters.
      * 
      * @return array An array that contains all POST or GET parameters. The
