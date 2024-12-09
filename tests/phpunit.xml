@@ -24,7 +24,7 @@
     </logging>
     <testsuites>
         <testsuite name="Tests">
-            <directory>/tests</directory>
+            <directory>./webfiori/tests/http</directory>
         </testsuite>
     </testsuites>
 </phpunit>
