@@ -1,5 +1,17 @@
 # Changelog
 
+## [3.5.0](https://github.com/WebFiori/http/compare/v3.4.1...v3.5.0) (2024-12-09)
+
+
+### Features
+
+* Added a Method to Get Cookie Value ([6d8e970](https://github.com/WebFiori/http/commit/6d8e97036c9e5a4fecf15b35770df120ac649c00))
+
+
+### Bug Fixes
+
+* Added Missing Request Method ([9336245](https://github.com/WebFiori/http/commit/9336245cd288355b7a462378a29b7c1c9869d9fe))
+
 ## [3.4.1](https://github.com/WebFiori/http/compare/v3.4.0...v3.4.1) (2024-12-01)
 
 
