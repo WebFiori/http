@@ -9,6 +9,8 @@
  */
 namespace webfiori\http;
 
+use InvalidArgumentException;
+
 /**
  * A class that represents HTTP client request.
  * The developer can use this class to access basic information about a 
@@ -82,39 +84,24 @@ class Request {
         return self::$inst;
     }
     /**
-     * Returns an array that contains the value of the header 'authorization'.
+     * Returns an object that contains the value of the header 'authorization'.
      * 
-     * @return array The array will have two indices, the first one with 
-     * name 'scheme' and the second one with name 'credentials'. The index 'scheme' 
+     * @return AuthHeader|null The object will have two primary attributes, the first is 
+     * the 'scheme' and the second one is 'credentials'. The 'scheme' 
      * will contain the name of the scheme which is used to authenticate 
-     * ('Basic', 'Bearer', 'Digest', etc...). The index 'credentials' will contain 
+     * ('basic', 'bearer', 'digest', etc...). The 'credentials' will contain 
      * the credentials which can be used to authenticate the client.
      * 
-     *  @since 1.0
+     * @throws InvalidArgumentException
      */
-    public static function getAuthHeader() : array {
-        $retVal = [
-            'scheme' => '',
-            'credentials' => ''
-        ];
-        $headerVal = '';
-
+    public static function getAuthHeader() {
         $header = self::getHeader('authorization');
 
-        if (count($header) == 1) {
-            $headerVal = $header[0];
+        if (count($header) >= 1) {
+            return new AuthHeader($header[0]);
         }
 
-        if (strlen($headerVal) != 0) {
-            $split = explode(' ', $headerVal);
-
-            if (count($split) == 2) {
-                $retVal['scheme'] = strtolower($split[0]);
-                $retVal['credentials'] = $split[1];
-            }
-        }
-
-        return $retVal;
+        return null;
     }
     /**
      * Returns the IP address of the user who is connected to the server.

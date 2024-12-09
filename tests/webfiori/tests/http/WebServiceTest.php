@@ -15,22 +15,18 @@ class WebServiceTest extends TestCase {
      */
     public function testGetAuthHeaders00() {
         $service = new TestServiceObj('Hello');
-        $this->assertEquals([
-            'scheme' => '',
-            'credentials' => ''
-        ],$service->getAuthHeader());
+        $this->assertNull($service->getAuthHeader());
         $this->assertNull($service->isAuthorized());
     }
     /**
      * 
      */
     public function testGetAuthHeaders01() {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Invalid authorization header structure.');
         $_SERVER['HTTP_AUTHORIZATION'] = 'Basic';
         $service = new TestServiceObj('Hello');
-        $this->assertEquals([
-            'scheme' => '',
-            'credentials' => ''
-        ],$service->getAuthHeader());
+        $this->assertNull($service->getAuthHeader());
     }
     /**
      * 
@@ -38,14 +34,10 @@ class WebServiceTest extends TestCase {
     public function testGetAuthHeaders02() {
         $_SERVER['HTTP_AUTHORIZATION'] = 'Basic XYZ';
         $service = new TestServiceObj('Hello');
-        if (!function_exists('apache_request_headers')) {
-            $this->assertEquals([
-                'scheme' => 'basic',
-                'credentials' => 'XYZ'
-            ],$service->getAuthHeader());
-        } else {
-            $this->assertTrue(true);
-        }
+        $header = $service->getAuthHeader();
+        $this->assertNotNull($header);
+        $this->assertEquals('basic', $header->getScheme());
+        $this->assertEquals('XYZ', $header->getCredentials());
     }
     /**
      * @test
