@@ -280,11 +280,11 @@ class Request {
         $requestMethod = self::getMethod();
         $retVal = [];
 
-        if ($requestMethod == 'POST' || $requestMethod == 'PUT') {
+        if ($requestMethod == RequestMethod::POST || $requestMethod == RequestMethod::PUT || $requestMethod == RequestMethod::PATCH) {
             foreach (array_keys($_POST) as $name) {
                 $retVal[$name] = self::filter(INPUT_POST, $name);
             }
-        } else if ($requestMethod == 'DELETE' || $requestMethod == 'GET') {
+        } else if ($requestMethod == RequestMethod::DELETE || $requestMethod == RequestMethod::GET) {
             foreach (array_keys($_GET) as $name) {
                 $retVal[$name] = self::filter(INPUT_GET, $name);
             }
@@ -373,6 +373,8 @@ class Request {
                 $val = filter_var(urldecode($_POST[$varName]));
             } else if ($inputSource == INPUT_GET && isset($_GET[$varName])) {
                 $val = filter_var(urldecode($_GET[$varName]));
+            } else if ($inputSource == INPUT_COOKIE && isset ($_COOKIE[$varName])) {
+                $val = filter_var(urldecode($_COOKIE[$varName]));
             }
         }
 
