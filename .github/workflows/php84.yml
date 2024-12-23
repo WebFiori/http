@@ -28,9 +28,6 @@ jobs:
           php-version: ${{ matrix.php }} 
           extensions: mysqli, mbstring, sqlsrv
           tools: phpunit:9.5.20, composer
-          
-      - name: Shutdown Ubuntu MySQL
-        run: sudo service mysql stop
          
       - name: Install Dependencies
         run: composer install --prefer-source --no-interaction --no-dev
