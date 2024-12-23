@@ -28,9 +28,6 @@ jobs:
           extensions: mysqli, mbstring, sqlsrv
           tools: phpunit:8.5.13
           
-      - name: Shutdown Ubuntu MySQL
-        run: sudo service mysql stop
-          
       - name: Install Dependencies
         run: composer install --prefer-source --no-interaction --no-dev
         

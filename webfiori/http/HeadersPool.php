@@ -39,7 +39,7 @@ class HeadersPool {
      * 
      * @since 1.0
      */
-    public function addHeader(string $headerName, string $headerVal, string $replaceValue = null) : bool {
+    public function addHeader(string $headerName, string $headerVal, ?string $replaceValue = '') : bool {
         $trimmedHeader = strtolower(trim($headerName));
         $retVal = false;
         $header = new HttpHeader();
@@ -47,7 +47,7 @@ class HeadersPool {
         if ($header->setName($headerName)) {
             $header->setValue($headerVal);
 
-            if ($replaceValue !== null) {
+            if ($replaceValue !== null && strlen($replaceValue) != 0) {
                 $hasHeader = $this->hasHeader($trimmedHeader, $replaceValue);
             } else {
                 $hasHeader = false;
@@ -132,15 +132,15 @@ class HeadersPool {
      * 
      * @since 1.0 
      */
-    public function hasHeader(string $name, string $val = null) : bool {
+    public function hasHeader(string $name, ?string $val) : bool {
         $headers = $this->getHeaderAsObj($name);
-
-        if ($val === null) {
+        $trimmedVal = trim($val.'');
+        if ($val === null || strlen($trimmedVal) == 0) {
             return count($headers) !== 0;
         }
 
         foreach ($headers as $obj) {
-            if ($obj->getValue() == $val) {
+            if ($obj->getValue() == $trimmedVal) {
                 return true;
             }
         }
@@ -158,14 +158,14 @@ class HeadersPool {
      *
      * @return bool If removed, true is returned. False otherwise.
      */
-    public function removeHeader(string $name, string $val = null) : bool {
+    public function removeHeader(string $name, ?string $val = '') : bool {
         $tempArr = [];
         $trimmed = strtolower(trim($name));
         $removed = false;
 
         foreach ($this->getHeaders() as $headerObj) {
             if ($headerObj->getName() == $trimmed) {
-                if ($val !== null && $headerObj->getValue() != $val) {
+                if ($val !== null && strlen($val) != 0 && $headerObj->getValue() != $val) {
                     $tempArr[] = $headerObj;
                 } else {
                     $removed = true;
