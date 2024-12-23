@@ -526,7 +526,7 @@ class WebServicesManager implements JsonI {
         $service = $this->getServiceByName($trimmed);
 
         if ($service !== null) {
-            $service->setManager();
+            $service->setManager(null);
             unset($this->services[$trimmed]);
         }
 
@@ -593,7 +593,7 @@ class WebServicesManager implements JsonI {
      */
     public function sendHeaders(array $headersArr) {
         foreach ($headersArr as $header => $val) {
-            Response::addHeader($header, $val);
+            Response::addHeader($header, $val, null);
         }
     }
     /**
@@ -625,7 +625,7 @@ class WebServicesManager implements JsonI {
      * 
      * @since 1.0
      */
-    public function sendResponse(string $message, string $type = '', int $code = 200, $otherInfo = null) {
+    public function sendResponse(string $message, string $type = '', int $code = 200, mixed $otherInfo = '') {
         $json = new Json();
         $json->add('message', $message);
         $typeTrimmed = trim($type);
@@ -636,7 +636,9 @@ class WebServicesManager implements JsonI {
         $json->add('http-code', $code);
 
         if ($otherInfo !== null) {
-            $json->add('more-info', $otherInfo);
+            if (gettype($otherInfo) != 'string' || strlen($otherInfo) != 0) {
+                $json->add('more-info', $otherInfo);
+            }
         }
 
         if ($this->getOutputStream() !== null) {
