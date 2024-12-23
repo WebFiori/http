@@ -18,7 +18,7 @@ class ResponseTest extends TestCase {
      * @test
      */
     public function testAddHeader00() {
-        $this->assertFalse(Response::hasHeader('content-type'));
+        $this->assertFalse(Response::hasHeader('content-type', null));
         $this->assertTrue(Response::addHeader('content-type', 'application/json'));
         $this->assertTrue(Response::hasHeader('content-type', 'application/json'));
         $this->assertFalse(Response::hasHeader('content-type', 'text/js'));
@@ -27,9 +27,9 @@ class ResponseTest extends TestCase {
      * @test
      */
     public function testAddHeader01() {
-        $this->assertFalse(Response::hasHeader('Set-Cookie'));
+        $this->assertFalse(Response::hasHeader('Set-Cookie', null));
         $this->assertTrue(Response::addHeader('Set-Cookie', 'name=ok'));
-        $this->assertTrue(Response::hasHeader('Set-Cookie'));
+        $this->assertTrue(Response::hasHeader('Set-Cookie', null));
         $this->assertTrue(Response::hasHeader('Set-Cookie','name=ok'));
         
         $this->assertTrue(Response::addHeader('Set-Cookie', 'name=good'));
@@ -122,7 +122,7 @@ class ResponseTest extends TestCase {
      * @test
      */
     public function testBeforeSend00() {
-        $this->assertFalse(Response::hasHeader('super'));
+        $this->assertFalse(Response::hasHeader('super', null));
         Response::beforeSend(function () {
             Response::addHeader('super', 'yes');
         });
