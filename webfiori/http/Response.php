@@ -110,7 +110,7 @@ class Response {
      * 
      * @since 1.0
      */
-    public static function addHeader(string $headerName, string $headerVal, string $replaceValue = null) : bool {
+    public static function addHeader(string $headerName, string $headerVal, ?string $replaceValue = '') : bool {
         return self::getHeadersPool()->addHeader($headerName, $headerVal, $replaceValue);
     }
     /**
@@ -304,7 +304,7 @@ class Response {
      * 
      * @since 1.0 
      */
-    public static function hasHeader(string $headerName, string $headerVal = null) : bool {
+    public static function hasHeader(string $headerName, ?string $headerVal = '') : bool {
         return self::getHeadersPool()->hasHeader($headerName, $headerVal);
     }
     /**
@@ -332,7 +332,7 @@ class Response {
      * 
      * @since 1.0
      */
-    public static function removeHeader(string $headerName, string $headerVal = null) : bool {
+    public static function removeHeader(string $headerName, ?string $headerVal = '') : bool {
         return self::getHeadersPool()->removeHeader($headerName, $headerVal);
     }
 

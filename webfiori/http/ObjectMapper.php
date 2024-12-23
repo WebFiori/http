@@ -56,7 +56,7 @@ class ObjectMapper {
      * after the underscore.
      * 
      */
-    public function addSetterMap(string $paramName, string $methodName = null) {
+    public function addSetterMap(string $paramName, ?string $methodName) {
         $trimmedParamName = trim($paramName);
 
         if (strlen($trimmedParamName) == 0) {
@@ -145,11 +145,11 @@ class ObjectMapper {
     private function extractMethodsNames($inputs) {
         if ($inputs instanceof Json) {
             foreach ($inputs->getProperties() as $prop) {
-                $this->addSetterMap($prop->getName());
+                $this->addSetterMap($prop->getName(), null);
             }
         } else if (gettype($inputs) == 'array') {
             foreach (array_keys($inputs) as $name) {
-                $this->addSetterMap($name);
+                $this->addSetterMap($name, null);
             }
         }
     }

@@ -361,7 +361,7 @@ class Request {
             $headersArr = self::getRequestHeadersFromServer();
 
             foreach ($headersArr as $header) {
-                self::get()->headersPool->addHeader($header->getName(), $header->getValue());
+                self::get()->headersPool->addHeader($header->getName(), $header->getValue(), null);
             }
         }
     }

@@ -125,7 +125,7 @@ abstract class AbstractWebService implements JsonI {
      * @param WebServicesManager|null $owner The manager which is used to
      * manage the web service.
      */
-    public function __construct(string $name, WebServicesManager $owner = null) {
+    public function __construct(string $name) {
         if (!$this->setName($name)) {
             $this->setName('new-service');
         }
@@ -135,8 +135,6 @@ abstract class AbstractWebService implements JsonI {
         $this->requireAuth = true;
         $this->sinceVersion = '1.0.0';
         $this->serviceDesc = '';
-
-        $this->setManager($owner);
     }
     /**
      * Returns an array that contains all possible requests methods at which the 
@@ -726,7 +724,7 @@ abstract class AbstractWebService implements JsonI {
      * 
      * @since 1.0.1
      */
-    public function sendResponse(string $message, string $type = '', int $code = 200, $otherInfo = null) {
+    public function sendResponse(string $message, string $type = '', int $code = 200, mixed $otherInfo = '') {
         $manager = $this->getManager();
 
         if ($manager !== null) {
@@ -770,7 +768,7 @@ abstract class AbstractWebService implements JsonI {
      * the service was associated with a manager.
      * 
      */
-    public function setManager(WebServicesManager $manager = null) {
+    public function setManager(?WebServicesManager $manager) {
         if ($manager === null) {
             $this->owner = null;
         } else {
