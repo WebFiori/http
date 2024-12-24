@@ -1,5 +1,22 @@
 # Changelog
 
+## [3.6.0](https://github.com/WebFiori/http/compare/v3.5.1...v3.6.0) (2024-12-24)
+
+
+### Features
+
+* Added Format Method to API Test Case ([621e9ed](https://github.com/WebFiori/http/commit/621e9ed07364e94b7a4ce102397ffd27ac7879a6))
+
+
+### Bug Fixes
+
+* Fix to Output File Path ([d2e2072](https://github.com/WebFiori/http/commit/d2e2072b7c6385b34614451eef883a5ae2013f8f))
+
+
+### Miscellaneous Chores
+
+* Updated .gitattributes ([594c617](https://github.com/WebFiori/http/commit/594c61781ab9413965bf210070fe2b78f84168b2))
+
 ## [3.5.0](https://github.com/WebFiori/http/compare/v3.4.1...v3.5.0) (2024-12-09)
 
 
