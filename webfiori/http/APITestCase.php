@@ -101,7 +101,7 @@ class APITestCase extends TestCase {
      * @return string The method will return the output of the endpoint.
      */
     public function callEndpoint(WebServicesManager $manager, string $requestMethod, string $apiEndpointName, array $parameters = [], array $httpHeaders = []) : string {
-        $manager->setOutputStream(fopen(self::DEFAULT_OUTPUT_STREAM,'w'));
+        $manager->setOutputStream(fopen($this->getOutputFile(),'w'));
         $method = strtoupper($requestMethod);
         putenv('REQUEST_METHOD='.$method);
         
@@ -128,7 +128,7 @@ class APITestCase extends TestCase {
         }
 
         $retVal = $manager->readOutputStream();
-        unlink(self::DEFAULT_OUTPUT_STREAM);
+        unlink($this->getOutputFile());
         
         try {
             $json = Json::decode($retVal);
@@ -138,6 +138,28 @@ class APITestCase extends TestCase {
             return $retVal;
         }
         
+    }
+    /**
+     * Creates a formatted string from calling an API.
+     * 
+     * This helper method can be used to format JSON output of calling an API
+     * and use it in assertions. The goal of the method is to initially format
+     * the out put, display it as string and the developer copies the output
+     * and modify it as needed.
+     * 
+     * @param string $output
+     */
+    public function format(string $output) {
+        $expl = explode(self::NL, $output);
+        $nl = '.self::NL\n';
+        $count = count($expl);
+        
+        for ($x = 0 ; $x < count($expl) ; $x++) {
+            if ($x + 1 == $count) {
+                $nl = '';
+            }
+            echo ". '$expl[$x]]'".$nl;
+        }
     }
     private function parseVal($val) {
         $type = gettype($val);
