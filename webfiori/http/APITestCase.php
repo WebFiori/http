@@ -101,7 +101,7 @@ class APITestCase extends TestCase {
      * @return string The method will return the output of the endpoint.
      */
     public function callEndpoint(WebServicesManager $manager, string $requestMethod, string $apiEndpointName, array $parameters = [], array $httpHeaders = []) : string {
-        $manager->setOutputStream(fopen(self::DEFAULT_OUTPUT_STREAM,'w'));
+        $manager->setOutputStream(fopen($this->getOutputFile(),'w'));
         $method = strtoupper($requestMethod);
         putenv('REQUEST_METHOD='.$method);
         
@@ -128,7 +128,7 @@ class APITestCase extends TestCase {
         }
 
         $retVal = $manager->readOutputStream();
-        unlink(self::DEFAULT_OUTPUT_STREAM);
+        unlink($this->getOutputFile());
         
         try {
             $json = Json::decode($retVal);
