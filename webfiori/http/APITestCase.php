@@ -139,6 +139,28 @@ class APITestCase extends TestCase {
         }
         
     }
+    /**
+     * Creates a formatted string from calling an API.
+     * 
+     * This helper method can be used to format JSON output of calling an API
+     * and use it in assertions. The goal of the method is to initially format
+     * the out put, display it as string and the developer copies the output
+     * and modify it as needed.
+     * 
+     * @param string $output
+     */
+    public function format(string $output) {
+        $expl = explode(self::NL, $output);
+        $nl = '.self::NL\n';
+        $count = count($expl);
+        
+        for ($x = 0 ; $x < count($expl) ; $x++) {
+            if ($x + 1 == $count) {
+                $nl = '';
+            }
+            echo ". '$expl[$x]]'".$nl;
+        }
+    }
     private function parseVal($val) {
         $type = gettype($val);
         
