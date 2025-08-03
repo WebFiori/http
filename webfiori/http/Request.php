@@ -293,6 +293,47 @@ class Request {
         return $retVal;
     }
     /**
+     * Returns path part of a requested URI.
+     * 
+     * @return string Path part of a requested URI.
+     */
+    public static function getPath() : string {
+        $path = self::getPathHelper('REQUEST_URI');
+        
+        if (strlen($path) == 0) {
+            $path = self::getPathHelper('HTTP_X_ORIGINAL_URL');
+            
+            if (strlen($path) == 0) {
+                $path = getenv('REQUEST_URI');
+                
+                if ($path === false || strlen($path) == 0) {
+                    $path = getenv('HTTP_REQUEST_URI');
+                    
+                    if ($path === false || strlen($path) == 0) {
+                        //Local dev server
+                        $path = $_SERVER['PATH_INFO'] ?? '';
+                    }
+                }
+            }
+        }
+        
+        if (strlen($path) == 0) {
+            return '/';
+        }
+        
+        return parse_url($path, PHP_URL_PATH);
+    }
+    private static function getPathHelper(string $header) {
+        $path = '';
+        $headerVals = self::getHeader($header);
+        
+        if (count($headerVals) != 0) {
+            $path = trim($headerVals[0]);
+        }
+        
+        return $path;
+    }
+    /**
      * Returns the URI of the requested resource.
      * 
      * @param string $pathToAppend If provided, this part will be 
@@ -306,12 +347,8 @@ class Request {
      */
     public static function getRequestedURI(string $pathToAppend = '') : string {
         $base = Uri::getBaseURL();
-        $path = getenv('REQUEST_URI');
-
-        if ($path === false) {
-            // Using built-in server, it will be false
-            $path = $_SERVER['PATH_INFO'] ?? '';
-        } 
+        
+        $path = self::getPath();
         
         if (strpos($path, '?') !== false) {
             $split = explode('?', $path);
