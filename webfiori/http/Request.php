@@ -169,7 +169,7 @@ class Request {
      * @since 1.0
      */
     public static function getHeaders() : array {
-        if (defined('__PHPUNIT_PHAR__') || self::get()->headersPool === null) {
+        if (defined('__PHPUNIT_PHAR__') || self::get()->headersPool === null || http_response_code() === false) {
             //Always Refresh headers if in testing environment.
             self::extractHeaders();
         }
@@ -301,7 +301,7 @@ class Request {
         $path = self::getPathHelper('REQUEST_URI');
         
         if (strlen($path) == 0) {
-            $path = self::getPathHelper('HTTP_X_ORIGINAL_URL');
+            $path = self::getPathHelper('X_ORIGINAL_URL');
             
             if (strlen($path) == 0) {
                 $path = getenv('REQUEST_URI');

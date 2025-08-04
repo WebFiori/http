@@ -138,7 +138,7 @@ class RequestTest extends TestCase {
      * @test
      */
     public function testGetRequestedURL05() {
-        putenv('REQUEST_URI=');
+        putenv('REQUEST_URI');
         putenv('HTTP_REQUEST_URI=/A/B/C');
         $this->assertEquals('http://127.0.0.1/A/B/C', Request::getRequestedURI());
     }
@@ -146,8 +146,8 @@ class RequestTest extends TestCase {
      * @test
      */
     public function testGetRequestedURL06() {
-        putenv('REQUEST_URI=');
-        putenv('HTTP_REQUEST_URI=');
+        putenv('REQUEST_URI');
+        putenv('HTTP_REQUEST_URI');
         $_SERVER['HTTP_X_ORIGINAL_URL'] = 'https://example.com/a/good/boy';
         $this->assertEquals('http://127.0.0.1/a/good/boy', Request::getRequestedURI());
         unset($_SERVER['HTTP_X_ORIGINAL_URL']);

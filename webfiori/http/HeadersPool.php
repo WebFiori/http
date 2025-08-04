@@ -88,7 +88,8 @@ class HeadersPool {
     /**
      * Returns the value(s) of specific HTTP header as an array of objects.
      *
-     * @param string $name The name of the header.
+     * @param string $name The name of the header. Note that if name contains
+     * underscore (_), it will be replaced by a dash (-).
      *
      * @return array If such header exist, the method will return an array
      * that contains the values of the header stored as objects of type
@@ -96,8 +97,8 @@ class HeadersPool {
      */
     public function getHeaderAsObj(string $name) : array {
         $retVal = [];
-        $trimmed = strtolower(trim($name));
-
+        $trimmed = str_replace('_', '-', strtolower(trim($name)));
+        
         foreach ($this->getHeaders() as $headerObj) {
             if ($headerObj->getName() == $trimmed) {
                 $retVal[] = $headerObj;
