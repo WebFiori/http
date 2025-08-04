@@ -2,7 +2,7 @@
 
 require 'loader.php';
 
-use webfiori\http\AbstractWebService;
+use WebFiori\Http\AbstractWebService;
 
 /**
  * Description of HelloWorldService

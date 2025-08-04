@@ -1,11 +1,11 @@
 <?php
-namespace webfiori\tests\http;
+namespace WebFiori\Tests\Http;
 
 use PHPUnit\Framework\TestCase;
-use webfiori\http\APIFilter;
-use webfiori\http\RequestParameter;
-use webfiori\json\Json;
-use webfiori\json\JsonException;
+use WebFiori\Http\APIFilter;
+use WebFiori\Http\RequestParameter;
+use WebFiori\Json\Json;
+use WebFiori\Json\JsonException;
 /**
  * Description of APIFilterTest
  *

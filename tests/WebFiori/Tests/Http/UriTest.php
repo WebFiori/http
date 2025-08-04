@@ -1,8 +1,8 @@
 <?php
-namespace webfiori\tests\http;
+namespace WebFiori\Tests\Http;
 
 use PHPUnit\Framework\TestCase;
-use webfiori\http\Uri;
+use WebFiori\Http\Uri;
 /**
  *
  * @author Ibrahim

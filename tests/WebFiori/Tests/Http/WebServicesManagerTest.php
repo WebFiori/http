@@ -1,15 +1,15 @@
 <?php
-namespace webfiori\tests\http;
+namespace WebFiori\Tests\Http;
 
-use webfiori\http\AbstractWebService;
-use webfiori\http\APITestCase;
-use webfiori\http\Request;
-use webfiori\http\ResponseMessage;
-use webfiori\http\WebServicesManager;
-use webfiori\json\Json;
-use webfiori\tests\http\testServices\NoAuthService;
-use webfiori\tests\http\testServices\NotImplService;
-use webfiori\tests\http\testServices\SampleServicesManager;
+use WebFiori\Http\AbstractWebService;
+use WebFiori\Http\APITestCase;
+use WebFiori\Http\Request;
+use WebFiori\Http\ResponseMessage;
+use WebFiori\Http\WebServicesManager;
+use WebFiori\Json\Json;
+use WebFiori\Tests\Http\TestServices\NoAuthService;
+use WebFiori\Tests\Http\TestServices\NotImplService;
+use WebFiori\Tests\Http\TestServices\SampleServicesManager;
 /**
  * Description of WebAPITest
  *

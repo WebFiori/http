@@ -1,9 +1,9 @@
 <?php
 
-namespace webfiori\tests\http\testServices;
+namespace WebFiori\Tests\Http\TestServices;
 
-use webfiori\http\RequestMethod;
-use webfiori\http\RequestParameter;
+use WebFiori\Http\RequestMethod;
+use WebFiori\Http\RequestParameter;
 /**
  * Description of AddNubmersService
  *

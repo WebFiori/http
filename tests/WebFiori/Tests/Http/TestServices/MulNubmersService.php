@@ -1,10 +1,10 @@
 <?php
 
-namespace webfiori\tests\http\testServices;
+namespace WebFiori\Tests\Http\TestServices;
 
-use webfiori\http\AbstractWebService;
-use webfiori\http\RequestMethod;
-use webfiori\http\RequestParameter;
+use WebFiori\Http\AbstractWebService;
+use WebFiori\Http\RequestMethod;
+use WebFiori\Http\RequestParameter;
 /**
  *
  * @author Ibrahim

@@ -7,7 +7,7 @@
  * For more information on the license, please visit: 
  * https://github.com/WebFiori/http/blob/master/LICENSE
  */
-namespace webfiori\http;
+namespace WebFiori\Http;
 
 /**
  * This class is used to manage HTTP message headers.

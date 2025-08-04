@@ -7,11 +7,11 @@
  * For more information on the license, please visit: 
  * https://github.com/WebFiori/http/blob/master/LICENSE
  */
-namespace webfiori\http;
+namespace WebFiori\Http;
 
 use PHPUnit\Framework\TestCase;
-use webfiori\json\Json;
-use webfiori\json\JsonException;
+use WebFiori\Json\Json;
+use WebFiori\Json\JsonException;
 /**
  * A helper class which is used to implement test cases for API calls.
  *

@@ -1,12 +1,12 @@
 <?php
-namespace webfiori\tests\http;
+namespace WebFiori\Tests\Http;
 
 use Exception;
 use PHPUnit\Framework\TestCase;
-use webfiori\http\APIFilter;
-use webfiori\http\ParamOption;
-use webfiori\http\ParamType;
-use webfiori\http\RequestParameter;
+use WebFiori\Http\APIFilter;
+use WebFiori\Http\ParamOption;
+use WebFiori\Http\ParamType;
+use WebFiori\Http\RequestParameter;
 /**
  * Description of RequestParameterTest
  *

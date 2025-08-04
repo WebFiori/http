@@ -1,7 +1,7 @@
 <?php
-namespace webfiori\tests\http;
+namespace WebFiori\Tests\Http;
 
-use webfiori\http\HttpHeader;
+use WebFiori\Http\HttpHeader;
 use PHPUnit\Framework\TestCase;
 /**
  * Description of HttpHeaderTest

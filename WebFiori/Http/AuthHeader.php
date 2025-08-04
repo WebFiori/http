@@ -1,7 +1,7 @@
 <?php
 
 
-namespace webfiori\http;
+namespace WebFiori\Http;
 
 use InvalidArgumentException;
 

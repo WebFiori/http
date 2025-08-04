@@ -1,7 +1,7 @@
 <?php
-namespace webfiori\tests\http\testServices;
+namespace WebFiori\Tests\Http\TestServices;
 
-use webfiori\http\WebServicesManager;
+use WebFiori\Http\WebServicesManager;
 /**
  * Description of SampleAPI
  *

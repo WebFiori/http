@@ -1,7 +1,7 @@
 <?php
-namespace webfiori\tests\http;
+namespace WebFiori\Tests\Http;
 
-use webfiori\http\HttpCookie;
+use WebFiori\Http\HttpCookie;
 use PHPUnit\Framework\TestCase;
 /**
  * Description of HttpCookieTest

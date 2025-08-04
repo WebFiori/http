@@ -1,11 +1,11 @@
 <?php
 
-namespace webfiori\tests\http;
+namespace WebFiori\Tests\Http;
 
 use PHPUnit\Framework\TestCase;
-use webfiori\http\HttpCookie;
-use webfiori\http\Response;
-use webfiori\tests\http\testServices\TestUserObj;
+use WebFiori\Http\HttpCookie;
+use WebFiori\Http\Response;
+use WebFiori\Tests\Http\TestServices\TestUserObj;
 
 /**
  * Description of RequestTest

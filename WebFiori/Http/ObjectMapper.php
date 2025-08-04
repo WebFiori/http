@@ -8,11 +8,11 @@
  * https://github.com/WebFiori/.github/blob/main/LICENSE
  * 
  */
-namespace webfiori\http;
+namespace WebFiori\Http;
 
 use Exception;
 use Throwable;
-use webfiori\json\Json;
+use WebFiori\Json\Json;
 
 /**
  * A class which is used to map API parameters to PHP class object.

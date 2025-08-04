@@ -1,6 +1,6 @@
 <?php
 
-namespace webfiori\tests\http\testServices;
+namespace WebFiori\Tests\Http\TestServices;
 
 class TestUserObj {
     private $name;

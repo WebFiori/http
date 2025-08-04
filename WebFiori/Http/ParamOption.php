@@ -7,7 +7,7 @@
  * For more information on the license, please visit: 
  * https://github.com/WebFiori/http/blob/master/LICENSE
  */
-namespace webfiori\http;
+namespace WebFiori\Http;
 
 /**
  * A class which holds the names of allowed options in request parameter.

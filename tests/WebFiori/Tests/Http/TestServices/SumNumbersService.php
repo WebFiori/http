@@ -1,9 +1,9 @@
 <?php
 
-namespace webfiori\tests\http\testServices;
+namespace WebFiori\Tests\Http\TestServices;
 
-use webfiori\http\RequestParameter;
-use webfiori\json\Json;
+use WebFiori\Http\RequestParameter;
+use WebFiori\Json\Json;
 /**
  * Description of SumNumbersService
  *

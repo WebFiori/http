@@ -1,7 +1,7 @@
 <?php
-namespace webfiori\tests\http;
+namespace WebFiori\Tests\Http;
 
-use webfiori\http\Request;
+use WebFiori\Http\Request;
 use PHPUnit\Framework\TestCase;
 /**
  * Description of RequestTest

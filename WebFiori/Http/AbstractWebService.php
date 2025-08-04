@@ -7,10 +7,10 @@
  * For more information on the license, please visit: 
  * https://github.com/WebFiori/http/blob/master/LICENSE
  */
-namespace webfiori\http;
+namespace WebFiori\Http;
 
-use webfiori\json\Json;
-use webfiori\json\JsonI;
+use WebFiori\Json\Json;
+use WebFiori\Json\JsonI;
 /**
  * A class that represents one web service.
  * 

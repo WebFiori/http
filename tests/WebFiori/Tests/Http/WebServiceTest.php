@@ -1,13 +1,13 @@
 <?php
-namespace webfiori\tests\http;
+namespace WebFiori\Tests\Http;
 
 use PHPUnit\Framework\TestCase;
-use webfiori\http\ParamOption;
-use webfiori\http\ParamType;
-use webfiori\http\RequestMethod;
-use webfiori\http\RequestParameter;
-use webfiori\tests\http\testServices\NoAuthService;
-use webfiori\tests\http\testServices\TestServiceObj;
+use WebFiori\Http\ParamOption;
+use WebFiori\Http\ParamType;
+use WebFiori\Http\RequestMethod;
+use WebFiori\Http\RequestParameter;
+use WebFiori\Tests\Http\TestServices\NoAuthService;
+use WebFiori\Tests\Http\TestServices\TestServiceObj;
 
 class WebServiceTest extends TestCase {
     /**

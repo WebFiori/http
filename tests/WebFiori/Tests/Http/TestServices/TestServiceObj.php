@@ -1,8 +1,8 @@
 <?php
 
-namespace webfiori\tests\http\testServices;
+namespace WebFiori\Tests\Http\TestServices;
 
-use webfiori\http\AbstractWebService;
+use WebFiori\Http\AbstractWebService;
 /**
  * Description of TestServiceObj
  *

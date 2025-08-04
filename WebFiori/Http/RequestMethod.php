@@ -1,5 +1,5 @@
 <?php
-namespace webfiori\http;
+namespace WebFiori\Http;
 
 /**
  * A class which is used to hold names of request methods.

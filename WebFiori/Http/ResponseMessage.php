@@ -1,5 +1,5 @@
 <?php
-namespace webfiori\http;
+namespace WebFiori\Http;
 
 /**
  * A class which is used to keep track of values of default response messages.

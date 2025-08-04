@@ -7,11 +7,11 @@
  * For more information on the license, please visit: 
  * https://github.com/WebFiori/http/blob/master/LICENSE
  */
-namespace webfiori\http;
+namespace WebFiori\Http;
 
 use Exception;
-use webfiori\json\Json;
-use webfiori\json\JsonI;
+use WebFiori\Json\Json;
+use WebFiori\Json\JsonI;
 /**
  * A class that is used to manage multiple web services.
  * 
