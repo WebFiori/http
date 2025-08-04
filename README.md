@@ -4,10 +4,10 @@ It includes inputs feltering and data validation in addion to creating user-defi
 
 <p align="center">
   <a href="https://github.com/WebFiori/http/actions">
-    <img src="https://github.com/WebFiori/http/actions/workflows/php84.yml/badge.svg?branch=master">
+    <img src="https://github.com/WebFiori/http/actions/workflows/php84.yaml/badge.svg?branch=main">
   </a>
   <a href="https://codecov.io/gh/WebFiori/http">
-    <img src="https://codecov.io/gh/WebFiori/http/branch/master/graph/badge.svg" />
+    <img src="https://codecov.io/gh/WebFiori/http/branch/main/graph/badge.svg" />
   </a>
   <a href="https://sonarcloud.io/dashboard?id=WebFiori_http">
       <img src="https://sonarcloud.io/api/project_badges/measure?project=WebFiori_http&metric=alert_status" />
@@ -23,11 +23,10 @@ It includes inputs feltering and data validation in addion to creating user-defi
 ## Supported PHP Versions
 |                                                                                        Build Status                                                                                         |
 |:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
-| <a target="_blank" href="https://github.com/WebFiori/http/actions/workflows/php80.yml"><img src="https://github.com/WebFiori/http/actions/workflows/php80.yml/badge.svg?branch=master"></a> |
-| <a target="_blank" href="https://github.com/WebFiori/http/actions/workflows/php81.yml"><img src="https://github.com/WebFiori/http/actions/workflows/php81.yml/badge.svg?branch=master"></a> |
-| <a target="_blank" href="https://github.com/WebFiori/http/actions/workflows/php82.yml"><img src="https://github.com/WebFiori/http/actions/workflows/php82.yml/badge.svg?branch=master"></a> |
-| <a target="_blank" href="https://github.com/WebFiori/http/actions/workflows/php83.yml"><img src="https://github.com/WebFiori/http/actions/workflows/php83.yml/badge.svg?branch=master"></a> |
-| <a target="_blank" href="https://github.com/WebFiori/http/actions/workflows/php84.yml"><img src="https://github.com/WebFiori/http/actions/workflows/php84.yml/badge.svg?branch=master"></a> |
+| <a target="_blank" href="https://github.com/WebFiori/http/actions/workflows/php81.yaml"><img src="https://github.com/WebFiori/http/actions/workflows/php81.yaml/badge.svg?branch=main"></a> |
+| <a target="_blank" href="https://github.com/WebFiori/http/actions/workflows/php82.yaml"><img src="https://github.com/WebFiori/http/actions/workflows/php82.yaml/badge.svg?branch=main"></a> |
+| <a target="_blank" href="https://github.com/WebFiori/http/actions/workflows/php83.yaml"><img src="https://github.com/WebFiori/http/actions/workflows/php83.yaml/badge.svg?branch=main"></a> |
+| <a target="_blank" href="https://github.com/WebFiori/http/actions/workflows/php84.yaml"><img src="https://github.com/WebFiori/http/actions/workflows/php84.yaml/badge.svg?branch=main"></a> |
 
 ## API Docs
 This library is a part of <a>WebFiori Framework</a>. To access API docs of the library, you can visid the following link: https://webfiori.com/docs/webfiori/http .
@@ -67,4 +66,4 @@ Note that the <a href="https://github.com/WebFiori/json">WebFiori Json</a> libra
 Another option is to download the latest release manually from <a href="https://github.com/WebFiori/http/releases">Release</a>.
 
 ## Usage
-For more information on how to use the library, [check here](https://github.com/WebFiori/wf-docs/blob/master/web-services.md)
+For more information on how to use the library, [check here](https://github.com/WebFiori/wf-docs/blob/main/web-services.md)
