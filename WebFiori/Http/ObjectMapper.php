@@ -20,8 +20,18 @@ use WebFiori\Json\Json;
  * @author Ibrahim
  */
 class ObjectMapper {
+    /**
+     * The name of the class to map to.
+     * 
+     * @var string
+     */
     private $clazzName;
     private $settersMap;
+    /**
+     * An array that maps parameter names to setter methods.
+     * 
+     * @var array
+     */
 
     /**
      * Creates new instance of the class.

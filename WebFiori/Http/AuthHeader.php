@@ -10,8 +10,18 @@ use InvalidArgumentException;
  *
  */
 class AuthHeader extends HttpHeader {
+    /**
+     * The authentication scheme (e.g., "Bearer", "Basic").
+     * 
+     * @var string
+     */
     private $scheme;
     private $credentials;
+    /**
+     * The credentials or authorization parameters.
+     * 
+     * @var string
+     */
     /**
      * Creates new instance of the class.
      * 

@@ -17,10 +17,25 @@ use InvalidArgumentException;
  * @author Ibrahim
  */
 class UriParameter {
+    /**
+     * A boolean value that indicates if the parameter is optional or not.
+     * 
+     * @var bool
+     */
     private $isOptional;
     private $name;
+    /**
+     * The name of the parameter.
+     * 
+     * @var string
+     */
     private $value;
     /**
+    /**
+     * The value of the parameter.
+     * 
+     * @var string|null
+     */
      * Creates new instance of the class.
      * 
      * @param string $varName The name of the variable (e.g. 'user-id').

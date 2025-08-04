@@ -15,6 +15,11 @@ namespace WebFiori\Http;
  * @author Ibrahim
  */
 class HeadersPool {
+    /**
+     * An array that contains HTTP headers.
+     * 
+     * @var array
+     */
     private $headersArr;
     /**
      * Creates new instance of the class.

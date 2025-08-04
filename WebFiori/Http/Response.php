@@ -37,6 +37,13 @@ class Response {
      * @since 1.0 
      */
     private $body;
+    /**
+     * An array that contains response cookies.
+     * 
+     * @var array
+     * 
+     * @since 1.0
+     */
     private $cookies;
     /**
      *

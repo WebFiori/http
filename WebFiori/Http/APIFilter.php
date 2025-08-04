@@ -39,6 +39,11 @@ class APIFilter {
      * @since 1.0 
      */
     private $inputs = [];
+    /**
+     * The path to the input stream.
+     * 
+     * @var string
+     */
     private $inputStreamPath;
     /**
      * The non-filtered data (original).

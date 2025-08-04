@@ -18,8 +18,18 @@ namespace WebFiori\Http;
  * @author Ibrahim
  */
 class HttpHeader {
+    /**
+     * The name of the HTTP header.
+     * 
+     * @var string
+     */
     private $headerName;
     private $headerValue;
+    /**
+     * The value of the HTTP header.
+     * 
+     * @var string
+     */
     /**
      * Creates new instance of the class.
      * 

@@ -20,7 +20,15 @@ namespace WebFiori\Http;
  */
 class ResponseMessage {
     private static $inst;
+    /**
+     * An array that contains response messages.
+     * 
+     * @var array
+     */
     private $messages;
+    /**
+     * Creates new instance of the class.
+     */
     private function __construct() {
         $this->messages = [
             '401' => 'Not Authorized.',
