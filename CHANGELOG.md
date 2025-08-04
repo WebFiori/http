@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.6.1](https://github.com/WebFiori/http/compare/v3.6.0...v3.6.1) (2025-08-04)
+
+
+### Bug Fixes
+
+* Get Requested Path ([e0d834e](https://github.com/WebFiori/http/commit/e0d834ee340a963634ebf1400b94f7e6dce0bdd3))
+
 ## [3.6.0](https://github.com/WebFiori/http/compare/v3.5.1...v3.6.0) (2024-12-24)
 
 
