@@ -1,0 +1,45 @@
+name: Build PHP 8.3
+
+on:
+  push:
+    branches: [ main, dev ]
+  pull_request:
+    branches: [ main, dev ]
+env:
+  OPERATING_SYS: ubuntu-latest
+  PHP_VERSION: 8.3
+jobs:
+
+  test:
+    name: Run Tests
+    uses: WebFiori/workflows/.github/workflows/test-php.yaml@main
+    with:
+      php-version: '8.3'
+      phpunit-config: 'tests/phpunit10.xml'
+            
+
+  code-coverage:
+    name: Coverage
+    needs: test
+    uses: WebFiori/workflows/.github/workflows/coverage-codecov.yaml@main
+    with:
+      php-version: '8.3'
+      coverage-file: 'php-8.3-coverage.xml'
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}  
+
+  code-quality:
+    name: Code Quality
+    needs: test
+    uses: WebFiori/workflows/.github/workflows/quality-sonarcloud.yaml@main
+    with:
+      coverage-file: 'php-8.3-coverage.xml'
+    secrets:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          
+  release-prod:
+    name: Prepare Production Release Branch / Publish Release
+    needs: [code-coverage, code-quality]
+    uses: WebFiori/workflows/.github/workflows/release-php.yaml@main
+    with:
+      branch: 'main'
