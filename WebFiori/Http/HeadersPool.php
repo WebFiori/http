@@ -42,7 +42,6 @@ class HeadersPool {
      * @return boolean If the header is added, the method will return true. If 
      * not added, the method will return false.
      * 
-     * @since 1.0
      */
     public function addHeader(string $headerName, string $headerVal, ?string $replaceValue = '') : bool {
         $trimmedHeader = strtolower(trim($headerName));
@@ -136,7 +135,6 @@ class HeadersPool {
      * will return true. If a value is specified and a match is fond, the 
      * method will return true. Other than that, the method will return true.
      * 
-     * @since 1.0 
      */
     public function hasHeader(string $name, ?string $val) : bool {
         $headers = $this->getHeaderAsObj($name);

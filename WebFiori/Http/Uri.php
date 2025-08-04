@@ -27,21 +27,18 @@ use InvalidArgumentException;
  * 
  * @author Ibrahim
  * 
- * @version 1.0.1
  */
 class Uri {
     /**
      *
      * @var array 
      * 
-     * @since 1.0.1
      */
     private $allowedRequestMethods;
     /**
      * The URI broken into its subcomponents (scheme, authority ...) as an associative
      * array.
      * @var array 
-     * @since 1.0
      */
     private $uriBroken;
     /**
@@ -74,7 +71,6 @@ class Uri {
      * @param string $method A string such as 'GET' or 'POST'. Note that the 
      * value must exist in the array Request::METHODS, or it will be not added.
      * 
-     * @since 1.0.1
      */
     public function addRequestMethod(string $method) {
         if (in_array($method, Request::METHODS)) {
@@ -92,7 +88,6 @@ class Uri {
      * @param string $varValue The value of the parameter. Note that any extra spaces 
      * in the value will be trimmed.
      * 
-     * @since 1.0
      */
     public function addVarValue(string $varName, string $varValue) {
         $trimmed = trim($varName);
@@ -112,7 +107,6 @@ class Uri {
      * @param array $arrayOfValues An array that contains all possible values for
      * the parameter.
      * 
-     * @since 1.0
      */
     public function addVarValues(string $varName, array $arrayOfValues) {
         if (gettype($arrayOfValues) == 'array') {
@@ -132,7 +126,6 @@ class Uri {
      * @return boolean The method will return true if the URIs are 
      * equal.
      * 
-     * @since 1.0
      */
     public function equals(Uri $otherUri) : bool {
         $isEqual = true;
@@ -165,7 +158,6 @@ class Uri {
      * @return string The authority part of the URI. Usually, 
      * it is a string in the form '//www.example.com:80'.
      * 
-     * @since 1.0
      */
     public function getAuthority() : string {
         return $this->uriBroken['authority'];
@@ -183,7 +175,6 @@ class Uri {
      * 
      * @return string The base URL (such as 'http//www.example.com/')
      * 
-     * @since 0.2
      */
     public static function getBaseURL() : string {
         $tempHost = $_SERVER['HTTP_HOST'] ?? '127.0.0.1';
@@ -255,7 +246,6 @@ class Uri {
      * <li><b>uri-vars</b>: An array that contains URI path parameter and values.</li>
      * </ul>
      * 
-     * @since 1.0
      */
     public function getComponents() : array {
         return $this->uriBroken;
@@ -266,7 +256,6 @@ class Uri {
      * @return string Fragment part of the URI. The fragment in the URI is 
      * any string that comes after the character '#'.
      * 
-     * @since 1.0
      */
     public function getFragment() : string {
         return $this->uriBroken['fragment'];
@@ -276,7 +265,6 @@ class Uri {
      * 
      * @return string The host name such as 'www.webfiori.com'.
      * 
-     * @since 1.0
      */
     public function getHost() : string {
         return $this->uriBroken['host'];
@@ -304,7 +292,6 @@ class Uri {
      * @return array An indexed array which contains URI parameters as 
      * objects of type UriParameter.
      * 
-     * @since 1.0
      */
     public function getParameters() : array {
         return $this->uriBroken['uri-vars'];
@@ -331,7 +318,6 @@ class Uri {
      * parameter if found. If the parameter is not set or the parameter 
      * does not exist, the method will return null.
      * 
-     * @since 1.0
      */
     public function getParameterValue(string $varName) {
         $param = $this->getParameter($varName);
@@ -351,7 +337,6 @@ class Uri {
      * values for the parameter which was added using the method Router::addUriVarValue(). 
      * If the parameter does not exist, the array will be empty.
      * 
-     * @since 1.3.6
      */
     public function getParameterValues(string $varName) : array {
         $trimmed = trim($varName);
@@ -367,7 +352,6 @@ class Uri {
      * 
      * @return string A string such as '/path1/path2/path3'.
      * 
-     * @since 1.0
      */
     public function getPath() : string {
         $retVal = '';
@@ -385,7 +369,6 @@ class Uri {
      * For example, if the path part of the URI is '/path1/path2', the 
      * array will contain the value 'path1' at index 0 and 'path2' at index 1.
      * 
-     * @since 1.0
      */
     public function getPathArray() : array {
         return $this->uriBroken['path'];
@@ -396,7 +379,6 @@ class Uri {
      * @return string Port number of the authority part of the URI. If 
      * port number was not specified, the method will return empty string.
      * 
-     * @since 1.0
      */
     public function getPort() : string {
         return $this->uriBroken['port'];
@@ -408,7 +390,6 @@ class Uri {
      * If the URI has no query string, the method will return empty 
      * string.
      * 
-     * @since 1.0
      */
     public function getQueryString() : string {
         return $this->uriBroken['query-string'];
@@ -420,7 +401,6 @@ class Uri {
      * the keys will be acting as the names of the parameters and the values 
      * of each parameter will be in its key.
      * 
-     * @since 1.0
      */
     public function getQueryStringVars() : array {
         return $this->uriBroken['query-string-vars'];
@@ -431,7 +411,6 @@ class Uri {
      * 
      * @return array An array that holds strings such as 'GET' or 'POST'.
      * 
-     * @since 1.0.1
      */
     public function getRequestMethods() : array {
         return $this->allowedRequestMethods;
@@ -442,7 +421,6 @@ class Uri {
      * @return string The scheme part of the URI. Usually, it is called protocol 
      * (like http, ftp).
      * 
-     * @since 1.0
      */
     public function getScheme() : string {
         return $this->uriBroken['scheme'];
@@ -458,7 +436,6 @@ class Uri {
      * 
      * @return string The original requested URI.
      * 
-     * @since 1.0
      */
     public function getUri(bool $incQueryStr = false, bool $incFragment = false) : string {
         $retVal = $this->getScheme().':'.$this->getAuthority().$this->getPath();
@@ -505,7 +482,6 @@ class Uri {
      * @return boolean If the given parameter name is exist, the method will 
      * return true. Other than that, the method will return false.
      * 
-     * @since 1.0
      */
     public function hasParameter(string $varName) : bool {
         return in_array($varName, $this->getParametersNames());
@@ -519,7 +495,6 @@ class Uri {
      * @return bool If the URI has any parameters, the method will 
      * return true.
      * 
-     * @since 1.0
      */
     public function hasParameters() : bool {
         return count($this->getParameters()) != 0;
@@ -530,7 +505,6 @@ class Uri {
      * @return bool The method will return true if all non-optional URI 
      * parameters have a value other than null.
      * 
-     * @since 1.0
      */
     public function isAllParametersSet() : bool {
         $canRoute = true;
@@ -550,7 +524,6 @@ class Uri {
      * in the allowed request methods. Other than that, the method will return 
      * false.
      * 
-     * @since 1.0.1
      */
     public function isRequestMethodAllowed() : bool {
         $methods = $this->getRequestMethods();
@@ -571,7 +544,6 @@ class Uri {
      * @return bool The method will return true if the parameter 
      * was set. If the parameter does not exist, the method will return false.
      * 
-     * @since 1.0
      */
     public function setParameterValue(string $varName, string $value) : bool {
         $param = $this->getParameter($varName);
@@ -590,7 +562,6 @@ class Uri {
      * 
      * @param array $methods An array that holds strings such as 'GET' or 'POST'.
      * 
-     * @since 1.0.1
      */
     public function setRequestMethods(array $methods) {
         foreach ($methods as $m) {
@@ -619,7 +590,6 @@ class Uri {
      * <li><b>uri-vars</b>: An array that contains URI path parameters and values.</li>
      * </ul>
      * 
-     * @since 1.0
      */
     public static function splitURI(string $uri) {
         $validate = filter_var(str_replace(' ', '%20', $uri),FILTER_VALIDATE_URL);

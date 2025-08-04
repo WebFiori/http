@@ -21,23 +21,19 @@ use WebFiori\Json\JsonI;
  * 
  * @author Ibrahim
  * 
- * @version 1.0.3
  * 
- * @since 1.5.0 
  */
 abstract class AbstractWebService implements JsonI {
     /**
      * A constant which is used to indicate that the message that will be 
      * sent is of type error.
      * 
-     * @since 1.0.2
      */
     const E = 'error';
     /**
      * A constant which is used to indicate that the message that will be 
      * sent is of type info.
      * 
-     * @since 1.0.2
      */
     const I = 'info';
 
@@ -46,7 +42,6 @@ abstract class AbstractWebService implements JsonI {
      * 
      * @var string
      * 
-     * @since 1.0 
      */
     private $name;
     /**
@@ -54,7 +49,6 @@ abstract class AbstractWebService implements JsonI {
      * 
      * @var WebServicesManager
      * 
-     * @since 1.0.1 
      */
     private $owner;
     /**
@@ -62,7 +56,6 @@ abstract class AbstractWebService implements JsonI {
      * 
      * @var array
      * 
-     * @since 1.0 
      */
     private $parameters;
     /**
@@ -70,7 +63,6 @@ abstract class AbstractWebService implements JsonI {
      * 
      * @var array
      * 
-     * @since 1.0 
      */
     private $reqMethods;
     /**
@@ -79,7 +71,6 @@ abstract class AbstractWebService implements JsonI {
      * 
      * @var bool
      * 
-     * @since 1.0.1 
      */
     private $requireAuth;
     /**
@@ -88,7 +79,6 @@ abstract class AbstractWebService implements JsonI {
      * 
      * @var array
      * 
-     * @since 1.0
      */
     private $responses;
     /**
@@ -96,7 +86,6 @@ abstract class AbstractWebService implements JsonI {
      * 
      * @var string
      * 
-     * @since 1.0
      */
     private $serviceDesc;
     /**
@@ -105,7 +94,6 @@ abstract class AbstractWebService implements JsonI {
      * 
      * @var string
      * 
-     * @since 1.0 
      */
     private $sinceVersion;
     /**
@@ -146,7 +134,6 @@ abstract class AbstractWebService implements JsonI {
      * @return array An array that contains all possible requests methods at which the 
      * service can be called using.
      * 
-     * @since 1.0
      */
     public function &getRequestMethods() : array {
         return $this->reqMethods;
@@ -156,7 +143,6 @@ abstract class AbstractWebService implements JsonI {
      * 
      * @return array an array that contains an objects of type RequestParameter.
      * 
-     * @since 1.0
      */
     public final function &getParameters() : array {
         return $this->parameters;
@@ -165,7 +151,6 @@ abstract class AbstractWebService implements JsonI {
      * 
      * @return string
      * 
-     * @since 1.0
      */
     public function __toString() {
         $retVal = "APIAction[\n";
@@ -257,7 +242,6 @@ abstract class AbstractWebService implements JsonI {
      * return true. If it was not added for any reason, the method will return 
      * false.
      * 
-     * @since 1.0
      */
     public function addParameter($param) : bool {
         if (gettype($param) == 'array') {
@@ -280,7 +264,6 @@ abstract class AbstractWebService implements JsonI {
      * then the key will represent the name of the web service and the value of the 
      * key should be a sub-associative array that holds parameter options.
      * 
-     * @since 1.0.3
      */
     public function addParameters(array $params) {
         foreach ($params as $paramIndex => $param) {
@@ -305,7 +288,6 @@ abstract class AbstractWebService implements JsonI {
      * request method is already added or the method is unknown, the method 
      * will return false.
      * 
-     * @since 1.0
      */
     public final function addRequestMethod(string $method) : bool {
         $uMethod = strtoupper(trim($method));
@@ -327,7 +309,6 @@ abstract class AbstractWebService implements JsonI {
      * @param string $description A paragraph that describes one of 
      * the possible responses due to calling the service.
      * 
-     * @since 1.0
      */
     public final function addResponseDescription(string $description) {
         $trimmed = trim($description);
@@ -355,7 +336,6 @@ abstract class AbstractWebService implements JsonI {
      * 
      * @return string The description of the service. Default is empty string.
      * 
-     * @since 1.0
      */
     public final function getDescription() : string {
         return $this->serviceDesc;
@@ -375,7 +355,6 @@ abstract class AbstractWebService implements JsonI {
      * be an object of type 'Json' if request content type was 'application/json'. 
      * If no manager was associated with the service, the method will return null.
      * 
-     * @since 1.0.1
      */
     public function getInputs() {
         $manager = $this->getManager();
@@ -400,7 +379,6 @@ abstract class AbstractWebService implements JsonI {
      * 
      * @return string The name of the service.
      * 
-     * @since 1.0
      */
     public final function getName() : string {
         return $this->name;
@@ -440,7 +418,6 @@ abstract class AbstractWebService implements JsonI {
      * @return RequestParameter|null Returns an objects of type RequestParameter if 
      * a parameter with the given name was found. null if nothing is found.
      * 
-     * @since 1.0
      */
     public final function getParameterByName(string $paramName) {
         $trimmed = trim($paramName);
@@ -466,7 +443,6 @@ abstract class AbstractWebService implements JsonI {
      * For optional parameters, if a default value is set for it, the method will
      * return that value.
      * 
-     * @since 1.0.1
      */
     public function getParamVal(string $paramName) {
         $inputs = $this->getInputs();
@@ -490,7 +466,6 @@ abstract class AbstractWebService implements JsonI {
      * 
      * @return array An array that contains information about possible responses.
      * 
-     * @since 1.0
      */
     public final function getResponsesDescriptions() : array {
         return $this->responses;
@@ -504,7 +479,6 @@ abstract class AbstractWebService implements JsonI {
      * @return string The version number at which the service was added to the API. 
      * Default is '1.0.0'.
      * 
-     * @since 1.0
      */
     public final function getSince() : string {
         return $this->sinceVersion;
@@ -521,7 +495,6 @@ abstract class AbstractWebService implements JsonI {
      * to the service, the method will return true. Otherwise, the method will return 
      * false.
      * 
-     * @since 1.0
      */
     public function hasParameter(string $name) : bool {
         $trimmed = trim($name);
@@ -546,7 +519,6 @@ abstract class AbstractWebService implements JsonI {
      * user is authorized to call the API. If WebFiori framework is used, it is 
      * possible to perform the functionality of this method using middleware.
      * 
-     * @since 1.0.1
      */
     public function isAuthorized() {
     }
@@ -559,7 +531,6 @@ abstract class AbstractWebService implements JsonI {
      * @return bool The method will return true if authorization step required. 
      * False if the authorization step will be skipped. Default return value is true.
      * 
-     * @since 1.0.1
      */
     public function isAuthRequired() : bool {
         return $this->requireAuth;
@@ -596,7 +567,6 @@ abstract class AbstractWebService implements JsonI {
      * This method must be implemented in a way it sends back a response after 
      * processing the request.
      * 
-     * @since 1.0.1
      */
     abstract function processRequest();
     /**
@@ -609,7 +579,6 @@ abstract class AbstractWebService implements JsonI {
      * that represents the removed parameter. If nothing is removed, the 
      * method will return null.
      * 
-     * @since 1.0
      */
     public function removeParameter(string $paramName) {
         $trimmed = trim($paramName);
@@ -647,7 +616,6 @@ abstract class AbstractWebService implements JsonI {
      * @return bool If the given request method is remove, the method will 
      * return true. Other than that, the method will return true.
      * 
-     * @since 1.0
      */
     public function removeRequestMethod(string $method): bool {
         $uMethod = strtoupper(trim($method));
@@ -686,7 +654,6 @@ abstract class AbstractWebService implements JsonI {
      * @param int $code HTTP response code that will be used to send the data. 
      * Default is HTTP code 200 - Ok.
      * 
-     * @since 1.0.1
      */
     public function send(string $contentType, $data, int $code = 200) {
         $manager = $this->getManager();
@@ -722,7 +689,6 @@ abstract class AbstractWebService implements JsonI {
      * string, an object... . If null is given, the parameter 'more-info' 
      * will be not included in response. Default is empty string. Default is null.
      * 
-     * @since 1.0.1
      */
     public function sendResponse(string $message, string $type = '', int $code = 200, mixed $otherInfo = '') {
         $manager = $this->getManager();
@@ -738,7 +704,6 @@ abstract class AbstractWebService implements JsonI {
      * 
      * @param string $desc Action description.
      * 
-     * @since 1.0
      */
     public final function setDescription(string $desc) {
         $this->serviceDesc = trim($desc);
@@ -752,7 +717,6 @@ abstract class AbstractWebService implements JsonI {
      * @param bool $bool True to make authorization step required. False to 
      * skip the authorization step.
      * 
-     * @since 1.0.1
      */
     public function setIsAuthRequired(bool $bool) {
         $this->requireAuth = $bool;
@@ -791,7 +755,6 @@ abstract class AbstractWebService implements JsonI {
      * true once the name is set. false is returned if the given 
      * name is invalid.
      * 
-     * @since 1.0
      */
     public final function setName(string $name) : bool {
         if (self::isValidName($name)) {
@@ -820,7 +783,6 @@ abstract class AbstractWebService implements JsonI {
      * 
      * @param string $sinceAPIv The version number at which the service was added to the API.
      * 
-     * @since 1.0
      */
     public final function setSince(string $sinceAPIv) {
         $this->sinceVersion = $sinceAPIv;
@@ -843,7 +805,6 @@ abstract class AbstractWebService implements JsonI {
      * 
      * @return Json an object of type Json.
      * 
-     * @since 1.0
      */
     public function toJSON() : Json {
         $json = new Json();

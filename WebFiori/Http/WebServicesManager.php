@@ -22,7 +22,6 @@ use WebFiori\Json\JsonI;
  * When a request is made to the services set, An instance of the class must be created 
  * and the method <a href="#process">WebServicesManager::process()</a> must be called.
  * 
- * @version 1.4.8
  */
 class WebServicesManager implements JsonI {
     /**
@@ -47,7 +46,6 @@ class WebServicesManager implements JsonI {
      * 
      * @var array An array that contains the supported 'POST' and 'PUT' request content types.
      * 
-     * @since 1.1
      */
     const POST_CONTENT_TYPES = [
         'application/x-www-form-urlencoded',
@@ -59,7 +57,6 @@ class WebServicesManager implements JsonI {
      * 
      * @var string
      * 
-     * @since 1.3 
      */
     private $apiDesc;
     /**
@@ -67,7 +64,6 @@ class WebServicesManager implements JsonI {
      * 
      * @var string
      * 
-     * @since 1.0 
      */
     private $apiVersion;
     /**
@@ -75,7 +71,6 @@ class WebServicesManager implements JsonI {
      * 
      * @var APIFilter
      * 
-     * @since 1.0 
      */
     private $filter;
     /**
@@ -83,7 +78,6 @@ class WebServicesManager implements JsonI {
      * 
      * @var array
      * 
-     * @since 1.4.1 
      */
     private $invParamsArr;
     /**
@@ -91,7 +85,6 @@ class WebServicesManager implements JsonI {
      * 
      * @var array
      * 
-     * @since 1.4.1 
      */
     private $missingParamsArr;
     /**
@@ -111,7 +104,6 @@ class WebServicesManager implements JsonI {
      * 
      * @var array
      * 
-     * @since 1.0 
      */
     private $services;
     /**
@@ -147,7 +139,6 @@ class WebServicesManager implements JsonI {
      * @param AbstractWebService $service The web service that will be added.
      * 
      * 
-     * @since 1.0
      */
     public function addService(AbstractWebService $service) {
         $this->addAction($service);
@@ -169,7 +160,6 @@ class WebServicesManager implements JsonI {
      * @param string $cType The value of the header 'content-type' taken from 
      * request header.
      * 
-     * @since 1.1
      */
     public function contentTypeNotSupported(string $cType = '') {
         $j = new Json();
@@ -186,7 +176,6 @@ class WebServicesManager implements JsonI {
      * @return string|null The name of the service that was requested. If the name 
      * of the service is not set, the method will return null. 
      * 
-     * @since 1.0 
      *
      */
     public function getCalledServiceName() {
@@ -199,7 +188,6 @@ class WebServicesManager implements JsonI {
      * useful to describe what does the set of services can do. If the description is 
      * not set, the method will return null.
      * 
-     * @since 1.3
      */
     public function getDescription() {
         return $this->apiDesc;
@@ -218,7 +206,6 @@ class WebServicesManager implements JsonI {
      * @return array|Json An array of filtered request inputs. This also can 
      * be an object of type 'Json' if request content type was 'application/json'.
      * 
-     * @since 1.0
      */
     public function getInputs() {
         return $this->filter->getInputs();
@@ -228,7 +215,6 @@ class WebServicesManager implements JsonI {
      * 
      * @return array An array that contains the names of request parameters which have invalid values.
      * 
-     * @since 1.4.1
      */
     public function getInvalidParameters() : array {
         return $this->invParamsArr;
@@ -239,7 +225,6 @@ class WebServicesManager implements JsonI {
      * 
      * @return array An array that contains the names of missing required parameters.
      * 
-     * @since 1.4.1
      */
     public function getMissingParameters() : array {
         return $this->missingParamsArr;
@@ -254,7 +239,6 @@ class WebServicesManager implements JsonI {
      * 
      * @return array An array of request parameters.
      * 
-     * @since 1.4.3
      */
     public function getNonFiltered() : array {
         return $this->filter->getNonFiltered();
@@ -267,7 +251,6 @@ class WebServicesManager implements JsonI {
      * resource. The resource will be still open. If no custom stream is set, 
      * the method will return null.
      * 
-     * @since 1.4.7
      */
     public function getOutputStream() {
         return $this->outputStream;
@@ -278,7 +261,6 @@ class WebServicesManager implements JsonI {
      * @return string|null A string that represents the path of the custom output stream. 
      * If no custom output stream is set, the method will return null.
      * 
-     * @since 1.4.7
      */
     public function getOutputStreamPath() {
         return $this->outputStreamPath;
@@ -292,7 +274,6 @@ class WebServicesManager implements JsonI {
      * if the service is found. If no service was found which has the given name, 
      * The method will return null.
      * 
-     * @since 1.3
      */
     public function getServiceByName(string $serviceName) {
         $trimmed = trim($serviceName);
@@ -310,7 +291,6 @@ class WebServicesManager implements JsonI {
      * The indices of the array are services names and the values are objects 
      * of type 'WebService'.
      * 
-     * @since 1.0
      */
     public final function getServices() : array {
         return $this->services;
@@ -320,7 +300,6 @@ class WebServicesManager implements JsonI {
      * 
      * @return string A string in the format 'X.X.X'.
      * 
-     * @since 1.0
      */
     public final function getVersion() : string {
         return $this->apiVersion;
@@ -337,7 +316,6 @@ class WebServicesManager implements JsonI {
      * </p>
      * In addition to the message, The response will send HTTP code 404 - Not Found.
      * 
-     * @since 1.3
      */
     public function invParams() {
         $val = '';
@@ -366,7 +344,6 @@ class WebServicesManager implements JsonI {
      * PUT and POST), the method will return true, false if not. Other than that, the method 
      * will return true.
      * 
-     * @since 1.1
      */
     public final function isContentTypeSupported() : bool {
         $c = Request::getContentType();
@@ -392,7 +369,6 @@ class WebServicesManager implements JsonI {
      * </p>
      * In addition to the message, The response will send HTTP code 404 - Not Found.
      * 
-     * @since 1.3
      */
     public function missingParams() {
         $val = '';
@@ -425,7 +401,6 @@ class WebServicesManager implements JsonI {
      * </p>
      * In addition to the message, The response will send HTTP code 404 - Not Found.
      * 
-     * @since 1.3.1
      */
     public function missingServiceName() {
         $this->sendResponse(ResponseMessage::get('404-3'), self::E, 404);
@@ -443,7 +418,6 @@ class WebServicesManager implements JsonI {
      * </p>
      * In addition to the message, The response will send HTTP code 401 - Not Authorized.
      * 
-     * @since 1.0
      */
     public function notAuth() {
         $this->sendResponse(ResponseMessage::get('401'), self::E, 401);
@@ -456,7 +430,6 @@ class WebServicesManager implements JsonI {
      * new instance of the class in order to process user request.
      *
      * @throws Exception
-     * @since 1.0
      */
     public final function process() {
         $this->invParamsArr = [];
@@ -499,7 +472,6 @@ class WebServicesManager implements JsonI {
      * @return string|null If the content was taken from the stream, the method 
      * will return it as a string. Other than that, the method will return null.
      * 
-     * @since 1.4.7
      */
     public function readOutputStream() {
         $path = $this->getOutputStreamPath();
@@ -519,7 +491,6 @@ class WebServicesManager implements JsonI {
      * and removed, the method will return an object that represent the removed 
      * service. Other than that, the method will return null.
      * 
-     * @since 1.4.8
      */
     public function removeService(string $name) {
         $trimmed = trim($name);
@@ -538,7 +509,6 @@ class WebServicesManager implements JsonI {
      * This method will simply re-initialize the arrays that holds all web 
      * services.
      * 
-     * @since 1.4.5
      */
     public function removeServices() {
         $this->services = [];
@@ -556,7 +526,6 @@ class WebServicesManager implements JsonI {
      * 
      * In addition to the message, The response will send HTTP code 405 - Method Not Allowed.
      * 
-     * @since 1.0
      */
     public function requestMethodNotAllowed() {
         $this->sendResponse(ResponseMessage::get('405'), self::E, 405);
@@ -589,7 +558,6 @@ class WebServicesManager implements JsonI {
      * and the value of each key will represent the value
      * of the header.
      * 
-     * @since 1.4.3
      */
     public function sendHeaders(array $headersArr) {
         foreach ($headersArr as $header => $val) {
@@ -623,7 +591,6 @@ class WebServicesManager implements JsonI {
      * string, an object... . If null is given, the parameter 'more-info' 
      * will be not included in response. Default is empty string. Default is null.
      * 
-     * @since 1.0
      */
     public function sendResponse(string $message, string $type = '', int $code = 200, mixed $otherInfo = '') {
         $json = new Json();
@@ -663,7 +630,6 @@ class WebServicesManager implements JsonI {
      * </p>
      * In addition to the message, The response will send HTTP code 404 - Not Found.
      * 
-     * @since 1.0
      */
     public function serviceNotImplemented() {
         $this->sendResponse(ResponseMessage::get('404-4'), self::E, 404);
@@ -680,7 +646,6 @@ class WebServicesManager implements JsonI {
      * </p>
      * In addition to the message, The response will send HTTP code 404 - Not Found.
      * 
-     * @since 1.0
      */
     public function serviceNotSupported() {
         $this->sendResponse(ResponseMessage::get('404-5'), self::E, 404);
@@ -691,7 +656,6 @@ class WebServicesManager implements JsonI {
      * @param string $desc Set description. Used to help front-end to identify
      * the use of the services set.
      * 
-     * @since 1.3
      */
     public function setDescription(string $desc) {
         $this->apiDesc = $desc;
@@ -708,7 +672,6 @@ class WebServicesManager implements JsonI {
      * @return bool If input stream is successfully set, the method will 
      * return true. False otherwise.
      * 
-     * @since 1.4.8
      */
     public function setInputStream($pathOrResource) : bool {
         return $this->filter->setInputStream($pathOrResource);
@@ -727,7 +690,6 @@ class WebServicesManager implements JsonI {
      * @param bool $new If set to true and the resource does not exist, the 
      * method will attempt to create it.
      * 
-     * @since 1.4.7
      */
     public function setOutputStream($stream, bool $new = false): bool {
         if (is_resource($stream)) {
@@ -762,7 +724,6 @@ class WebServicesManager implements JsonI {
      * 
      * @return bool true if set. false otherwise.
      * 
-     * @since 1.0
      */
     public final function setVersion(string $val) : bool {
         $nums = explode('.', $val);
@@ -789,7 +750,6 @@ class WebServicesManager implements JsonI {
      * 
      * @return Json An object of type Json.
      * 
-     * @since 1.0
      */
     public function toJSON() : Json {
         $json = new Json();
@@ -848,7 +808,6 @@ class WebServicesManager implements JsonI {
      * 
      * @return bool true if called service is valid.
      * 
-     * @since 1.0
      */
     private function _checkAction(): bool {
         $serviceName = $this->getCalledServiceName();
@@ -921,7 +880,6 @@ class WebServicesManager implements JsonI {
      * 
      * @param AbstractWebService $service The web service that will be added.
      * 
-     * @since 1.0
      * 
      * @deprecated since version 1.4.7 Use WebservicesSet::addService()
      */
@@ -957,7 +915,6 @@ class WebServicesManager implements JsonI {
      * @return string|null The name of the service that was requested. If the name 
      * of the service is not set, the method will return null. 
      * 
-     * @since 1.0
      * 
      * @deprecated since version 1.4.6 Use WebServicesManager::getCalledServiceName() instead.
      */

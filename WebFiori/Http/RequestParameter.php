@@ -20,7 +20,6 @@ use WebFiori\Json\JsonI;
  * 
  * @author Ibrahim
  * 
- * @version 1.2.3
  */
 class RequestParameter implements JsonI {
     /**
@@ -29,7 +28,6 @@ class RequestParameter implements JsonI {
      * 
      * @var boolean
      * 
-     * @since 1.2 
      */
     private $applyBasicFilter;
     /**
@@ -37,7 +35,6 @@ class RequestParameter implements JsonI {
      * 
      * @var callable
      * 
-     * @since 1.2 
      */
     private $customFilterFunc;
     /**
@@ -46,7 +43,6 @@ class RequestParameter implements JsonI {
      * 
      * @var mixed 
      * 
-     * @since 1.1
      */
     private $default;
     /**
@@ -54,7 +50,6 @@ class RequestParameter implements JsonI {
      * 
      * @var string
      * 
-     * @since 1.0 
      */
     private $desc;
     /**
@@ -62,7 +57,6 @@ class RequestParameter implements JsonI {
      * 
      * @var boolean 
      * 
-     * @since 1.2.1
      */
     private $isEmptyStrAllowed;
     /**
@@ -70,7 +64,6 @@ class RequestParameter implements JsonI {
      * 
      * @var bool true if the parameter is optional.
      * 
-     * @since 1.0
      */
     private $isOptional;
     /**
@@ -84,7 +77,6 @@ class RequestParameter implements JsonI {
      * 
      * @var double|null
      * 
-     * @since 1.1
      */
     private $maxVal;
     /**
@@ -99,7 +91,6 @@ class RequestParameter implements JsonI {
      * 
      * @var double|null
      * 
-     * @since 1.1
      */
     private $minVal;
     /**
@@ -107,7 +98,6 @@ class RequestParameter implements JsonI {
      * 
      * @var string
      * 
-     * @since 1.0 
      */
     private $name;
     /**
@@ -115,7 +105,6 @@ class RequestParameter implements JsonI {
      * 
      * @var string
      * 
-     * @since 1.0 
      */
     private $type;
     /**
@@ -180,7 +169,6 @@ class RequestParameter implements JsonI {
      * </p>
      * If any of the values is null, the value will be shown as 'null'.
      * 
-     * @since 1.2.2
      */
     public function __toString() {
         $retVal = "RequestParameter[\n";
@@ -236,7 +224,6 @@ class RequestParameter implements JsonI {
      *  the method will return an object of type 'RequestParameter'. 
      * If it was not created for any reason, the method will return null.
      * 
-     * @since 1.2.3
      */
     public static function create(array $options) {
         if (isset($options['name'])) {
@@ -256,7 +243,6 @@ class RequestParameter implements JsonI {
      * @return callback|null The function that is used as a custom filter 
      * for the parameter. If not set, the method will return null.
      * 
-     * @since 1.2
      */
     public function getCustomFilterFunction() {
         return $this->customFilterFunc;
@@ -269,7 +255,6 @@ class RequestParameter implements JsonI {
      * not provided. If no default value is provided, the method will 
      * return null.
      * 
-     * @since 1.1
      */
     public function getDefault() {
         return $this->default;
@@ -280,7 +265,6 @@ class RequestParameter implements JsonI {
      * @return string|null The description of the parameter. If the description is 
      * not set, the method will return null.
      * 
-     * @since 1.1
      */
     public function getDescription() {
         return $this->desc;
@@ -307,7 +291,6 @@ class RequestParameter implements JsonI {
      * If the request parameter type is not numeric, the method will return 
      * null.
      * 
-     * @since 1.1
      */
     public function getMaxValue() {
         return $this->maxVal;
@@ -321,7 +304,6 @@ class RequestParameter implements JsonI {
      * If the request parameter type is not string, the method will return 
      * null.
      * 
-     * @since 1.1
      */
     public function getMinLength() {
         return $this->minLength;
@@ -335,7 +317,6 @@ class RequestParameter implements JsonI {
      * If the request parameter type is not numeric, the method will return 
      * null.
      * 
-     * @since 1.1
      */
     public function getMinValue() {
         return $this->minVal;
@@ -345,7 +326,6 @@ class RequestParameter implements JsonI {
      * 
      * @return string The name of the parameter.
      * 
-     * @since 1.0
      */
     public function getName() : string {
         return $this->name;
@@ -355,7 +335,6 @@ class RequestParameter implements JsonI {
      * 
      * @return string The type of the parameter (Such as 'string', 'email', 'integer').
      * 
-     * @since 1.0
      */
     public function getType() : string {
         return $this->type;
@@ -368,7 +347,6 @@ class RequestParameter implements JsonI {
      * if the basic filter will be applied before applying custom filter. If no custom 
      * filter is set, the method will return true by default.
      * 
-     * @since 1.2
      */
     public function isBasicFilter() : bool {
         return $this->applyBasicFilter;
@@ -383,7 +361,6 @@ class RequestParameter implements JsonI {
      * @return bool true if empty strings are allowed as values for the parameter. 
      * false if not.
      * 
-     * @since 1.2.1
      */
     public function isEmptyStringAllowed() : bool {
         return $this->isEmptyStrAllowed;
@@ -395,7 +372,6 @@ class RequestParameter implements JsonI {
      * @return bool true if the parameter is optional and false 
      * if not.
      * 
-     * @since 1.0
      */
     public function isOptional() : bool {
         return $this->isOptional;
@@ -425,7 +401,6 @@ class RequestParameter implements JsonI {
      * is true.
      *
      * 
-     * @since 1.2
      */
     public function setCustomFilterFunction(callable $function, bool $applyBasicFilter = true) {
         $this->customFilterFunc = $function;
@@ -444,7 +419,6 @@ class RequestParameter implements JsonI {
      * @return bool If the default value is set, the method will return true. 
      * If it is not set, the method will return false.
      * 
-     * @since 1.1
      */
     public function setDefault($val) : bool {
         $valType = gettype($val);
@@ -469,7 +443,6 @@ class RequestParameter implements JsonI {
      * 
      * @param string $desc Parameter description.
      * 
-     * @since 1.1
      */
     public function setDescription(string $desc) {
         $this->desc = trim($desc);
@@ -487,7 +460,6 @@ class RequestParameter implements JsonI {
      * If datatype of the request parameter is not string, The method will 
      * not update the property value and will return false.
      * 
-     * @since 1.2.1
      */
     public function setIsEmptyStringAllowed(bool $bool) : bool {
         if ($this->getType() == ParamType::STRING) {
@@ -505,7 +477,6 @@ class RequestParameter implements JsonI {
      * 
      * @param bool $bool True to make the parameter optional. False to make it mandatory.
      * 
-     * @since 1.2.2
      */
     public function setIsOptional(bool $bool) {
         $this->isOptional = $bool === true;
@@ -722,7 +693,6 @@ class RequestParameter implements JsonI {
      * 
      * @return Json An object of type Json. 
      * 
-     * @since 1.0
      */
     public function toJSON() : Json {
         $json = new Json();

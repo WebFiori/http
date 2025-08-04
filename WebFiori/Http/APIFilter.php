@@ -19,7 +19,6 @@ use WebFiori\Json\Json;
  * 
  * @author Ibrahim
  * 
- * @version 1.2.3
  */
 class APIFilter {
     /**
@@ -27,7 +26,6 @@ class APIFilter {
      * 
      * @var string A string that indicates a given value is invalid.
      * 
-     * @since 1.2.2
      */
     const INVALID = 'INV';
 
@@ -36,7 +34,6 @@ class APIFilter {
      * 
      * @var array
      * 
-     * @since 1.0 
      */
     private $inputs = [];
     /**
@@ -50,7 +47,6 @@ class APIFilter {
      * 
      * @var mixed
      * 
-     * @since 1.2 
      */
     private $nonFilteredInputs;
     /**
@@ -58,7 +54,6 @@ class APIFilter {
      * 
      * @var array
      * 
-     * @since 1.0 
      */
     private $paramDefs = [];
     /**
@@ -66,7 +61,6 @@ class APIFilter {
      * 
      * @param RequestParameter $reqParam The request parameter that will be added.
      * 
-     * @since 1.1
      */
     public function addRequestParameter(RequestParameter $reqParam) {
         $paramIdx = 'parameter';
@@ -113,7 +107,6 @@ class APIFilter {
     /**
      * Clears the arrays that are used to store filtered and not-filtered variables.
      * 
-     * @since 1.2.2
      */
     public function clearInputs() {
         $this->inputs = [];
@@ -122,7 +115,6 @@ class APIFilter {
     /**
      * Clears filter parameters. 
      * 
-     * @since 1.1
      */
     public function clearParametersDef() {
         $this->paramDefs = [];
@@ -153,7 +145,6 @@ class APIFilter {
      * has all values filtered. The index which has the key 'non-filtered' 
      * will contain the original values.
      * 
-     * @since 1.2.2
      */
     public static function filter(APIFilter $apiFilter, array $arr): array {
         $filteredIdx = 'filtered';
@@ -231,7 +222,6 @@ class APIFilter {
      * </li>
      * </ul>
      * 
-     * @since 1.0
      */
     public final function filterGET() {
         $this->clearInputs();
@@ -259,7 +249,6 @@ class APIFilter {
      * </ul>
      *
      * @throws Exception
-     * @since 1.0
      */
     public final function filterPOST() {
         $this->clearInputs();
@@ -284,7 +273,6 @@ class APIFilter {
      * 
      * @return array An array that contains filter constraints.
      * 
-     * @since 1.2.2
      */
     public function getFilterDef() : array {
         return $this->paramDefs;
@@ -302,7 +290,6 @@ class APIFilter {
      * 'application/json', the method will return an instance of the class 
      * 'Json' that has all JSON information.
      * 
-     * @since 1.0
      */
     public function getInputs() {
         return $this->inputs;
@@ -312,7 +299,6 @@ class APIFilter {
      * 
      * @return string|null
      * 
-     * @since 1.2.3
      */
     public function getInputStreamPath() {
         return $this->inputStreamPath;
@@ -325,7 +311,6 @@ class APIFilter {
      * type is 'application/json', the method will return an object of type 
      * 'Json'.
      * 
-     * @since 1.2
      */
     public final function getNonFiltered() {
         return $this->nonFilteredInputs;
@@ -342,7 +327,6 @@ class APIFilter {
      * @return bool If input stream is successfully set, the method will 
      * return true. False otherwise.
      * 
-     * @since 1.2.3
      */
     public function setInputStream($pathOrResource) : bool {
         if (is_resource($pathOrResource)) {
@@ -576,7 +560,6 @@ class APIFilter {
      * which contains the values is returned. If it has invalid syntax, the 
      * method will return the string 'APIFilter::INVALID'.
      * 
-     * @since 1.2.1
      */
     private static function filterArray($arr) {
         if (gettype($arr) == 'array') {
@@ -677,7 +660,6 @@ class APIFilter {
      * 
      * @return bool|string
      * 
-     * @since 1.1
      */
     private static function filterBoolean($boolean) {
         if (gettype($boolean) == 'boolean') {
@@ -916,7 +898,6 @@ class APIFilter {
      * @param string $stringEndChar
      * @return array
      *
-     * @since 1.2.1
      */
     private static function parseStringFromArray(string $stringAsArr,int $start,int $len, string $stringEndChar) : array {
         $retVal = [

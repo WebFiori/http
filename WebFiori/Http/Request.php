@@ -17,7 +17,6 @@ use InvalidArgumentException;
  * request. Note that it does not comply with PSR-7 in all aspects.
  * @author Ibrahim
  * 
- * @version 1.0.1
  */
 class Request {
     /**
@@ -38,7 +37,6 @@ class Request {
      * 
      * @var array An array that contains the names of request methods.
      * 
-     * @since 1.0
      */
     const METHODS = [
         'GET',
@@ -55,14 +53,12 @@ class Request {
      *
      * @var HeadersPool
      * 
-     * @since 1.0 
      */
     private $headersPool;
     /**
      *
      * @var Response
      * 
-     * @since 1.0 
      */
     private static $inst;
 
@@ -74,7 +70,6 @@ class Request {
      * 
      * @return Request
      * 
-     * @since 1.0
      */
     public static function get() {
         if (self::$inst === null) {
@@ -110,7 +105,6 @@ class Request {
      * The value is taken from the array $_SERVER at index 'REMOTE_ADDR'.
      * If the IP address is invalid, empty string is returned.
      * 
-     * @since 1.0
      */
     public static function getClientIP() : string {
         if (!isset($_SERVER['REMOTE_ADDR'])) {
@@ -129,7 +123,6 @@ class Request {
      * 
      * @return string|null The value of the header 'content-type' in the request.
      * 
-     * @since 1.0
      */
     public static function getContentType() {
         $c = isset($_SERVER['CONTENT_TYPE']) ? filter_var($_SERVER['CONTENT_TYPE']) : null;
@@ -166,7 +159,6 @@ class Request {
      * @return array An array of request headers. Each header is represented
      * as an object of type HttpHeader.
      * 
-     * @since 1.0
      */
     public static function getHeaders() : array {
         if (defined('__PHPUNIT_PHAR__') || self::get()->headersPool === null || http_response_code() === false) {
@@ -213,7 +205,6 @@ class Request {
      * in CLI environment to something like 'POST' for testing, use the 
      * function putenv('REQUEST_METHOD=POST'). 
      * 
-     * @since 1.0
      */
     public static function getMethod() : string {
         $meth = getenv('REQUEST_METHOD');
@@ -243,7 +234,6 @@ class Request {
      * @return string|null The method will return the value of the parameter if 
      * set as a string. Other than that, the method will return null.
      * 
-     * @since 1.0.1
      */
     public static function getParam(string $paramName) {
         $trimmed = trim($paramName);
@@ -343,7 +333,6 @@ class Request {
      * @return string The URI of the requested resource 
      * (e.g. http://example.com/get-random?range=[1,100]). 
      * 
-     * @since 1.0
      */
     public static function getRequestedURI(string $pathToAppend = '') : string {
         $base = Uri::getBaseURL();
@@ -378,7 +367,6 @@ class Request {
      * 
      * @return Uri an object that holds all information about requested URI.
      * 
-     * @since 1.0
      */
     public static function getUri() : Uri {
         return new Uri(self::getRequestedURI());

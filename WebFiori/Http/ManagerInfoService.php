@@ -17,13 +17,11 @@ namespace WebFiori\Http;
  * 
  * @author Ibrahim
  * 
- * @version 1.0
  */
 abstract class ManagerInfoService extends AbstractWebService {
     /**
      * Creates new instance of the class.
      * 
-     * @since 1.0
      */
     public function __construct() {
         parent::__construct('api-info');

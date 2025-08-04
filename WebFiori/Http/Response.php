@@ -19,7 +19,6 @@ namespace WebFiori\Http;
  *
  * @author Ibrahim
  * 
- * @version 1.0.1
  * 
  */
 class Response {
@@ -27,14 +26,12 @@ class Response {
      *
      * @var array 
      * 
-     * @since 1.0
      */
     private $beforeSendCalls;
     /**
      *
      * @var string
      * 
-     * @since 1.0 
      */
     private $body;
     /**
@@ -42,46 +39,39 @@ class Response {
      * 
      * @var array
      * 
-     * @since 1.0
      */
     private $cookies;
     /**
      *
      * @var HeadersPool
      * 
-     * @since 1.0 
      */
     private $headersPool;
     /**
      *
      * @var Response
      * 
-     * @since 1.0 
      */
     private static $inst;
     /**
      *
      * @var boolean
      * 
-     * @since 1.0.1 
      */
     private $isSent;
     /**
      *
      * @var boolean
      * 
-     * @since 1.0 
      */
     private $lock;
     /**
      *
      * @var int
      * 
-     * @since 1.0 
      */
     private $responseCode;
     /**
-     * @since 1.0
      */
     private function __construct() {
         $this->headersPool = new HeadersPool();
@@ -115,7 +105,6 @@ class Response {
      * @return bool If the header is added, the method will return true. If 
      * not added, the method will return false.
      * 
-     * @since 1.0
      */
     public static function addHeader(string $headerName, string $headerVal, ?string $replaceValue = '') : bool {
         return self::getHeadersPool()->addHeader($headerName, $headerVal, $replaceValue);
@@ -127,7 +116,6 @@ class Response {
      * 
      * @param callable $func A PHP callable.
      * 
-     * @since 1.0
      */
     public static function beforeSend(callable $func) {
         self::get()->beforeSendCalls[] = $func;
@@ -137,7 +125,6 @@ class Response {
      * 
      * @return Response 
      * 
-     * @since 1.0
      */
     public static function clear() : Response {
         self::clearBody()->clearHeaders();
@@ -149,7 +136,6 @@ class Response {
      * 
      * @return Response 
      * 
-     * @since 1.0
      */
     public static function clearBody() : Response {
         self::get()->body = '';
@@ -161,7 +147,6 @@ class Response {
      * 
      * @return Response 
      * 
-     * @since 1.0
      */
     public static function clearHeaders() : Response {
         self::get()->headersPool = new HeadersPool();
@@ -209,7 +194,6 @@ class Response {
      * 
      * @return string A string that represents response body that will be sent.
      * 
-     * @since 1.0
      */
     public static function getBody() : string {
         return self::get()->body;
@@ -219,7 +203,6 @@ class Response {
      * 
      * @return int HTTP response code. Default value is 200.
      * 
-     * @since 1.0
      */
     public static function getCode() : int {
         return self::get()->responseCode;
@@ -259,7 +242,6 @@ class Response {
      * that contains the values of the header. If the header does not exist, the 
      * method will return an empty array.
      * 
-     * @since 1.0
      */
     public static function getHeader(string $headerName) : array {
         return self::getHeadersPool()->getHeader($headerName);
@@ -269,7 +251,6 @@ class Response {
      * 
      * @return array An array that contains response headers as object.
      * 
-     * @since 1.0
      */
     public static function getHeaders() : array {
         return self::getHeadersPool()->getHeaders();
@@ -309,7 +290,6 @@ class Response {
      * will return true. If a value is specified and a match is fond, the 
      * method will return true. Other than that, the method will return true.
      * 
-     * @since 1.0 
      */
     public static function hasHeader(string $headerName, ?string $headerVal = '') : bool {
         return self::getHeadersPool()->hasHeader($headerName, $headerVal);
@@ -320,7 +300,6 @@ class Response {
      * @return bool The method will return true if output is sent. False 
      * if not.
      * 
-     * @since 1.0.1
      */
     public static function isSent() : bool {
         return self::get()->isSent;
@@ -337,7 +316,6 @@ class Response {
      * @return bool If the header is removed, the method will return true.
      * Other than that, the method will return true.
      * 
-     * @since 1.0
      */
     public static function removeHeader(string $headerName, ?string $headerVal = '') : bool {
         return self::getHeadersPool()->removeHeader($headerName, $headerVal);
@@ -350,7 +328,6 @@ class Response {
      * it will terminate the execution of code once the output is sent. In terminal 
      * environment, calling it will have no effect.
      * 
-     * @since 1.0
      */
     public static function send() {
         if (!self::isSent()) {
@@ -399,7 +376,6 @@ class Response {
      * @param int $code HTTP response code. The value must be between 100 and 
      * 599 inclusive.
      * 
-     * @since 1.0
      */
     public static function setCode(int $code) {
         if ($code >= 100 && $code <= 599) {
@@ -416,7 +392,6 @@ class Response {
      *
      * @return Response
      *
-     * @since 1.0
      */
     public static function write($value, bool $sendResponse = false) : Response {
         $type = gettype($value);

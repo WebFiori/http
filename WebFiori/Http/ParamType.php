@@ -14,57 +14,47 @@ namespace WebFiori\Http;
  *
  * @author Ibrahim
  * 
- * @version 1.0
  * 
- * @since 1.5.2
  */
 class ParamType {
     /**
      * A constant to indicate that a parameter is of type array.
      * 
-     * @since 1.0
      */
     const ARR = 'array';
     /**
      * A constant to indicate that a parameter is of type boolean.
      * 
-     * @since 1.0
      */
     const BOOL = 'boolean';
     /**
      * A constant to indicate that a parameter is of type float or double.
      * 
-     * @since 1.0
      */
     const DOUBLE = 'double';
     /**
      * A constant to indicate that a parameter is of type email.
      * 
-     * @since 1.0
      */
     const EMAIL = 'email';
     /**
      * A constant to indicate that a parameter is of type integer.
      * 
-     * @since 1.0
      */
     const INT = 'integer';
     /**
      * A constant to indicate that a parameter is of type JSON object.
      * 
-     * @since 1.0
      */
     const JSON_OBJ = 'json-obj';
     /**
      * A constant to indicate that a parameter is of type string.
      * 
-     * @since 1.0
      */
     const STRING = 'string';
     /**
      * A constant to indicate that a parameter is of type url.
      * 
-     * @since 1.0
      */
     const URL = 'url';
     /**
@@ -99,7 +89,6 @@ class ParamType {
      * 
      * @return array An array that contains all supported parameters types.
      * 
-     * @since 1.0
      */
     public static function getTypes() : array {
         return [
