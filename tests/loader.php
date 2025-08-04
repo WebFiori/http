@@ -18,15 +18,3 @@ if (explode($DS, $rootDirTrimmed)[0] == 'home') {
 define('ROOT', $rootDir);
 fwrite($stderr,'Root Directory: \''.$rootDir.'\'.'."\n");
 require_once __DIR__.DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR.'vendor'.DIRECTORY_SEPARATOR.'autoload.php';
-
-require_once $rootDir.'tests'.$DS.'webfiori'.$DS.'tests'.$DS.'http'.$DS.'testServices'.$DS.'TestServiceObj.php';
-require_once $rootDir.'tests'.$DS.'webfiori'.$DS.'tests'.$DS.'http'.$DS.'testServices'.$DS.'SampleServicesManager.php';
-require_once $rootDir.'tests'.$DS.'webfiori'.$DS.'tests'.$DS.'http'.$DS.'testServices'.$DS.'AbstractNumbersService.php';
-require_once $rootDir.'tests'.$DS.'webfiori'.$DS.'tests'.$DS.'http'.$DS.'testServices'.$DS.'AddNubmersService.php';
-require_once $rootDir.'tests'.$DS.'webfiori'.$DS.'tests'.$DS.'http'.$DS.'testServices'.$DS.'SumNumbersService.php';
-require_once $rootDir.'tests'.$DS.'webfiori'.$DS.'tests'.$DS.'http'.$DS.'testServices'.$DS.'GetUserProfileService.php';
-require_once $rootDir.'tests'.$DS.'webfiori'.$DS.'tests'.$DS.'http'.$DS.'testServices'.$DS.'NoAuthService.php';
-require_once $rootDir.'tests'.$DS.'webfiori'.$DS.'tests'.$DS.'http'.$DS.'testServices'.$DS.'NotImplService.php';
-require_once $rootDir.'tests'.$DS.'webfiori'.$DS.'tests'.$DS.'http'.$DS.'testServices'.$DS.'TestUserObj.php';
-require_once $rootDir.'tests'.$DS.'webfiori'.$DS.'tests'.$DS.'http'.$DS.'testServices'.$DS.'CreateUserProfileService.php';
-require_once $rootDir.'tests'.$DS.'webfiori'.$DS.'tests'.$DS.'http'.$DS.'testServices'.$DS.'MulNubmersService.php';
