@@ -161,7 +161,7 @@ class Request {
      * 
      */
     public static function getHeaders() : array {
-        if (defined('__PHPUNIT_PHAR__') || self::get()->headersPool === null || http_response_code() === false) {
+        if (defined('__PHPUNIT_PHAR__') || self::get()->headersPool->getHeaders() == [] || http_response_code() === false) {
             //Always Refresh headers if in testing environment.
             self::extractHeaders();
         }
