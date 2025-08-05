@@ -31,11 +31,6 @@ class UriParameter {
      */
     private $value;
     /**
-    /**
-     * The value of the parameter.
-     * 
-     * @var string|null
-     */
      * Creates new instance of the class.
      * 
      * @param string $varName The name of the variable (e.g. 'user-id').
