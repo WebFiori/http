@@ -6,10 +6,11 @@ use WebFiori\Http\AbstractWebService;
 use WebFiori\Http\ParamOption;
 use WebFiori\Http\ParamType;
 use WebFiori\Http\RequestMethod;
+use WebFiori\Http\ResponseMessage;
 
-class HelloWorldService extends AbstractWebService {
+class HelloWithAuthService extends AbstractWebService {
     public function __construct() {
-        parent::__construct('hello');
+        parent::__construct('hello-with-auth');
         $this->setRequestMethods([RequestMethod::GET]);
         
         $this->addParameters([
@@ -20,6 +21,23 @@ class HelloWorldService extends AbstractWebService {
         ]);
     }
     public function isAuthorized() {
+        //Change default response message to custom one
+        ResponseMessage::set('401', 'Not authorized to use this API.');
+        
+        $authHeader = $this->getAuthHeader();
+        
+        if ($authHeader === null) {
+            return false;
+        }
+        
+        $scheme = $authHeader->getScheme();
+        $credentials = $authHeader->getCredentials();
+        
+        if ($scheme != 'bearer') {
+            return false;
+        }
+        
+        return $credentials == 'abc123trX';
     }
 
     public function processRequest() {
