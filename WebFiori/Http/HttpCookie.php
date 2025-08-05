@@ -52,31 +52,8 @@ class HttpCookie {
     private $secure;
     private $val;
     /**
-     * The path of the cookie.
-     * 
-     * @var string
-     */
-    /**
      * Creates new instance of the class with default properties.
-    /**
-     * The SameSite attribute of the cookie.
-     * 
-     * @var string
-     */
-     * 
      * A newly created cookie will have the following properties by default:
-    /**
-     * A boolean value that indicates if the cookie is secure.
-     * 
-     * @var bool
-     */
-     * <ul>
-     * <li>name: new-cookie</li>
-    /**
-     * The value of the cookie.
-     * 
-     * @var string
-     */
      * <li>path: /</li>
      * <li>secure: true</li>
      * <li>http only: true</li>
