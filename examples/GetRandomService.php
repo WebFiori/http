@@ -2,19 +2,42 @@
 
 require 'loader.php';
 
-use webfiori\http\AbstractWebService;
-use webfiori\http\RequestParameter;
+use WebFiori\Http\AbstractWebService;
+use WebFiori\Http\ParamOption;
+use WebFiori\Http\ParamType;
+use WebFiori\Http\RequestMethod;
 
 class GetRandomService extends AbstractWebService {
     public function __construct() {
         parent::__construct('get-random-number');
-        $this->setRequestMethods(['get', 'post']);
-
-        $this->addParameter(new RequestParameter('min', 'integer', true));
-        $this->addParameter(new RequestParameter('max', 'integer', true));
+        $this->setRequestMethods([
+            RequestMethod::GET, 
+            RequestMethod::POST
+        ]);
+        
+        $this->addParameters([
+            'min' => [
+                ParamOption::TYPE => ParamType::INT,
+                ParamOption::OPTIONAL => true
+            ],
+            'max' => [
+                ParamOption::TYPE => ParamType::INT,
+                ParamOption::OPTIONAL => true
+            ]
+        ]);
     }
 
     public function isAuthorized() {
+//        $authHeader = $this->getAuthHeader();
+//        
+//        if ($authHeader === null) {
+//            return false;
+//        }
+//        
+//        $scheme = $authHeader->getScheme();
+//        $credentials = $authHeader->getCredentials();
+        
+        //Verify credentials based on auth scheme (e.g. 'Basic', 'Barear'
     }
 
     public function processRequest() {

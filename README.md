@@ -1,6 +1,6 @@
 # WebFiori HTTP
-A simple library for creating RESTful web APIs in adition to providing utilities for handling HTTP request and response. 
-It includes inputs feltering and data validation in addion to creating user-defined inputs filters.
+
+A powerful and flexible PHP library for creating RESTful web APIs with built-in input filtering, data validation, and comprehensive HTTP utilities. The library provides a clean, object-oriented approach to building web services with automatic parameter validation, authentication support, and JSON response handling.
 
 <p align="center">
   <a href="https://github.com/WebFiori/http/actions">
@@ -20,7 +20,24 @@ It includes inputs feltering and data validation in addion to creating user-defi
   </a>
 </p>
 
+## Table of Contents
+
+- [Supported PHP Versions](#supported-php-versions)
+- [Key Features](#key-features)
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+- [Core Concepts](#core-concepts)
+- [Creating Web Services](#creating-web-services)
+- [Parameter Management](#parameter-management)
+- [Authentication & Authorization](#authentication--authorization)
+- [Request & Response Handling](#request--response-handling)
+- [Advanced Features](#advanced-features)
+- [Testing](#testing)
+- [Examples](#examples)
+- [API Documentation](#api-documentation)
+
 ## Supported PHP Versions
+
 |                                                                                        Build Status                                                                                         |
 |:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
 | <a target="_blank" href="https://github.com/WebFiori/http/actions/workflows/php81.yaml"><img src="https://github.com/WebFiori/http/actions/workflows/php81.yaml/badge.svg?branch=main"></a> |
@@ -28,42 +45,722 @@ It includes inputs feltering and data validation in addion to creating user-defi
 | <a target="_blank" href="https://github.com/WebFiori/http/actions/workflows/php83.yaml"><img src="https://github.com/WebFiori/http/actions/workflows/php83.yaml/badge.svg?branch=main"></a> |
 | <a target="_blank" href="https://github.com/WebFiori/http/actions/workflows/php84.yaml"><img src="https://github.com/WebFiori/http/actions/workflows/php84.yaml/badge.svg?branch=main"></a> |
 
-## API Docs
-This library is a part of <a>WebFiori Framework</a>. To access API docs of the library, you can visid the following link: https://webfiori.com/docs/webfiori/http .
+## Key Features
 
-## Terminology
-
-Following terminology is used by the library: 
-| Term | Definition|
-|:------------:|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
-| Web Service | A single end pont that implements a REST service. It is represented as an instance of the class `AbstractWebService`. |
-| Services Manager  | An entity which is used to manage a set of web services. Represented by the class `WebServicesManager`. |
-| Request Parameter | A way to pass values from a client such as a web browser to the server. Represented by the class `RequestParameter`. |
-
-## The Idea
-
-The idea of the library is as follows, when a client performs a request to a web service, he is usually intersted in performing specific action. Related actions are kept in one place as a set of web services (e.g. CRUD operations on a reasorce). The client can pass arguments (or parameters) to the end point in request body as `POST` or `PUT` request method or as a query string when using `GET` or `DELETE`.
-
-An end point is represented by the class [`AbstractWebService`](https://webfiori.com/docs/webfiori/http/AbstractWebService) and a set of web service (or end ponts) are grouped using the class [`WebServicesManager`](https://webfiori.com/docs/webfiori/http/WebServicesManager). Also, body parameters represented by the class [`RequestParameter`](https://webfiori.com/docs/webfiori/http/RequestParameter).
-
-## Features
-* Full support for creating REST services that supports JSON as request and response.
-* Support for basic data filtering and validation.
-* The ability to create custom filters based on the need.
+- **RESTful API Development**: Full support for creating REST services with JSON request/response handling
+- **Automatic Input Validation**: Built-in parameter validation with support for multiple data types
+- **Custom Filtering**: Ability to create user-defined input filters and validation rules
+- **Authentication Support**: Built-in support for various authentication schemes (Basic, Bearer, etc.)
+- **HTTP Method Support**: Support for all standard HTTP methods (GET, POST, PUT, DELETE, etc.)
+- **Content Type Handling**: Support for `application/json`, `application/x-www-form-urlencoded`, and `multipart/form-data`
+- **Object Mapping**: Automatic mapping of request parameters to PHP objects
+- **Comprehensive Testing**: Built-in testing utilities with `APITestCase` class
+- **Error Handling**: Structured error responses with appropriate HTTP status codes
+- **Stream Support**: Custom input/output stream handling for advanced use cases
 
 ## Installation
-If you are using composer to collect your dependencies, you can simply include the following entry in your 'composer.json' file to get the latest release of the library:
 
-``` json
-{
-    "require": {
-        "webfiori/http":"*"
+### Using Composer (Recommended)
+
+```bash
+composer require webfiori/http
+```
+
+### Manual Installation
+
+Download the latest release from [GitHub Releases](https://github.com/WebFiori/http/releases) and include the autoloader:
+
+```php
+require_once 'path/to/webfiori-http/vendor/autoload.php';
+```
+
+## Quick Start
+
+Here's a simple example to get you started:
+
+```php
+<?php
+require_once 'vendor/autoload.php';
+
+use WebFiori\Http\AbstractWebService;
+use WebFiori\Http\WebServicesManager;
+use WebFiori\Http\RequestMethod;
+use WebFiori\Http\ParamType;
+use WebFiori\Http\ParamOption;
+
+// Create a simple web service
+class HelloService extends AbstractWebService {
+    public function __construct() {
+        parent::__construct('hello');
+        $this->setRequestMethods([RequestMethod::GET]);
+        
+        $this->addParameters([
+            'name' => [
+                ParamOption::TYPE => ParamType::STRING,
+                ParamOption::OPTIONAL => true
+            ]
+        ]);
+    }
+    
+    public function isAuthorized() {
+        // No authentication required
+        return true;
+    }
+    
+    public function processRequest() {
+        $name = $this->getParamVal('name');
+        
+        if ($name !== null) {
+            $this->sendResponse("Hello, $name!");
+        } else {
+            $this->sendResponse("Hello, World!");
+        }
+    }
+}
+
+// Set up the services manager
+$manager = new WebServicesManager();
+$manager->addService(new HelloService());
+$manager->process();
+```
+
+## Core Concepts
+
+### Terminology
+
+| Term | Definition |
+|:-----|:-----------|
+| **Web Service** | A single endpoint that implements a REST service, represented by `AbstractWebService` |
+| **Services Manager** | An entity that manages multiple web services, represented by `WebServicesManager` |
+| **Request Parameter** | A way to pass values from client to server, represented by `RequestParameter` |
+| **API Filter** | A component that validates and sanitizes request parameters |
+
+### Architecture Overview
+
+The library follows a service-oriented architecture:
+
+1. **AbstractWebService**: Base class for all web services
+2. **WebServicesManager**: Manages multiple services and handles request routing
+3. **RequestParameter**: Defines and validates individual parameters
+4. **APIFilter**: Handles parameter filtering and validation
+5. **Request/Response**: Utilities for handling HTTP requests and responses
+
+## Creating Web Services
+
+### Basic Service Structure
+
+Every web service must extend `AbstractWebService` and implement the `processRequest()` method:
+
+```php
+<?php
+use WebFiori\Http\AbstractWebService;
+use WebFiori\Http\RequestMethod;
+
+class MyService extends AbstractWebService {
+    public function __construct() {
+        parent::__construct('my-service');
+        $this->setRequestMethods([RequestMethod::GET, RequestMethod::POST]);
+        $this->setDescription('A sample web service');
+    }
+    
+    public function isAuthorized() {
+        // Implement authorization logic
+        return true;
+    }
+    
+    public function processRequest() {
+        // Implement service logic
+        $this->sendResponse('Service executed successfully');
     }
 }
 ```
-Note that the <a href="https://github.com/WebFiori/json">WebFiori Json</a> library will be included with the installation files as this library is depending on it. 
 
-Another option is to download the latest release manually from <a href="https://github.com/WebFiori/http/releases">Release</a>.
+### Service Configuration
 
-## Usage
-For more information on how to use the library, [check here](https://github.com/WebFiori/wf-docs/blob/main/web-services.md)
+#### Setting Request Methods
+
+```php
+// Single method
+$this->addRequestMethod(RequestMethod::POST);
+
+// Multiple methods
+$this->setRequestMethods([
+    RequestMethod::GET,
+    RequestMethod::POST,
+    RequestMethod::PUT
+]);
+```
+
+#### Service Metadata
+
+```php
+$this->setDescription('Creates a new user profile');
+$this->setSince('1.2.0');
+$this->addResponseDescription('Returns user profile data on success');
+$this->addResponseDescription('Returns error message on failure');
+```
+
+## Parameter Management
+
+### Parameter Types
+
+The library supports various parameter types through `ParamType`:
+
+```php
+ParamType::STRING    // String values
+ParamType::INT       // Integer values
+ParamType::DOUBLE    // Float/double values
+ParamType::BOOL      // Boolean values
+ParamType::EMAIL     // Email addresses (validated)
+ParamType::URL       // URLs (validated)
+ParamType::ARR       // Arrays
+ParamType::JSON_OBJ  // JSON objects
+```
+
+### Adding Parameters
+
+#### Simple Parameter Addition
+
+```php
+use WebFiori\Http\RequestParameter;
+
+$param = new RequestParameter('username', ParamType::STRING);
+$this->addParameter($param);
+```
+
+#### Batch Parameter Addition
+
+```php
+$this->addParameters([
+    'username' => [
+        ParamOption::TYPE => ParamType::STRING,
+        ParamOption::OPTIONAL => false
+    ],
+    'age' => [
+        ParamOption::TYPE => ParamType::INT,
+        ParamOption::OPTIONAL => true,
+        ParamOption::MIN => 18,
+        ParamOption::MAX => 120,
+        ParamOption::DEFAULT => 25
+    ],
+    'email' => [
+        ParamOption::TYPE => ParamType::EMAIL,
+        ParamOption::OPTIONAL => false
+    ]
+]);
+```
+
+### Parameter Options
+
+Available options through `ParamOption`:
+
+```php
+ParamOption::TYPE         // Parameter data type
+ParamOption::OPTIONAL     // Whether parameter is optional
+ParamOption::DEFAULT      // Default value for optional parameters
+ParamOption::MIN          // Minimum value (numeric types)
+ParamOption::MAX          // Maximum value (numeric types)
+ParamOption::MIN_LENGTH   // Minimum length (string types)
+ParamOption::MAX_LENGTH   // Maximum length (string types)
+ParamOption::EMPTY        // Allow empty strings
+ParamOption::FILTER       // Custom filter function
+ParamOption::DESCRIPTION  // Parameter description
+```
+
+### Custom Validation
+
+```php
+$this->addParameters([
+    'password' => [
+        ParamOption::TYPE => ParamType::STRING,
+        ParamOption::MIN_LENGTH => 8,
+        ParamOption::FILTER => function($original, $basic) {
+            // Custom validation logic
+            if (strlen($basic) < 8) {
+                return APIFilter::INVALID;
+            }
+            // Additional password strength checks
+            return $basic;
+        }
+    ]
+]);
+```
+
+### Retrieving Parameter Values
+
+```php
+public function processRequest() {
+    $username = $this->getParamVal('username');
+    $age = $this->getParamVal('age');
+    $email = $this->getParamVal('email');
+    
+    // Get all inputs as array
+    $allInputs = $this->getInputs();
+}
+```
+
+## Authentication & Authorization
+
+### Basic Authentication Implementation
+
+```php
+public function isAuthorized() {
+    $authHeader = $this->getAuthHeader();
+    
+    if ($authHeader === null) {
+        return false;
+    }
+    
+    $scheme = $authHeader->getScheme();
+    $credentials = $authHeader->getCredentials();
+    
+    if ($scheme === 'basic') {
+        // Decode base64 credentials
+        $decoded = base64_decode($credentials);
+        list($username, $password) = explode(':', $decoded);
+        
+        // Validate credentials
+        return $this->validateUser($username, $password);
+    }
+    
+    return false;
+}
+```
+
+### Bearer Token Authentication
+
+```php
+public function isAuthorized() {
+    $authHeader = $this->getAuthHeader();
+    
+    if ($authHeader === null) {
+        return false;
+    }
+    
+    if ($authHeader->getScheme() === 'bearer') {
+        $token = $authHeader->getCredentials();
+        return $this->validateToken($token);
+    }
+    
+    return false;
+}
+```
+
+### Skipping Authentication
+
+```php
+public function __construct() {
+    parent::__construct('public-service');
+    $this->setIsAuthRequired(false); // Skip authentication
+}
+```
+
+### Custom Error Messages
+
+```php
+use WebFiori\Http\ResponseMessage;
+
+public function isAuthorized() {
+    ResponseMessage::set('401', 'Custom unauthorized message');
+    
+    // Your authorization logic
+    return false;
+}
+```
+
+## Request & Response Handling
+
+### Sending JSON Responses
+
+```php
+// Simple message response
+$this->sendResponse('Operation completed successfully');
+
+// Response with type and status code
+$this->sendResponse('User created', 'success', 201);
+
+// Response with additional data
+$userData = ['id' => 123, 'name' => 'John Doe'];
+$this->sendResponse('User retrieved', 'success', 200, $userData);
+```
+
+### Custom Content Type Responses
+
+```php
+// Send XML response
+$xmlData = '<user><id>123</id><name>John Doe</name></user>';
+$this->send('application/xml', $xmlData, 200);
+
+// Send plain text
+$this->send('text/plain', 'Hello, World!', 200);
+
+// Send file download
+$this->send('application/octet-stream', $fileContent, 200);
+```
+
+### Handling Different Request Methods
+
+```php
+public function processRequest() {
+    $method = $this->getManager()->getRequestMethod();
+    
+    switch ($method) {
+        case RequestMethod::GET:
+            $this->handleGet();
+            break;
+        case RequestMethod::POST:
+            $this->handlePost();
+            break;
+        case RequestMethod::PUT:
+            $this->handlePut();
+            break;
+        case RequestMethod::DELETE:
+            $this->handleDelete();
+            break;
+    }
+}
+```
+
+### JSON Request Handling
+
+The library automatically handles JSON requests when `Content-Type: application/json`:
+
+```php
+public function processRequest() {
+    $inputs = $this->getInputs();
+    
+    if ($inputs instanceof \WebFiori\Json\Json) {
+        // Handle JSON input
+        $name = $inputs->get('name');
+        $email = $inputs->get('email');
+    } else {
+        // Handle form data
+        $name = $inputs['name'] ?? null;
+        $email = $inputs['email'] ?? null;
+    }
+}
+```
+
+## Advanced Features
+
+### Object Mapping
+
+Automatically map request parameters to PHP objects:
+
+```php
+class User {
+    private $name;
+    private $email;
+    private $age;
+    
+    public function setName($name) { $this->name = $name; }
+    public function setEmail($email) { $this->email = $email; }
+    public function setAge($age) { $this->age = $age; }
+    
+    // Getters...
+}
+
+public function processRequest() {
+    // Automatic mapping
+    $user = $this->getObject(User::class);
+    
+    // Custom setter mapping
+    $user = $this->getObject(User::class, [
+        'full-name' => 'setName',
+        'email-address' => 'setEmail'
+    ]);
+}
+```
+
+### Services Manager Configuration
+
+```php
+$manager = new WebServicesManager();
+
+// Set API version and description
+$manager->setVersion('2.1.0');
+$manager->setDescription('User Management API');
+
+// Add multiple services
+$manager->addService(new CreateUserService());
+$manager->addService(new GetUserService());
+$manager->addService(new UpdateUserService());
+$manager->addService(new DeleteUserService());
+
+// Custom input/output streams
+$manager->setInputStream('php://input');
+$manager->setOutputStream(fopen('api-log.txt', 'a'));
+
+// Process requests
+$manager->process();
+```
+
+### Error Handling
+
+```php
+public function processRequest() {
+    try {
+        // Service logic
+        $result = $this->performOperation();
+        $this->sendResponse('Success', 'success', 200, $result);
+    } catch (ValidationException $e) {
+        $this->sendResponse($e->getMessage(), 'error', 400);
+    } catch (AuthenticationException $e) {
+        $this->sendResponse('Unauthorized', 'error', 401);
+    } catch (Exception $e) {
+        $this->sendResponse('Internal server error', 'error', 500);
+    }
+}
+```
+
+### Custom Filters
+
+```php
+use WebFiori\Http\APIFilter;
+
+$customFilter = function($original, $filtered) {
+    // Custom validation logic
+    if (strlen($filtered) < 3) {
+        return APIFilter::INVALID;
+    }
+    
+    // Additional processing
+    return strtoupper($filtered);
+};
+
+$this->addParameters([
+    'code' => [
+        ParamOption::TYPE => ParamType::STRING,
+        ParamOption::FILTER => $customFilter
+    ]
+]);
+```
+
+## Testing
+
+### Using APITestCase
+
+```php
+<?php
+use WebFiori\Http\APITestCase;
+
+class MyServiceTest extends APITestCase {
+    public function testGetRequest() {
+        $manager = new WebServicesManager();
+        $manager->addService(new MyService());
+        
+        $response = $this->getRequest($manager, 'my-service', [
+            'param1' => 'value1',
+            'param2' => 'value2'
+        ]);
+        
+        $this->assertJson($response);
+        $this->assertContains('success', $response);
+    }
+    
+    public function testPostRequest() {
+        $manager = new WebServicesManager();
+        $manager->addService(new MyService());
+        
+        $response = $this->postRequest($manager, 'my-service', [
+            'name' => 'John Doe',
+            'email' => 'john@example.com'
+        ]);
+        
+        $this->assertJson($response);
+    }
+}
+```
+
+### Manual Testing
+
+```php
+// Set up test environment
+$_GET['service'] = 'my-service';
+$_GET['param1'] = 'test-value';
+$_SERVER['REQUEST_METHOD'] = 'GET';
+
+$manager = new WebServicesManager();
+$manager->addService(new MyService());
+$manager->process();
+```
+
+## Examples
+
+### Complete CRUD Service Example
+
+```php
+<?php
+class UserService extends AbstractWebService {
+    public function __construct() {
+        parent::__construct('user');
+        $this->setRequestMethods([
+            RequestMethod::GET,
+            RequestMethod::POST,
+            RequestMethod::PUT,
+            RequestMethod::DELETE
+        ]);
+        
+        $this->addParameters([
+            'id' => [
+                ParamOption::TYPE => ParamType::INT,
+                ParamOption::OPTIONAL => true
+            ],
+            'name' => [
+                ParamOption::TYPE => ParamType::STRING,
+                ParamOption::OPTIONAL => true,
+                ParamOption::MIN_LENGTH => 2
+            ],
+            'email' => [
+                ParamOption::TYPE => ParamType::EMAIL,
+                ParamOption::OPTIONAL => true
+            ]
+        ]);
+    }
+    
+    public function isAuthorized() {
+        return true; // Implement your auth logic
+    }
+    
+    public function processRequest() {
+        $method = $this->getManager()->getRequestMethod();
+        
+        switch ($method) {
+            case RequestMethod::GET:
+                $this->getUser();
+                break;
+            case RequestMethod::POST:
+                $this->createUser();
+                break;
+            case RequestMethod::PUT:
+                $this->updateUser();
+                break;
+            case RequestMethod::DELETE:
+                $this->deleteUser();
+                break;
+        }
+    }
+    
+    private function getUser() {
+        $id = $this->getParamVal('id');
+        
+        if ($id) {
+            // Get specific user
+            $user = $this->findUserById($id);
+            $this->sendResponse('User found', 'success', 200, $user);
+        } else {
+            // Get all users
+            $users = $this->getAllUsers();
+            $this->sendResponse('Users retrieved', 'success', 200, $users);
+        }
+    }
+    
+    private function createUser() {
+        $name = $this->getParamVal('name');
+        $email = $this->getParamVal('email');
+        
+        $user = $this->createNewUser($name, $email);
+        $this->sendResponse('User created', 'success', 201, $user);
+    }
+    
+    private function updateUser() {
+        $id = $this->getParamVal('id');
+        $name = $this->getParamVal('name');
+        $email = $this->getParamVal('email');
+        
+        $user = $this->updateExistingUser($id, $name, $email);
+        $this->sendResponse('User updated', 'success', 200, $user);
+    }
+    
+    private function deleteUser() {
+        $id = $this->getParamVal('id');
+        
+        $this->removeUser($id);
+        $this->sendResponse('User deleted', 'success', 200);
+    }
+}
+```
+
+### File Upload Service
+
+```php
+<?php
+class FileUploadService extends AbstractWebService {
+    public function __construct() {
+        parent::__construct('upload');
+        $this->setRequestMethods([RequestMethod::POST]);
+        
+        $this->addParameters([
+            'file' => [
+                ParamOption::TYPE => ParamType::STRING,
+                ParamOption::OPTIONAL => false
+            ],
+            'description' => [
+                ParamOption::TYPE => ParamType::STRING,
+                ParamOption::OPTIONAL => true
+            ]
+        ]);
+    }
+    
+    public function isAuthorized() {
+        return true;
+    }
+    
+    public function processRequest() {
+        if (isset($_FILES['file'])) {
+            $file = $_FILES['file'];
+            
+            if ($file['error'] === UPLOAD_ERR_OK) {
+                $uploadPath = 'uploads/' . basename($file['name']);
+                
+                if (move_uploaded_file($file['tmp_name'], $uploadPath)) {
+                    $this->sendResponse('File uploaded successfully', 'success', 200, [
+                        'filename' => $file['name'],
+                        'size' => $file['size'],
+                        'path' => $uploadPath
+                    ]);
+                } else {
+                    $this->sendResponse('Failed to move uploaded file', 'error', 500);
+                }
+            } else {
+                $this->sendResponse('File upload error', 'error', 400);
+            }
+        } else {
+            $this->sendResponse('No file uploaded', 'error', 400);
+        }
+    }
+}
+```
+
+For more examples, check the [examples](examples/) directory in this repository.
+
+## API Documentation
+
+This library is part of the WebFiori Framework. For complete API documentation, visit: https://webfiori.com/docs/webfiori/http
+
+### Key Classes Documentation
+
+- [`AbstractWebService`](https://webfiori.com/docs/webfiori/http/AbstractWebService) - Base class for web services
+- [`WebServicesManager`](https://webfiori.com/docs/webfiori/http/WebServicesManager) - Services management
+- [`RequestParameter`](https://webfiori.com/docs/webfiori/http/RequestParameter) - Parameter definition and validation
+- [`APIFilter`](https://webfiori.com/docs/webfiori/http/APIFilter) - Input filtering and validation
+- [`Request`](https://webfiori.com/docs/webfiori/http/Request) - HTTP request utilities
+- [`Response`](https://webfiori.com/docs/webfiori/http/Response) - HTTP response utilities
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Support
+
+- **Issues**: [GitHub Issues](https://github.com/WebFiori/http/issues)
+- **Documentation**: [WebFiori Docs](https://webfiori.com/docs/webfiori/http)
+- **Examples**: [Examples Directory](examples/)
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for a list of changes and version history.

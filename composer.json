@@ -16,14 +16,25 @@
     "license": "MIT",
     "require": {
         "php": ">=7.0",
-        "webfiori/jsonx": "3.3.x",
+        "webfiori/jsonx": "4.0.x",
         "ext-json": "*",
         "ext-mbstring": "*"
     },
     "autoload": {
         "psr-4": {
-            "webfiori\\http\\": "webfiori\\http"
+            "WebFiori\\Http\\": "WebFiori/Http"
         }
     },
-    "require-dev": {}
+    "autoload-dev": {
+        "psr-4": {
+            "WebFiori\\Tests\\Http\\": "tests/WebFiori/Tests/Http/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit --configuration tests/phpunit.xml",
+        "test-10": "phpunit --configuration tests/phpunit10.xml"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^10.0"
+    }
 }
