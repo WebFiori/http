@@ -390,7 +390,7 @@ class Request {
             }
         }
     }
-    private  static function filter($inputSource, $varName) {
+    private static function filter($inputSource, $varName) {
         $val = filter_input($inputSource, $varName);
 
         if ($val === null) {

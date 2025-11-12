@@ -68,7 +68,7 @@ class HttpCookie {
         $this->cookieName = 'new-cookie';
         $this->path = '/';
         $this->secure = true;
-        $this->domain = Request::getUri()->getHost();
+        $this->domain = '';
         $this->sameSite = 'Lax';
         $this->val = hash('sha256', date('Y-m-d H:i:s'));
         $this->expires = 0;
