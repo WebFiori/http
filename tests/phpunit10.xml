@@ -29,6 +29,8 @@
       <file>../WebFiori/Http/ObjectMapper.php</file>
       <file>../WebFiori/Http/AuthHeader.php</file>
       <file>../WebFiori/Http/HttpMessage.php</file>
+      <file>../WebFiori/Http/RequestV2.php</file>
+      <file>../WebFiori/Http/RequestUri.php</file>
     </include>
   </source>
 </phpunit>
