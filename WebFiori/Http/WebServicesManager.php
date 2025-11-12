@@ -166,7 +166,7 @@ class WebServicesManager implements JsonI {
     public function contentTypeNotSupported(string $cType = '') {
         $j = new Json();
         $j->add('request-content-type', $cType);
-        $this->sendResponse(ResponseMessage::get('415'), self::E, 415,$j);
+        $this->sendResponse(ResponseMessage::get('415'), 415, self::E, $j);
     }
     /**
      * Returns the name of the service which is being called.
@@ -333,7 +333,7 @@ class WebServicesManager implements JsonI {
             }
             $i++;
         }
-        $this->sendResponse(ResponseMessage::get('404-1').$val.'.', self::E, 404, new Json([
+        $this->sendResponse(ResponseMessage::get('404-1').$val.'.', 404, self::E, new Json([
             'invalid' => $paramsNamesArr
         ]));
     }
@@ -389,7 +389,7 @@ class WebServicesManager implements JsonI {
             }
             $i++;
         }
-        $this->sendResponse(ResponseMessage::get('404-2').$val.'.', self::E, 404, new Json([
+        $this->sendResponse(ResponseMessage::get('404-2').$val.'.', 404, self::E, new Json([
             'missing' => $paramsNamesArr
         ]));
     }
@@ -408,7 +408,7 @@ class WebServicesManager implements JsonI {
      * 
      */
     public function missingServiceName() {
-        $this->sendResponse(ResponseMessage::get('404-3'), self::E, 404);
+        $this->sendResponse(ResponseMessage::get('404-3'), 404, self::E);
     }
     /**
      * Sends a response message to indicate that a user is not authorized call a 
@@ -425,7 +425,7 @@ class WebServicesManager implements JsonI {
      * 
      */
     public function notAuth() {
-        $this->sendResponse(ResponseMessage::get('401'), self::E, 401);
+        $this->sendResponse(ResponseMessage::get('401'), 401, self::E);
     }
 
     /**
@@ -533,7 +533,7 @@ class WebServicesManager implements JsonI {
      * 
      */
     public function requestMethodNotAllowed() {
-        $this->sendResponse(ResponseMessage::get('405'), self::E, 405);
+        $this->sendResponse(ResponseMessage::get('405'), 405, self::E);
     }
     /**
      * Sends Back a data using specific content type and specific response code.
@@ -637,7 +637,7 @@ class WebServicesManager implements JsonI {
      * 
      */
     public function serviceNotImplemented() {
-        $this->sendResponse(ResponseMessage::get('404-4'), self::E, 404);
+        $this->sendResponse(ResponseMessage::get('404-4'), 404, self::E);
     }
     /**
      * Sends a response message to indicate that called web service is not supported by the API.
@@ -653,7 +653,7 @@ class WebServicesManager implements JsonI {
      * 
      */
     public function serviceNotSupported() {
-        $this->sendResponse(ResponseMessage::get('404-5'), self::E, 404);
+        $this->sendResponse(ResponseMessage::get('404-5'), 404, self::E);
     }
     /**
      * Sets the description of the web services set.
@@ -834,7 +834,7 @@ class WebServicesManager implements JsonI {
                         return true;
                     }
                 } else {
-                    $this->sendResponse(ResponseMessage::get('404-6'), self::E, 404);
+                    $this->sendResponse(ResponseMessage::get('404-6'), 404, self::E);
                 }
             } else {
                 $this->serviceNotSupported();
