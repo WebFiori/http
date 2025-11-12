@@ -173,27 +173,21 @@ class Uri {
      * the same resource is requested, then the base URL will be 
      * 'http://example.com/system'.
      * 
+     * @param array $serverData
+     * 
      * @return string The base URL (such as 'http//www.example.com/')
      * 
      */
-    public static function getBaseURL() : string {
-        $tempHost = $_SERVER['HTTP_HOST'] ?? '127.0.0.1';
+    public static function getBaseURL(?array $serverData = null) : string {
+        $server = $serverData ?? $_SERVER;
+
+        $tempHost = $server['HTTP_HOST'] ?? '127.0.0.1';
         $host = trim(filter_var($tempHost),'/');
 
-        if (isset($_SERVER['HTTPS'])) {
-            $secureHost = filter_var($_SERVER['HTTPS']);
-        } else {
-            $secureHost = '';
-        }
-        $protocol = 'http://';
-        $useHttp = defined('USE_HTTP') && USE_HTTP === true;
+        $protocol = self::getProtocol($server);
 
-        if (strlen($secureHost) != 0 && !$useHttp) {
-            $protocol = "https://";
-        }
-
-        if (isset($_SERVER['DOCUMENT_ROOT'])) {
-            $docRoot = filter_var($_SERVER['DOCUMENT_ROOT']);
+        if (isset($server['DOCUMENT_ROOT'])) {
+            $docRoot = filter_var($server['DOCUMENT_ROOT']);
         } else {
             //Fix for IIS since the $_SERVER['DOCUMENT_ROOT'] is not set
             //in some cases
@@ -227,6 +221,10 @@ class Uri {
             return $protocol.$host.'/'.trim($xToAppend, '/');
         }
     }
+    private static function getProtocol(array $server) : string {
+        $useHttps = !empty($server['HTTPS']) && !defined('USE_HTTP');
+        return $useHttps ? 'https://' : 'http://';
+    }
     /**
      * Returns an associative array which contains all URI parts.
      * 
@@ -234,6 +232,7 @@ class Uri {
      * contains the components of the URI. The array will have the 
      * following indices:
      * <ul>
+     * <li><b>valid</b>: True if valid. False if not.</li>
      * <li><b>uri</b>: The original URI.</li>
      * <li><b>port</b>: The port number taken from the authority part.</li>
      * <li><b>host</b>: Will be always empty string.</li>
@@ -573,11 +572,11 @@ class Uri {
      * 
      * @param string $uri The URI that will be broken.
      * 
-     * @return array|boolean If the given URI is not valid, 
-     * the Method will return false. Other than that, The method will return an associative array that 
+     * @return array The method will return an associative array that 
      * contains the components of the URI. The array will have the 
      * following indices:
      * <ul>
+     * <li><b>valid</b>: True if given URI is valid. False if not.</li>
      * <li><b>uri</b>: The original URI.</li>
      * <li><b>port</b>: The port number taken from the authority part.</li>
      * <li><b>host</b>: Will be always empty string.</li>
@@ -591,13 +590,11 @@ class Uri {
      * </ul>
      * 
      */
-    public static function splitURI(string $uri) {
+    public static function splitURI(string $uri) : array {
+        //Replace spaces with %20
         $validate = filter_var(str_replace(' ', '%20', $uri),FILTER_VALIDATE_URL);
-
-        if ($validate === false) {
-            return false;
-        }
         $retVal = [
+            'valid' => $validate,
             'uri' => $uri,
             'authority' => '',
             'host' => '',
@@ -613,6 +610,10 @@ class Uri {
 
             ],
         ];
+        if ($validate === false) {
+            return $retVal;
+        }
+        
         //First step, extract the fragment
         $split1 = self::_queryOrFragment($uri, '#', '%23');
         $retVal['fragment'] = $split1[1] ?? '';
