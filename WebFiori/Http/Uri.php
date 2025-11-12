@@ -124,7 +124,17 @@ class Uri {
     public function getHost() : string {
         return $this->uriBroken['host'];
     }
-    
+    /**
+     * Returns an array which contains the names of URI directories.
+     * 
+     * @return array An array which contains the names of URI directories. 
+     * For example, if the path part of the URI is '/path1/path2', the 
+     * array will contain the value 'path1' at index 0 and 'path2' at index 1.
+     * 
+     */
+    public function getPathArray() : array {
+        return $this->uriBroken['path'];
+    }
     /**
      * Returns the path part of the URI.
      * 
