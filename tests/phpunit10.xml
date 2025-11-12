@@ -28,6 +28,7 @@
       <file>../WebFiori/Http/UriParameter.php</file>
       <file>../WebFiori/Http/ObjectMapper.php</file>
       <file>../WebFiori/Http/AuthHeader.php</file>
+      <file>../WebFiori/Http/HttpMessage.php</file>
     </include>
   </source>
 </phpunit>
