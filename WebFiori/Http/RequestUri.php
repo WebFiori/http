@@ -23,7 +23,117 @@ class RequestUri extends Uri {
      * @var array
      */
     private $allowedMethods;
-    
+    /**
+     * Adds multiple values to URI parameter.
+     * 
+     * @param string $varName The name of the parameter.
+     * 
+     * @param array $arrayOfValues An array that contains all possible values for
+     * the parameter.
+     * 
+     */
+    public function addVarValues(string $varName, array $arrayOfValues) : RequestUri {
+        if (gettype($arrayOfValues) == 'array') {
+            foreach ($arrayOfValues as $val) {
+                $this->addVarValue($varName, $val);
+            }
+        }
+        return $this;
+    }
+    public function getParametersNames() : array {
+        return array_map(function ($paramObj) {
+            return $paramObj->getName();
+        }, $this->getParameters());
+    }
+    /**
+     * Returns the base URL of the framework.
+     * 
+     * The returned value will depend on the folder where the library files 
+     * are located. For example, if your domain is 'example.com' and the library 
+     * is placed at the root and the requested resource is 'http://example.com/x/y/z', 
+     * then the base URL will be 'http://example.com/'. If the library is 
+     * placed inside a folder in the server which has the name 'system', and 
+     * the same resource is requested, then the base URL will be 
+     * 'http://example.com/system'.
+     * 
+     * @return string The base URL (such as 'http//www.example.com/')
+     * 
+     */
+    public static function getBaseURL(?array $serverInputs = null) : string {
+        $server = $serverInputs ?? $_SERVER;
+        $tempHost = $server['HTTP_HOST'] ?? '127.0.0.1';
+        $host = trim(filter_var($tempHost),'/');
+
+        if (isset($server['HTTPS'])) {
+            $secureHost = filter_var($server['HTTPS']);
+        } else {
+            $secureHost = '';
+        }
+        $protocol = 'http://';
+        $useHttp = defined('USE_HTTP') && USE_HTTP === true;
+
+        if (strlen($secureHost) != 0 && !$useHttp) {
+            $protocol = "https://";
+        }
+
+        if (isset($server['DOCUMENT_ROOT'])) {
+            $docRoot = filter_var($server['DOCUMENT_ROOT']);
+        } else {
+            //Fix for IIS since the $_SERVER['DOCUMENT_ROOT'] is not set
+            //in some cases
+            $docRoot = getcwd();
+        }
+
+        $docRootLen = strlen($docRoot);
+
+        if ($docRootLen == 0) {
+            $docRoot = __DIR__;
+            $docRootLen = strlen($docRoot);
+        }
+
+        if (!defined('ROOT_PATH')) {
+            define('ROOT_PATH', __DIR__);
+        }
+        $toAppend = str_replace('\\', '/', substr(ROOT_PATH, $docRootLen, strlen(ROOT_PATH) - $docRootLen));
+
+        if (defined('WF_PATH_TO_REMOVE')) {
+            $toAppend = str_replace(str_replace('\\', '/', WF_PATH_TO_REMOVE),'' ,$toAppend);
+        }
+        $xToAppend = str_replace('\\', '/', $toAppend);
+
+        if (defined('WF_PATH_TO_APPEND')) {
+            $xToAppend = $xToAppend.'/'.trim(str_replace('\\', '/', WF_PATH_TO_APPEND), '/');
+        }
+
+        if (strlen($xToAppend) == 0) {
+            return $protocol.$host;
+        } else {
+            return $protocol.$host.'/'.trim($xToAppend, '/');
+        }
+    }
+    /**
+     * Returns the value of URI parameter given its name.
+     * 
+     * A URI parameter is a string which is defined while creating the route. 
+     * it is name is included between '{}'.
+     * 
+     * @param string $varName The name of the parameter. Note that this value 
+     * must not include braces.
+     * 
+     * @return string|null The method will return the value of the 
+     * parameter if found. If the parameter is not set or the parameter 
+     * does not exist, the method will return null.
+     * 
+     */
+    public function getParameterValue(string $varName) : ?string {
+        $param = $this->getParameter($varName);
+
+        if ($param !== null) {
+            return $param->getValue();
+        }
+
+        return null;
+    }
     /**
      * Creates new instance of the class.
      * 
@@ -41,12 +151,13 @@ class RequestUri extends Uri {
      * 
      * @param string $method The request method (e.g. 'GET', 'POST', 'PUT', etc...).
      */
-    public function addRequestMethod(string $method) {
+    public function addRequestMethod(string $method) : RequestUri {
         $normalizedMethod = strtoupper(trim($method));
         
         if (!in_array($normalizedMethod, $this->allowedMethods)) {
             $this->allowedMethods[] = $normalizedMethod;
         }
+        return $this;
     }
     
     /**
@@ -55,7 +166,7 @@ class RequestUri extends Uri {
      * @param string $paramName The name of the parameter.
      * @param string $value The value to add.
      */
-    public function addVarValue(string $paramName, string $value) {
+    public function addVarValue(string $paramName, string $value) : RequestUri {
         $uriVars = $this->getComponents()['uri-vars'];
         
         foreach ($uriVars as $param) {
@@ -64,6 +175,7 @@ class RequestUri extends Uri {
                 break;
             }
         }
+        return $this;
     }
     
     /**
@@ -107,7 +219,7 @@ class RequestUri extends Uri {
      * is found, it will be returned. If no such parameter, the method will 
      * return null.
      */
-    public function getParameter(string $paramName) {
+    public function getParameter(string $paramName) : ?UriParameter {
         $uriVars = $this->getComponents()['uri-vars'];
         
         foreach ($uriVars as $param) {
