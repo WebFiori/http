@@ -23,6 +23,7 @@ class RequestUri extends Uri {
      * @var array
      */
     private $allowedMethods;
+    private $vars;
     /**
      * Adds multiple values to URI parameter.
      * 
@@ -144,6 +145,23 @@ class RequestUri extends Uri {
     public function __construct(string $requestedUri = '') {
         parent::__construct($requestedUri);
         $this->allowedMethods = [];
+        $this->vars = [];
+        $addedParams = [];
+        $pathArr = $this->getPathArray();
+
+        foreach($pathArr as $part) {
+            $conv = mb_convert_encoding(urldecode($part), 'UTF-8', 'ISO-8859-1');
+
+            if ($conv[0] == '{' && $conv[strlen($conv) - 1] == '}') {
+                $name = trim($part, '{}');
+
+                if (!in_array($name, $addedParams)) {
+                    $addedParams[] = $name;
+                    $this->vars[] = new UriParameter($name);
+                }
+            }
+
+        }
     }
     
     /**
@@ -161,17 +179,25 @@ class RequestUri extends Uri {
     }
     
     /**
-     * Adds a value to URI parameter.
+     * Adds a value to allowed URI parameter values.
      * 
      * @param string $paramName The name of the parameter.
      * @param string $value The value to add.
      */
-    public function addVarValue(string $paramName, string $value) : RequestUri {
-        $uriVars = $this->getComponents()['uri-vars'];
+    public function addParameterValue(string $paramName, string $value) : RequestUri {
         
-        foreach ($uriVars as $param) {
+        foreach ($this->getParameters() as $param) {
             if ($param->getName() == $paramName) {
-                $param->setValue($value);
+                $param->addAllowedValue($value);
+                break;
+            }
+        }
+        return $this;
+    }
+    public function addParameterValues(string $name, array $vals) : RequestUri  {
+        foreach ($this->getParameters() as $param) {
+            if ($param->getName() == $name) {
+                    $param->addVarValues($vals);
                 break;
             }
         }
@@ -220,9 +246,8 @@ class RequestUri extends Uri {
      * return null.
      */
     public function getParameter(string $paramName) : ?UriParameter {
-        $uriVars = $this->getComponents()['uri-vars'];
-        
-        foreach ($uriVars as $param) {
+
+        foreach ($this->getParameters() as $param) {
             if ($param->getName() == $paramName) {
                 return $param;
             }
@@ -237,24 +262,23 @@ class RequestUri extends Uri {
      * @return array An array that contains objects of type 'UriParameter'.
      */
     public function getParameters() : array {
-        return $this->getComponents()['uri-vars'];
+        return $this->vars;
     }
     
     /**
-     * Returns an associative array that contains URI parameters and their values.
+     * Returns an array that contains allowed URI parameters values.
      * 
-     * @return array An associative array. The keys will be parameters names 
-     * and the values will be sub-arrays that contains possible values.
+     * @return array
      */
-    public function getParameterValues() : array {
-        $retVal = [];
-        $uriVars = $this->getComponents()['uri-vars'];
-        
-        foreach ($uriVars as $param) {
-            $retVal[$param->getName()] = $param->getValue();
+    public function getParameterValues(string $varName) : array {
+
+        $param = $this->getParameter($varName);
+        if ($param !== null) {
+           
+            return $param->getAllowedValues();
         }
-        
-        return $retVal;
+
+        return [];
     }
     
     /**

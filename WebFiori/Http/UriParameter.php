@@ -30,6 +30,7 @@ class UriParameter {
      * @var string
      */
     private $value;
+    private $allowedValues;
     /**
      * Creates new instance of the class.
      * 
@@ -56,6 +57,14 @@ class UriParameter {
             $this->isOptional = false;
         }
         $this->name = trim($trimmed, '?');
+        $this->allowedValues = [];
+    }
+    public function addAllowedValue(string $val) : UriParameter {
+        $this->allowedValues[] = $val;
+        return $this;
+    }
+    public function getAllowedValues() : array {
+        return $this->allowedValues;
     }
     /**
      * Returns the name of the parameter.
@@ -71,7 +80,7 @@ class UriParameter {
      * @return string|null If the value of the parameter is set, it will
      * be returned as string. If not set, null is returned.
      */
-    public function getValue() {
+    public function getValue() : ?string {
         return $this->value;
     }
     /**
@@ -87,7 +96,8 @@ class UriParameter {
      * 
      * @param string $val The value of the parameter as string.
      */
-    public function setValue(string $val) {
+    public function setValue(string $val) : UriParameter {
         $this->value = $val;
+        return $this;
     }
 }

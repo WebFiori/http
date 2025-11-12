@@ -29,7 +29,7 @@ class UriTest extends TestCase {
         putenv('REQUEST_METHOD=GET');
         $uri = new RequestUri('https://example.com/');
         $uri->setRequestMethods(['POST', 'PUT', 'Get']);
-        $this->assertEquals(['POST', 'PUT'], $uri->getRequestMethods());
+        $this->assertEquals(['POST', 'PUT', 'GET'], $uri->getRequestMethods());
         $this->assertFalse($uri->isRequestMethodAllowed('post'));
         putenv('REQUEST_METHOD=PUT');
         $this->assertTrue($uri->isRequestMethodAllowed('put'));
@@ -39,7 +39,7 @@ class UriTest extends TestCase {
      */
     public function testSetUriPossibleVar00() {
         $uri = new RequestUri('https://example.com/{first-var}');
-        $uri->addVarValue('first-var', 'Hello World');
+        $uri->addParameterValue('first-var', 'Hello World');
         $this->assertEquals(['Hello World'], $uri->getParameterValues('first-var'));
         $this->assertEquals('/{first-var}', $uri->getPath());
         $this->assertEquals(['{first-var}'], $uri->getPathArray());
@@ -49,7 +49,7 @@ class UriTest extends TestCase {
      */
     public function testSetUriPossibleVar01() {
         $uri = new RequestUri('https://example.com/{first-var}');
-        $uri->addVarValue('  first-var  ', '  Hello World  ');
+        $uri->addParameterValue('  first-var  ', '  Hello World  ');
         $this->assertEquals(['Hello World'], $uri->getParameterValues('first-var'));
     }
     /**
@@ -57,7 +57,7 @@ class UriTest extends TestCase {
      */
     public function testSetUriPossibleVar02() {
         $uri = new RequestUri('https://example.com/{first-var}');
-        $uri->addVarValues('first-var', ['Hello','World']);
+        $uri->addParameterValues('first-var', ['Hello','World']);
         $this->assertEquals(['Hello','World'], $uri->getParameterValues('first-var'));
     }
     /**

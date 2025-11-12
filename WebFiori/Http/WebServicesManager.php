@@ -25,16 +25,6 @@ use WebFiori\Json\JsonI;
  */
 class WebServicesManager implements JsonI {
     /**
-     * A constant which is used to indicate that the message that will be 
-     * sent is of type error
-     */
-    const E = 'error';
-    /**
-     * A constant which is used to indicate that the message that will be 
-     * sent is of type info
-     */
-    const I = 'info';
-    /**
      * An array that contains the supported 'POST' request content types.
      * 
      * This array has the following values:
@@ -135,6 +125,10 @@ class WebServicesManager implements JsonI {
         $this->missingParamsArr = [];
         $this->request = $request ?? RequestV2::createFromGlobals();
     }
+    public function setRequest(RequestV2 $request) : WebServicesManager {
+        $this->request = $request;
+        return $this;
+    }
     /**
      * Adds new web service to the set of web services.
      * 
@@ -142,8 +136,8 @@ class WebServicesManager implements JsonI {
      * 
      * 
      */
-    public function addService(AbstractWebService $service) {
-        $this->addAction($service);
+    public function addService(AbstractWebService $service) : WebServicesManager {
+        return $this->addAction($service);
     }
     /**
      * Sends a response message to indicate that request content type is 
@@ -166,7 +160,7 @@ class WebServicesManager implements JsonI {
     public function contentTypeNotSupported(string $cType = '') {
         $j = new Json();
         $j->add('request-content-type', $cType);
-        $this->sendResponse(ResponseMessage::get('415'), 415, self::E, $j);
+        $this->sendResponse(ResponseMessage::get('415'), 415, AbstractWebService::E, $j);
     }
     /**
      * Returns the name of the service which is being called.
@@ -333,7 +327,7 @@ class WebServicesManager implements JsonI {
             }
             $i++;
         }
-        $this->sendResponse(ResponseMessage::get('404-1').$val.'.', 404, self::E, new Json([
+        $this->sendResponse(ResponseMessage::get('404-1').$val.'.', 404, AbstractWebService::E, new Json([
             'invalid' => $paramsNamesArr
         ]));
     }
@@ -389,7 +383,7 @@ class WebServicesManager implements JsonI {
             }
             $i++;
         }
-        $this->sendResponse(ResponseMessage::get('404-2').$val.'.', 404, self::E, new Json([
+        $this->sendResponse(ResponseMessage::get('404-2').$val.'.', 404, AbstractWebService::E, new Json([
             'missing' => $paramsNamesArr
         ]));
     }
@@ -408,7 +402,7 @@ class WebServicesManager implements JsonI {
      * 
      */
     public function missingServiceName() {
-        $this->sendResponse(ResponseMessage::get('404-3'), 404, self::E);
+        $this->sendResponse(ResponseMessage::get('404-3'), 404, AbstractWebService::E);
     }
     /**
      * Sends a response message to indicate that a user is not authorized call a 
@@ -425,7 +419,7 @@ class WebServicesManager implements JsonI {
      * 
      */
     public function notAuth() {
-        $this->sendResponse(ResponseMessage::get('401'), 401, self::E);
+        $this->sendResponse(ResponseMessage::get('401'), 401, AbstractWebService::E);
     }
 
     /**
@@ -533,7 +527,7 @@ class WebServicesManager implements JsonI {
      * 
      */
     public function requestMethodNotAllowed() {
-        $this->sendResponse(ResponseMessage::get('405'), 405, self::E);
+        $this->sendResponse(ResponseMessage::get('405'), 405, AbstractWebService::E);
     }
     /**
      * Sends Back a data using specific content type and specific response code.
@@ -637,7 +631,7 @@ class WebServicesManager implements JsonI {
      * 
      */
     public function serviceNotImplemented() {
-        $this->sendResponse(ResponseMessage::get('404-4'), 404, self::E);
+        $this->sendResponse(ResponseMessage::get('404-4'), 404, AbstractWebService::E);
     }
     /**
      * Sends a response message to indicate that called web service is not supported by the API.
@@ -653,7 +647,7 @@ class WebServicesManager implements JsonI {
      * 
      */
     public function serviceNotSupported() {
-        $this->sendResponse(ResponseMessage::get('404-5'), 404, self::E);
+        $this->sendResponse(ResponseMessage::get('404-5'), 404, AbstractWebService::E);
     }
     /**
      * Sets the description of the web services set.
@@ -834,7 +828,7 @@ class WebServicesManager implements JsonI {
                         return true;
                     }
                 } else {
-                    $this->sendResponse(ResponseMessage::get('404-6'), 404, self::E);
+                    $this->sendResponse(ResponseMessage::get('404-6'), 404, AbstractWebService::E);
                 }
             } else {
                 $this->serviceNotSupported();
@@ -888,9 +882,10 @@ class WebServicesManager implements JsonI {
      * 
      * @deprecated since version 1.4.7 Use WebservicesSet::addService()
      */
-    private function addAction(AbstractWebService $service) {
+    private function addAction(AbstractWebService $service) : WebServicesManager {
         $this->services[$service->getName()] = $service;
         $service->setManager($this);
+        return $this;
     }
 
     /**
