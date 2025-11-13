@@ -120,11 +120,11 @@ class RequestV2 extends HttpMessage {
         $method = $this->getMethod();
         $retVal = [];
         
-        if ($method == 'GET') {
+        if ($method == RequestMethod::GET) {
             foreach ($_GET as $param => $val) {
                 $retVal[$param] = $this->filter(INPUT_GET, $param);
             }
-        } else if ($method == 'POST') {
+        } else if ($method == RequestMethod::POST) {
             foreach ($_POST as $param => $val) {
                 $retVal[$param] = $this->filter(INPUT_POST, $param);
             }
@@ -164,7 +164,7 @@ class RequestV2 extends HttpMessage {
      * @return string
      */
     public function getRequestedURI(string $pathToAppend = '') : string {
-        $base = Uri::getBaseURL();
+        $base = RequestUri::getBaseURL();
         
         if (strlen($pathToAppend) != 0) {
             $path = $this->getPath();
@@ -185,15 +185,15 @@ class RequestV2 extends HttpMessage {
     /**
      * Returns an object of type 'Uri'.
      * 
-     * @return Uri
+     * @return RequestUri
      */
-    public function getUri() : Uri {
-        return new Uri($this->getRequestedURI());
+    public function getUri() : RequestUri {
+        return new RequestUri($this->getRequestedURI());
     }
 
     private function getMethodFromGlobals() : string {
         $meth = getenv('REQUEST_METHOD');
-        
+
         if ($meth === false) {
             $meth = isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : RequestMethod::GET;
         }
