@@ -163,6 +163,7 @@ class UriTest extends TestCase {
      * @test
      */
     public function testGetBase00() {
+        $_SERVER['HTTP_HOST'] = '127.0.0.1';
         $request = RequestV2::createFromGlobals();
         $this->assertEquals('http://127.0.0.1', $request->getBody());
     }

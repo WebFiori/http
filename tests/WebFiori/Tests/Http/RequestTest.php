@@ -105,6 +105,7 @@ class RequestTest extends TestCase {
      * @test
      */
     public function testGetRequestedURL00() {
+        $_SERVER['HTTP_HOST'] = '127.0.0.1';
         $_SERVER['PATH_INFO'] = '/my/app';
         $this->assertEquals('http://127.0.0.1/my/app', Request::getRequestedURI());
     }

@@ -60,7 +60,7 @@ class UriParameter {
         $this->allowedValues = [];
     }
     public function addAllowedValue(string $val) : UriParameter {
-        $this->allowedValues[] = $val;
+        $this->allowedValues[] = trim($val);
         return $this;
     }
     public function getAllowedValues() : array {

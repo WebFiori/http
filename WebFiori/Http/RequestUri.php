@@ -186,8 +186,9 @@ class RequestUri extends Uri {
      */
     public function addParameterValue(string $paramName, string $value) : RequestUri {
         
+        $trimmed = trim($paramName);
         foreach ($this->getParameters() as $param) {
-            if ($param->getName() == $paramName) {
+            if ($param->getName() == $trimmed) {
                 $param->addAllowedValue($value);
                 break;
             }
