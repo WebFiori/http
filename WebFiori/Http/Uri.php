@@ -43,7 +43,6 @@ class Uri {
                 'fragment' => '',
                 'path' => [],
                 'query-string-vars' => [],
-                'uri-vars' => []
             ];
         } else {
             $this->uriBroken = self::splitURI($requestedUri);
@@ -199,7 +198,43 @@ class Uri {
     public function getUri() : string {
         return $this->uriBroken['uri'];
     }
-    
+    /**
+     * Splits a string based on character mask.
+     * 
+     * @param string $split The string to split.
+     * 
+     * @param string $char The character that the split is based on.
+     * 
+     * @param string $encoded The character when encoded in URI.
+     * 
+     * @return array
+     */
+    private static function _queryOrFragment(string $split, string $char, string $encoded) : array {
+        $split2 = explode($char, $split);
+        $spCount = count($split2);
+
+        if ($spCount > 2) {
+            $temp = [];
+
+            for ($x = 0 ; $x < $spCount - 1 ; $x++) {
+                $temp[] = $split2[$x];
+            }
+            $lastStr = $split2[$spCount - 1];
+
+            if (strlen($lastStr) == 0) {
+                $split2 = [
+                    implode($encoded, $temp).$encoded
+                ];
+            } else {
+                $split2 = [
+                    implode($encoded, $temp),
+                    $split2[$spCount - 1]
+                ];
+            }
+        }
+
+        return $split2;
+    }
     /**
      * Splits a URI into its basic components.
      * 
@@ -210,58 +245,78 @@ class Uri {
      * contains the components of the URI.
      */
     public static function splitURI(string $uri) {
-        $components = parse_url(str_replace(' ', '%20', $uri));
-        
-        if ($components === false) {
+        $validate = filter_var(str_replace(' ', '%20', $uri),FILTER_VALIDATE_URL);
+
+        if ($validate === false) {
             return false;
         }
-        
         $retVal = [
             'uri' => $uri,
             'authority' => '',
-            'host' => $components['host'] ?? '',
-            'port' => isset($components['port']) ? (string)$components['port'] : '',
-            'scheme' => $components['scheme'] ?? '',
-            'query-string' => $components['query'] ?? '',
-            'fragment' => $components['fragment'] ?? '',
+            'host' => '',
+            'port' => '',
+            'scheme' => '',
+            'query-string' => '',
+            'fragment' => '',
             'path' => [],
-            'query-string-vars' => [],
-            'uri-vars' => [],
+            'query-string-vars' => [
+
+            ],
+            'uri-vars' => [
+
+            ],
         ];
-        
-        // Build authority
-        if (!empty($retVal['host'])) {
-            $retVal['authority'] = '//' . $retVal['host'];
-            if (!empty($retVal['port'])) {
-                $retVal['authority'] .= ':' . $retVal['port'];
+        //First step, extract the fragment
+        $split1 = self::_queryOrFragment($uri, '#', '%23');
+        $retVal['fragment'] = $split1[1] ?? '';
+
+        //after that, extract the query string
+        $split1[0] = str_replace('?}', '<>', $split1[0]);
+        $split2 = self::_queryOrFragment($split1[0], '?', '%3F');
+
+        $retVal['query-string'] = $split2[1] ?? '';
+
+        $split2[0] = str_replace('<>', '?}', $split2[0]);
+        //next comes the scheme
+        $split3 = explode(':', $split2[0]);
+        $retVal['scheme'] = $split3[0];
+
+        if (count($split3) == 3) {
+            //if 3, this means port number was specified in the URI
+            $split3[1] = $split3[1].':'.$split3[2];
+        }
+        //now, break the remaining using / as a delimiter
+        //the authority will be located at index 2 if the URI
+        //follows the standard
+        $split4 = explode('/', $split3[1]);
+        $retVal['authority'] = '//'.$split4[2];
+
+        //after that, we create the path from the remaining parts
+        //also we check if the path has parameters or not
+        //a parameter is a value in the path which is enclosed between {}
+        //optional parameter ends with ? (e.g. {name?}
+        $addedParams = [];
+
+        for ($x = 3 ; $x < count($split4) ; $x++) {
+            $dirName = $split4[$x];
+
+            if ($dirName != '') {
+                $retVal['path'][] = mb_convert_encoding(urldecode($dirName), 'UTF-8', 'ISO-8859-1');
             }
         }
-        
-        // Parse path and extract parameters
-        if (isset($components['path'])) {
-            $pathParts = explode('/', trim($components['path'], '/'));
-            $addedParams = [];
-            
-            foreach ($pathParts as $part) {
-                if ($part !== '') {
-                    $retVal['path'][] = mb_convert_encoding(urldecode($part), 'UTF-8', 'ISO-8859-1');
-                    
-                    if ($part[0] === '{' && $part[strlen($part) - 1] === '}') {
-                        $name = trim($part, '{}');
-                        if (!isset($addedParams[$name])) {
-                            $addedParams[$name] = true;
-                            $retVal['uri-vars'][] = new UriParameter($name);
-                        }
-                    }
-                }
-            }
+        //now extract port number from the authority (if any)
+        $split5 = explode(':', $retVal['authority']);
+        $retVal['port'] = $split5[1] ?? '';
+        //Also, host can be extracted at this step.
+        $retVal['host'] = trim($split5[0],'/');
+        //finally, split query string and extract vars
+        $split6 = explode('&', $retVal['query-string']);
+
+        foreach ($split6 as $param) {
+            $split7 = explode('=', $param);
+            $retVal['query-string-vars'][$split7[0]] = $split7[1] ?? '';
         }
-        
-        // Parse query string
-        if (!empty($retVal['query-string'])) {
-            parse_str($retVal['query-string'], $retVal['query-string-vars']);
-        }
-        
+
         return $retVal;
     }
 }
