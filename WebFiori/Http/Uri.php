@@ -52,7 +52,52 @@ class Uri {
             }
         }
     }
-    
+    /**
+     * Returns the original requested URI.
+     * 
+     * @param boolean $incQueryStr If set to true, the query string part 
+     * will be included in the URL. Default is false.
+     * 
+     * @param boolean $incFragment If set to true, the fragment part 
+     * will be included in the URL. Default is false.
+     * 
+     * @return string The original requested URI.
+     * 
+     */
+    public function getUri(bool $incQueryStr = false, bool $incFragment = false) : string {
+        $retVal = $this->getScheme().':'.$this->getAuthority().$this->getPath();
+
+        if ($incQueryStr === true && $incFragment === true) {
+            $queryStr = $this->getQueryString();
+
+            if (strlen($queryStr) != 0) {
+                $retVal .= '?'.$queryStr;
+            }
+            $fragment = $this->getFragment();
+
+            if (strlen($fragment) != 0) {
+                $retVal .= '#'.$fragment;
+            }
+        } else {
+            if ($incQueryStr === true && $incFragment === false) {
+                $queryStr = $this->getQueryString();
+
+                if (strlen($queryStr) != 0) {
+                    $retVal .= '?'.$queryStr;
+                }
+            } else {
+                if ($incQueryStr === false && $incFragment === true) {
+                    $fragment = $this->getFragment();
+
+                    if (strlen($fragment) != 0) {
+                        $retVal .= '#'.$fragment;
+                    }
+                }
+            }
+        }
+
+        return $retVal;
+    }
     /**
      * Returns the authority part of the URI.
      * 
@@ -190,14 +235,6 @@ class Uri {
         return $this->uriBroken['scheme'];
     }
     
-    /**
-     * Returns the original requested URI.
-     * 
-     * @return string The original requested URI.
-     */
-    public function getUri() : string {
-        return $this->uriBroken['uri'];
-    }
     /**
      * Splits a string based on character mask.
      * 
