@@ -59,6 +59,12 @@ class UriParameter {
         $this->name = trim($trimmed, '?');
         $this->allowedValues = [];
     }
+    public function addAllowedValues(array $vals)  : UriParameter  {
+        foreach ($vals as $val) {
+            $this->addAllowedValue($val);
+        }
+        return $this;
+    }
     public function addAllowedValue(string $val) : UriParameter {
         $this->allowedValues[] = trim($val);
         return $this;

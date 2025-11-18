@@ -78,10 +78,10 @@ class RequestUriTest extends TestCase {
      * @test
      */
     public function testHasParameters() {
-        $uri = new RequestUri('/users/{id}');
+        $uri = new RequestUri('https://example.com/users/{id}');
         $this->assertTrue($uri->hasParameters());
         
-        $uri2 = new RequestUri('/users');
+        $uri2 = new RequestUri('https://example.com/users');
         $this->assertFalse($uri2->hasParameters());
     }
     
@@ -89,7 +89,7 @@ class RequestUriTest extends TestCase {
      * @test
      */
     public function testHasParameter() {
-        $uri = new RequestUri('/users/{id}/posts/{postId}');
+        $uri = new RequestUri('https://example.com/users/{id}/posts/{postId}');
         $this->assertTrue($uri->hasParameter('id'));
         $this->assertTrue($uri->hasParameter('postId'));
         $this->assertFalse($uri->hasParameter('name'));
@@ -99,7 +99,7 @@ class RequestUriTest extends TestCase {
      * @test
      */
     public function testGetParameter() {
-        $uri = new RequestUri('/users/{id}');
+        $uri = new RequestUri('https://example.com/users/{id}');
         $param = $uri->getParameter('id');
         
         $this->assertNotNull($param);
@@ -112,7 +112,7 @@ class RequestUriTest extends TestCase {
      * @test
      */
     public function testSetParameterValue() {
-        $uri = new RequestUri('/users/{id}');
+        $uri = new RequestUri('https://example.com/users/{id}');
         $uri->setParameterValue('id', '123');
         
         $param = $uri->getParameter('id');
@@ -123,8 +123,8 @@ class RequestUriTest extends TestCase {
      * @test
      */
     public function testAddVarValue() {
-        $uri = new RequestUri('/users/{id}');
-        $uri->addVarValue('id', '123');
+        $uri = new RequestUri('https://example.com/users/{id}');
+        $uri->addParameterValue('id', '123');
         
         $param = $uri->getParameter('id');
         $this->assertEquals('123', $param->getValue());
@@ -134,13 +134,13 @@ class RequestUriTest extends TestCase {
      * @test
      */
     public function testEquals() {
-        $uri1 = new RequestUri('/users/{id}');
+        $uri1 = new RequestUri('https://example.com/users/{id}');
         $uri1->setRequestMethods(['GET', 'POST']);
         
-        $uri2 = new RequestUri('/users/{id}');
+        $uri2 = new RequestUri('https://example.com/users/{id}');
         $uri2->setRequestMethods(['GET', 'POST']);
         
-        $uri3 = new RequestUri('/users/{name}');
+        $uri3 = new RequestUri('https://example.com/users/{name}');
         $uri3->setRequestMethods(['GET', 'POST']);
         
         $this->assertTrue($uri1->equals($uri2));
@@ -151,7 +151,7 @@ class RequestUriTest extends TestCase {
      * @test
      */
     public function testIsAllParametersSet() {
-        $uri = new RequestUri('/users/{id}/posts/{postId}');
+        $uri = new RequestUri('https://example.com/users/{id}/posts/{postId}');
         $this->assertFalse($uri->isAllParametersSet());
         
         $uri->setParameterValue('id', '123');
@@ -165,14 +165,25 @@ class RequestUriTest extends TestCase {
      * @test
      */
     public function testGetParameterValues() {
-        $uri = new RequestUri('/users/{id}/posts/{postId}');
+        $uri = new RequestUri('https://example.com/users/{id}/posts/{postId}');
         $uri->setParameterValue('id', '123');
         $uri->setParameterValue('postId', '789');
         
-        $values = $uri->getParameterValues();
-        $this->assertArrayHasKey('id', $values);
-        $this->assertArrayHasKey('postId', $values);
-        $this->assertEquals('123', $values['id']);
-        $this->assertEquals('789', $values['postId']);
+        $value0 = $uri->getParameterValue('id');
+        $value1 = $uri->getParameterValue('postId');
+        $this->assertEquals('123', $value0);
+        $this->assertEquals('789', $value1);
+    }
+    /**
+     * @test
+     */
+    public function testSetUriPossibleVar03() {
+        $uri = new RequestUri('https://example.com/{first-var}/ok/{second-var}');
+        $uri->addParameterValues('first-var', ['Hello','World']);
+        $uri->addParameterValues('  second-var ', ['hell','is','not','heven']);
+        $uri->addParameterValues('  secohhnd-var ', ['hell','is']);
+        $this->assertEquals(['Hello','World'], $uri->getParameterValues('first-var'));
+        $this->assertEquals(['hell','is','not','heven'], $uri->getParameterValues('second-var'));
+        $this->assertEquals([], $uri->getParameterValues('secohhnd-var'));
     }
 }

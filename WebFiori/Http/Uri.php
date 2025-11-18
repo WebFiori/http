@@ -114,17 +114,55 @@ class Uri {
      * @return string The base URL (such as 'https://example.com/' or 'http://127.0.0.1/')
      */
     public static function getBaseURL() : string {
-        $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
-        $useHttps = !empty($_SERVER['HTTPS']) && !defined('USE_HTTP');
-        $protocol = $useHttps ? 'https://' : 'http://';
-        
-        if (defined('ROOT_PATH')) {
-            $path = ROOT_PATH;
+        $tempHost = $_SERVER['HTTP_HOST'] ?? '127.0.0.1';
+        $host = trim(filter_var($tempHost),'/');
+
+        if (isset($_SERVER['HTTPS'])) {
+            $secureHost = filter_var($_SERVER['HTTPS']);
         } else {
-            $path = '';
+            $secureHost = '';
         }
-        
-        return $protocol . $host . $path;
+        $protocol = 'http://';
+        $useHttp = defined('USE_HTTP') && USE_HTTP === true;
+
+        if (strlen($secureHost) != 0 && !$useHttp) {
+            $protocol = "https://";
+        }
+
+        if (isset($_SERVER['DOCUMENT_ROOT'])) {
+            $docRoot = filter_var($_SERVER['DOCUMENT_ROOT']);
+        } else {
+            //Fix for IIS since the $_SERVER['DOCUMENT_ROOT'] is not set
+            //in some cases
+            $docRoot = getcwd();
+        }
+
+        $docRootLen = strlen($docRoot);
+
+        if ($docRootLen == 0) {
+            $docRoot = __DIR__;
+            $docRootLen = strlen($docRoot);
+        }
+
+        if (!defined('ROOT_PATH')) {
+            define('ROOT_PATH', __DIR__);
+        }
+        $toAppend = str_replace('\\', '/', substr(ROOT_PATH, $docRootLen, strlen(ROOT_PATH) - $docRootLen));
+
+        if (defined('WF_PATH_TO_REMOVE')) {
+            $toAppend = str_replace(str_replace('\\', '/', WF_PATH_TO_REMOVE),'' ,$toAppend);
+        }
+        $xToAppend = str_replace('\\', '/', $toAppend);
+
+        if (defined('WF_PATH_TO_APPEND')) {
+            $xToAppend = $xToAppend.'/'.trim(str_replace('\\', '/', WF_PATH_TO_APPEND), '/');
+        }
+
+        if (strlen($xToAppend) == 0) {
+            return $protocol.$host;
+        } else {
+            return $protocol.$host.'/'.trim($xToAppend, '/');
+        }
     }
     
     /**

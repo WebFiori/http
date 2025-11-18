@@ -157,6 +157,16 @@ class RequestTest extends TestCase {
      * @test
      */
     public function testGetHeaders00() {
+        // Store original state
+        $originalServer = $_SERVER;
+        
+        // Clear HTTP headers from $_SERVER
+        foreach ($_SERVER as $key => $value) {
+            if (strpos($key, 'HTTP_') === 0) {
+                unset($_SERVER[$key]);
+            }
+        }
+        
         $_SERVER['HTTP_CONTENT_TYPE'] = "application/json";
         $_SERVER['HTTP_X_HOST'] = "Custom H";
         $this->assertEquals([
@@ -167,6 +177,9 @@ class RequestTest extends TestCase {
                 'Custom H'
             ]
         ], Request::getHeadersAssoc());
+        
+        // Restore original state
+        $_SERVER = $originalServer;
     }
     /**
      * @test

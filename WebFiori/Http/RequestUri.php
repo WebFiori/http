@@ -198,7 +198,7 @@ class RequestUri extends Uri {
     public function addParameterValues(string $name, array $vals) : RequestUri  {
         foreach ($this->getParameters() as $param) {
             if ($param->getName() == $name) {
-                    $param->addVarValues($vals);
+                $param->addAllowedValues($vals);
                 break;
             }
         }
@@ -335,12 +335,20 @@ class RequestUri extends Uri {
      * Checks if a request method is allowed or not.
      * 
      * @param string $method The request method (e.g. 'GET', 'POST', 'PUT', etc...).
+     * If not provided, the method will attempt to get request method using the environment
+     * variable 'REQUEST_METHOD'.
      * 
      * @return bool The method will return true if the method is allowed. 
      * If no request methods are specified, the method will return true. 
      * Other than that, the method will return false.
      */
-    public function isRequestMethodAllowed(string $method) : bool {
+    public function isRequestMethodAllowed(?string $method = null) : bool {
+        if ($method === null) {
+            $method = getenv('REQUEST_METHOD');
+            if (!in_array($method, RequestMethod::getAll())) {
+                return false;
+            }
+        }
         $normalizedMethod = strtoupper(trim($method));
         $methods = $this->getRequestMethods();
         
