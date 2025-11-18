@@ -4,6 +4,7 @@ namespace WebFiori\Tests\Http;
 use WebFiori\Http\RequestUri;
 use WebFiori\Http\Uri;
 use PHPUnit\Framework\TestCase;
+use WebFiori\Http\UriParameter;
 
 /**
  * Test cases for RequestUri class.
@@ -127,6 +128,15 @@ class RequestUriTest extends TestCase {
         $uri->addParameterValue('id', '123');
         
         $param = $uri->getParameter('id');
+        $this->assertTrue($param instanceof UriParameter);
+
+        $this->assertEquals(['123'], $param->getAllowedValues());
+        $this->assertNull($param->getValue());
+
+        $this->assertFalse($param->setValue('132'));
+        $this->assertNull($param->getValue());
+
+        $this->assertTrue($param->setValue('123'));
         $this->assertEquals('123', $param->getValue());
     }
     

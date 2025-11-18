@@ -67,6 +67,10 @@ class UriParameter {
     }
     public function addAllowedValue(string $val) : UriParameter {
         $this->allowedValues[] = trim($val);
+        $currentVal = $this->getValue();
+        if ($currentVal !== null && !in_array($currentVal, $this->allowedValues)) {
+            $this->value = null;
+        }
         return $this;
     }
     public function getAllowedValues() : array {
@@ -100,10 +104,21 @@ class UriParameter {
     /**
      * Sets the value of the parameter.
      * 
+     * Note that if the parameter has a set of allowed values, the method
+     * will only accept the value if its part if that set.
+     * 
      * @param string $val The value of the parameter as string.
      */
-    public function setValue(string $val) : UriParameter {
-        $this->value = $val;
-        return $this;
+    public function setValue(string $val) : bool {
+        $allowed = $this->getAllowedValues();
+        $trimmed = trim($val);
+        if (count($allowed) > 0 && !in_array($trimmed, $allowed)) {
+            return false;
+        }
+        if ($trimmed != '') {
+            $this->value = $trimmed;
+            return true;
+        }
+        return false;
     }
 }
