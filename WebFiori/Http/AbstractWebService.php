@@ -135,6 +135,7 @@ abstract class AbstractWebService implements JsonI {
         $this->requireAuth = true;
         $this->sinceVersion = '1.0.0';
         $this->serviceDesc = '';
+        $this->request = RequestV2::createFromGlobals();
     }
     /**
      * Returns an array that contains all possible requests methods at which the 

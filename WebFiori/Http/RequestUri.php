@@ -24,23 +24,6 @@ class RequestUri extends Uri {
      */
     private $allowedMethods;
     private $vars;
-    /**
-     * Adds multiple values to URI parameter.
-     * 
-     * @param string $varName The name of the parameter.
-     * 
-     * @param array $arrayOfValues An array that contains all possible values for
-     * the parameter.
-     * 
-     */
-    public function addVarValues(string $varName, array $arrayOfValues) : RequestUri {
-        if (gettype($arrayOfValues) == 'array') {
-            foreach ($arrayOfValues as $val) {
-                $this->addVarValue($varName, $val);
-            }
-        }
-        return $this;
-    }
     public function getParametersNames() : array {
         return array_map(function ($paramObj) {
             return $paramObj->getName();
@@ -149,6 +132,7 @@ class RequestUri extends Uri {
         $addedParams = [];
         $pathArr = $this->getPathArray();
 
+        
         foreach($pathArr as $part) {
             $conv = mb_convert_encoding(urldecode($part), 'UTF-8', 'ISO-8859-1');
 
@@ -161,6 +145,17 @@ class RequestUri extends Uri {
                 }
             }
 
+        }
+        $this->verifyOrderOfParams();
+    }
+    private function verifyOrderOfParams() {
+        $currentOptional = false;
+
+        foreach($this->getParameters() as $param) {
+            if ($currentOptional == true && !$param->isOptional()) {
+                throw new \Exception('Requred paramater cannot appear after optional');
+            }
+            $currentOptional = $param->isOptional() || $currentOptional;
         }
     }
     
@@ -184,20 +179,22 @@ class RequestUri extends Uri {
      * @param string $paramName The name of the parameter.
      * @param string $value The value to add.
      */
-    public function addParameterValue(string $paramName, string $value) : RequestUri {
+    public function addAllowedParameterValue(string $paramName, string $value) : RequestUri {
         
-        $trimmed = trim($paramName);
+        $normalized = trim($paramName);
         foreach ($this->getParameters() as $param) {
-            if ($param->getName() == $trimmed) {
+            if ($param->getName() == $normalized) {
                 $param->addAllowedValue($value);
                 break;
             }
         }
         return $this;
     }
-    public function addParameterValues(string $name, array $vals) : RequestUri  {
+    public function addAllowedParameterValues(string $name, array $vals) : RequestUri  {
+        $normalizedName = trim($name);
+
         foreach ($this->getParameters() as $param) {
-            if ($param->getName() == $name) {
+            if ($param->getName() == $normalizedName) {
                 $param->addAllowedValues($vals);
                 break;
             }
@@ -213,13 +210,12 @@ class RequestUri extends Uri {
      * @return bool The method will return true if the URIs are 
      * equal. False if not.
      */
-    public function equals(RequestUri $otherUri) : bool {
-        $thisPath = $this->getPath();
-        $otherPath = $otherUri->getPath();
-        
-        if ($thisPath != $otherPath) {
+    public function equals(Uri $otherUri) : bool {
+        if (!parent::equals($otherUri)) {
             return false;
         }
+        $thisPath = $this->getPath();
+        $otherPath = $otherUri->getPath();
         
         $thisMethods = $this->getRequestMethods();
         $otherMethods = $otherUri->getRequestMethods();
@@ -271,7 +267,7 @@ class RequestUri extends Uri {
      * 
      * @return array
      */
-    public function getParameterValues(string $varName) : array {
+    public function getAllowedParameterValues(string $varName) : array {
 
         $param = $this->getParameter($varName);
         if ($param !== null) {
@@ -320,10 +316,10 @@ class RequestUri extends Uri {
      * have values. false if not.
      */
     public function isAllParametersSet() : bool {
-        $uriVars = $this->getComponents()['uri-vars'];
+        $uriVars = $this->getParameters();
         
         foreach ($uriVars as $param) {
-            if ($param->getValue() === null) {
+            if ($param->getValue() === null && !$param->isOptional()) {
                 return false;
             }
         }
@@ -361,12 +357,13 @@ class RequestUri extends Uri {
      * @param string $paramName The name of the parameter.
      * @param string $value The value to set.
      */
-    public function setParameterValue(string $paramName, string $value) {
+    public function setParameterValue(string $paramName, string $value) : bool {
         $param = $this->getParameter($paramName);
         
         if ($param !== null) {
-            $param->setValue($value);
+            return $param->setValue($value);
         }
+        return false;
     }
     
     /**
@@ -374,11 +371,12 @@ class RequestUri extends Uri {
      * 
      * @param array $methods An array that contains request methods names.
      */
-    public function setRequestMethods(array $methods) {
+    public function setRequestMethods(array $methods) : RequestUri {
         $this->allowedMethods = [];
         
         foreach ($methods as $method) {
             $this->addRequestMethod($method);
         }
+        return $this;
     }
 }

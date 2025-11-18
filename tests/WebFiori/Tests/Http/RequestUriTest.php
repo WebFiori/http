@@ -17,7 +17,7 @@ class RequestUriTest extends TestCase {
      * @test
      */
     public function testExtendsUri() {
-        $uri = new RequestUri();
+        $uri = new RequestUri('http://example.com');
         $this->assertInstanceOf(Uri::class, $uri);
     }
     
@@ -25,7 +25,7 @@ class RequestUriTest extends TestCase {
      * @test
      */
     public function testAddRequestMethod() {
-        $uri = new RequestUri();
+        $uri = new RequestUri('http://example.com');
         $uri->addRequestMethod('get');
         $uri->addRequestMethod('POST');
         
@@ -38,7 +38,7 @@ class RequestUriTest extends TestCase {
      * @test
      */
     public function testSetRequestMethods() {
-        $uri = new RequestUri();
+        $uri = new RequestUri('http://example.com');
         $uri->setRequestMethods(['get', 'post', 'put']);
         
         $methods = $uri->getRequestMethods();
@@ -49,7 +49,7 @@ class RequestUriTest extends TestCase {
      * @test
      */
     public function testIsRequestMethodAllowed() {
-        $uri = new RequestUri();
+        $uri = new RequestUri('http://example.com');
         
         // No methods set - should allow all
         $this->assertTrue($uri->isRequestMethodAllowed('GET'));
@@ -67,7 +67,7 @@ class RequestUriTest extends TestCase {
      * @test
      */
     public function testIsRequestMethodAllowedNormalization() {
-        $uri = new RequestUri();
+        $uri = new RequestUri('http://example.com');
         $uri->addRequestMethod('  get  ');
         
         $this->assertTrue($uri->isRequestMethodAllowed('GET'));
@@ -125,7 +125,7 @@ class RequestUriTest extends TestCase {
      */
     public function testAddVarValue() {
         $uri = new RequestUri('https://example.com/users/{id}');
-        $uri->addParameterValue('id', '123');
+        $uri->addAllowedParameterValue('id', '123');
         
         $param = $uri->getParameter('id');
         $this->assertTrue($param instanceof UriParameter);
@@ -189,11 +189,11 @@ class RequestUriTest extends TestCase {
      */
     public function testSetUriPossibleVar03() {
         $uri = new RequestUri('https://example.com/{first-var}/ok/{second-var}');
-        $uri->addParameterValues('first-var', ['Hello','World']);
-        $uri->addParameterValues('  second-var ', ['hell','is','not','heven']);
-        $uri->addParameterValues('  secohhnd-var ', ['hell','is']);
-        $this->assertEquals(['Hello','World'], $uri->getParameterValues('first-var'));
-        $this->assertEquals(['hell','is','not','heven'], $uri->getParameterValues('second-var'));
-        $this->assertEquals([], $uri->getParameterValues('secohhnd-var'));
+        $uri->addAllowedParameterValues('first-var', ['Hello','World'])
+        ->addAllowedParameterValues('  second-var ', ['hell','is','not','heven'])
+        ->addAllowedParameterValues('  secohhnd-var ', ['hell','is']);
+        $this->assertEquals(['Hello','World'], $uri->getAllowedParameterValues('first-var'));
+        $this->assertEquals(['hell','is','not','heven'], $uri->getAllowedParameterValues('second-var'));
+        $this->assertEquals([], $uri->getAllowedParameterValues('secohhnd-var'));
     }
 }

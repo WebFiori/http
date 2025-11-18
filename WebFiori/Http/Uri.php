@@ -33,22 +33,12 @@ class Uri {
      */
     public function __construct(string $requestedUri = '') {
         if (strlen(trim($requestedUri)) == 0) {
-            $this->uriBroken = [
-                'uri' => $requestedUri,
-                'port' => '',
-                'host' => '',
-                'authority' => '',
-                'scheme' => '',
-                'query-string' => '',
-                'fragment' => '',
-                'path' => [],
-                'query-string-vars' => [],
-            ];
+            throw new InvalidArgumentException('URI must be non-empty string');
         } else {
             $this->uriBroken = self::splitURI($requestedUri);
             
             if ($this->uriBroken === false) {
-                throw new InvalidArgumentException('Invalid URI: \''.$requestedUri.'\'.');
+                throw new InvalidArgumentException('Invalid URI: \''.$requestedUri.'\'');
             }
         }
     }
@@ -309,6 +299,9 @@ class Uri {
         }
 
         return $split2;
+    }
+    public function equals(Uri $uri) : bool {
+        return $this->getUri(true, true) == $uri->getUri(true, true);
     }
     /**
      * Splits a URI into its basic components.
