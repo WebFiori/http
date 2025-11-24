@@ -1,9 +1,11 @@
 <?php
 namespace WebFiori\Tests\Http;
 
+use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 use WebFiori\Http\RequestUri;
 use WebFiori\Http\RequestV2;
+use WebFiori\Http\Uri;
 
 /**
  *
@@ -17,10 +19,10 @@ class UriTest extends TestCase {
         putenv('REQUEST_METHOD=GET');
         $uri = new RequestUri('https://example.com/');
         $this->assertEquals([], $uri->getRequestMethods());
-        $this->assertTrue($uri->isRequestMethodAllowed('get'));
+        $this->assertTrue($uri->isRequestMethodAllowed());
         $uri->addRequestMethod('GET');
         $this->assertEquals(['GET'], $uri->getRequestMethods());
-        $this->assertTrue($uri->isRequestMethodAllowed('get'));
+        $this->assertTrue($uri->isRequestMethodAllowed());
     }
     /**
      * @test
@@ -28,19 +30,19 @@ class UriTest extends TestCase {
     public function testAllowedRequestMethods01() {
         putenv('REQUEST_METHOD=GET');
         $uri = new RequestUri('https://example.com/');
-        $uri->setRequestMethods(['POST', 'PUT', 'Get']);
-        $this->assertEquals(['POST', 'PUT', 'GET'], $uri->getRequestMethods());
-        $this->assertFalse($uri->isRequestMethodAllowed('post'));
+        $uri->setRequestMethods(['POST', 'PUT']);
+        $this->assertEquals(['POST', 'PUT'], $uri->getRequestMethods());
+        $this->assertFalse($uri->isRequestMethodAllowed());
         putenv('REQUEST_METHOD=PUT');
-        $this->assertTrue($uri->isRequestMethodAllowed('put'));
+        $this->assertTrue($uri->isRequestMethodAllowed());
     }
     /**
      * @test
      */
     public function testSetUriPossibleVar00() {
         $uri = new RequestUri('https://example.com/{first-var}');
-        $uri->addParameterValue('first-var', 'Hello World');
-        $this->assertEquals(['Hello World'], $uri->getParameterValues('first-var'));
+        $uri->addAllowedParameterValue('first-var', 'Hello World');
+        $this->assertEquals(['Hello World'], $uri->getAllowedParameterValues('first-var'));
         $this->assertEquals('/{first-var}', $uri->getPath());
         $this->assertEquals(['{first-var}'], $uri->getPathArray());
     }
@@ -49,16 +51,16 @@ class UriTest extends TestCase {
      */
     public function testSetUriPossibleVar01() {
         $uri = new RequestUri('https://example.com/{first-var}');
-        $uri->addParameterValue('  first-var  ', '  Hello World  ');
-        $this->assertEquals(['Hello World'], $uri->getParameterValues('first-var'));
+        $uri->addAllowedParameterValue('  first-var  ', '  Hello World  ');
+        $this->assertEquals(['Hello World'], $uri->getAllowedParameterValues('first-var'));
     }
     /**
      * @test
      */
     public function testSetUriPossibleVar02() {
         $uri = new RequestUri('https://example.com/{first-var}');
-        $uri->addParameterValues('first-var', ['Hello','World']);
-        $this->assertEquals(['Hello','World'], $uri->getParameterValues('first-var'));
+        $uri->addAllowedParameterValues('first-var', ['Hello','World']);
+        $this->assertEquals(['Hello','World'], $uri->getAllowedParameterValues('first-var'));
     }
     /**
      * @test
@@ -87,31 +89,21 @@ class UriTest extends TestCase {
         $this->assertEquals('1009', $uri->getParameter('first-var')->getValue());
         $this->assertFalse($uri->setParameterValue('not-exist', 'hello'));
     }
-    /**
-     * @test
-     */
-    public function testSetUriPossibleVar03() {
-        $uri = new RequestUri('https://example.com/{first-var}/ok/{second-var}');
-        $uri->addVarValues('first-var', ['Hello','World']);
-        $uri->addVarValues('  second-var ', ['hell','is','not','heven']);
-        $uri->addVarValues('  secohhnd-var ', ['hell','is']);
-        $this->assertEquals(['Hello','World'], $uri->getParameterValues('first-var'));
-        $this->assertEquals(['hell','is','not','heven'], $uri->getParameterValues('second-var'));
-        $this->assertEquals([], $uri->getParameterValues('secohhnd-var'));
-    }
+    
     /**
      * @test
      */
     public function testSetUriPossibleVar04() {
         $this->expectException('Exception');
-        $this->expectExceptionMessage('Incorrect parameters order.');
+        $this->expectExceptionMessage('Requred paramater cannot appear after optional');
         $uri = new RequestUri('https://example.com/{first-var}/ok/{second-var?}/{non-optional}');
     }
     /**
      * @test
      */
     public function testInvalid00() {
-        $this->expectException('Exception');
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('URI must be non-empty string');
         $uri = new RequestUri('');
     }
     /**
@@ -147,14 +139,23 @@ class UriTest extends TestCase {
     public function testEquals03() {
         $uri1 = new RequestUri('http://example.com/my-folder');
         $uri2 = new RequestUri('https://example.com/my-folder');
-        $this->assertTrue($uri1->equals($uri2));
-        $this->assertTrue($uri2->equals($uri1));
+        $this->assertFalse($uri1->equals($uri2));
+        $this->assertFalse($uri2->equals($uri1));
     }
     /**
      * @test
      */
     public function testEquals04() {
         $uri1 = new RequestUri('http://example.com/my-folder/{a-var}');
+        $uri2 = new RequestUri('https://example.com/my-folder/{a-var}');
+        $this->assertFalse($uri1->equals($uri2));
+        $this->assertFalse($uri2->equals($uri1));
+    }
+    /**
+     * @test
+     */
+    public function testEquals05() {
+        $uri1 = new RequestUri('https://example.com/my-folder/{a-var}');
         $uri2 = new RequestUri('https://example.com/my-folder/{a-var}');
         $this->assertTrue($uri1->equals($uri2));
         $this->assertTrue($uri2->equals($uri1));
@@ -338,6 +339,7 @@ class UriTest extends TestCase {
         $this->assertTrue($uriObj->hasParameter('some-var'));
         $this->assertTrue($uriObj->hasParameter('another'));
         $this->assertTrue($uriObj->isAllParametersSet());
+
     }
     /**
      * @test
