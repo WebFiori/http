@@ -115,7 +115,7 @@ class WebServicesManager implements JsonI {
      * number must follow the format 'X.X.X' where 'X' is a number between 
      * 0 and 9 inclusive.
      */
-    public function __construct(?RequestV2 $request = null, string $version = '1.0.0') {
+    public function __construct(?Request $request = null, string $version = '1.0.0') {
         $this->setVersion($version);
         $this->setDescription('NO DESCRIPTION');
 
@@ -123,9 +123,9 @@ class WebServicesManager implements JsonI {
         $this->services = [];
         $this->invParamsArr = [];
         $this->missingParamsArr = [];
-        $this->request = $request ?? RequestV2::createFromGlobals();
+        $this->request = $request ?? Request::createFromGlobals();
     }
-    public function setRequest(RequestV2 $request) : WebServicesManager {
+    public function setRequest(Request $request) : WebServicesManager {
         $this->request = $request;
         return $this;
     }
@@ -331,7 +331,7 @@ class WebServicesManager implements JsonI {
             'invalid' => $paramsNamesArr
         ]));
     }
-    public function getRequest() : RequestV2 {
+    public function getRequest() : Request {
         return $this->request;
     }
     /**

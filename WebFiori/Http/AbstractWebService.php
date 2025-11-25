@@ -73,7 +73,7 @@ abstract class AbstractWebService implements JsonI {
     /**
      * The request instance used by the service.
      * 
-     * @var RequestV2
+     * @var Request
      * 
      */
     private $request;
@@ -135,7 +135,7 @@ abstract class AbstractWebService implements JsonI {
         $this->requireAuth = true;
         $this->sinceVersion = '1.0.0';
         $this->serviceDesc = '';
-        $this->request = RequestV2::createFromGlobals();
+        $this->request = Request::createFromGlobals();
     }
     /**
      * Returns an array that contains all possible requests methods at which the 
@@ -350,7 +350,7 @@ abstract class AbstractWebService implements JsonI {
     /**
      * Sets the request instance for the service.
      * 
-     * @param mixed $request The request instance (Request, RequestV2, etc.)
+     * @param mixed $request The request instance (Request, etc.)
      */
     public function setRequest($request) {
         $this->request = $request;

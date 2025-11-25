@@ -3,7 +3,7 @@ namespace WebFiori\Tests\Http;
 
 use WebFiori\Http\AbstractWebService;
 use WebFiori\Http\APITestCase;
-use WebFiori\Http\RequestV2;
+use WebFiori\Http\Request;
 use WebFiori\Http\ResponseMessage;
 use WebFiori\Http\WebServicesManager;
 use WebFiori\Json\Json;
@@ -155,7 +155,7 @@ class WebServicesManagerTest extends APITestCase {
         $this->clrearVars();
         putenv('REQUEST_METHOD=GET');
         $api = new SampleServicesManager();
-        $this->assertEquals('GET', RequestV2::createFromGlobals()->getRequestMethod());
+        $this->assertEquals('GET', Request::createFromGlobals()->getRequestMethod());
         $this->assertNull($api->getCalledServiceName());
         $this->assertEquals('1.0.1',$api->getVersion());
         $this->assertEquals('NO DESCRIPTION',$api->getDescription());

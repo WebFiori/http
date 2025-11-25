@@ -294,7 +294,7 @@ class APITestCase extends TestCase {
                 $_SERVER['HTTP_'.strtoupper($trHeader)] = $trVal;
             }
         }
-        $m->setRequest(RequestV2::createFromGlobals());
+        $m->setRequest(Request::createFromGlobals());
         $m->process();
 
         foreach ($params as $key => $val) {

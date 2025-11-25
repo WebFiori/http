@@ -4,7 +4,7 @@ namespace WebFiori\Tests\Http;
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 use WebFiori\Http\RequestUri;
-use WebFiori\Http\RequestV2;
+use WebFiori\Http\Request;
 use WebFiori\Http\Uri;
 
 /**
@@ -165,7 +165,7 @@ class UriTest extends TestCase {
      */
     public function testGetBase00() {
         $_SERVER['HTTP_HOST'] = '127.0.0.1';
-        $request = RequestV2::createFromGlobals();
+        $request = Request::createFromGlobals();
         $this->assertEquals('http://127.0.0.1', Uri::getBaseURL());
     }
     /**

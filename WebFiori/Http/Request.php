@@ -16,19 +16,19 @@ use InvalidArgumentException;
  * 
  * @author Ibrahim
  */
-class RequestV2 extends HttpMessage {
+class Request extends HttpMessage {
 
     public function __construct() {
         parent::__construct();
     }
     
     /**
-     * Creates a RequestV2 instance from global variables.
+     * Creates a Request instance from global variables.
      * 
-     * @return RequestV2
+     * @return Request
      */
-    public static function createFromGlobals() : RequestV2 {
-        $request = new RequestV2();
+    public static function createFromGlobals() : Request {
+        $request = new Request();
         $request->extractHeaders();
         $request->setRequestMethod($request->getMethodFromGlobals());
         $request->setBody(file_get_contents('php://input'));

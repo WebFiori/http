@@ -1,22 +1,22 @@
 <?php
 namespace WebFiori\Tests\Http;
 
-use WebFiori\Http\RequestV2;
+use WebFiori\Http\Request;
 use WebFiori\Http\HttpMessage;
 use WebFiori\Http\Uri;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Test cases for RequestV2 class.
+ * Test cases for Request class.
  *
  * @author Ibrahim
  */
-class RequestV2Test extends TestCase {
+class RequestTest2 extends TestCase {
     
     private $request;
     
     protected function setUp(): void {
-        $this->request = new RequestV2();
+        $this->request = new Request();
     }
     
     /**
@@ -33,9 +33,9 @@ class RequestV2Test extends TestCase {
         putenv('REQUEST_METHOD=POST');
         $_SERVER['HTTP_CONTENT_TYPE'] = 'application/json';
         
-        $request = RequestV2::createFromGlobals();
+        $request = Request::createFromGlobals();
         
-        $this->assertInstanceOf(RequestV2::class, $request);
+        $this->assertInstanceOf(Request::class, $request);
         $this->assertEquals('POST', $request->getMethod());
     }
     
@@ -86,7 +86,7 @@ class RequestV2Test extends TestCase {
         putenv('REQUEST_METHOD=GET');
         $_GET['test_param'] = 'test_value';
         
-        $request = RequestV2::createFromGlobals();
+        $request = Request::createFromGlobals();
         $this->assertEquals('test_value', $request->getParam('test_param'));
     }
     
@@ -97,7 +97,7 @@ class RequestV2Test extends TestCase {
         putenv('REQUEST_METHOD=POST');
         $_POST['test_param'] = 'post_value';
         
-        $request = RequestV2::createFromGlobals();
+        $request = Request::createFromGlobals();
         $this->assertEquals('post_value', $request->getParam('test_param'));
     }
     
@@ -116,7 +116,7 @@ class RequestV2Test extends TestCase {
         $_GET['param1'] = 'value1';
         $_GET['param2'] = 'value2';
         
-        $request = RequestV2::createFromGlobals();
+        $request = Request::createFromGlobals();
         $params = $request->getParams();
         
         $this->assertArrayHasKey('param1', $params);
@@ -145,7 +145,7 @@ class RequestV2Test extends TestCase {
      */
     public function testGetPath() {
         $_SERVER['REQUEST_URI'] = '/api/users?id=123';
-        $request = RequestV2::createFromGlobals();
+        $request = Request::createFromGlobals();
         $this->assertEquals('/api/users', $request->getPath());
     }
     
@@ -157,7 +157,7 @@ class RequestV2Test extends TestCase {
         unset($_SERVER['PATH_INFO']);
         unset($_SERVER['SCRIPT_NAME']);
         
-        $request = RequestV2::createFromGlobals();
+        $request = Request::createFromGlobals();
         $this->assertEquals('/', $request->getPath());
     }
     
@@ -168,7 +168,7 @@ class RequestV2Test extends TestCase {
         $_SERVER['REQUEST_URI'] = '/test';
         $_SERVER['HTTP_HOST'] = 'example.com';
         
-        $request = RequestV2::createFromGlobals();
+        $request = Request::createFromGlobals();
         $uri = $request->getRequestedURI();
         
         $this->assertStringContainsString('/test', $uri);
@@ -181,7 +181,7 @@ class RequestV2Test extends TestCase {
         $_SERVER['REQUEST_URI'] = '/api';
         $_SERVER['HTTP_HOST'] = 'example.com';
         
-        $request = RequestV2::createFromGlobals();
+        $request = Request::createFromGlobals();
         $uri = $request->getRequestedURI('users');
         
         $this->assertStringContainsString('/api/users', $uri);
@@ -194,7 +194,7 @@ class RequestV2Test extends TestCase {
         $_SERVER['REQUEST_URI'] = '/test';
         $_SERVER['HTTP_HOST'] = 'example.com';
         
-        $request = RequestV2::createFromGlobals();
+        $request = Request::createFromGlobals();
         $uri = $request->getUri();
         
         $this->assertInstanceOf(Uri::class, $uri);
@@ -226,7 +226,7 @@ class RequestV2Test extends TestCase {
         $_SERVER['HTTP_CONTENT_TYPE'] = 'application/json';
         $_SERVER['HTTP_X_CUSTOM_HEADER'] = 'custom_value';
         
-        $request = RequestV2::createFromGlobals();
+        $request = Request::createFromGlobals();
         
         $this->assertTrue($request->hasHeader('content-type'));
         $this->assertTrue($request->hasHeader('x-custom-header'));
@@ -238,8 +238,8 @@ class RequestV2Test extends TestCase {
      * @test
      */
     public function testMultipleInstances() {
-        $request1 = new RequestV2();
-        $request2 = new RequestV2();
+        $request1 = new Request();
+        $request2 = new Request();
         
         $request1->addHeader('X-Test', 'value1');
         $request2->addHeader('X-Test', 'value2');
