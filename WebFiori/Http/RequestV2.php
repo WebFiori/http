@@ -35,7 +35,25 @@ class RequestV2 extends HttpMessage {
         
         return $request;
     }
+    /**
+     * Returns an associative array of request headers.
+     * 
+     * @return array The indices of the array will be headers names and the
+     * values are sub-arrays. Each array contains the values of the header.
+     */
+    public function getHeadersAssoc() : array {
+        $retVal = [];
+        $headers = $this->getHeaders();
 
+        foreach ($headers as $headerObj) {
+            if (!isset($retVal[$headerObj->getName()])) {
+                $retVal[$headerObj->getName()] = [];
+            }
+            $retVal[$headerObj->getName()][] = $headerObj->getValue();
+        }
+
+        return $retVal;
+    }
     /**
      * Returns authorization header.
      * 
