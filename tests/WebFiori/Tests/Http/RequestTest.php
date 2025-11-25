@@ -157,6 +157,7 @@ class RequestTest extends TestCase {
      * @test
      */
     public function testGetRequestedURL05() {
+        unset($_SERVER['PATH_INFO']);
         putenv('REQUEST_URI');
         putenv('HTTP_REQUEST_URI=/A/B/C');
         $this->request = RequestV2::createFromGlobals();
@@ -166,6 +167,7 @@ class RequestTest extends TestCase {
      * @test
      */
     public function testGetRequestedURL06() {
+        unset($_SERVER['PATH_INFO']);
         putenv('REQUEST_URI');
         putenv('HTTP_REQUEST_URI');
         $_SERVER['HTTP_X_ORIGINAL_URL'] = 'https://example.com/a/good/boy';

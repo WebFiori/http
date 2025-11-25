@@ -79,7 +79,15 @@ class RequestV2 extends HttpMessage {
             return '127.0.0.1';
         }
         
-        return filter_var($_SERVER['REMOTE_ADDR']);
+        $ip = $_SERVER['REMOTE_ADDR'];
+        
+        if ($ip === '::1') {
+            return '127.0.0.1';
+        }
+        
+        $validated = filter_var($ip, FILTER_VALIDATE_IP);
+        
+        return $validated !== false ? $validated : '';
     }
 
     /**
@@ -164,6 +172,14 @@ class RequestV2 extends HttpMessage {
         }
         
         if ($path === null) {
+            $path = $this->getPathHelper('HTTP_REQUEST_URI');
+        }
+        
+        if ($path === null) {
+            $path = $this->getPathHelper('HTTP_X_ORIGINAL_URL');
+        }
+        
+        if ($path === null) {
             $path = $this->getPathHelper('SCRIPT_NAME');
         }
         
@@ -197,7 +213,13 @@ class RequestV2 extends HttpMessage {
             }
         }
         
-        return $base.$this->getPath();
+        $uri = $base.$this->getPath();
+        
+        if (!empty($_GET)) {
+            $uri .= '?'.http_build_query($_GET);
+        }
+        
+        return $uri;
     }
 
     /**
@@ -260,12 +282,19 @@ class RequestV2 extends HttpMessage {
     }
 
     private function getPathHelper(string $header) {
+        $envVal = getenv($header);
+        if ($envVal !== false) {
+            return $envVal;
+        }
+        
+        if (isset($_SERVER[$header])) {
+            return $_SERVER[$header];
+        }
+        
         $headerVals = $this->getHeader($header);
         
         if (count($headerVals) == 1) {
             return $headerVals[0];
-        } else if (isset($_SERVER[$header])) {
-            return $_SERVER[$header];
         }
         
         return null;
