@@ -70,12 +70,12 @@ class HttpCookieTest extends TestCase {
         $this->assertEquals('/', $cookie->getPath());
         $this->assertEquals('', $cookie->getLifetime());
         $this->assertEquals('Lax', $cookie->getSameSite());
-        $this->assertEquals('127.0.0.1', $cookie->getDomain());
+        $this->assertNull($cookie->getDomain());
         $cookie->setValue('super');
         $this->assertEquals('super', $cookie->getValue());
         $cookie->setIsHttpOnly(false);
         $this->assertFalse($cookie->isHttpOnly());
-        $this->assertEquals('new-cookie=super; domain=127.0.0.1; path=/; Secure; SameSite=Lax', $cookie->getHeaderString());
+        $this->assertEquals('new-cookie=super; path=/; Secure; SameSite=Lax', $cookie->getHeaderString());
         $cookie->setIsSecure(false);
         $this->assertFalse($cookie->isSecure());
         $cookie->setDomain();

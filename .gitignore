@@ -13,3 +13,5 @@ php-cs-fixer-v2.phar
 php-cs-fixer.phar
 .php-cs-fixer.cache
 *.Identifier
+/tests/.phpunit.cache
+/.vscode

@@ -2,7 +2,7 @@
 /**
  * This file is licensed under MIT License.
  * 
- * Copyright (c) 2022 Ibrahim BinAlshikh
+ * Copyright (c) 2019 WebFiori Framework
  * 
  * For more information on the license, please visit: 
  * https://github.com/WebFiori/http/blob/master/LICENSE
@@ -57,7 +57,7 @@ class HttpCookie {
      * <li>path: /</li>
      * <li>secure: true</li>
      * <li>http only: true</li>
-     * <li>domain: The domain at which the library is operating from.</li>
+     * <li>domain: The domain at which the cookie is operating from.</li>
      * <li>same site: Lax</li>
      * <li>expires: 0</li>
      * <li>value: sha256 hash</li>
@@ -68,7 +68,7 @@ class HttpCookie {
         $this->cookieName = 'new-cookie';
         $this->path = '/';
         $this->secure = true;
-        $this->domain = Request::getUri()->getHost();
+        $this->domain = null;
         $this->sameSite = 'Lax';
         $this->val = hash('sha256', date('Y-m-d H:i:s'));
         $this->expires = 0;

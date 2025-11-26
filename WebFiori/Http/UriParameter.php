@@ -2,7 +2,7 @@
 /**
  * This file is licensed under MIT License.
  * 
- * Copyright (c) 2019 Ibrahim BinAlshikh
+ * Copyright (c) 2019 WebFiori Framework
  * 
  * For more information on the license, please visit: 
  * https://github.com/WebFiori/http/blob/master/LICENSE
@@ -30,6 +30,7 @@ class UriParameter {
      * @var string
      */
     private $value;
+    private $allowedValues;
     /**
      * Creates new instance of the class.
      * 
@@ -56,6 +57,24 @@ class UriParameter {
             $this->isOptional = false;
         }
         $this->name = trim($trimmed, '?');
+        $this->allowedValues = [];
+    }
+    public function addAllowedValues(array $vals)  : UriParameter  {
+        foreach ($vals as $val) {
+            $this->addAllowedValue($val);
+        }
+        return $this;
+    }
+    public function addAllowedValue(string $val) : UriParameter {
+        $this->allowedValues[] = trim($val);
+        $currentVal = $this->getValue();
+        if ($currentVal !== null && !in_array($currentVal, $this->allowedValues)) {
+            $this->value = null;
+        }
+        return $this;
+    }
+    public function getAllowedValues() : array {
+        return $this->allowedValues;
     }
     /**
      * Returns the name of the parameter.
@@ -71,7 +90,7 @@ class UriParameter {
      * @return string|null If the value of the parameter is set, it will
      * be returned as string. If not set, null is returned.
      */
-    public function getValue() {
+    public function getValue() : ?string {
         return $this->value;
     }
     /**
@@ -85,9 +104,21 @@ class UriParameter {
     /**
      * Sets the value of the parameter.
      * 
+     * Note that if the parameter has a set of allowed values, the method
+     * will only accept the value if its part if that set.
+     * 
      * @param string $val The value of the parameter as string.
      */
-    public function setValue(string $val) {
-        $this->value = $val;
+    public function setValue(string $val) : bool {
+        $allowed = $this->getAllowedValues();
+        $trimmed = trim($val);
+        if (count($allowed) > 0 && !in_array($trimmed, $allowed)) {
+            return false;
+        }
+        if ($trimmed != '') {
+            $this->value = $trimmed;
+            return true;
+        }
+        return false;
     }
 }

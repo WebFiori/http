@@ -155,7 +155,7 @@ class WebServicesManagerTest extends APITestCase {
         $this->clrearVars();
         putenv('REQUEST_METHOD=GET');
         $api = new SampleServicesManager();
-        $this->assertEquals('GET', Request::getMethod());
+        $this->assertEquals('GET', Request::createFromGlobals()->getRequestMethod());
         $this->assertNull($api->getCalledServiceName());
         $this->assertEquals('1.0.1',$api->getVersion());
         $this->assertEquals('NO DESCRIPTION',$api->getDescription());

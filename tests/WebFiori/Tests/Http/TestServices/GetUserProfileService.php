@@ -20,7 +20,7 @@ class GetUserProfileService extends AbstractNumbersService {
     public function processRequest() {
         $userId = $this->getParamVal('user-id');
         if ($userId === null || $userId < 0) {
-            $this->getManager()->sendResponse('Database Error.', self::E, 500);
+            $this->sendResponse('Database Error.', 500, self::E);
         } else {
             $j = new Json();
             $j->add('user-name', 'Ibrahim');

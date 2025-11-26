@@ -2,7 +2,7 @@
 /**
  * This file is licensed under MIT License.
  * 
- * Copyright (c) 2019 Ibrahim BinAlshikh
+ * Copyright (c) 2019 WebFiori Framework
  * 
  * For more information on the license, please visit: 
  * https://github.com/WebFiori/http/blob/master/LICENSE
@@ -36,7 +36,12 @@ abstract class AbstractWebService implements JsonI {
      * 
      */
     const I = 'info';
-
+    /**
+     * A constant which is used to indicate that the message that will be 
+     * sent is of type success.
+     * 
+     */
+    const S = 'success';
     /**
      * The name of the service.
      * 
@@ -65,6 +70,13 @@ abstract class AbstractWebService implements JsonI {
      * 
      */
     private $reqMethods;
+    /**
+     * The request instance used by the service.
+     * 
+     * @var Request
+     * 
+     */
+    private $request;
     /**
      * This is used to indicate if authentication is required when the service 
      * is called.
@@ -123,6 +135,7 @@ abstract class AbstractWebService implements JsonI {
         $this->requireAuth = true;
         $this->sinceVersion = '1.0.0';
         $this->serviceDesc = '';
+        $this->request = Request::createFromGlobals();
     }
     /**
      * Returns an array that contains all possible requests methods at which the 
@@ -326,10 +339,21 @@ abstract class AbstractWebService implements JsonI {
      * ('basic', 'bearer', 'digest', etc...). The 'credentials' will contain 
      * the credentials which can be used to authenticate the client.
      * 
-     * @throws InvalidArgumentException
      */
     public function getAuthHeader() {
-        return Request::getAuthHeader();
+        if ($this->request !== null) {
+            return $this->request->getAuthHeader();
+        }
+        return null;
+    }
+
+    /**
+     * Sets the request instance for the service.
+     * 
+     * @param mixed $request The request instance (Request, etc.)
+     */
+    public function setRequest($request) {
+        $this->request = $request;
     }
     /**
      * Returns the description of the service.
@@ -690,11 +714,11 @@ abstract class AbstractWebService implements JsonI {
      * will be not included in response. Default is empty string. Default is null.
      * 
      */
-    public function sendResponse(string $message, string $type = '', int $code = 200, mixed $otherInfo = '') {
+    public function sendResponse(string $message, int $code = 200, string $type = '', mixed $otherInfo = '') {
         $manager = $this->getManager();
 
         if ($manager !== null) {
-            $manager->sendResponse($message, $type, $code, $otherInfo);
+            $manager->sendResponse($message, $code, $type, $otherInfo);
         }
     }
     /**
