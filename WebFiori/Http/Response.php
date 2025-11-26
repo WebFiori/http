@@ -22,58 +22,15 @@ namespace WebFiori\Http;
  * 
  */
 class Response {
-    /**
-     *
-     * @var array 
-     * 
-     */
-    private $beforeSendCalls;
-    /**
-     *
-     * @var string
-     * 
-     */
-    private $body;
-    /**
-     * An array that contains response cookies.
-     * 
-     * @var array
-     * 
-     */
-    private $cookies;
-    /**
-     *
-     * @var HeadersPool
-     * 
-     */
-    private $headersPool;
-    /**
-     *
-     * @var Response
-     * 
-     */
-    private static $inst;
-    /**
-     *
-     * @var boolean
-     * 
-     */
-    private $isSent;
-    /**
-     *
-     * @var boolean
-     * 
-     */
-    private $lock;
-    /**
-     *
-     * @var int
-     * 
-     */
-    private $responseCode;
-    /**
-     */
-    private function __construct() {
+    private array $beforeSendCalls;
+    private string $body;
+    private array $cookies;
+    private HeadersPool $headersPool;
+    private bool $isSent;
+    private bool $lock;
+    private int $responseCode;
+
+    public function __construct() {
         $this->headersPool = new HeadersPool();
         $this->body = '';
         $this->responseCode = 200;
@@ -82,14 +39,16 @@ class Response {
         $this->beforeSendCalls = [];
         $this->cookies = [];
     }
+
     /**
      * Adds new cookie to the list of response cookies.
      * 
      * @param HttpCookie $cookie An object that holds cookie properties.
      */
-    public static function addCookie(HttpCookie $cookie) {
-        self::get()->cookies[] = $cookie;
+    public function addCookie(HttpCookie $cookie) {
+        $this->cookies[] = $cookie;
     }
+
     /**
      * Adds new HTTP header to the response.
      * 
@@ -106,9 +65,10 @@ class Response {
      * not added, the method will return false.
      * 
      */
-    public static function addHeader(string $headerName, string $headerVal, ?string $replaceValue = '') : bool {
-        return self::getHeadersPool()->addHeader($headerName, $headerVal, $replaceValue);
+    public function addHeader(string $headerName, string $headerVal, ?string $replaceValue = '') : bool {
+        return $this->headersPool->addHeader($headerName, $headerVal, $replaceValue);
     }
+
     /**
      * Adds a function to execute before sending the final response.
      * 
@@ -117,41 +77,45 @@ class Response {
      * @param callable $func A PHP callable.
      * 
      */
-    public static function beforeSend(callable $func) {
-        self::get()->beforeSendCalls[] = $func;
+    public function beforeSend(callable $func) {
+        $this->beforeSendCalls[] = $func;
     }
+
     /**
      * Removes all added headers and reset the body of the response.
      * 
      * @return Response 
      * 
      */
-    public static function clear() : Response {
-        self::clearBody()->clearHeaders();
+    public function clear() : Response {
+        $this->clearBody();
+        $this->clearHeaders();
 
-        return self::get();
+        return $this;
     }
+
     /**
      * Reset the body of the response.
      * 
      * @return Response 
      * 
      */
-    public static function clearBody() : Response {
-        self::get()->body = '';
+    public function clearBody() : Response {
+        $this->body = '';
 
-        return self::get();
+        return $this;
     }
+
     /**
      * Removes all headers which where added to the response.
      * 
      * @return Response 
      * 
      */
-    public static function clearHeaders() : Response {
-        self::get()->headersPool = new HeadersPool();
+    public function clearHeaders() : Response {
+        $this->headersPool = new HeadersPool();
 
-        return self::get();
+        return $this;
     }
 
     /**
@@ -166,47 +130,38 @@ class Response {
      *
      * @return Response
      */
-    public static function dump($value, bool $send = true): Response {
+    public function dump($value, bool $send = true): Response {
         ob_start();
         var_dump($value);
-        self::get()->body .= '<pre>'.ob_get_clean().'</pre>';
+        $this->body .= '<pre>'.ob_get_clean().'</pre>';
 
         if ($send) {
-            self::send();
+            $this->send();
         }
 
-        return self::get();
+        return $this;
     }
-    /**
-     * Returns an instance of the class.
-     * 
-     * @return Response
-     */
-    public static function get() : Response {
-        if (self::$inst === null) {
-            self::$inst = new Response();
-        }
 
-        return self::$inst;
-    }
     /**
      * Returns a string that represents response body that will be sent.
      * 
      * @return string A string that represents response body that will be sent.
      * 
      */
-    public static function getBody() : string {
-        return self::get()->body;
+    public function getBody() : string {
+        return $this->body;
     }
+
     /**
      * Returns the value of HTTP response code that will be sent.
      * 
      * @return int HTTP response code. Default value is 200.
      * 
      */
-    public static function getCode() : int {
-        return self::get()->responseCode;
+    public function getCode() : int {
+        return $this->responseCode;
     }
+
     /**
      * Returns an object that holds cookie information given its name.
      * 
@@ -216,8 +171,8 @@ class Response {
      * the method will return it as an object. Other than that, null
      * is returned.
      */
-    public static function getCookie(string $cookieName) {
-        foreach (self::getCookies() as $cookie) {
+    public function getCookie(string $cookieName) {
+        foreach ($this->cookies as $cookie) {
             if ($cookie->getName() == $cookieName) {
                 return $cookie;
             }
@@ -225,14 +180,16 @@ class Response {
 
         return null;
     }
+
     /**
      * Returns an array of all cookies that will be sent with the response.
      * 
      * @return array An array that holds objects of type 'HttpCookie'.
      */
-    public static function getCookies() : array {
-        return self::get()->cookies;
+    public function getCookies() : array {
+        return $this->cookies;
     }
+
     /**
      * Returns the value(s) of specific HTTP header.
      * 
@@ -243,27 +200,30 @@ class Response {
      * method will return an empty array.
      * 
      */
-    public static function getHeader(string $headerName) : array {
-        return self::getHeadersPool()->getHeader($headerName);
+    public function getHeader(string $headerName) : array {
+        return $this->headersPool->getHeader($headerName);
     }
+
     /**
      * Returns an array that contains response headers as object.
      * 
      * @return array An array that contains response headers as object.
      * 
      */
-    public static function getHeaders() : array {
-        return self::getHeadersPool()->getHeaders();
+    public function getHeaders() : array {
+        return $this->headersPool->getHeaders();
     }
+
     /**
      * Returns the instance which is used to hold all http headers that
      * will be sent with the request.
      * 
      * @return HeadersPool
      */
-    public static function getHeadersPool() : HeadersPool {
-        return self::get()->headersPool;
+    public function getHeadersPool() : HeadersPool {
+        return $this->headersPool;
     }
+
     /**
      * Checks if the response will have specific cookie given its name.
      * 
@@ -272,9 +232,10 @@ class Response {
      * @return bool If the response have a cookie with specified name,
      * the method will return true. False if not.
      */
-    public static function hasCookie(string $cookieName) : bool {
-        return self::getCookie($cookieName) !== null;
+    public function hasCookie(string $cookieName) : bool {
+        return $this->getCookie($cookieName) !== null;
     }
+
     /**
      * Checks if the response will have specific header or not.
      * 
@@ -291,9 +252,10 @@ class Response {
      * method will return true. Other than that, the method will return true.
      * 
      */
-    public static function hasHeader(string $headerName, ?string $headerVal = '') : bool {
-        return self::getHeadersPool()->hasHeader($headerName, $headerVal);
+    public function hasHeader(string $headerName, ?string $headerVal = '') : bool {
+        return $this->headersPool->hasHeader($headerName, $headerVal);
     }
+
     /**
      * Checks if the response was sent or not.
      * 
@@ -301,9 +263,10 @@ class Response {
      * if not.
      * 
      */
-    public static function isSent() : bool {
-        return self::get()->isSent;
+    public function isSent() : bool {
+        return $this->isSent;
     }
+
     /**
      * Removes a header from the response.
      * 
@@ -317,8 +280,8 @@ class Response {
      * Other than that, the method will return true.
      * 
      */
-    public static function removeHeader(string $headerName, ?string $headerVal = '') : bool {
-        return self::getHeadersPool()->removeHeader($headerName, $headerVal);
+    public function removeHeader(string $headerName, ?string $headerVal = '') : bool {
+        return $this->headersPool->removeHeader($headerName, $headerVal);
     }
 
     /**
@@ -329,36 +292,35 @@ class Response {
      * environment, calling it will have no effect.
      * 
      */
-    public static function send() {
-        if (!self::isSent()) {
-            if (!self::get()->lock) {
-                self::get()->lock = true;
+    public function send() {
+        if (!$this->isSent) {
+            if (!$this->lock) {
+                $this->lock = true;
 
-                foreach (self::get()->beforeSendCalls as $func) {
+                foreach ($this->beforeSendCalls as $func) {
                     call_user_func($func);
                 }
             }
 
             if (!(http_response_code() === false)) {
-                self::get()->isSent = true;
-                // Send response only in non-cli environment.
+                $this->isSent = true;
 
-                http_response_code(self::getCode());
+                http_response_code($this->responseCode);
 
-                foreach (self::getHeaders() as $headerObj) {
+                foreach ($this->getHeaders() as $headerObj) {
                     header($headerObj.'', false);
                 }
 
-                foreach (self::getCookies() as $cookie) {
+                foreach ($this->getCookies() as $cookie) {
                     header($cookie->getHeader().'', false);
                 }
 
                 if (is_callable('fastcgi_finish_request')) {
-                    echo self::getBody();
+                    echo $this->body;
                     fastcgi_finish_request();
                 } else {
                     ob_start();
-                    echo self::getBody();
+                    echo $this->body;
                     ob_end_flush();
 
                     if (ob_get_level() > 0) {
@@ -370,6 +332,7 @@ class Response {
             }
         }
     }
+
     /**
      * Sets the value of HTTP response code that will be sent.
      * 
@@ -377,11 +340,12 @@ class Response {
      * 599 inclusive.
      * 
      */
-    public static function setCode(int $code) {
+    public function setCode(int $code) {
         if ($code >= 100 && $code <= 599) {
-            self::get()->responseCode = $code;
+            $this->responseCode = $code;
         }
     }
+
     /**
      * Appends a value to response body.
      *
@@ -393,7 +357,7 @@ class Response {
      * @return Response
      *
      */
-    public static function write($value, bool $sendResponse = false) : Response {
+    public function write($value, bool $sendResponse = false) : Response {
         $type = gettype($value);
         $dumpTypes = [
             'resource (closed)',
@@ -407,15 +371,15 @@ class Response {
         if (($type == 'object' && !method_exists($value, '__toString')) || in_array($type, $dumpTypes)) {
             ob_start();
             var_dump($value);
-            self::get()->body .= '<pre>'.ob_get_clean().'</pre>';
+            $this->body .= '<pre>'.ob_get_clean().'</pre>';
         } else {
-            self::get()->body .= $value;
+            $this->body .= $value;
         }
 
         if ($sendResponse) {
-            self::send();
+            $this->send();
         }
 
-        return self::get();
+        return $this;
     }
 }
