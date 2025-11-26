@@ -1,5 +1,32 @@
 # Changelog
 
+## [4.1.0](https://github.com/WebFiori/http/compare/v4.0.0...v4.1.0) (2025-11-26)
+
+
+### Features
+
+* Added `HttpMessage` ([474db18](https://github.com/WebFiori/http/commit/474db18efdfdfe4f06ff31b3d851bdea4fd9dbc4))
+* Added `RequestURI` ([b7f4e25](https://github.com/WebFiori/http/commit/b7f4e25c023349d1457aaa1b1d62263f450b7f3b))
+
+
+### Bug Fixes
+
+* Fixes to Request Class ([a86a946](https://github.com/WebFiori/http/commit/a86a946cf9137631b91c405da4feb35a978004b2))
+* Get URI With Fragment or Query String ([43c13d1](https://github.com/WebFiori/http/commit/43c13d1608aa5a4ee23b22e25c013926ce0947e7))
+* Multiple Fixes to Core ([d2c9c4a](https://github.com/WebFiori/http/commit/d2c9c4a1c78cdae71082bdf722ecc7dde16895b2))
+* URI Parameter ([4effd3a](https://github.com/WebFiori/http/commit/4effd3a7c1b3ae86bda27debe106fe3f6977ad15))
+
+
+### Miscellaneous Chores
+
+* Config Changes ([6718e2a](https://github.com/WebFiori/http/commit/6718e2aa38d19b2b6082010f718065f0dcd916d3))
+* Ignore Tests Cache ([4d57d85](https://github.com/WebFiori/http/commit/4d57d854a8b1acdf93c09a4758b99ca311b0907d))
+* Merge pull request [#80](https://github.com/WebFiori/http/issues/80) from WebFiori/dev ([6fa2a60](https://github.com/WebFiori/http/commit/6fa2a60225ff82c084ffbfab391f1087affc9af7))
+* Merge pull request [#82](https://github.com/WebFiori/http/issues/82) from WebFiori/dev ([a09ecd8](https://github.com/WebFiori/http/commit/a09ecd89089211615eb57c9cf381a59e2d63e7c8))
+* Multiple Fixes ([24f0865](https://github.com/WebFiori/http/commit/24f0865ea42953caede6b898996fc1e39082da2b))
+* Multiple Fixes ([66effd1](https://github.com/WebFiori/http/commit/66effd1130c0c852af551c790a71ee60d74cc101))
+* Updated License Headers ([37acd59](https://github.com/WebFiori/http/commit/37acd5900f349ddac50cdae611e44e23a0c8b3ca))
+
 ## [4.0.0](https://github.com/WebFiori/http/compare/v3.6.1...v4.0.0) (2025-08-06)
 
 
