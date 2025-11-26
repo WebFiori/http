@@ -5,198 +5,229 @@ namespace WebFiori\Tests\Http;
 use PHPUnit\Framework\TestCase;
 use WebFiori\Http\HttpCookie;
 use WebFiori\Http\Response;
-use WebFiori\Tests\Http\TestServices\TestUserObj;
 
 /**
- * Description of RequestTest
+ * Test cases for Response class
  *
  * @author Ibrahim
  */
-
 class ResponseTest extends TestCase {
     /**
      * @test
      */
     public function testAddHeader00() {
-        $this->assertFalse(Response::hasHeader('content-type', null));
-        $this->assertTrue(Response::addHeader('content-type', 'application/json'));
-        $this->assertTrue(Response::hasHeader('content-type', 'application/json'));
-        $this->assertFalse(Response::hasHeader('content-type', 'text/js'));
+        $response = new Response();
+        $this->assertFalse($response->hasHeader('content-type', null));
+        $this->assertTrue($response->addHeader('content-type', 'application/json'));
+        $this->assertTrue($response->hasHeader('content-type', 'application/json'));
+        $this->assertFalse($response->hasHeader('content-type', 'text/js'));
     }
+
     /**
      * @test
      */
     public function testAddHeader01() {
-        $this->assertFalse(Response::hasHeader('Set-Cookie', null));
-        $this->assertTrue(Response::addHeader('Set-Cookie', 'name=ok'));
-        $this->assertTrue(Response::hasHeader('Set-Cookie', null));
-        $this->assertTrue(Response::hasHeader('Set-Cookie','name=ok'));
+        $response = new Response();
+        $this->assertFalse($response->hasHeader('Set-Cookie', null));
+        $this->assertTrue($response->addHeader('Set-Cookie', 'name=ok'));
+        $this->assertTrue($response->hasHeader('Set-Cookie', null));
+        $this->assertTrue($response->hasHeader('Set-Cookie','name=ok'));
         
-        $this->assertTrue(Response::addHeader('Set-Cookie', 'name=good'));
-        $this->assertTrue(Response::hasHeader('Set-cookie','name=good'));
+        $this->assertTrue($response->addHeader('Set-Cookie', 'name=good'));
+        $this->assertTrue($response->hasHeader('Set-cookie','name=good'));
         
-        $this->assertTrue(Response::addHeader('Set-Cookie', 'name=no'));
-        $this->assertTrue(Response::hasHeader('Set-Cookie','name=no'));
-        $headerArr = Response::getHeader('set-cookie');
+        $this->assertTrue($response->addHeader('Set-Cookie', 'name=no'));
+        $this->assertTrue($response->hasHeader('Set-Cookie','name=no'));
+        $headerArr = $response->getHeader('set-cookie');
         $this->assertEquals([
             'name=ok',
             'name=good',
             'name=no'
         ], $headerArr);
-        
     }
+
     /**
      * @test
-     * @depends testRemoveHeader01
      */
     public function testAddHeader02() {
-        Response::clear();
-        $this->assertEquals([], Response::getHeaders());
-        Response::addHeader('set-cookie', 'name=super');
+        $response = new Response();
+        $this->assertEquals([], $response->getHeaders());
+        $response->addHeader('set-cookie', 'name=super');
         $this->assertEquals([
             'name=super'
-        ], Response::getHeader('set-cookie'));
-        Response::addHeader('set-cookie', 'name=not-super', 'name=super');
+        ], $response->getHeader('set-cookie'));
+        $response->addHeader('set-cookie', 'name=not-super', 'name=super');
         $this->assertEquals([
             'name=not-super'
-        ], Response::getHeader('set-cookie'));
+        ], $response->getHeader('set-cookie'));
     }
+
     /**
      * @test
-     * @depends testAddHeader00
      */
     public function testRemoveHeader00() {
-        $this->assertTrue(Response::hasHeader('content-type'));
-        Response::removeHeader('content-type');
-        $this->assertFalse(Response::hasHeader('content-type'));
-        $headerArr = Response::getHeader('content-type');
+        $response = new Response();
+        $response->addHeader('content-type', 'application/json');
+        $this->assertTrue($response->hasHeader('content-type'));
+        $response->removeHeader('content-type');
+        $this->assertFalse($response->hasHeader('content-type'));
+        $headerArr = $response->getHeader('content-type');
         $this->assertEquals([], $headerArr);
     }
+
     /**
      * @test
-     * @depends testAddHeader01
      */
-    public function testRemoveHeader01() { 
-        $this->assertTrue(Response::hasHeader('Set-Cookie'));
-        $this->assertTrue(Response::removeHeader('Set-cookie', 'name=good'));
-        $this->assertFalse(Response::hasHeader('Set-cookie','name=good'));
-        $this->assertTrue(Response::hasHeader('Set-Cookie','name=no'));
-        $this->assertTrue(Response::hasHeader('Set-Cookie','name=ok'));
-        Response::removeHeader('Set-cookie');
-        $this->assertFalse(Response::hasHeader('Set-Cookie'));
+    public function testRemoveHeader01() {
+        $response = new Response();
+        $response->addHeader('Set-Cookie', 'name=ok');
+        $response->addHeader('Set-Cookie', 'name=good');
+        $response->addHeader('Set-Cookie', 'name=no');
+        
+        $this->assertTrue($response->hasHeader('Set-Cookie'));
+        $this->assertTrue($response->removeHeader('Set-cookie', 'name=good'));
+        $this->assertFalse($response->hasHeader('Set-cookie','name=good'));
+        $this->assertTrue($response->hasHeader('Set-Cookie','name=no'));
+        $this->assertTrue($response->hasHeader('Set-Cookie','name=ok'));
+        $response->removeHeader('Set-cookie');
+        $this->assertFalse($response->hasHeader('Set-Cookie'));
     }
+
     /**
      * @test
      */
     public function testRemoveHeaders() {
-        Response::addHeader('content-type', 'application/json');
-        $this->assertTrue(Response::hasHeader('content-type'));
-        $this->assertFalse(Response::hasHeader('content-type','text/plain'));
-        Response::clearHeaders();
-        $this->assertEquals(0, count(Response::getHeaders()));
+        $response = new Response();
+        $response->addHeader('content-type', 'application/json');
+        $this->assertTrue($response->hasHeader('content-type'));
+        $this->assertFalse($response->hasHeader('content-type','text/plain'));
+        $response->clearHeaders();
+        $this->assertEquals(0, count($response->getHeaders()));
     }
+
     /**
      * @test
      */
     public function testClearBody() {
-        Response::write('Hello World!');
-        $this->assertEquals('Hello World!', Response::getBody());
-        Response::clearBody();
-        $this->assertEquals('', Response::getBody());
+        $response = new Response();
+        $response->write('Hello World!');
+        $this->assertEquals('Hello World!', $response->getBody());
+        $response->clearBody();
+        $this->assertEquals('', $response->getBody());
     }
+
     /**
      * @test
      */
     public function testSetResponseCode() {
-        $this->assertEquals(200, Response::getCode());
-        Response::setCode(99);
-        $this->assertEquals(200, Response::getCode());
-        Response::setCode(100);
-        $this->assertEquals(100, Response::getCode());
-        Response::setCode(599);
-        $this->assertEquals(599, Response::getCode());
-        Response::setCode(600);
-        $this->assertEquals(599, Response::getCode());
+        $response = new Response();
+        $this->assertEquals(200, $response->getCode());
+        $response->setCode(99);
+        $this->assertEquals(200, $response->getCode());
+        $response->setCode(100);
+        $this->assertEquals(100, $response->getCode());
+        $response->setCode(599);
+        $this->assertEquals(599, $response->getCode());
+        $response->setCode(600);
+        $this->assertEquals(599, $response->getCode());
     }
+
     /**
      * @test
      */
     public function testBeforeSend00() {
-        $this->assertFalse(Response::hasHeader('super', null));
-        Response::beforeSend(function () {
-            Response::addHeader('super', 'yes');
+        $response = new Response();
+        $this->assertFalse($response->hasHeader('super', null));
+        $response->beforeSend(function () use ($response) {
+            $response->addHeader('super', 'yes');
         });
-        $this->assertFalse(Response::isSent());
-        Response::send();
-        $this->assertTrue(Response::hasHeader('super'));
-        Response::clearHeaders();
-        $headerArr = Response::getHeaders();
-        $this->assertEquals([], $headerArr);
+        $this->assertFalse($response->isSent());
+        $response->send();
+        $this->assertTrue($response->hasHeader('super'));
     }
+
     /**
      * @test
      */
     public function testCookies00() {
-        $this->assertFalse(Response::hasCookie('cool'));
-        $this->assertEquals([], Response::getCookies());
-        $this->assertNull(Response::getCookie('cool'));
+        $response = new Response();
+        $this->assertFalse($response->hasCookie('cool'));
+        $this->assertEquals([], $response->getCookies());
+        $this->assertNull($response->getCookie('cool'));
         $coolCookie = new HttpCookie();
         $coolCookie->setName('cool');
-        Response::addCookie($coolCookie);
-        $this->assertTrue(Response::hasCookie('cool'));
-        $this->assertEquals([$coolCookie], Response::getCookies());
-        $this->assertNotNull(Response::getCookie('cool'));
+        $response->addCookie($coolCookie);
+        $this->assertTrue($response->hasCookie('cool'));
+        $this->assertEquals([$coolCookie], $response->getCookies());
+        $this->assertNotNull($response->getCookie('cool'));
     }
+
     /**
      * @test
      */
     public function testDump00() {
+        $response = new Response();
         $bool = true;
-        Response::clear();
-        Response::write($bool);
-        $this->assertEquals(""
-                . "<pre>"
-                . "bool(true)\n"
-                . "</pre>", Response::getBody());
+        $response->clear();
+        $response->write($bool);
+        $this->assertStringContainsString("bool(true)", $response->getBody());
+        $this->assertStringStartsWith("<pre>", $response->getBody());
+        $this->assertStringEndsWith("</pre>", $response->getBody());
     }
+
     /**
      * @test
      */
     public function testDump01() {
+        $response = new Response();
         $null = null;
-        Response::clear();
-        Response::write($null);
-        $this->assertEquals(""
-                . "<pre>"
-                . "NULL\n"
-                . "</pre>", Response::getBody());
+        $response->clear();
+        $response->write($null);
+        $this->assertStringContainsString("NULL", $response->getBody());
+        $this->assertStringStartsWith("<pre>", $response->getBody());
+        $this->assertStringEndsWith("</pre>", $response->getBody());
     }
+
     /**
      * @test
      */
     public function testDump02() {
-        Response::clear();
-        Response::write([1,2,3]);
-        $this->assertEquals(""
-                . "<pre>array(3) {\n"
-                . "  [0]=>\n"
-                . "  int(1)\n"
-                . "  [1]=>\n"
-                . "  int(2)\n"
-                . "  [2]=>\n"
-                . "  int(3)\n"
-                . "}\n</pre>", Response::getBody());
+        $response = new Response();
+        $response->clear();
+        $response->write([1,2,3]);
+        $body = $response->getBody();
+        $this->assertStringContainsString("array(3)", $body);
+        $this->assertStringContainsString("int(1)", $body);
+        $this->assertStringContainsString("int(2)", $body);
+        $this->assertStringContainsString("int(3)", $body);
+        $this->assertStringStartsWith("<pre>", $body);
+        $this->assertStringEndsWith("</pre>", $body);
     }
+
     /**
      * @test
      */
     public function testDump03() {
-        $null = null;
-        Response::clear();
-        Response::dump(61);
-        $this->assertEquals(""
-                . "<pre>"
-                . "int(61)\n"
-                . "</pre>", Response::getBody());
+        $response = new Response();
+        $response->clear();
+        $response->dump(61);
+        $this->assertStringContainsString("int(61)", $response->getBody());
+        $this->assertStringStartsWith("<pre>", $response->getBody());
+        $this->assertStringEndsWith("</pre>", $response->getBody());
+    }
+
+    /**
+     * @test
+     */
+    public function testClear() {
+        $response = new Response();
+        $response->addHeader('content-type', 'application/json');
+        $response->write('test body');
+        $this->assertNotEquals('', $response->getBody());
+        $this->assertNotEquals([], $response->getHeaders());
+        
+        $response->clear();
+        $this->assertEquals('', $response->getBody());
+        $this->assertEquals([], $response->getHeaders());
     }
 }

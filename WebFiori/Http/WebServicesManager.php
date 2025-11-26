@@ -98,6 +98,12 @@ class WebServicesManager implements JsonI {
     private $services;
     private $request;
     /**
+     * The response object used to send output.
+     * 
+     * @var Response
+     */
+    private $response;
+    /**
      * Creates new instance of the class.
      * 
      * By default, the API will have two services added to it:
@@ -124,10 +130,19 @@ class WebServicesManager implements JsonI {
         $this->invParamsArr = [];
         $this->missingParamsArr = [];
         $this->request = $request ?? Request::createFromGlobals();
+        $this->response = new Response();
     }
     public function setRequest(Request $request) : WebServicesManager {
         $this->request = $request;
         return $this;
+    }
+    /**
+     * Returns the response object used by the manager.
+     * 
+     * @return Response
+     */
+    public function getResponse() : Response {
+        return $this->response;
     }
     /**
      * Adds new web service to the set of web services.
@@ -544,10 +559,10 @@ class WebServicesManager implements JsonI {
             fwrite($this->getOutputStream(), $data.'');
             fclose($this->getOutputStream());
         } else {
-            Response::addHeader('content-type', $contentType);
-            Response::write($data);
-            Response::setCode($code);
-            Response::send();
+            $this->response->addHeader('content-type', $contentType);
+            $this->response->write($data);
+            $this->response->setCode($code);
+            $this->response->send();
         }
     }
     /**
@@ -560,7 +575,7 @@ class WebServicesManager implements JsonI {
      */
     public function sendHeaders(array $headersArr) {
         foreach ($headersArr as $header => $val) {
-            Response::addHeader($header, $val, null);
+            $this->response->addHeader($header, $val, null);
         }
     }
     /**
@@ -611,10 +626,10 @@ class WebServicesManager implements JsonI {
             fwrite($this->getOutputStream(), $json);
             fclose($this->getOutputStream());
         } else {
-            Response::addHeader('content-type', 'application/json');
-            Response::write($json);
-            Response::setCode($code);
-            Response::send();
+            $this->response->addHeader('content-type', 'application/json');
+            $this->response->write($json);
+            $this->response->setCode($code);
+            $this->response->send();
         }
     }
     /**
