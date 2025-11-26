@@ -455,9 +455,14 @@ class WebServicesManager implements JsonI {
                 $params = $actionObj->getParameters();
                 $this->filter->clearParametersDef();
                 $this->filter->clearInputs();
+                $requestMethod = $this->getRequest()->getRequestMethod();
 
                 foreach ($params as $param) {
-                    $this->filter->addRequestParameter($param);
+                    $paramMethods = $param->getMethods();
+                    
+                    if (count($paramMethods) == 0 || in_array($requestMethod, $paramMethods)) {
+                        $this->filter->addRequestParameter($param);
+                    }
                 }
                 $this->filterInputsHelper();
                 $i = $this->getInputs();

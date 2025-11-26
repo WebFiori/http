@@ -108,6 +108,13 @@ class RequestParameter implements JsonI {
      */
     private $type;
     /**
+     * An array of request methods at which the parameter must exist.
+     * 
+     * @var array
+     * 
+     */
+    private $methods;
+    /**
      * Creates new instance of the class.
      * 
      * @param string $name The name of the parameter as it appears in the request body. 
@@ -149,6 +156,7 @@ class RequestParameter implements JsonI {
         }
         $this->applyBasicFilter = true;
         $this->isEmptyStrAllowed = false;
+        $this->methods = [];
     }
     /**
      * Returns a string that represents the object.
@@ -225,10 +233,10 @@ class RequestParameter implements JsonI {
      * If it was not created for any reason, the method will return null.
      * 
      */
-    public static function create(array $options) {
-        if (isset($options['name'])) {
-            $paramType = $options['type'] ?? 'string';
-            $param = new RequestParameter($options['name'], $paramType);
+    public static function create(array $options) : ?RequestParameter {
+        if (isset($options[ParamOption::NAME])) {
+            $paramType = $options[ParamOption::TYPE] ?? 'string';
+            $param = new RequestParameter($options[ParamOption::NAME], $paramType);
             self::checkParamAttrs($param, $options);
 
             return $param;
@@ -714,43 +722,85 @@ class RequestParameter implements JsonI {
      * @param array $options
      */
     private static function checkParamAttrs(RequestParameter $param, array $options) {
-        $isOptional = $options['optional'] ?? false;
+        $isOptional = $options[ParamOption::OPTIONAL] ?? false;
         $param->setIsOptional($isOptional);
 
-        if (isset($options['custom-filter'])) {
-            $param->setCustomFilterFunction($options['custom-filter']);
+        if (isset($options[ParamOption::FILTER])) {
+            $param->setCustomFilterFunction($options[ParamOption::FILTER]);
         }
 
-        if (isset($options['min'])) {
-            $param->setMinValue($options['min']);
+        if (isset($options[ParamOption::MIN])) {
+            $param->setMinValue($options[ParamOption::MIN]);
         }
 
-        if (isset($options['max'])) {
-            $param->setMaxValue($options['max']);
+        if (isset($options[ParamOption::MAX])) {
+            $param->setMaxValue($options[ParamOption::MAX]);
         }
 
-        if (isset($options['min-length'])) {
-            $param->setMinLength($options['min-length']);
+        if (isset($options[ParamOption::MIN_LENGTH])) {
+            $param->setMinLength($options[ParamOption::MIN_LENGTH]);
         }
 
-        if (isset($options['max-length'])) {
-            $param->setMaxLength($options['max-length']);
+        if (isset($options[ParamOption::MAX_LENGTH])) {
+            $param->setMaxLength($options[ParamOption::MAX_LENGTH]);
         }
 
-        if (isset($options['allow-empty'])) {
-            $param->setIsEmptyStringAllowed($options['allow-empty']);
+        if (isset($options[ParamOption::EMPTY])) {
+            $param->setIsEmptyStringAllowed($options[ParamOption::EMPTY]);
         }
 
-        if (isset($options['custom-filter'])) {
-            $param->setCustomFilterFunction($options['custom-filter']);
+        if (isset($options[ParamOption::METHODS])) {
+            $type = gettype($options[ParamOption::METHODS]);
+            if ($type == 'string') {
+                $param->addMethod($options[ParamOption::METHODS]);
+            } else if ($type == 'array') {
+                $param->addMethods($options[ParamOption::METHODS]);
+            }
         }
 
-        if (isset($options['default'])) {
-            $param->setDefault($options['default']);
+        if (isset($options[ParamOption::DEFAULT])) {
+            $param->setDefault($options[ParamOption::DEFAULT]);
         }
 
-        if (isset($options['description'])) {
-            $param->setDescription($options['description']);
+        if (isset($options[ParamOption::DESCRIPTION])) {
+            $param->setDescription($options[ParamOption::DESCRIPTION]);
         }
+    }
+    /**
+     * Returns an array of request methods at which the parameter must exist.
+     * 
+     * @return array An array of request method names (e.g., ['GET', 'POST']).
+     */
+    public function getMethods(): array {
+        return $this->methods;
+    }
+    
+    /**
+     * Adds a request method to the parameter.
+     * 
+     * @param string $requestMethod The request method name (e.g., 'GET', 'POST').
+     * 
+     * @return RequestParameter Returns self for method chaining.
+     */
+    public function addMethod(string $requestMethod): RequestParameter {
+        $method = strtoupper(trim($requestMethod));
+        if (!in_array($method, $this->methods) && in_array($method, RequestMethod::getAll())) {
+            $this->methods[] = $method;
+        }
+        return $this;
+    }
+    
+    /**
+     * Adds multiple request methods to the parameter.
+     * 
+     * @param array $arr An array of request method names.
+     * 
+     * @return RequestParameter Returns self for method chaining.
+     */
+    public function addMethods(array $arr): RequestParameter {
+        foreach ($arr as $method) {
+            $this->addMethod($method);
+        }
+        return $this;
     }
 }
