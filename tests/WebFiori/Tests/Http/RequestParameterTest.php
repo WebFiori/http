@@ -662,5 +662,17 @@ class RequestParameterTest extends TestCase {
                 ."    Minimum Length => 'null',\n"
                 ."    Maximum Length => 'null'\n"
                 ."]\n",$rp.'');
+
+    }
+    /**
+     * @test
+     */
+    public function testRequestMethod00() {
+        $rp = new RequestParameter('user-id','integer');
+        $this->assertEquals([], $rp->getMethods());
+        $rp->addMethod('get');
+        $this->assertEquals(['GET'], $rp->getMethods());
+        $rp->addMethods(['geT', 'PoSt ']);
+        $this->assertEquals(['GET', 'POST'], $rp->getMethods());
     }
 }

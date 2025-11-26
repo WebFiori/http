@@ -456,7 +456,7 @@ class WebServicesManager implements JsonI {
                 $this->filter->clearParametersDef();
                 $this->filter->clearInputs();
                 $requestMethod = $this->getRequest()->getRequestMethod();
-
+                
                 foreach ($params as $param) {
                     $paramMethods = $param->getMethods();
                     
@@ -468,9 +468,9 @@ class WebServicesManager implements JsonI {
                 $i = $this->getInputs();
 
                 if (!($i instanceof Json)) {
-                    $this->_processNonJson($params);
+                    $this->_processNonJson($this->filter->getParameters());
                 } else {
-                    $this->_processJson($params);
+                    $this->_processJson($this->filter->getParameters());
                 }
             }
         } else {

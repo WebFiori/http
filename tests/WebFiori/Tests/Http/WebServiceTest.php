@@ -108,7 +108,8 @@ class WebServiceTest extends TestCase {
             'password' => [
                 ParamOption::OPTIONAL => true,
                 ParamOption::DEFAULT => 1234,
-                ParamOption::TYPE => 'integer'
+                ParamOption::TYPE => 'integer',
+                ParamOption::METHODS => 'get'
             ]
         ]);
         $this->assertEquals(2,count($action->getParameters()));
@@ -119,6 +120,7 @@ class WebServiceTest extends TestCase {
         $this->assertEquals('integer', $param2->getType());
         $this->assertTrue($param2->isOptional());
         $this->assertEquals(1234, $param2->getDefault());
+        $this->assertEquals(['GET'], $param2->getMethods());
     }
     /**
      * @test

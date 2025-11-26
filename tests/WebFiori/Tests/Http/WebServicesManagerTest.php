@@ -160,7 +160,7 @@ class WebServicesManagerTest extends APITestCase {
         $this->assertEquals('1.0.1',$api->getVersion());
         $this->assertEquals('NO DESCRIPTION',$api->getDescription());
         $api->setDescription('Test API.');
-        $this->assertEquals(5,count($api->getServices()));
+        $this->assertEquals(6,count($api->getServices()));
         $this->assertEquals('Test API.',$api->getDescription());
         $this->assertTrue($api->getServiceByName('sum-array') instanceof AbstractWebService);
         $this->assertNull($api->getServiceByName('request-info'));
@@ -299,6 +299,61 @@ class WebServicesManagerTest extends APITestCase {
         
         $manager->process();
         $this->assertEquals('{"user":{"Id":3,"FullName":"Me","Username":"Cpool"}}', $manager->readOutputStream());
+    }
+    /**
+     * @test
+     */
+    public function testCreateUser02() {
+        $this->clrearVars();
+        putenv('REQUEST_METHOD=GET');
+        $_GET['service'] = 'user-profile';
+        $_GET['id'] = '99';
+        $api = new SampleServicesManager();
+        $api->setOutputStream($this->outputStreamName);
+        $api->process();
+        $this->assertEquals('{"user":{"Id":99,"FullName":"Ibrahim"}}', $api->readOutputStream());
+    }
+    /**
+     * @test
+     */
+    public function testCreateUser03() {
+        $this->clrearVars();
+        putenv('REQUEST_METHOD=POST');
+        $_SERVER['CONTENT_TYPE'] = 'application/x-www-form-urlencoded';
+        $_POST['service'] = 'user-profile';
+        $_POST['id'] = '99';
+        $api = new SampleServicesManager();
+        $api->setOutputStream($this->outputStreamName);
+        $api->process();
+        $this->assertEquals('{"message":"The following required parameter(s) where missing from the request body: \'name\', \'username\'.","type":"error","http-code":404,"more-info":{"missing":["name","username"]}}', $api->readOutputStream());
+    }
+    /**
+     * @test
+     */
+    public function testCreateUser04() {
+        $this->clrearVars();
+        putenv('REQUEST_METHOD=POST');
+        $_SERVER['CONTENT_TYPE'] = 'application/x-www-form-urlencoded';
+        $_POST['service'] = 'user-profile';
+        $_POST['name'] = '99';
+        $_POST['username'] = 'Cool';
+        $api = new SampleServicesManager();
+        $api->setOutputStream($this->outputStreamName);
+        $api->process();
+        $this->assertEquals('{"user":{"Id":3,"FullName":"99","Username":"Cool"}}', $api->readOutputStream());
+    }
+    /**
+     * @test
+     */
+    public function testCreateUser05() {
+        $this->clrearVars();
+        putenv('REQUEST_METHOD=GET');
+        $_GET['service'] = 'user-profile';
+        
+        $api = new SampleServicesManager();
+        $api->setOutputStream($this->outputStreamName);
+        $api->process();
+        $this->assertEquals('{"message":"The following required parameter(s) where missing from the request body: \'id\'.","type":"error","http-code":404,"more-info":{"missing":["id"]}}', $api->readOutputStream());
     }
     /**
      * @test
