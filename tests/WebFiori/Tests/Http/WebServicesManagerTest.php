@@ -16,7 +16,7 @@ use WebFiori\Tests\Http\TestServices\SampleServicesManager;
  * @author Eng.Ibrahim
  */
 class WebServicesManagerTest extends APITestCase {
-    private $outputStreamName = __DIR__.DIRECTORY_SEPARATOR.'outputStream.txt';
+    private $outputStreamName = __DIR__.DIRECTORY_SEPARATOR.'output-stream.txt';
     public function test00() {
         $manager = new WebServicesManager();
         $manager->addService(new NoAuthService());
@@ -650,10 +650,10 @@ class WebServicesManagerTest extends APITestCase {
      */
     public function testSetOutputStream03() {
         $api = new SampleServicesManager();
-        $this->assertTrue($api->setOutputStream(__DIR__.DIRECTORY_SEPARATOR.'outputStream.txt', true));
+        $this->assertTrue($api->setOutputStream(__DIR__.DIRECTORY_SEPARATOR.'output-stream.txt', true));
         $this->assertNotNull($api->getOutputStream());
         $this->assertNotNull($api->getOutputStreamPath());
-        $this->assertEquals(__DIR__.DIRECTORY_SEPARATOR.'outputStream.txt', $api->getOutputStreamPath());
+        $this->assertEquals(__DIR__.DIRECTORY_SEPARATOR.'output-stream.txt', $api->getOutputStreamPath());
     }
     private function clrearVars() {
         foreach ($_GET as $k => $v) {

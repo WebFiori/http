@@ -23,7 +23,7 @@ use WebFiori\Json\JsonException;
  */
 class APITestCase extends TestCase {
     const NL = "\r\n";
-    const DEFAULT_OUTPUT_STREAM = __DIR__.DIRECTORY_SEPARATOR.'outputStream.txt';
+    const DEFAULT_OUTPUT_STREAM = __DIR__.DIRECTORY_SEPARATOR.'output-stream.txt';
     /**
      * The path to the output stream file.
      * 

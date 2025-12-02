@@ -15,3 +15,4 @@ php-cs-fixer.phar
 *.Identifier
 /tests/.phpunit.cache
 /.vscode
+tests/WebFiori/Tests/Http/output-stream.txt
