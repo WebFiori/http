@@ -14,7 +14,7 @@ abstract class AbstractNumbersService extends WebService {
         parent::__construct($name);
         $this->addParameter(new RequestParameter('pass','string'));
     }
-    public function isAuthorized() {
+    public function isAuthorized(): bool {
         $inputs = $this->getInputs();
         if ($inputs instanceof \webfiori\json\Json) {
             $pass = $inputs->get('pass');

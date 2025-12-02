@@ -13,8 +13,8 @@ class TestServiceObj extends WebService {
         parent::__construct($name);
     }
     //put your code here
-    public function isAuthorized() {
-        return parent::isAuthorized();
+    public function isAuthorized(): bool {
+        return true;
     }
 
     public function processRequest() {

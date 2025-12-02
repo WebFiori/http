@@ -1,43 +1,33 @@
 <?php
-
-require 'loader.php';
+require_once '../vendor/autoload.php';
 
 use WebFiori\Http\WebService;
-use WebFiori\Http\ParamOption;
-use WebFiori\Http\ParamType;
 use WebFiori\Http\RequestMethod;
+use WebFiori\Http\ParamType;
+use WebFiori\Http\ParamOption;
 
 class GetRandomService extends WebService {
     public function __construct() {
-        parent::__construct('get-random-number');
-        $this->setRequestMethods([
-            RequestMethod::GET, 
-            RequestMethod::POST
-        ]);
+        parent::__construct('get-random');
+        $this->setRequestMethods([RequestMethod::GET, RequestMethod::POST]);
+        $this->setDescription('Returns a random integer. If no range is specified, the method will return a number between 0 and getrandmax().');
         
         $this->addParameters([
             'min' => [
                 ParamOption::TYPE => ParamType::INT,
-                ParamOption::OPTIONAL => true
+                ParamOption::OPTIONAL => true,
+                ParamOption::DESCRIPTION => 'Minimum value for the random number.'
             ],
             'max' => [
                 ParamOption::TYPE => ParamType::INT,
-                ParamOption::OPTIONAL => true
+                ParamOption::OPTIONAL => true,
+                ParamOption::DESCRIPTION => 'Maximum value for the random number.'
             ]
         ]);
     }
 
-    public function isAuthorized() {
-//        $authHeader = $this->getAuthHeader();
-//        
-//        if ($authHeader === null) {
-//            return false;
-//        }
-//        
-//        $scheme = $authHeader->getScheme();
-//        $credentials = $authHeader->getCredentials();
-        
-        //Verify credentials based on auth scheme (e.g. 'Basic', 'Barear'
+    public function isAuthorized(): bool {
+        return true;
     }
 
     public function processRequest() {
@@ -49,6 +39,9 @@ class GetRandomService extends WebService {
         } else {
             $random = rand();
         }
-        $this->sendResponse($random);
+        
+        $this->sendResponse('Random number generated', 'success', 200, [
+            'number' => $random
+        ]);
     }
 }

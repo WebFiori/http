@@ -15,8 +15,8 @@ class NotImplService extends WebService {
         parent::__construct('not-implemented');
         $this->addRequestMethod(RequestMethod::POST);
     }
-    public function isAuthorized() {
-        
+    public function isAuthorized(): bool {
+        return true;
     }
 
     public function processRequest() {

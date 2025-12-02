@@ -19,6 +19,10 @@ class MulNubmersService extends WebService {
         $this->addParameter(new RequestParameter('second-number', 'integer'));
     }
     
+    public function isAuthorized(): bool {
+        return true;
+    }
+
     public function isAuthorizedGET() {
         if ($this->getParamVal('first-number') < 0) {
             return false;

@@ -20,7 +20,7 @@ class HelloWithAuthService extends WebService {
             ]
         ]);
     }
-    public function isAuthorized() {
+    public function isAuthorized(): bool {
         //Change default response message to custom one
         ResponseMessage::set('401', 'Not authorized to use this API.');
         

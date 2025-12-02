@@ -543,9 +543,10 @@ abstract class WebService implements JsonI {
      * user is authorized to call the API. If WebFiori framework is used, it is 
      * possible to perform the functionality of this method using middleware.
      * 
+     * @return bool True if the user is allowed to perform the action. False otherwise.
+     * 
      */
-    public function isAuthorized() {
-    }
+    abstract function isAuthorized() : bool;
     /**
      * Returns the value of the property 'requireAuth'.
      * 
@@ -587,10 +588,6 @@ abstract class WebService implements JsonI {
     }
     /**
      * Process client's request.
-     * 
-     * This method must be implemented in a way it sends back a response after 
-     * processing the request.
-     * 
      */
     abstract function processRequest();
     /**

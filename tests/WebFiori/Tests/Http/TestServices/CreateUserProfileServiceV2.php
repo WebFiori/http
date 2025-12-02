@@ -39,6 +39,9 @@ class CreateUserProfileServiceV2 extends WebService {
             ]
         ]);
     }
+    public function isAuthorized(): bool {
+        return true;
+    }
     public function processRequest() {
         
     }

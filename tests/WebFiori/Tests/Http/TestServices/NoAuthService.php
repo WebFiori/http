@@ -15,7 +15,7 @@ class NoAuthService extends WebService {
         $this->setIsAuthRequired(false);
         $this->addRequestMethod(RequestMethod::GET);
     }
-    public function isAuthorized() {
+    public function isAuthorized(): bool {
         return false;
     }
 

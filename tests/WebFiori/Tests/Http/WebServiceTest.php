@@ -16,7 +16,7 @@ class WebServiceTest extends TestCase {
     public function testGetAuthHeaders00() {
         $service = new TestServiceObj('Hello');
         $this->assertNull($service->getAuthHeader());
-        $this->assertNull($service->isAuthorized());
+        $this->assertTrue($service->isAuthorized());
     }
     /**
      * 
