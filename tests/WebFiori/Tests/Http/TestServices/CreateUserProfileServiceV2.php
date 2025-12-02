@@ -3,7 +3,7 @@
 namespace WebFiori\Tests\Http\TestServices;
 
 use Exception;
-use WebFiori\Http\AbstractWebService;
+use WebFiori\Http\WebService;
 use WebFiori\Http\ParamOption;
 use WebFiori\Http\ParamType;
 use WebFiori\Http\RequestMethod;
@@ -14,7 +14,7 @@ use WebFiori\Json\Json;
  *
  * @author Ibrahim
  */
-class CreateUserProfileServiceV2 extends AbstractWebService {
+class CreateUserProfileServiceV2 extends WebService {
     public function __construct() {
         parent::__construct('user-profile');
         $this->addRequestMethod(RequestMethod::POST);

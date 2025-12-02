@@ -13,12 +13,12 @@ namespace WebFiori\Http;
  * A service which can be used to display information about services manager.
  * 
  * The developer must extend this class and complete the implementation of 
- * the method AbstractWebService::isAuthorized() in order to use it.
+ * the method WebService::isAuthorized() in order to use it.
  * 
  * @author Ibrahim
  * 
  */
-abstract class ManagerInfoService extends AbstractWebService {
+abstract class ManagerInfoService extends WebService {
     /**
      * Creates new instance of the class.
      * 

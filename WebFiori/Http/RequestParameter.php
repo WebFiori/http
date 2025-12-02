@@ -635,7 +635,7 @@ class RequestParameter implements JsonI {
     public function setName(string $name) : bool {
         $nameTrimmed = trim($name);
 
-        if (AbstractWebService::isValidName($nameTrimmed)) {
+        if (WebService::isValidName($nameTrimmed)) {
             $this->name = $nameTrimmed;
 
             return true;

@@ -147,11 +147,11 @@ class WebServicesManager implements JsonI {
     /**
      * Adds new web service to the set of web services.
      * 
-     * @param AbstractWebService $service The web service that will be added.
+     * @param WebService $service The web service that will be added.
      * 
      * 
      */
-    public function addService(AbstractWebService $service) : WebServicesManager {
+    public function addService(WebService $service) : WebServicesManager {
         return $this->addAction($service);
     }
     /**
@@ -175,7 +175,7 @@ class WebServicesManager implements JsonI {
     public function contentTypeNotSupported(string $cType = '') {
         $j = new Json();
         $j->add('request-content-type', $cType);
-        $this->sendResponse(ResponseMessage::get('415'), 415, AbstractWebService::E, $j);
+        $this->sendResponse(ResponseMessage::get('415'), 415, WebService::E, $j);
     }
     /**
      * Returns the name of the service which is being called.
@@ -281,7 +281,7 @@ class WebServicesManager implements JsonI {
      * 
      * @param string $serviceName The name of the service.
      * 
-     * @return AbstractWebService|null The method will return an object of type 'WebService' 
+     * @return WebService|null The method will return an object of type 'WebService' 
      * if the service is found. If no service was found which has the given name, 
      * The method will return null.
      * 
@@ -342,7 +342,7 @@ class WebServicesManager implements JsonI {
             }
             $i++;
         }
-        $this->sendResponse(ResponseMessage::get('404-1').$val.'.', 404, AbstractWebService::E, new Json([
+        $this->sendResponse(ResponseMessage::get('404-1').$val.'.', 404, WebService::E, new Json([
             'invalid' => $paramsNamesArr
         ]));
     }
@@ -398,7 +398,7 @@ class WebServicesManager implements JsonI {
             }
             $i++;
         }
-        $this->sendResponse(ResponseMessage::get('404-2').$val.'.', 404, AbstractWebService::E, new Json([
+        $this->sendResponse(ResponseMessage::get('404-2').$val.'.', 404, WebService::E, new Json([
             'missing' => $paramsNamesArr
         ]));
     }
@@ -417,7 +417,7 @@ class WebServicesManager implements JsonI {
      * 
      */
     public function missingServiceName() {
-        $this->sendResponse(ResponseMessage::get('404-3'), 404, AbstractWebService::E);
+        $this->sendResponse(ResponseMessage::get('404-3'), 404, WebService::E);
     }
     /**
      * Sends a response message to indicate that a user is not authorized call a 
@@ -434,7 +434,7 @@ class WebServicesManager implements JsonI {
      * 
      */
     public function notAuth() {
-        $this->sendResponse(ResponseMessage::get('401'), 401, AbstractWebService::E);
+        $this->sendResponse(ResponseMessage::get('401'), 401, WebService::E);
     }
 
     /**
@@ -506,7 +506,7 @@ class WebServicesManager implements JsonI {
      * 
      * @param string $name The name of the service.
      * 
-     * @return AbstractWebService|null If a web service which has the given name was found 
+     * @return WebService|null If a web service which has the given name was found 
      * and removed, the method will return an object that represent the removed 
      * service. Other than that, the method will return null.
      * 
@@ -547,7 +547,7 @@ class WebServicesManager implements JsonI {
      * 
      */
     public function requestMethodNotAllowed() {
-        $this->sendResponse(ResponseMessage::get('405'), 405, AbstractWebService::E);
+        $this->sendResponse(ResponseMessage::get('405'), 405, WebService::E);
     }
     /**
      * Sends Back a data using specific content type and specific response code.
@@ -651,7 +651,7 @@ class WebServicesManager implements JsonI {
      * 
      */
     public function serviceNotImplemented() {
-        $this->sendResponse(ResponseMessage::get('404-4'), 404, AbstractWebService::E);
+        $this->sendResponse(ResponseMessage::get('404-4'), 404, WebService::E);
     }
     /**
      * Sends a response message to indicate that called web service is not supported by the API.
@@ -667,7 +667,7 @@ class WebServicesManager implements JsonI {
      * 
      */
     public function serviceNotSupported() {
-        $this->sendResponse(ResponseMessage::get('404-5'), 404, AbstractWebService::E);
+        $this->sendResponse(ResponseMessage::get('404-5'), 404, WebService::E);
     }
     /**
      * Sets the description of the web services set.
@@ -848,7 +848,7 @@ class WebServicesManager implements JsonI {
                         return true;
                     }
                 } else {
-                    $this->sendResponse(ResponseMessage::get('404-6'), 404, AbstractWebService::E);
+                    $this->sendResponse(ResponseMessage::get('404-6'), 404, WebService::E);
                 }
             } else {
                 $this->serviceNotSupported();
@@ -897,12 +897,12 @@ class WebServicesManager implements JsonI {
     /**
      * Adds new web service to the set of web services.
      * 
-     * @param AbstractWebService $service The web service that will be added.
+     * @param WebService $service The web service that will be added.
      * 
      * 
      * @deprecated since version 1.4.7 Use WebservicesSet::addService()
      */
-    private function addAction(AbstractWebService $service) : WebServicesManager {
+    private function addAction(WebService $service) : WebServicesManager {
         $this->services[$service->getName()] = $service;
         $service->setManager($this);
         return $this;
@@ -981,7 +981,7 @@ class WebServicesManager implements JsonI {
 
         return $retVal;
     }
-    private function isAuth(AbstractWebService $service) {
+    private function isAuth(WebService $service) {
         if ($service->isAuthRequired()) {
             $isAuthCheck = 'isAuthorized'.$this->getRequest()->getMethod();
 
@@ -994,7 +994,7 @@ class WebServicesManager implements JsonI {
 
         return true;
     }
-    private function processService(AbstractWebService $service) {
+    private function processService(WebService $service) {
         $processMethod = 'process'.$this->getRequest()->getMethod();
 
         if (!method_exists($service, $processMethod)) {

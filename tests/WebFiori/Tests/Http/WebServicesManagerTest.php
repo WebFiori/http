@@ -1,7 +1,7 @@
 <?php
 namespace WebFiori\Tests\Http;
 
-use WebFiori\Http\AbstractWebService;
+use WebFiori\Http\WebService;
 use WebFiori\Http\APITestCase;
 use WebFiori\Http\Request;
 use WebFiori\Http\ResponseMessage;
@@ -144,7 +144,7 @@ class WebServicesManagerTest extends APITestCase {
     public function testRemoveService00(WebServicesManager $manager) {
         $this->assertNull($manager->removeService('xyz'));
         $service = $manager->removeService('ok-service');
-        $this->assertTrue($service instanceof AbstractWebService);
+        $this->assertTrue($service instanceof WebService);
         $this->assertEquals(0, count($manager->getServices()));
         $this->assertNull($service->getManager());
     }
@@ -162,7 +162,7 @@ class WebServicesManagerTest extends APITestCase {
         $api->setDescription('Test API.');
         $this->assertEquals(6,count($api->getServices()));
         $this->assertEquals('Test API.',$api->getDescription());
-        $this->assertTrue($api->getServiceByName('sum-array') instanceof AbstractWebService);
+        $this->assertTrue($api->getServiceByName('sum-array') instanceof WebService);
         $this->assertNull($api->getServiceByName('request-info'));
         $this->assertNull($api->getServiceByName('api-info-2'));
 

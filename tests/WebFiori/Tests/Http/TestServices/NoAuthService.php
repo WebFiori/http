@@ -2,14 +2,14 @@
 
 namespace WebFiori\Tests\Http\TestServices;
 
-use WebFiori\Http\AbstractWebService;
+use WebFiori\Http\WebService;
 use WebFiori\Http\RequestMethod;
 /**
  * Description of NoAuthService
  *
  * @author Ibrahim
  */
-class NoAuthService extends AbstractWebService {
+class NoAuthService extends WebService {
     public function __construct() {
         parent::__construct('ok-service');
         $this->setIsAuthRequired(false);

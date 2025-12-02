@@ -2,12 +2,12 @@
 
 require 'loader.php';
 
-use WebFiori\Http\AbstractWebService;
+use WebFiori\Http\WebService;
 use WebFiori\Http\ParamOption;
 use WebFiori\Http\ParamType;
 use WebFiori\Http\RequestMethod;
 
-class GetRandomService extends AbstractWebService {
+class GetRandomService extends WebService {
     public function __construct() {
         parent::__construct('get-random-number');
         $this->setRequestMethods([

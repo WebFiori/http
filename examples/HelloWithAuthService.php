@@ -2,13 +2,13 @@
 
 require 'loader.php';
 
-use WebFiori\Http\AbstractWebService;
+use WebFiori\Http\WebService;
 use WebFiori\Http\ParamOption;
 use WebFiori\Http\ParamType;
 use WebFiori\Http\RequestMethod;
 use WebFiori\Http\ResponseMessage;
 
-class HelloWithAuthService extends AbstractWebService {
+class HelloWithAuthService extends WebService {
     public function __construct() {
         parent::__construct('hello-with-auth');
         $this->setRequestMethods([RequestMethod::GET]);

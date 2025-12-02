@@ -113,7 +113,7 @@ class APITestCase extends TestCase {
         if (class_exists($apiEndpointName)) {
             $service = new $apiEndpointName();
             
-            if ($service instanceof AbstractWebService) {
+            if ($service instanceof WebService) {
                 $apiEndpointName = $service->getName();
             }
         }
