@@ -8,11 +8,42 @@ use WebFiori\Json\JsonI;
  * Represents an OAuth Flows Object in OpenAPI specification.
  * 
  * Allows configuration of the supported OAuth Flows.
+ * 
+ * This object MAY be extended with Specification Extensions.
+ * 
+ * @see https://spec.openapis.org/oas/v3.1.0#oauth-flows-object
  */
 class OAuthFlowsObj implements JsonI {
+    /**
+     * Configuration for the OAuth Implicit flow.
+     * 
+     * @var OAuthFlowObj|null
+     */
     private ?OAuthFlowObj $implicit = null;
+    
+    /**
+     * Configuration for the OAuth Resource Owner Password flow.
+     * 
+     * @var OAuthFlowObj|null
+     */
     private ?OAuthFlowObj $password = null;
+    
+    /**
+     * Configuration for the OAuth Client Credentials flow.
+     * 
+     * Previously called application in OpenAPI 2.0.
+     * 
+     * @var OAuthFlowObj|null
+     */
     private ?OAuthFlowObj $clientCredentials = null;
+    
+    /**
+     * Configuration for the OAuth Authorization Code flow.
+     * 
+     * Previously called accessCode in OpenAPI 2.0.
+     * 
+     * @var OAuthFlowObj|null
+     */
     private ?OAuthFlowObj $authorizationCode = null;
     
     /**
@@ -20,7 +51,7 @@ class OAuthFlowsObj implements JsonI {
      * 
      * @param OAuthFlowObj $implicit OAuth Flow Object for implicit flow.
      * 
-     * @return OAuthFlowsObj
+     * @return OAuthFlowsObj Returns self for method chaining.
      */
     public function setImplicit(OAuthFlowObj $implicit): OAuthFlowsObj {
         $this->implicit = $implicit;
@@ -30,7 +61,7 @@ class OAuthFlowsObj implements JsonI {
     /**
      * Returns the implicit flow configuration.
      * 
-     * @return OAuthFlowObj|null
+     * @return OAuthFlowObj|null Returns the value, or null if not set.
      */
     public function getImplicit(): ?OAuthFlowObj {
         return $this->implicit;
@@ -41,7 +72,7 @@ class OAuthFlowsObj implements JsonI {
      * 
      * @param OAuthFlowObj $password OAuth Flow Object for password flow.
      * 
-     * @return OAuthFlowsObj
+     * @return OAuthFlowsObj Returns self for method chaining.
      */
     public function setPassword(OAuthFlowObj $password): OAuthFlowsObj {
         $this->password = $password;
@@ -51,7 +82,7 @@ class OAuthFlowsObj implements JsonI {
     /**
      * Returns the password flow configuration.
      * 
-     * @return OAuthFlowObj|null
+     * @return OAuthFlowObj|null Returns the value, or null if not set.
      */
     public function getPassword(): ?OAuthFlowObj {
         return $this->password;
@@ -62,7 +93,7 @@ class OAuthFlowsObj implements JsonI {
      * 
      * @param OAuthFlowObj $clientCredentials OAuth Flow Object for client credentials flow.
      * 
-     * @return OAuthFlowsObj
+     * @return OAuthFlowsObj Returns self for method chaining.
      */
     public function setClientCredentials(OAuthFlowObj $clientCredentials): OAuthFlowsObj {
         $this->clientCredentials = $clientCredentials;
@@ -72,7 +103,7 @@ class OAuthFlowsObj implements JsonI {
     /**
      * Returns the client credentials flow configuration.
      * 
-     * @return OAuthFlowObj|null
+     * @return OAuthFlowObj|null Returns the value, or null if not set.
      */
     public function getClientCredentials(): ?OAuthFlowObj {
         return $this->clientCredentials;
@@ -83,7 +114,7 @@ class OAuthFlowsObj implements JsonI {
      * 
      * @param OAuthFlowObj $authorizationCode OAuth Flow Object for authorization code flow.
      * 
-     * @return OAuthFlowsObj
+     * @return OAuthFlowsObj Returns self for method chaining.
      */
     public function setAuthorizationCode(OAuthFlowObj $authorizationCode): OAuthFlowsObj {
         $this->authorizationCode = $authorizationCode;
@@ -93,7 +124,7 @@ class OAuthFlowsObj implements JsonI {
     /**
      * Returns the authorization code flow configuration.
      * 
-     * @return OAuthFlowObj|null
+     * @return OAuthFlowObj|null Returns the value, or null if not set.
      */
     public function getAuthorizationCode(): ?OAuthFlowObj {
         return $this->authorizationCode;
@@ -102,7 +133,7 @@ class OAuthFlowsObj implements JsonI {
     /**
      * Returns a Json object that represents the OAuth Flows Object.
      * 
-     * @return Json
+     * @return Json A Json object representation following OpenAPI 3.1.0 specification.
      */
     public function toJSON(): Json {
         $json = new Json();

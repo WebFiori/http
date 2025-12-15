@@ -8,9 +8,33 @@ use WebFiori\Json\JsonI;
  * Represents a Server Object in OpenAPI specification.
  * 
  * An object representing a Server.
+ * 
+ * This object MAY be extended with Specification Extensions.
+ * 
+ * @see https://spec.openapis.org/oas/v3.1.0#server-object
  */
 class ServerObj implements JsonI {
+    /**
+     * A URL to the target host.
+     * 
+     * This URL supports Server Variables and MAY be relative, to indicate that 
+     * the host location is relative to the location where the document containing 
+     * the Server Object is being served. Variable substitutions will be made when 
+     * a variable is named in {braces}.
+     * 
+     * REQUIRED.
+     * 
+     * @var string
+     */
     private string $url;
+    
+    /**
+     * An optional string describing the host designated by the URL.
+     * 
+     * CommonMark syntax MAY be used for rich text representation.
+     * 
+     * @var string|null
+     */
     private ?string $description = null;
     
     /**
@@ -32,7 +56,7 @@ class ServerObj implements JsonI {
      * 
      * @param string $url A URL to the target host. This URL supports Server Variables and MAY be relative.
      * 
-     * @return ServerObj
+     * @return ServerObj Returns self for method chaining.
      */
     public function setUrl(string $url): ServerObj {
         $this->url = $url;
@@ -54,7 +78,7 @@ class ServerObj implements JsonI {
      * @param string $description An optional string describing the host.
      * CommonMark syntax MAY be used for rich text representation.
      * 
-     * @return ServerObj
+     * @return ServerObj Returns self for method chaining.
      */
     public function setDescription(string $description): ServerObj {
         $this->description = $description;
@@ -64,7 +88,7 @@ class ServerObj implements JsonI {
     /**
      * Returns the description of the host.
      * 
-     * @return string|null
+     * @return string|null Returns the value, or null if not set.
      */
     public function getDescription(): ?string {
         return $this->description;
@@ -73,7 +97,7 @@ class ServerObj implements JsonI {
     /**
      * Returns a Json object that represents the Server Object.
      * 
-     * @return Json
+     * @return Json A Json object representation following OpenAPI 3.1.0 specification.
      */
     public function toJSON(): Json {
         $json = new Json();

@@ -8,11 +8,52 @@ use WebFiori\Json\JsonI;
  * Represents an OAuth Flow Object in OpenAPI specification.
  * 
  * Configuration details for a supported OAuth Flow.
+ * 
+ * This object MAY be extended with Specification Extensions.
+ * 
+ * @see https://spec.openapis.org/oas/v3.1.0#oauth-flow-object
  */
 class OAuthFlowObj implements JsonI {
+    /**
+     * The authorization URL to be used for this flow.
+     * 
+     * This MUST be in the form of a URL. The OAuth2 standard requires the use of TLS.
+     * 
+     * REQUIRED for oauth2 ("implicit", "authorizationCode") flows.
+     * 
+     * @var string|null
+     */
     private ?string $authorizationUrl = null;
+    
+    /**
+     * The token URL to be used for this flow.
+     * 
+     * This MUST be in the form of a URL. The OAuth2 standard requires the use of TLS.
+     * 
+     * REQUIRED for oauth2 ("password", "clientCredentials", "authorizationCode") flows.
+     * 
+     * @var string|null
+     */
     private ?string $tokenUrl = null;
+    
+    /**
+     * The URL to be used for obtaining refresh tokens.
+     * 
+     * This MUST be in the form of a URL. The OAuth2 standard requires the use of TLS.
+     * 
+     * @var string|null
+     */
     private ?string $refreshUrl = null;
+    
+    /**
+     * The available scopes for the OAuth2 security scheme.
+     * 
+     * A map between the scope name and a short description for it. The map MAY be empty.
+     * 
+     * REQUIRED.
+     * 
+     * @var array
+     */
     private array $scopes = [];
     
     /**
@@ -31,7 +72,7 @@ class OAuthFlowObj implements JsonI {
      * @param string $authorizationUrl The authorization URL. This MUST be in the form of a URL.
      * REQUIRED for implicit and authorizationCode flows.
      * 
-     * @return OAuthFlowObj
+     * @return OAuthFlowObj Returns self for method chaining.
      */
     public function setAuthorizationUrl(string $authorizationUrl): OAuthFlowObj {
         $this->authorizationUrl = $authorizationUrl;
@@ -41,7 +82,7 @@ class OAuthFlowObj implements JsonI {
     /**
      * Returns the authorization URL.
      * 
-     * @return string|null
+     * @return string|null Returns the value, or null if not set.
      */
     public function getAuthorizationUrl(): ?string {
         return $this->authorizationUrl;
@@ -53,7 +94,7 @@ class OAuthFlowObj implements JsonI {
      * @param string $tokenUrl The token URL. This MUST be in the form of a URL.
      * REQUIRED for password, clientCredentials, and authorizationCode flows.
      * 
-     * @return OAuthFlowObj
+     * @return OAuthFlowObj Returns self for method chaining.
      */
     public function setTokenUrl(string $tokenUrl): OAuthFlowObj {
         $this->tokenUrl = $tokenUrl;
@@ -63,7 +104,7 @@ class OAuthFlowObj implements JsonI {
     /**
      * Returns the token URL.
      * 
-     * @return string|null
+     * @return string|null Returns the value, or null if not set.
      */
     public function getTokenUrl(): ?string {
         return $this->tokenUrl;
@@ -74,7 +115,7 @@ class OAuthFlowObj implements JsonI {
      * 
      * @param string $refreshUrl The refresh URL. This MUST be in the form of a URL.
      * 
-     * @return OAuthFlowObj
+     * @return OAuthFlowObj Returns self for method chaining.
      */
     public function setRefreshUrl(string $refreshUrl): OAuthFlowObj {
         $this->refreshUrl = $refreshUrl;
@@ -84,7 +125,7 @@ class OAuthFlowObj implements JsonI {
     /**
      * Returns the refresh URL.
      * 
-     * @return string|null
+     * @return string|null Returns the value, or null if not set.
      */
     public function getRefreshUrl(): ?string {
         return $this->refreshUrl;
@@ -95,7 +136,7 @@ class OAuthFlowObj implements JsonI {
      * 
      * @param array $scopes A map between the scope name and a short description for it.
      * 
-     * @return OAuthFlowObj
+     * @return OAuthFlowObj Returns self for method chaining.
      */
     public function setScopes(array $scopes): OAuthFlowObj {
         $this->scopes = $scopes;
@@ -127,7 +168,7 @@ class OAuthFlowObj implements JsonI {
     /**
      * Returns a Json object that represents the OAuth Flow Object.
      * 
-     * @return Json
+     * @return Json A Json object representation following OpenAPI 3.1.0 specification.
      */
     public function toJSON(): Json {
         $json = new Json();

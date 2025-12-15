@@ -7,16 +7,85 @@ use WebFiori\Json\JsonI;
 /**
  * Represents a Header Object in OpenAPI specification.
  * 
- * The Header Object follows the structure of the Parameter Object with some differences.
+ * The Header Object follows the structure of the Parameter Object with the following changes:
+ * - name MUST NOT be specified, it is given in the corresponding headers map.
+ * - in MUST NOT be specified, it is implicitly in header.
+ * - All traits that are affected by the location MUST be applicable to a location of header 
+ *   (for example, style).
+ * 
+ * This object MAY be extended with Specification Extensions.
+ * 
+ * @see https://spec.openapis.org/oas/v3.1.0#header-object
  */
 class HeaderObj implements JsonI {
+    /**
+     * A brief description of the header.
+     * 
+     * This could contain examples of use.
+     * CommonMark syntax MAY be used for rich text representation.
+     * 
+     * @var string|null
+     */
     private ?string $description = null;
+    
+    /**
+     * Determines whether this header is mandatory.
+     * 
+     * The default value is false.
+     * 
+     * @var bool
+     */
     private bool $required = false;
+    
+    /**
+     * Specifies that the header is deprecated and SHOULD be transitioned out of usage.
+     * 
+     * Default value is false.
+     * 
+     * @var bool
+     */
     private bool $deprecated = false;
+    
+    /**
+     * Describes how the header value will be serialized.
+     * 
+     * The default (and only legal value for headers) is "simple".
+     * 
+     * @var string|null
+     */
     private ?string $style = null;
+    
+    /**
+     * When this is true, header values of type array or object generate a single header 
+     * whose value is a comma-separated list of the array items or key-value pairs of the map.
+     * 
+     * For other data types this field has no effect. The default value is false.
+     * 
+     * @var bool|null
+     */
     private ?bool $explode = null;
+    
+    /**
+     * The schema defining the type used for the header.
+     * 
+     * @var mixed
+     */
     private $schema = null;
+    
+    /**
+     * Example of the header's potential value.
+     * 
+     * @var mixed
+     */
     private $example = null;
+    
+    /**
+     * Examples of the header's potential value.
+     * 
+     * Map of string to Example Object or Reference Object.
+     * 
+     * @var array|null
+     */
     private ?array $examples = null;
     
     /**
@@ -24,7 +93,7 @@ class HeaderObj implements JsonI {
      * 
      * @param string $description A brief description of the header.
      * 
-     * @return HeaderObj
+     * @return HeaderObj Returns self for method chaining.
      */
     public function setDescription(string $description): HeaderObj {
         $this->description = $description;
@@ -34,7 +103,7 @@ class HeaderObj implements JsonI {
     /**
      * Returns the description.
      * 
-     * @return string|null
+     * @return string|null Returns the value, or null if not set.
      */
     public function getDescription(): ?string {
         return $this->description;
@@ -45,7 +114,7 @@ class HeaderObj implements JsonI {
      * 
      * @param bool $required True if required.
      * 
-     * @return HeaderObj
+     * @return HeaderObj Returns self for method chaining.
      */
     public function setRequired(bool $required): HeaderObj {
         $this->required = $required;
@@ -66,7 +135,7 @@ class HeaderObj implements JsonI {
      * 
      * @param bool $deprecated True if deprecated.
      * 
-     * @return HeaderObj
+     * @return HeaderObj Returns self for method chaining.
      */
     public function setDeprecated(bool $deprecated): HeaderObj {
         $this->deprecated = $deprecated;
@@ -87,7 +156,7 @@ class HeaderObj implements JsonI {
      * 
      * @param string $style The style value. Default is "simple".
      * 
-     * @return HeaderObj
+     * @return HeaderObj Returns self for method chaining.
      */
     public function setStyle(string $style): HeaderObj {
         $this->style = $style;
@@ -97,7 +166,7 @@ class HeaderObj implements JsonI {
     /**
      * Returns the style.
      * 
-     * @return string|null
+     * @return string|null Returns the value, or null if not set.
      */
     public function getStyle(): ?string {
         return $this->style;
@@ -108,7 +177,7 @@ class HeaderObj implements JsonI {
      * 
      * @param bool $explode The explode value.
      * 
-     * @return HeaderObj
+     * @return HeaderObj Returns self for method chaining.
      */
     public function setExplode(bool $explode): HeaderObj {
         $this->explode = $explode;
@@ -118,7 +187,7 @@ class HeaderObj implements JsonI {
     /**
      * Returns the explode value.
      * 
-     * @return bool|null
+     * @return bool|null Returns the value, or null if not set.
      */
     public function getExplode(): ?bool {
         return $this->explode;
@@ -129,7 +198,7 @@ class HeaderObj implements JsonI {
      * 
      * @param mixed $schema Schema Object or any schema definition.
      * 
-     * @return HeaderObj
+     * @return HeaderObj Returns self for method chaining.
      */
     public function setSchema($schema): HeaderObj {
         $this->schema = $schema;
@@ -150,7 +219,7 @@ class HeaderObj implements JsonI {
      * 
      * @param mixed $example Example value.
      * 
-     * @return HeaderObj
+     * @return HeaderObj Returns self for method chaining.
      */
     public function setExample($example): HeaderObj {
         $this->example = $example;
@@ -171,7 +240,7 @@ class HeaderObj implements JsonI {
      * 
      * @param array $examples Map of example names to Example Objects or Reference Objects.
      * 
-     * @return HeaderObj
+     * @return HeaderObj Returns self for method chaining.
      */
     public function setExamples(array $examples): HeaderObj {
         $this->examples = $examples;
@@ -181,7 +250,7 @@ class HeaderObj implements JsonI {
     /**
      * Returns the examples.
      * 
-     * @return array|null
+     * @return array|null Returns the value, or null if not set.
      */
     public function getExamples(): ?array {
         return $this->examples;
@@ -190,7 +259,7 @@ class HeaderObj implements JsonI {
     /**
      * Returns a Json object that represents the Header Object.
      * 
-     * @return Json
+     * @return Json A Json object representation following OpenAPI 3.1.0 specification.
      */
     public function toJSON(): Json {
         $json = new Json();

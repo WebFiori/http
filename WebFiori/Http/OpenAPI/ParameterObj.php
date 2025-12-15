@@ -8,19 +8,128 @@ use WebFiori\Json\JsonI;
  * Represents a Parameter Object in OpenAPI specification.
  * 
  * Describes a single operation parameter.
+ * 
+ * A unique parameter is defined by a combination of a name and location.
+ * 
+ * Parameter Objects MUST include either a content field or a schema field, but not both.
+ * 
+ * This object MAY be extended with Specification Extensions.
+ * 
+ * @see https://spec.openapis.org/oas/v3.1.0#parameter-object
  */
 class ParameterObj implements JsonI {
+    /**
+     * The name of the parameter.
+     * 
+     * Parameter names are case sensitive.
+     * 
+     * REQUIRED.
+     * 
+     * @var string
+     */
     private string $name;
+    
+    /**
+     * The location of the parameter.
+     * 
+     * Possible values are "query", "header", "path" or "cookie".
+     * 
+     * REQUIRED.
+     * 
+     * @var string
+     */
     private string $in;
+    
+    /**
+     * A brief description of the parameter.
+     * 
+     * This could contain examples of use.
+     * CommonMark syntax MAY be used for rich text representation.
+     * 
+     * @var string|null
+     */
     private ?string $description = null;
+    
+    /**
+     * Determines whether this parameter is mandatory.
+     * 
+     * If the parameter location is "path", this property is REQUIRED and its value MUST be true.
+     * Otherwise, the property MAY be included and its default value is false.
+     * 
+     * @var bool
+     */
     private bool $required = false;
+    
+    /**
+     * Specifies that a parameter is deprecated and SHOULD be transitioned out of usage.
+     * 
+     * Default value is false.
+     * 
+     * @var bool
+     */
     private bool $deprecated = false;
+    
+    /**
+     * If true, clients MAY pass a zero-length string value in place of parameters 
+     * that would otherwise be omitted entirely.
+     * 
+     * Default value is false. This field is valid only for query parameters.
+     * Use of this property is NOT RECOMMENDED.
+     * 
+     * @var bool
+     */
     private bool $allowEmptyValue = false;
+    
+    /**
+     * Describes how the parameter value will be serialized.
+     * 
+     * Default values (based on value of in): 
+     * for "query" - "form"; for "path" - "simple"; 
+     * for "header" - "simple"; for "cookie" - "form".
+     * 
+     * @var string|null
+     */
     private ?string $style = null;
+    
+    /**
+     * When this is true, parameter values of type array or object generate 
+     * separate parameters for each value of the array or key-value pair of the map.
+     * 
+     * @var bool|null
+     */
     private ?bool $explode = null;
+    
+    /**
+     * When this is true, parameter values are serialized using reserved expansion.
+     * 
+     * This field only applies to parameters with an in value of query.
+     * The default value is false.
+     * 
+     * @var bool|null
+     */
     private ?bool $allowReserved = null;
+    
+    /**
+     * The schema defining the type used for the parameter.
+     * 
+     * @var mixed
+     */
     private $schema = null;
+    
+    /**
+     * Example of the parameter's potential value.
+     * 
+     * @var mixed
+     */
     private $example = null;
+    
+    /**
+     * Examples of the parameter's potential value.
+     * 
+     * Map of string to Example Object or Reference Object.
+     * 
+     * @var array|null
+     */
     private ?array $examples = null;
     
     /**
@@ -39,7 +148,7 @@ class ParameterObj implements JsonI {
      * 
      * @param string $name The name of the parameter.
      * 
-     * @return ParameterObj
+     * @return ParameterObj Returns self for method chaining.
      */
     public function setName(string $name): ParameterObj {
         $this->name = $name;
@@ -60,7 +169,7 @@ class ParameterObj implements JsonI {
      * 
      * @param string $in The location. Possible values: "query", "header", "path", "cookie".
      * 
-     * @return ParameterObj
+     * @return ParameterObj Returns self for method chaining.
      */
     public function setIn(string $in): ParameterObj {
         $this->in = $in;
@@ -84,7 +193,7 @@ class ParameterObj implements JsonI {
      * 
      * @param string $description A brief description of the parameter.
      * 
-     * @return ParameterObj
+     * @return ParameterObj Returns self for method chaining.
      */
     public function setDescription(string $description): ParameterObj {
         $this->description = $description;
@@ -94,7 +203,7 @@ class ParameterObj implements JsonI {
     /**
      * Returns the description.
      * 
-     * @return string|null
+     * @return string|null Returns the value, or null if not set.
      */
     public function getDescription(): ?string {
         return $this->description;
@@ -105,7 +214,7 @@ class ParameterObj implements JsonI {
      * 
      * @param bool $required True if required.
      * 
-     * @return ParameterObj
+     * @return ParameterObj Returns self for method chaining.
      */
     public function setRequired(bool $required): ParameterObj {
         $this->required = $required;
@@ -126,7 +235,7 @@ class ParameterObj implements JsonI {
      * 
      * @param bool $deprecated True if deprecated.
      * 
-     * @return ParameterObj
+     * @return ParameterObj Returns self for method chaining.
      */
     public function setDeprecated(bool $deprecated): ParameterObj {
         $this->deprecated = $deprecated;
@@ -147,7 +256,7 @@ class ParameterObj implements JsonI {
      * 
      * @param bool $allowEmptyValue True to allow empty value.
      * 
-     * @return ParameterObj
+     * @return ParameterObj Returns self for method chaining.
      */
     public function setAllowEmptyValue(bool $allowEmptyValue): ParameterObj {
         $this->allowEmptyValue = $allowEmptyValue;
@@ -168,7 +277,7 @@ class ParameterObj implements JsonI {
      * 
      * @param string $style The style value.
      * 
-     * @return ParameterObj
+     * @return ParameterObj Returns self for method chaining.
      */
     public function setStyle(string $style): ParameterObj {
         $this->style = $style;
@@ -178,7 +287,7 @@ class ParameterObj implements JsonI {
     /**
      * Returns the style.
      * 
-     * @return string|null
+     * @return string|null Returns the value, or null if not set.
      */
     public function getStyle(): ?string {
         return $this->style;
@@ -189,7 +298,7 @@ class ParameterObj implements JsonI {
      * 
      * @param bool $explode The explode value.
      * 
-     * @return ParameterObj
+     * @return ParameterObj Returns self for method chaining.
      */
     public function setExplode(bool $explode): ParameterObj {
         $this->explode = $explode;
@@ -199,7 +308,7 @@ class ParameterObj implements JsonI {
     /**
      * Returns the explode value.
      * 
-     * @return bool|null
+     * @return bool|null Returns the value, or null if not set.
      */
     public function getExplode(): ?bool {
         return $this->explode;
@@ -210,7 +319,7 @@ class ParameterObj implements JsonI {
      * 
      * @param bool $allowReserved True to allow reserved characters.
      * 
-     * @return ParameterObj
+     * @return ParameterObj Returns self for method chaining.
      */
     public function setAllowReserved(bool $allowReserved): ParameterObj {
         $this->allowReserved = $allowReserved;
@@ -220,7 +329,7 @@ class ParameterObj implements JsonI {
     /**
      * Returns whether reserved characters are allowed.
      * 
-     * @return bool|null
+     * @return bool|null Returns the value, or null if not set.
      */
     public function getAllowReserved(): ?bool {
         return $this->allowReserved;
@@ -231,7 +340,7 @@ class ParameterObj implements JsonI {
      * 
      * @param mixed $schema Schema Object or any schema definition.
      * 
-     * @return ParameterObj
+     * @return ParameterObj Returns self for method chaining.
      */
     public function setSchema($schema): ParameterObj {
         $this->schema = $schema;
@@ -252,7 +361,7 @@ class ParameterObj implements JsonI {
      * 
      * @param mixed $example Example value.
      * 
-     * @return ParameterObj
+     * @return ParameterObj Returns self for method chaining.
      */
     public function setExample($example): ParameterObj {
         $this->example = $example;
@@ -273,7 +382,7 @@ class ParameterObj implements JsonI {
      * 
      * @param array $examples Map of example names to Example Objects or Reference Objects.
      * 
-     * @return ParameterObj
+     * @return ParameterObj Returns self for method chaining.
      */
     public function setExamples(array $examples): ParameterObj {
         $this->examples = $examples;
@@ -283,7 +392,7 @@ class ParameterObj implements JsonI {
     /**
      * Returns the examples.
      * 
-     * @return array|null
+     * @return array|null Returns the value, or null if not set.
      */
     public function getExamples(): ?array {
         return $this->examples;
@@ -292,7 +401,7 @@ class ParameterObj implements JsonI {
     /**
      * Returns a Json object that represents the Parameter Object.
      * 
-     * @return Json
+     * @return Json A Json object representation following OpenAPI 3.1.0 specification.
      */
     public function toJSON(): Json {
         $json = new Json();
