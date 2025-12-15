@@ -16,3 +16,4 @@ php-cs-fixer.phar
 /tests/.phpunit.cache
 /.vscode
 tests/WebFiori/Tests/Http/output-stream.txt
+/OpenAPI_files
