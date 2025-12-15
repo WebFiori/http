@@ -9,6 +9,7 @@
  */
 namespace WebFiori\Http;
 
+use WebFiori\Http\OpenAPI\Schema;
 use WebFiori\Json\Json;
 use WebFiori\Json\JsonI;
 /**
@@ -684,20 +685,6 @@ class RequestParameter implements JsonI {
     /**
      * Returns a Json object that represents the request parameter.
      * 
-     * This method is used to help front-end developers in showing the 
-     * documentation of the request parameter. The format of JSON string 
-     * will be as follows:
-     * <p>
-     * {<br/>
-     * &nbsp;&nbsp;"name":"a-param",<br/>
-     * &nbsp;&nbsp;"type":"string",<br/>
-     * &nbsp;&nbsp;"description":null,<br/>
-     * &nbsp;&nbsp;"is-optional":true,<br/>
-     * &nbsp;&nbsp;"default-value":null,<br/>
-     * &nbsp;&nbsp;"min-val":null,<br/>
-     * &nbsp;&nbsp;"max-val":null<br/>
-     * }
-     * </p>
      * 
      * @return Json An object of type Json. 
      * 
@@ -705,17 +692,29 @@ class RequestParameter implements JsonI {
     public function toJSON() : Json {
         $json = new Json();
         $json->add('name', $this->getName());
-        $json->add('type', $this->getType());
-        $json->add('description', $this->getDescription());
-        $json->add('is-optional', $this->isOptional());
-        $json->add('default-value', $this->getDefault());
-        $json->add('min-val', $this->getMinValue());
-        $json->add('max-val', $this->getMaxValue());
-        $json->add('min-length', $this->getMinLength());
-        $json->add('max-length', $this->getMaxLength());
-
+        
+        $methods = $this->getMethods();
+        // Default to 'query' for GET/DELETE, 'body' for others
+        if (count($methods) === 0 || in_array(RequestMethod::GET, $methods) || in_array(RequestMethod::DELETE, $methods)) {
+            $json->add('in', 'query');
+        } else {
+            $json->add('in', 'body');
+        }
+        
+        $json->add('required', !$this->isOptional());
+        
+        if ($this->getDescription() !== null) {
+            $json->add('description', $this->getDescription());
+        }
+        
+        $json->add('schema', $this->getSchema());
+        
         return $json;
     }
+    private function getSchema() : Json {
+        return Schema::fromRequestParameter($this)->toJson();
+    }
+    
     /**
      * 
      * @param RequestParameter $param
