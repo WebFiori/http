@@ -55,9 +55,17 @@ class PathItemObj implements JsonI {
         return $this;
     }
     
+    public function getGet(): ?OperationObj {
+        return $this->get;
+    }
+    
     public function setPost(OperationObj $operation): PathItemObj {
         $this->post = $operation;
         return $this;
+    }
+    
+    public function getPost(): ?OperationObj {
+        return $this->post;
     }
     
     public function setPut(OperationObj $operation): PathItemObj {
@@ -65,14 +73,26 @@ class PathItemObj implements JsonI {
         return $this;
     }
     
+    public function getPut(): ?OperationObj {
+        return $this->put;
+    }
+    
     public function setDelete(OperationObj $operation): PathItemObj {
         $this->delete = $operation;
         return $this;
     }
     
+    public function getDelete(): ?OperationObj {
+        return $this->delete;
+    }
+    
     public function setPatch(OperationObj $operation): PathItemObj {
         $this->patch = $operation;
         return $this;
+    }
+    
+    public function getPatch(): ?OperationObj {
+        return $this->patch;
     }
     
     public function toJSON(): Json {
