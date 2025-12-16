@@ -168,62 +168,7 @@ abstract class WebService implements JsonI {
      * 
      */
     public function __toString() {
-        $retVal = "APIAction[\n";
-        $retVal .= "    Name => '".$this->getName()."',\n";
-        $retVal .= "    Description => '".$this->getDescription()."',\n";
-        $since = $this->getSince() === null ? 'null' : $this->getSince();
-        $retVal .= "    Since => '$since',\n";
-        $reqMethodsStr = "[\n";
-        $comma = ',';
-
-        for ($x = 0,  $count = count($this->getRequestMethods()) ; $x < $count ; $x++) {
-            $meth = $this->getRequestMethods()[$x];
-
-            if ($x + 1 == $count) {
-                $comma = '';
-            }
-            $reqMethodsStr .= "        $meth$comma\n";
-        }
-        $reqMethodsStr .= "    ],\n";
-        $retVal .= "    Request Methods => $reqMethodsStr";
-        $paramsStr = "[\n";
-
-        $comma = ',';
-
-        for ($x = 0 , $count = count($this->getParameters()); $x < $count ; $x++) {
-            $param = $this->getParameters()[$x];
-            $paramsStr .= "        ".$param->getName()." => [\n";
-            $paramsStr .= "            Type => '".$param->getType()."',\n";
-            $descStr = $param->getDescription() === null ? 'null' : $param->getDescription();
-            $paramsStr .= "            Description => '$descStr',\n";
-            $isOptional = $param->isOptional() ? 'true' : 'false';
-            $paramsStr .= "            Is Optional => '$isOptional',\n";
-            $defaultStr = $param->getDefault() === null ? 'null' : $param->getDefault();
-            $paramsStr .= "            Default => '$defaultStr',\n";
-            $min = $param->getMinValue() === null ? 'null' : $param->getMinValue();
-            $paramsStr .= "            Minimum Value => '$min',\n";
-            $max = $param->getMaxValue() === null ? 'null' : $param->getMaxValue();
-
-            if ($x + 1 == $count) {
-                $comma = '';
-            }
-            $paramsStr .= "            Maximum Value => '$max'\n        ]$comma\n";
-        }
-        $paramsStr .= "    ],\n";
-        $retVal .= "    Parameters => $paramsStr";
-        $responsesStr = "[\n";
-        $count = count($this->getResponsesDescriptions());
-        $comma = ',';
-
-        for ($x = 0 ; $x < $count ; $x++) {
-            if ($x + 1 == $count) {
-                $comma = '';
-            }
-            $responsesStr .= "        Response #$x => '".$this->getResponsesDescriptions()[$x]."'".$comma."\n";
-        }
-        $responsesStr .= "    ]\n";
-
-        return $retVal."    Responses Descriptions => $responsesStr]\n";
+        return $this->toJSON().'';
     }
     /**
      * Adds new request parameter to the service.
@@ -323,6 +268,7 @@ abstract class WebService implements JsonI {
      * 
      * @param string $description A paragraph that describes one of 
      * the possible responses due to calling the service.
+     */
     public function addResponse(string $method, string $statusCode, OpenAPI\ResponseObj|string $response): WebService {
         $method = strtoupper($method);
         
@@ -333,13 +279,14 @@ abstract class WebService implements JsonI {
         $this->responsesByMethod[$method]->addResponse($statusCode, $response);
         return $this;
     }
-     * 
-     */
+
     public final function addResponseDescription(string $description) {
         $trimmed = trim($description);
 
         if (strlen($trimmed) != 0) {
             $this->responses[] = $trimmed;
+        }
+    }
     public function getResponsesForMethod(string $method): ?OpenAPI\ResponsesObj {
         $method = strtoupper($method);
         return $this->responsesByMethod[$method] ?? null;
@@ -404,8 +351,8 @@ abstract class WebService implements JsonI {
                     break;
         }
         
-        return $pathItem;
-    }
+        
+    }return $pathItem;}
     /**
      * Returns an object that contains the value of the header 'authorization'.
      * 
@@ -887,31 +834,10 @@ abstract class WebService implements JsonI {
     /**
      * Returns a Json object that represents the service.
      * 
-     * The generated JSON string from the returned Json object will have 
-     * the following format:
-     * <p>
-     * {<br/>
-     * &nbsp;&nbsp;"name":"",<br/>
-     * &nbsp;&nbsp;"since":"",<br/>
-     * &nbsp;&nbsp;"description":"",<br/>
-     * &nbsp;&nbsp;"request-methods":[],<br/>
-     * &nbsp;&nbsp;"parameters":[],<br/>
-     * &nbsp;&nbsp;"responses":[]<br/>
-     * }
-     * </p>
-     * 
      * @return Json an object of type Json.
      * 
      */
     public function toJSON() : Json {
-        $json = new Json();
-        $json->add('name', $this->getName());
-        $json->add('since', $this->getSince());
-        $json->add('description', $this->getDescription());
-        $json->add('request-methods', $this->reqMethods);
-        $json->add('parameters', $this->parameters);
-        $json->add('responses', $this->getResponsesDescriptions());
-
-        return $json;
+        return $this->toPathItemObj()->toJSON();
     }
 }
