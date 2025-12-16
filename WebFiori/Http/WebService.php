@@ -338,6 +338,10 @@ abstract class WebService implements JsonI {
 
         if (strlen($trimmed) != 0) {
             $this->responses[] = $trimmed;
+    public function getResponsesForMethod(string $method): ?OpenAPI\ResponsesObj {
+        $method = strtoupper($method);
+        return $this->responsesByMethod[$method] ?? null;
+    }
         }
     }
     /**
