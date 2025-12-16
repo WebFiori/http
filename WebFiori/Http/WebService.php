@@ -133,6 +133,7 @@ abstract class WebService implements JsonI {
         $this->reqMethods = [];
         $this->parameters = [];
         $this->responses = [];
+        $this->responsesByMethod = [];
         $this->requireAuth = true;
         $this->sinceVersion = '1.0.0';
         $this->serviceDesc = '';
