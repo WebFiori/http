@@ -321,6 +321,16 @@ abstract class WebService implements JsonI {
      * 
      * @param string $description A paragraph that describes one of 
      * the possible responses due to calling the service.
+    public function addResponse(string $method, string $statusCode, OpenAPI\ResponseObj|string $response): WebService {
+        $method = strtoupper($method);
+        
+        if (!isset($this->responsesByMethod[$method])) {
+            $this->responsesByMethod[$method] = new OpenAPI\ResponsesObj();
+        }
+        
+        $this->responsesByMethod[$method]->addResponse($statusCode, $response);
+        return $this;
+    }
      * 
      */
     public final function addResponseDescription(string $description) {
