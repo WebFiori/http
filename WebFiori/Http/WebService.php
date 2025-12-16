@@ -342,7 +342,67 @@ abstract class WebService implements JsonI {
         $method = strtoupper($method);
         return $this->responsesByMethod[$method] ?? null;
     }
+    /**
+     * Sets all responses for a specific HTTP method.
+     * 
+     * @param string $method HTTP method.
+     * @param OpenAPI\ResponsesObj $responses Responses object.
+     * 
+     * @return WebService Returns self for method chaining.
+     */
+    public function setResponsesForMethod(string $method, OpenAPI\ResponsesObj $responses): WebService {
+        $this->responsesByMethod[strtoupper($method)] = $responses;
+        return $this;
+    }
+    
+    /**
+     * Gets all responses mapped by HTTP method.
+     * 
+     * @return array<string, OpenAPI\ResponsesObj> Map of methods to responses.
+     */
+    public function getAllResponses(): array {
+        return $this->responsesByMethod;
+    }
+    
+    /**
+     * Converts this web service to an OpenAPI PathItemObj.
+     * 
+     * Each HTTP method supported by this service becomes an operation in the path item.
+     * 
+     * @return OpenAPI\PathItemObj The PathItemObj representation of this service.
+     */
+    public function toPathItemObj(): OpenAPI\PathItemObj {
+        $pathItem = new OpenAPI\PathItemObj();
+        
+        foreach ($this->getRequestMethods() as $method) {
+            $responses = $this->getResponsesForMethod($method);
+            
+            if ($responses === null) {
+                $responses = new OpenAPI\ResponsesObj();
+                $responses->addResponse('200', 'Successful operation');
+            }
+            
+            $operation = new OpenAPI\OperationObj($responses);
+            
+            switch ($method) {
+                case RequestMethod::GET:
+                    $pathItem->setGet($operation);
+                    break;
+                case RequestMethod::POST:
+                    $pathItem->setPost($operation);
+                    break;
+                case RequestMethod::PUT:
+                    $pathItem->setPut($operation);
+                    break;
+                case RequestMethod::DELETE:
+                    $pathItem->setDelete($operation);
+                    break;
+                case RequestMethod::PATCH:
+                    $pathItem->setPatch($operation);
+                    break;
         }
+        
+        return $pathItem;
     }
     /**
      * Returns an object that contains the value of the header 'authorization'.
