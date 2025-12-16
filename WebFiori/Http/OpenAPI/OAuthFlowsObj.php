@@ -138,20 +138,20 @@ class OAuthFlowsObj implements JsonI {
     public function toJSON(): Json {
         $json = new Json();
         
-        if ($this->implicit !== null) {
-            $json->add('implicit', $this->implicit);
+        if ($this->getImplicit() !== null) {
+            $json->add('implicit', $this->getImplicit());
         }
         
-        if ($this->password !== null) {
-            $json->add('password', $this->password);
+        if ($this->getPassword() !== null) {
+            $json->add('password', $this->getPassword());
         }
         
-        if ($this->clientCredentials !== null) {
-            $json->add('clientCredentials', $this->clientCredentials);
+        if ($this->getClientCredentials() !== null) {
+            $json->add('clientCredentials', $this->getClientCredentials());
         }
         
-        if ($this->authorizationCode !== null) {
-            $json->add('authorizationCode', $this->authorizationCode);
+        if ($this->getAuthorizationCode() !== null) {
+            $json->add('authorizationCode', $this->getAuthorizationCode());
         }
         
         return $json;

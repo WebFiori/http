@@ -110,16 +110,16 @@ class ContactObj implements JsonI {
     public function toJSON(): Json {
         $json = new Json();
         
-        if ($this->name !== null) {
-            $json->add('name', $this->name);
+        if ($this->getName() !== null) {
+            $json->add('name', $this->getName());
         }
         
-        if ($this->url !== null) {
-            $json->add('url', $this->url);
+        if ($this->getUrl() !== null) {
+            $json->add('url', $this->getUrl());
         }
         
-        if ($this->email !== null) {
-            $json->add('email', $this->email);
+        if ($this->getEmail() !== null) {
+            $json->add('email', $this->getEmail());
         }
         
         return $json;

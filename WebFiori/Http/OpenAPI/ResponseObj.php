@@ -40,8 +40,10 @@ class ResponseObj implements JsonI {
     }
     
     public function toJSON(): Json {
-        $json = new Json();
-        $json->add('description', $this->description);
+        $json = new Json([
+            'description' => $this->getDescription()
+        ]);
+        
         return $json;
     }
 }

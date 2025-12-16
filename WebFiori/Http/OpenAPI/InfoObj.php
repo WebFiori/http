@@ -241,31 +241,31 @@ class InfoObj implements JsonI {
      * @return Json A Json object representation following OpenAPI 3.1.0 specification.
      */
     public function toJSON(): Json {
-        $json = new Json();
+        $json = new Json([
+            'title' => $this->getTitle(),
+            'version' => $this->getVersion()
+        ]);
         
-        $json->add('title', $this->title);
         
-        if ($this->summary !== null) {
-            $json->add('summary', $this->summary);
+        if ($this->getSummary() !== null) {
+            $json->add('summary', $this->getSummary());
         }
         
-        if ($this->description !== null) {
-            $json->add('description', $this->description);
+        if ($this->getDescription() !== null) {
+            $json->add('description', $this->getDescription());
         }
         
-        if ($this->termsOfService !== null) {
-            $json->add('termsOfService', $this->termsOfService);
+        if ($this->getTermsOfService() !== null) {
+            $json->add('termsOfService', $this->getTermsOfService());
         }
         
-        if ($this->contact !== null) {
-            $json->add('contact', $this->contact);
+        if ($this->getContact() !== null) {
+            $json->add('contact', $this->getContact());
         }
         
-        if ($this->license !== null) {
-            $json->add('license', $this->license);
+        if ($this->getLicense() !== null) {
+            $json->add('license', $this->getLicense());
         }
-        
-        $json->add('version', $this->version);
         
         return $json;
     }

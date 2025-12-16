@@ -32,9 +32,11 @@ class MediaTypeObj implements JsonI {
     
     public function toJSON(): Json {
         $json = new Json();
-        if ($this->schema !== null) {
-            $json->add('schema', $this->schema);
+        
+        if ($this->getSchema() !== null) {
+            $json->add('schema', $this->getSchema());
         }
+        
         return $json;
     }
 }

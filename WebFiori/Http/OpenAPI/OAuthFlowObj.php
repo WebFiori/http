@@ -171,21 +171,21 @@ class OAuthFlowObj implements JsonI {
      * @return Json A Json object representation following OpenAPI 3.1.0 specification.
      */
     public function toJSON(): Json {
-        $json = new Json();
+        $json = new Json([
+            'scopes' => $this->getScopes()
+        ]);
         
-        if ($this->authorizationUrl !== null) {
-            $json->add('authorizationUrl', $this->authorizationUrl);
+        if ($this->getAuthorizationUrl() !== null) {
+            $json->add('authorizationUrl', $this->getAuthorizationUrl());
         }
         
-        if ($this->tokenUrl !== null) {
-            $json->add('tokenUrl', $this->tokenUrl);
+        if ($this->getTokenUrl() !== null) {
+            $json->add('tokenUrl', $this->getTokenUrl());
         }
         
-        if ($this->refreshUrl !== null) {
-            $json->add('refreshUrl', $this->refreshUrl);
+        if ($this->getRefreshUrl() !== null) {
+            $json->add('refreshUrl', $this->getRefreshUrl());
         }
-        
-        $json->add('scopes', $this->scopes);
         
         return $json;
     }

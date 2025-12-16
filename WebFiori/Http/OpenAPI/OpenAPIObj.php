@@ -104,9 +104,11 @@ class OpenAPIObj implements JsonI {
      * @return Json A Json object representation following OpenAPI 3.1.0 specification.
      */
     public function toJSON(): Json {
-        $json = new Json();
-        $json->add('openapi', $this->openapi);
-        $json->add('info', $this->info);
+        $json = new Json([
+            'openapi' => $this->getOpenapi(),
+            'info' => $this->getInfo()
+        ]);
+        
         return $json;
     }
 }

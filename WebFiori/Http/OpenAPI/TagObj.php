@@ -129,16 +129,16 @@ class TagObj implements JsonI {
      * @return Json A Json object representation of this Tag Object.
      */
     public function toJSON(): Json {
-        $json = new Json();
+        $json = new Json([
+            'name' => $this->getName()
+        ]);
         
-        $json->add('name', $this->name);
-        
-        if ($this->description !== null) {
-            $json->add('description', $this->description);
+        if ($this->getDescription() !== null) {
+            $json->add('description', $this->getDescription());
         }
         
-        if ($this->externalDocs !== null) {
-            $json->add('externalDocs', $this->externalDocs);
+        if ($this->getExternalDocs() !== null) {
+            $json->add('externalDocs', $this->getExternalDocs());
         }
         
         return $json;

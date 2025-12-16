@@ -285,36 +285,36 @@ class SecuritySchemeObj implements JsonI {
      * @return Json A Json object representation following OpenAPI 3.1.0 specification.
      */
     public function toJSON(): Json {
-        $json = new Json();
+        $json = new Json([
+            'type' => $this->getType()
+        ]);
         
-        $json->add('type', $this->type);
-        
-        if ($this->description !== null) {
-            $json->add('description', $this->description);
+        if ($this->getDescription() !== null) {
+            $json->add('description', $this->getDescription());
         }
         
-        if ($this->name !== null) {
-            $json->add('name', $this->name);
+        if ($this->getName() !== null) {
+            $json->add('name', $this->getName());
         }
         
-        if ($this->in !== null) {
-            $json->add('in', $this->in);
+        if ($this->getIn() !== null) {
+            $json->add('in', $this->getIn());
         }
         
-        if ($this->scheme !== null) {
-            $json->add('scheme', $this->scheme);
+        if ($this->getScheme() !== null) {
+            $json->add('scheme', $this->getScheme());
         }
         
-        if ($this->bearerFormat !== null) {
-            $json->add('bearerFormat', $this->bearerFormat);
+        if ($this->getBearerFormat() !== null) {
+            $json->add('bearerFormat', $this->getBearerFormat());
         }
         
-        if ($this->flows !== null) {
-            $json->add('flows', $this->flows);
+        if ($this->getFlows() !== null) {
+            $json->add('flows', $this->getFlows());
         }
         
-        if ($this->openIdConnectUrl !== null) {
-            $json->add('openIdConnectUrl', $this->openIdConnectUrl);
+        if ($this->getOpenIdConnectUrl() !== null) {
+            $json->add('openIdConnectUrl', $this->getOpenIdConnectUrl());
         }
         
         return $json;

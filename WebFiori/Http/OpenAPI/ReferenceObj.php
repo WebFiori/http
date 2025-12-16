@@ -127,16 +127,16 @@ class ReferenceObj implements JsonI {
      * @return Json A Json object representation following OpenAPI 3.1.0 specification.
      */
     public function toJSON(): Json {
-        $json = new Json();
+        $json = new Json([
+            '$ref' => $this->getRef()
+        ]);
         
-        $json->add('$ref', $this->ref);
-        
-        if ($this->summary !== null) {
-            $json->add('summary', $this->summary);
+        if ($this->getSummary() !== null) {
+            $json->add('summary', $this->getSummary());
         }
         
-        if ($this->description !== null) {
-            $json->add('description', $this->description);
+        if ($this->getDescription() !== null) {
+            $json->add('description', $this->getDescription());
         }
         
         return $json;

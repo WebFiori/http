@@ -78,20 +78,24 @@ class PathItemObj implements JsonI {
     public function toJSON(): Json {
         $json = new Json();
         
-        if ($this->get !== null) {
-            $json->add('get', $this->get);
+        if ($this->getGet() !== null) {
+            $json->add('get', $this->getGet());
         }
-        if ($this->post !== null) {
-            $json->add('post', $this->post);
+        
+        if ($this->getPost() !== null) {
+            $json->add('post', $this->getPost());
         }
-        if ($this->put !== null) {
-            $json->add('put', $this->put);
+        
+        if ($this->getPut() !== null) {
+            $json->add('put', $this->getPut());
         }
-        if ($this->delete !== null) {
-            $json->add('delete', $this->delete);
+        
+        if ($this->getDelete() !== null) {
+            $json->add('delete', $this->getDelete());
         }
-        if ($this->patch !== null) {
-            $json->add('patch', $this->patch);
+        
+        if ($this->getPatch() !== null) {
+            $json->add('patch', $this->getPatch());
         }
         
         return $json;

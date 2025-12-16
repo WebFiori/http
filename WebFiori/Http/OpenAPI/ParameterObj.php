@@ -404,49 +404,49 @@ class ParameterObj implements JsonI {
      * @return Json A Json object representation following OpenAPI 3.1.0 specification.
      */
     public function toJSON(): Json {
-        $json = new Json();
+        $json = new Json([
+            'name' => $this->getName(),
+            'in' => $this->getIn()
+        ]);
         
-        $json->add('name', $this->name);
-        $json->add('in', $this->in);
-        
-        if ($this->description !== null) {
-            $json->add('description', $this->description);
+        if ($this->getDescription() !== null) {
+            $json->add('description', $this->getDescription());
         }
         
-        if ($this->required) {
-            $json->add('required', $this->required);
+        if ($this->getRequired()) {
+            $json->add('required', $this->getRequired());
         }
         
-        if ($this->deprecated) {
-            $json->add('deprecated', $this->deprecated);
+        if ($this->getDeprecated()) {
+            $json->add('deprecated', $this->getDeprecated());
         }
         
-        if ($this->allowEmptyValue) {
-            $json->add('allowEmptyValue', $this->allowEmptyValue);
+        if ($this->getAllowEmptyValue()) {
+            $json->add('allowEmptyValue', $this->getAllowEmptyValue());
         }
         
-        if ($this->style !== null) {
-            $json->add('style', $this->style);
+        if ($this->getStyle() !== null) {
+            $json->add('style', $this->getStyle());
         }
         
-        if ($this->explode !== null) {
-            $json->add('explode', $this->explode);
+        if ($this->getExplode() !== null) {
+            $json->add('explode', $this->getExplode());
         }
         
-        if ($this->allowReserved !== null) {
-            $json->add('allowReserved', $this->allowReserved);
+        if ($this->getAllowReserved() !== null) {
+            $json->add('allowReserved', $this->getAllowReserved());
         }
         
-        if ($this->schema !== null) {
-            $json->add('schema', $this->schema);
+        if ($this->getSchema() !== null) {
+            $json->add('schema', $this->getSchema());
         }
         
-        if ($this->example !== null) {
-            $json->add('example', $this->example);
+        if ($this->getExample() !== null) {
+            $json->add('example', $this->getExample());
         }
         
-        if ($this->examples !== null) {
-            $json->add('examples', $this->examples);
+        if ($this->getExamples() !== null) {
+            $json->add('examples', $this->getExamples());
         }
         
         return $json;

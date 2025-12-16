@@ -125,16 +125,16 @@ class LicenseObj implements JsonI {
      * @return Json A Json object representation following OpenAPI 3.1.0 specification.
      */
     public function toJSON(): Json {
-        $json = new Json();
+        $json = new Json([
+            'name' => $this->getName()
+        ]);
         
-        $json->add('name', $this->name);
-        
-        if ($this->identifier !== null) {
-            $json->add('identifier', $this->identifier);
+        if ($this->getIdentifier() !== null) {
+            $json->add('identifier', $this->getIdentifier());
         }
         
-        if ($this->url !== null) {
-            $json->add('url', $this->url);
+        if ($this->getUrl() !== null) {
+            $json->add('url', $this->getUrl());
         }
         
         return $json;

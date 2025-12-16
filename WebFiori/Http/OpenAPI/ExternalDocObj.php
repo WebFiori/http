@@ -100,13 +100,13 @@ class ExternalDocObj implements JsonI {
      * @return Json A Json object representation of this External Documentation Object.
      */
     public function toJSON(): Json {
-        $json = new Json();
+        $json = new Json([
+            'url' => $this->getUrl()
+        ]);
         
-        if ($this->description !== null) {
-            $json->add('description', $this->description);
+        if ($this->getDescription() !== null) {
+            $json->add('description', $this->getDescription());
         }
-        
-        $json->add('url', $this->url);
         
         return $json;
     }

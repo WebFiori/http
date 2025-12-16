@@ -37,8 +37,10 @@ class OperationObj implements JsonI {
     }
     
     public function toJSON(): Json {
-        $json = new Json();
-        $json->add('responses', $this->responses);
+        $json = new Json([
+            'responses' => $this->getResponses()
+        ]);
+        
         return $json;
     }
 }
