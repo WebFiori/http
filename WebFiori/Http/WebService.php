@@ -93,6 +93,7 @@ abstract class WebService implements JsonI {
      * 
      */
     private $responses;
+    private array $responsesByMethod = [];
     /**
      * An optional description for the service.
      * 
