@@ -32,11 +32,14 @@ class ResponsesObj implements JsonI {
      * The status code can also be a range using uppercase wildcard character X (e.g., "2XX").
      * 
      * @param string $statusCode The HTTP status code (e.g., "200", "404", "2XX").
-     * @param ResponseObj $response The Response Object for this status code.
+     * @param ResponseObj|string $response The Response Object or description string for this status code.
      * 
      * @return ResponsesObj Returns self for method chaining.
      */
-    public function addResponse(string $statusCode, ResponseObj $response): ResponsesObj {
+    public function addResponse(string $statusCode, ResponseObj|string $response): ResponsesObj {
+        if (is_string($response)) {
+            $response = new ResponseObj($response);
+        }
         $this->responses[$statusCode] = $response;
         return $this;
     }
@@ -57,10 +60,13 @@ class ResponsesObj implements JsonI {
      * 
      * @return Json A Json object representation following OpenAPI 3.1.0 specification.
      */
+    public function toJSON(): Json {
         $json = new Json();
+        
         foreach ($this->responses as $code => $response) {
             $json->add($code, $response);
         }
+        
         return $json;
     }
 }
