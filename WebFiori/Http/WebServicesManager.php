@@ -96,6 +96,12 @@ class WebServicesManager implements JsonI {
      * 
      */
     private $services;
+    /**
+     * The base path for all services in this manager.
+     * 
+     * @var string
+     */
+    private string $basePath = '';
     private $request;
     /**
      * The response object used to send output.
@@ -202,6 +208,29 @@ class WebServicesManager implements JsonI {
      */
     public function getDescription() {
         return $this->apiDesc;
+    }
+    /**
+     * Sets the base path for all services in this manager.
+     * 
+     * The base path will be prepended to each service name when generating paths.
+     * For example, if base path is "/api/v1" and service name is "user",
+     * the final path will be "/api/v1/user".
+     * 
+     * @param string $basePath The base path (e.g., "/api/v1"). Leading/trailing slashes are handled automatically.
+     * 
+     * @return WebServicesManager Returns self for method chaining.
+     */
+    public function setBasePath(string $basePath): WebServicesManager {
+        $this->basePath = rtrim($basePath, '/');
+        return $this;
+    }
+    /**
+     * Returns the base path for all services.
+     * 
+     * @return string The base path.
+     */
+    public function getBasePath(): string {
+        return $this->basePath;
     }
     /**
      * Returns an associative array or an object of type Json of filtered request inputs.
@@ -763,6 +792,32 @@ class WebServicesManager implements JsonI {
         }
 
         return false;
+    }
+    /**
+     * Converts the services manager to an OpenAPI document.
+     * 
+     * This method generates a complete OpenAPI 3.1.0 specification document
+     * from the registered services. Each service becomes a path in the document.
+     * 
+     * @return OpenAPI\OpenAPIObj The OpenAPI document.
+     */
+    public function toOpenAPI(): OpenAPI\OpenAPIObj {
+        $info = new OpenAPI\InfoObj(
+            $this->getDescription(),
+            $this->getVersion()
+        );
+        
+        $openapi = new OpenAPI\OpenAPIObj($info);
+        
+        $paths = new OpenAPI\PathsObj();
+        foreach ($this->getServices() as $service) {
+            $path = $this->basePath . '/' . $service->getName();
+            $paths->addPath($path, $service->toPathItemObj());
+        }
+        
+        $openapi->setPaths($paths);
+        
+        return $openapi;
     }
     /**
      * Returns Json object that represents services set.
