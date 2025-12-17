@@ -61,17 +61,37 @@ class ComponentsObj implements JsonI {
     }
     
     /**
+     * Returns all schemas.
+     * 
+     * @return array Map of schema names to schema definitions.
+     */
+    public function getSchemas(): array {
+        return $this->schemas;
+    }
+    
+    /**
+     * Returns all security schemes.
+     * 
+     * @return array Map of security scheme names to SecuritySchemeObj.
+     */
+    public function getSecuritySchemes(): array {
+        return $this->securitySchemes;
+    }
+    
+    /**
      * Returns a Json object that represents the Components Object.
      * 
      * The JSON structure follows the OpenAPI 3.1.0 specification.
      * 
      * @return Json A Json object representation following OpenAPI 3.1.0 specification.
      */
+    public function toJSON(): Json {
         $json = new Json();
         
         if (!empty($this->schemas)) {
             $json->add('schemas', $this->schemas);
         }
+        
         if (!empty($this->securitySchemes)) {
             $json->add('securitySchemes', $this->securitySchemes);
         }

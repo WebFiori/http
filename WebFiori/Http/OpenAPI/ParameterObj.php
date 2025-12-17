@@ -231,6 +231,17 @@ class ParameterObj implements JsonI {
     }
     
     /**
+     * Returns whether this parameter is required.
+     * 
+     * Alias for isRequired() for consistency with toJSON().
+     * 
+     * @return bool
+     */
+    public function getRequired(): bool {
+        return $this->required;
+    }
+    
+    /**
      * Sets whether this parameter is deprecated.
      * 
      * @param bool $deprecated True if deprecated.
@@ -252,6 +263,17 @@ class ParameterObj implements JsonI {
     }
     
     /**
+     * Returns whether this parameter is deprecated.
+     * 
+     * Alias for isDeprecated() for consistency with toJSON().
+     * 
+     * @return bool
+     */
+    public function getDeprecated(): bool {
+        return $this->deprecated;
+    }
+    
+    /**
      * Sets whether to allow empty value.
      * 
      * @param bool $allowEmptyValue True to allow empty value.
@@ -269,6 +291,10 @@ class ParameterObj implements JsonI {
      * @return bool
      */
     public function isAllowEmptyValue(): bool {
+        return $this->allowEmptyValue;
+    }
+    
+    public function getAllowEmptyValue(): bool {
         return $this->allowEmptyValue;
     }
     

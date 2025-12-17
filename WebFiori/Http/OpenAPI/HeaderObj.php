@@ -130,6 +130,10 @@ class HeaderObj implements JsonI {
         return $this->required;
     }
     
+    public function getRequired(): bool {
+        return $this->required;
+    }
+    
     /**
      * Sets whether this header is deprecated.
      * 
@@ -148,6 +152,10 @@ class HeaderObj implements JsonI {
      * @return bool
      */
     public function isDeprecated(): bool {
+        return $this->deprecated;
+    }
+    
+    public function getDeprecated(): bool {
         return $this->deprecated;
     }
     

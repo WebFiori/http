@@ -46,16 +46,28 @@ class SecurityRequirementObj implements JsonI {
     }
     
     /**
+     * Returns all security requirements.
+     * 
+     * @return array Map of security scheme names to scope arrays.
+     */
+    public function getRequirements(): array {
+        return $this->requirements;
+    }
+    
+    /**
      * Returns a Json object that represents the Security Requirement Object.
      * 
      * The JSON structure follows the OpenAPI 3.1.0 specification.
      * 
      * @return Json A Json object representation following OpenAPI 3.1.0 specification.
      */
+    public function toJSON(): Json {
         $json = new Json();
+        
         foreach ($this->requirements as $name => $scopes) {
             $json->add($name, $scopes);
         }
+        
         return $json;
     }
 }
