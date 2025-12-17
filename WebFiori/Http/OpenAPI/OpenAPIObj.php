@@ -38,6 +38,13 @@ class OpenAPIObj implements JsonI {
     private InfoObj $info;
     
     /**
+     * The available paths and operations for the API.
+     * 
+     * @var PathsObj|null
+     */
+    private ?PathsObj $paths = null;
+    
+    /**
      * Creates a new OpenAPI Object instance.
      * 
      * This represents the root of an OpenAPI Description document.
@@ -96,6 +103,27 @@ class OpenAPIObj implements JsonI {
     }
     
     /**
+     * Sets the Paths Object containing API paths and operations.
+     * 
+     * @param PathsObj $paths The Paths Object.
+     * 
+     * @return OpenAPIObj Returns self for method chaining.
+     */
+    public function setPaths(PathsObj $paths): OpenAPIObj {
+        $this->paths = $paths;
+        return $this;
+    }
+    
+    /**
+     * Returns the Paths Object containing API paths and operations.
+     * 
+     * @return PathsObj|null The Paths Object or null if not set.
+     */
+    public function getPaths(): ?PathsObj {
+        return $this->paths;
+    }
+    
+    /**
      * Returns a Json object that represents the OpenAPI Object.
      * 
      * The JSON structure follows the OpenAPI 3.1.0 specification and represents
@@ -108,6 +136,10 @@ class OpenAPIObj implements JsonI {
             'openapi' => $this->getOpenapi(),
             'info' => $this->getInfo()
         ]);
+        
+        if ($this->getPaths() !== null) {
+            $json->add('paths', $this->getPaths());
+        }
         
         return $json;
     }
