@@ -598,8 +598,7 @@ class RequestParameterTest extends TestCase {
      */
     public function testToJson00($reqParam) {
         $reqParam->setDescription('Test Parameter.');
-        $this->assertEquals('{"name":"a-parameter","type":"string","description":"Test Parameter.",'
-                .'"is-optional":false,"default-value":null,"min-val":null,"max-val":null,"min-length":null,"max-length":null}',$reqParam->toJSON().'');
+        $this->assertEquals('{"name":"a-parameter","in":"query","required":true,"description":"Test Parameter.","schema":{"type":"string"}}',$reqParam->toJSON().'');
     }
     /**
      * @test
@@ -608,8 +607,7 @@ class RequestParameterTest extends TestCase {
      */
     public function testToJson01($reqParam) {
         $reqParam->setDescription('Test Parameter.');
-        $this->assertEquals('{"name":"valid","type":"integer","description":"Test Parameter.",'
-                .'"is-optional":true,"default-value":null,"min-val":'.~PHP_INT_MAX.',"max-val":'.PHP_INT_MAX.',"min-length":null,"max-length":null}',$reqParam->toJSON().'');
+        $this->assertEquals('{"name":"valid","in":"query","required":false,"description":"Test Parameter.","schema":{"type":"integer","minimum":'.~PHP_INT_MAX.',"maximum":'.PHP_INT_MAX.'}}',$reqParam->toJSON().'');
     }
     /**
      * 
