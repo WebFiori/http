@@ -55,7 +55,9 @@ class PathsObj implements JsonI {
      * 
      * @return Json A Json object representation following OpenAPI 3.1.0 specification.
      */
+    public function toJSON(): Json {
         $json = new Json();
+        
         foreach ($this->paths as $path => $pathItem) {
             $json->add($path, $pathItem);
         }
