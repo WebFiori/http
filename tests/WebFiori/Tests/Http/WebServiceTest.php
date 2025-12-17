@@ -254,79 +254,27 @@ class WebServiceTest extends TestCase {
      */
     public function testToJson00() {
         $action = new TestServiceObj('login');
-        $this->assertEquals(''
-                .'{"name":"login",'
-                .'"since":"1.0.0",'
-                .'"description":"",'
-                .'"request-methods":[],'
-                .'"parameters":[],'
-                .'"responses":[]}',$action->toJSON().'');
+        $this->assertEquals('{}',$action->toJSON().'');
         $action->setSince('1.0.1');
         $action->setDescription('Allow the user to login to the system.');
-        $this->assertEquals(''
-                .'{"name":"login",'
-                .'"since":"1.0.1",'
-                .'"description":"Allow the user to login to the system.",'
-                .'"request-methods":[],'
-                .'"parameters":[],'
-                .'"responses":[]}',$action->toJSON().'');
+        $this->assertEquals('{}',$action->toJSON().'');
         $action->setRequestMethods([RequestMethod::GET, RequestMethod::POST, RequestMethod::PUT]);
 
         $this->assertEquals(''
-                .'{"name":"login",'
-                .'"since":"1.0.1",'
-                .'"description":"Allow the user to login to the system.",'
-                .'"request-methods":["GET","POST","PUT"],'
-                .'"parameters":[],'
-                .'"responses":[]}',$action->toJSON().'');
+                .'{"get":{"responses":{"200":{"description":"Successful operation"}}},'
+                .'"post":{"responses":{"200":{"description":"Successful operation"}}},'
+                .'"put":{"responses":{"200":{"description":"Successful operation"}}}}',$action->toJSON().'');
         $action->removeRequestMethod('put');
         $action->addParameter(new RequestParameter('username'));
         $this->assertEquals(''
-                .'{"name":"login",'
-                .'"since":"1.0.1",'
-                .'"description":"Allow the user to login to the system.",'
-                .'"request-methods":["GET","POST"],'
-                .'"parameters":['
-                .'{"name":"username",'
-                .'"type":"string",'
-                .'"description":null,'
-                .'"is-optional":false,'
-                .'"default-value":null,'
-                .'"min-val":null,'
-                .'"max-val":null,'
-                .'"min-length":null,'
-                .'"max-length":null}'
-                .'],'
-                .'"responses":[]}',$action->toJSON().'');
+                .'{"get":{"responses":{"200":{"description":"Successful operation"}}},'
+                .'"post":{"responses":{"200":{"description":"Successful operation"}}}}',$action->toJSON().'');
         $action->addParameter(new RequestParameter('password', 'integer'));
         $action->getParameterByName('password')->setDescription('The password of the user.');
         $action->getParameterByName('password')->setMinValue(1000000);
         $this->assertEquals(''
-                .'{"name":"login",'
-                .'"since":"1.0.1",'
-                .'"description":"Allow the user to login to the system.",'
-                .'"request-methods":["GET","POST"],'
-                .'"parameters":['
-                .'{"name":"username",'
-                .'"type":"string",'
-                .'"description":null,'
-                .'"is-optional":false,'
-                .'"default-value":null,'
-                .'"min-val":null,'
-                .'"max-val":null,'
-                .'"min-length":null,'
-                .'"max-length":null},'
-                .'{"name":"password",'
-                .'"type":"integer",'
-                .'"description":"The password of the user.",'
-                .'"is-optional":false,'
-                .'"default-value":null,'
-                .'"min-val":1000000,'
-                .'"max-val":'.PHP_INT_MAX.','
-                .'"min-length":null,'
-                .'"max-length":null}'
-                .'],'
-                .'"responses":[]}',$action->toJSON().'');
+                .'{"get":{"responses":{"200":{"description":"Successful operation"}}},'
+                .'"post":{"responses":{"200":{"description":"Successful operation"}}}}',$action->toJSON().'');
     }
     /**
      * @test
@@ -337,26 +285,7 @@ class WebServiceTest extends TestCase {
         $action->addParameter(new RequestParameter('user-id', 'integer'));
         $action->getParameterByName('user-id')->setDescription('The ID of the user.');
         $action->setDescription('Returns a JSON string which holds user profile info.');
-        $this->assertEquals("APIAction[\n"
-                ."    Name => 'get-user',\n"
-                ."    Description => 'Returns a JSON string which holds user profile info.',\n"
-                ."    Since => '1.0.0',\n"
-                ."    Request Methods => [\n"
-                ."        GET\n"
-                ."    ],\n"
-                ."    Parameters => [\n"
-                ."        user-id => [\n"
-                ."            Type => 'integer',\n"
-                ."            Description => 'The ID of the user.',\n"
-                ."            Is Optional => 'false',\n"
-                ."            Default => 'null',\n"
-                ."            Minimum Value => '".~PHP_INT_MAX."',\n"
-                ."            Maximum Value => '".PHP_INT_MAX."'\n"
-                ."        ]\n"
-                ."    ],\n"
-                ."    Responses Descriptions => [\n"
-                ."    ]\n"
-                ."]\n",$action.'');
+        $this->assertEquals('{"get":{"responses":{"200":{"description":"Successful operation"}}}}',$action.'');
     }
     /**
      * @test
@@ -369,38 +298,9 @@ class WebServiceTest extends TestCase {
         $action->getParameterByName('username')->setDescription('The username of the user.');
         $action->getParameterByName('email')->setDescription('The email address of the user.');
         $action->setDescription('Adds new user profile to the system.');
-        $action->addResponseDescription('If the user is added, a 201 HTTP response is send with a JSON string that contains user ID.');
-        $action->addResponseDescription('If a user is already exist wich has the given email, a 404 code is sent back.');
-        $this->assertEquals("APIAction[\n"
-                ."    Name => 'add-user',\n"
-                ."    Description => 'Adds new user profile to the system.',\n"
-                ."    Since => '1.0.0',\n"
-                ."    Request Methods => [\n"
-                ."        POST,\n"
-                ."        PUT\n"
-                ."    ],\n"
-                ."    Parameters => [\n"
-                ."        username => [\n"
-                ."            Type => 'string',\n"
-                ."            Description => 'The username of the user.',\n"
-                ."            Is Optional => 'false',\n"
-                ."            Default => 'null',\n"
-                ."            Minimum Value => 'null',\n"
-                ."            Maximum Value => 'null'\n"
-                ."        ],\n"
-                ."        email => [\n"
-                ."            Type => 'string',\n"
-                ."            Description => 'The email address of the user.',\n"
-                ."            Is Optional => 'false',\n"
-                ."            Default => 'null',\n"
-                ."            Minimum Value => 'null',\n"
-                ."            Maximum Value => 'null'\n"
-                ."        ]\n"
-                ."    ],\n"
-                ."    Responses Descriptions => [\n"
-                ."        Response #0 => 'If the user is added, a 201 HTTP response is send with a JSON string that contains user ID.',\n"
-                ."        Response #1 => 'If a user is already exist wich has the given email, a 404 code is sent back.'\n"
-                ."    ]\n"
-                ."]\n",$action.'');
+        $action->addResponse(RequestMethod::POST, '201', 'User created successfully');
+        $action->addResponse(RequestMethod::PUT, '200', 'User updated successfully');
+        $this->assertEquals('{"post":{"responses":{"201":{"description":"User created successfully"}}},'
+                .'"put":{"responses":{"200":{"description":"User updated successfully"}}}}',$action.'');
     }
 }
