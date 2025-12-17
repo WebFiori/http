@@ -24,19 +24,11 @@ abstract class ManagerInfoService extends WebService {
      * 
      */
     public function __construct() {
-        parent::__construct('api-info');
+        parent::__construct('api-docs');
         $this->setDescription('Returns a JSON string that contains all '
                 .'needed information about all end points which are registered '
                 .'under given manager.');
-        $this->addParameter([
-            ParamOption::NAME => 'version',
-            ParamOption::TYPE => ParamType::STRING,
-            ParamOption::OPTIONAL => true,
-            ParamOption::DESCRIPTION => 'Optional parameter. '
-                .'If set, the information that will be returned will be specific '
-                .'to the given version number.'
-        ]);
-        $this->setRequestMethods(RequestMethod::GET, RequestMethod::POST);
+        $this->addRequestMethod(RequestMethod::GET);
     }
     /**
      * Sends back JSON response that contains information about the services 
