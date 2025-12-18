@@ -126,10 +126,7 @@ abstract class WebService implements JsonI {
      * @param WebServicesManager|null $owner The manager which is used to
      * manage the web service.
      */
-    public function __construct(string $name) {
-        if (!$this->setName($name)) {
-            $this->setName('new-service');
-        }
+    public function __construct(string $name = '') {
         $this->reqMethods = [];
         $this->parameters = [];
         $this->responses = [];
@@ -138,8 +135,34 @@ abstract class WebService implements JsonI {
         $this->sinceVersion = '1.0.0';
         $this->serviceDesc = '';
         $this->request = Request::createFromGlobals();
+        
+        $this->configureFromAnnotations($name);
     }
+    
     /**
+     * Configure service from annotations if present.
+     */
+    private function configureFromAnnotations(string $fallbackName): void {
+        $reflection = new \ReflectionClass($this);
+        $attributes = $reflection->getAttributes(\WebFiori\Http\Annotations\RestController::class);
+        
+        if (!empty($attributes)) {
+            $restController = $attributes[0]->newInstance();
+            $serviceName = $restController->name ?: $fallbackName;
+            $description = $restController->description;
+        } else {
+            $serviceName = $fallbackName;
+            $description = '';
+        }
+        
+        if (!$this->setName($serviceName)) {
+            $this->setName('new-service');
+        }
+        
+        if ($description) {
+            $this->setDescription($description);
+        }
+    }    /**
      * Returns an array that contains all possible requests methods at which the 
      * service can be called with.
      * 
