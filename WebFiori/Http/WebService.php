@@ -164,6 +164,104 @@ abstract class WebService implements JsonI {
         }
         
         $this->configureMethodMappings();
+        $this->configureAuthentication();
+    }
+    
+    /**
+     * Configure authentication from annotations.
+     */
+    private function configureAuthentication(): void {
+        $reflection = new \ReflectionClass($this);
+        
+        // Check class-level authentication
+        $classAuth = $this->getAuthenticationFromClass($reflection);
+        
+        // If class has AllowAnonymous, disable auth requirement
+        if ($classAuth['allowAnonymous']) {
+            $this->setIsAuthRequired(false);
+        } elseif ($classAuth['requiresAuth'] || $classAuth['preAuthorize']) {
+            $this->setIsAuthRequired(true);
+        }
+    }
+    
+    /**
+     * Get authentication configuration from class annotations.
+     */
+    private function getAuthenticationFromClass(\ReflectionClass $reflection): array {
+        return [
+            'allowAnonymous' => !empty($reflection->getAttributes(\WebFiori\Http\Annotations\AllowAnonymous::class)),
+            'requiresAuth' => !empty($reflection->getAttributes(\WebFiori\Http\Annotations\RequiresAuth::class)),
+            'preAuthorize' => $reflection->getAttributes(\WebFiori\Http\Annotations\PreAuthorize::class)
+        ];
+    }
+    
+    /**
+     * Check method-level authorization before processing.
+     */
+    public function checkMethodAuthorization(): bool {
+        $reflection = new \ReflectionClass($this);
+        $method = $this->getCurrentProcessingMethod();
+        
+        if (!$method) {
+            return $this->isAuthorized();
+        }
+        
+        $reflectionMethod = $reflection->getMethod($method);
+        
+        // Check AllowAnonymous first
+        if (!empty($reflectionMethod->getAttributes(\WebFiori\Http\Annotations\AllowAnonymous::class))) {
+            return true;
+        }
+        
+        // Check RequiresAuth
+        if (!empty($reflectionMethod->getAttributes(\WebFiori\Http\Annotations\RequiresAuth::class))) {
+            if (!SecurityContext::isAuthenticated()) {
+                return false;
+            }
+        }
+        
+        // Check PreAuthorize
+        $preAuthAttributes = $reflectionMethod->getAttributes(\WebFiori\Http\Annotations\PreAuthorize::class);
+        if (!empty($preAuthAttributes)) {
+            $preAuth = $preAuthAttributes[0]->newInstance();
+            return $this->evaluateSecurityExpression($preAuth->expression);
+        }
+        
+        return $this->isAuthorized();
+    }
+    
+    /**
+     * Evaluate security expression (simplified version).
+     */
+    private function evaluateSecurityExpression(string $expression): bool {
+        // Handle hasRole('ROLE_NAME')
+        if (preg_match("/hasRole\('([^']+)'\)/", $expression, $matches)) {
+            return SecurityContext::hasRole($matches[1]);
+        }
+        
+        // Handle hasAuthority('AUTHORITY_NAME')
+        if (preg_match("/hasAuthority\('([^']+)'\)/", $expression, $matches)) {
+            return SecurityContext::hasAuthority($matches[1]);
+        }
+        
+        // Handle isAuthenticated()
+        if ($expression === 'isAuthenticated()') {
+            return SecurityContext::isAuthenticated();
+        }
+        
+        // Handle permitAll()
+        if ($expression === 'permitAll()') {
+            return true;
+        }
+        
+        return false;
+    }
+    
+    /**
+     * Get the current processing method name (to be overridden by subclasses if needed).
+     */
+    protected function getCurrentProcessingMethod(): ?string {
+        return null; // Default implementation
     }
     
     /**
