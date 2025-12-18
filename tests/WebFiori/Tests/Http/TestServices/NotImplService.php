@@ -2,7 +2,7 @@
 
 namespace WebFiori\Tests\Http\TestServices;
 
-use WebFiori\Http\AbstractWebService;
+use WebFiori\Http\WebService;
 use WebFiori\Http\RequestMethod;
 
 /**
@@ -10,13 +10,13 @@ use WebFiori\Http\RequestMethod;
  *
  * @author Ibrahim
  */
-class NotImplService extends AbstractWebService {
+class NotImplService extends WebService {
     public function __construct() {
         parent::__construct('not-implemented');
         $this->addRequestMethod(RequestMethod::POST);
     }
-    public function isAuthorized() {
-        
+    public function isAuthorized(): bool {
+        return true;
     }
 
     public function processRequest() {

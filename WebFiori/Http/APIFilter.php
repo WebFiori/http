@@ -21,6 +21,7 @@ use WebFiori\Json\Json;
  * 
  */
 class APIFilter {
+    private $requestParameters = [];
     /**
      * A constant that indicates a given value is invalid.
      * 
@@ -103,6 +104,10 @@ class APIFilter {
             $attribute[$filterIdx][] = FILTER_DEFAULT;
         }
         $this->paramDefs[] = $attribute;
+        $this->requestParameters[] = $reqParam;
+    }
+    public function getParameters() : array {
+        return $this->requestParameters;
     }
     /**
      * Clears the arrays that are used to store filtered and not-filtered variables.
@@ -118,6 +123,7 @@ class APIFilter {
      */
     public function clearParametersDef() {
         $this->paramDefs = [];
+        $this->requestParameters = [];
     }
     /**
      * Filter the values of an associative array.
