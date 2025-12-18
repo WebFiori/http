@@ -162,6 +162,73 @@ abstract class WebService implements JsonI {
         if ($description) {
             $this->setDescription($description);
         }
+        
+        $this->configureMethodMappings();
+    }
+    
+    /**
+     * Configure HTTP methods from method annotations.
+     */
+    private function configureMethodMappings(): void {
+        $reflection = new \ReflectionClass($this);
+        $methods = [];
+        
+        foreach ($reflection->getMethods() as $method) {
+            $methodMappings = [
+                \WebFiori\Http\Annotations\GetMapping::class => RequestMethod::GET,
+                \WebFiori\Http\Annotations\PostMapping::class => RequestMethod::POST,
+                \WebFiori\Http\Annotations\PutMapping::class => RequestMethod::PUT,
+                \WebFiori\Http\Annotations\DeleteMapping::class => RequestMethod::DELETE
+            ];
+            
+            foreach ($methodMappings as $annotationClass => $httpMethod) {
+                $attributes = $method->getAttributes($annotationClass);
+                if (!empty($attributes)) {
+                    $methods[] = $httpMethod;
+                    $this->configureParametersFromMethod($method);
+                }
+            }
+        }
+        
+        if (!empty($methods)) {
+            $this->setRequestMethods(array_unique($methods));
+        }
+    }
+    
+    /**
+     * Configure parameters from method RequestParam annotations.
+     */
+    private function configureParametersFromMethod(\ReflectionMethod $method): void {
+        $paramAttributes = $method->getAttributes(\WebFiori\Http\Annotations\RequestParam::class);
+        
+        foreach ($paramAttributes as $attribute) {
+            $param = $attribute->newInstance();
+            
+            $this->addParameters([
+                $param->name => [
+                    \WebFiori\Http\ParamOption::TYPE => $this->mapParamType($param->type),
+                    \WebFiori\Http\ParamOption::OPTIONAL => $param->optional,
+                    \WebFiori\Http\ParamOption::DEFAULT => $param->default,
+                    \WebFiori\Http\ParamOption::DESCRIPTION => $param->description
+                ]
+            ]);
+        }
+    }
+    
+    /**
+     * Map string type to ParamType constant.
+     */
+    private function mapParamType(string $type): string {
+        return match(strtolower($type)) {
+            'int', 'integer' => \WebFiori\Http\ParamType::INT,
+            'float', 'double' => \WebFiori\Http\ParamType::DOUBLE,
+            'bool', 'boolean' => \WebFiori\Http\ParamType::BOOL,
+            'email' => \WebFiori\Http\ParamType::EMAIL,
+            'url' => \WebFiori\Http\ParamType::URL,
+            'array' => \WebFiori\Http\ParamType::ARR,
+            'json' => \WebFiori\Http\ParamType::JSON_OBJ,
+            default => \WebFiori\Http\ParamType::STRING
+        };
     }    /**
      * Returns an array that contains all possible requests methods at which the 
      * service can be called with.
