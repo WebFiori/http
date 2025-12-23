@@ -1,5 +1,4 @@
 <?php
-require_once '../vendor/autoload.php';
 
 use WebFiori\Http\Annotations\RestController;
 use WebFiori\Http\Annotations\GetMapping;
@@ -90,26 +89,3 @@ class ProductController extends WebService {
         }
     }
 }
-
-// Demo usage
-echo "=== Product Controller Demo ===\n";
-
-$controller = new ProductController();
-echo "Service Name: " . $controller->getName() . "\n";
-echo "Description: " . $controller->getDescription() . "\n";
-echo "HTTP Methods: " . implode(', ', $controller->getRequestMethods()) . "\n";
-
-echo "\nParameters:\n";
-foreach ($controller->getParameters() as $param) {
-    echo "- {$param->getName()}: {$param->getType()}" . 
-         ($param->isOptional() ? ' (optional)' : ' (required)') . 
-         ($param->getDescription() ? " - {$param->getDescription()}" : '') . "\n";
-}
-
-// Integration with WebServicesManager
-echo "\n=== Manager Integration ===\n";
-$manager = new WebServicesManager();
-$manager->addService($controller);
-
-echo "Service registered successfully!\n";
-echo "Available service: " . $manager->getServiceByName('products')->getName() . "\n";

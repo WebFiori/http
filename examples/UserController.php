@@ -56,9 +56,3 @@ class UserController extends WebService {
         }
     }
 }
-
-// Usage example
-$service = new UserController();
-echo "Service: " . $service->getName() . "\n";
-echo "Description: " . $service->getDescription() . "\n";
-echo "Supported methods: " . implode(', ', $service->getRequestMethods()) . "\n";

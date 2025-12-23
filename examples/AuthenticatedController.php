@@ -1,5 +1,4 @@
 <?php
-require_once '../vendor/autoload.php';
 
 use WebFiori\Http\Annotations\RestController;
 use WebFiori\Http\Annotations\GetMapping;
@@ -89,55 +88,55 @@ class AuthenticatedController extends WebService {
 }
 
 // Demo usage
-echo "=== Authentication Demo ===\n";
+// echo "=== Authentication Demo ===\n";
 
-$controller = new AuthenticatedController();
+// $controller = new AuthenticatedController();
 
-// Test 1: Public access (no auth required)
-echo "\n1. Testing public access:\n";
-$_GET['action'] = 'public';
-$controller->processRequest();
+// // Test 1: Public access (no auth required)
+// echo "\n1. Testing public access:\n";
+// $_GET['action'] = 'public';
+// $controller->processRequest();
 
-// Test 2: Private access without authentication
-echo "\n2. Testing private access without auth:\n";
-$_GET['action'] = 'profile';
-$controller->processRequest();
+// // Test 2: Private access without authentication
+// echo "\n2. Testing private access without auth:\n";
+// $_GET['action'] = 'profile';
+// $controller->processRequest();
 
 // Test 3: Set up authentication
-echo "\n3. Setting up authentication:\n";
-SecurityContext::setCurrentUser(['id' => 1, 'name' => 'John Doe', 'email' => 'john@example.com']);
-SecurityContext::setRoles(['USER']);
-SecurityContext::setAuthorities(['USER_READ']);
+// echo "\n3. Setting up authentication:\n";
+// SecurityContext::setCurrentUser(['id' => 1, 'name' => 'John Doe', 'email' => 'john@example.com']);
+// SecurityContext::setRoles(['USER']);
+// SecurityContext::setAuthorities(['USER_READ']);
 
-echo "User authenticated: " . (SecurityContext::isAuthenticated() ? 'Yes' : 'No') . "\n";
-echo "Roles: " . implode(', ', SecurityContext::getRoles()) . "\n";
-echo "Authorities: " . implode(', ', SecurityContext::getAuthorities()) . "\n";
+// echo "User authenticated: " . (SecurityContext::isAuthenticated() ? 'Yes' : 'No') . "\n";
+// echo "Roles: " . implode(', ', SecurityContext::getRoles()) . "\n";
+// echo "Authorities: " . implode(', ', SecurityContext::getAuthorities()) . "\n";
 
-// Test 4: Private access with authentication
-echo "\n4. Testing private access with auth:\n";
-$_GET['action'] = 'profile';
-$controller->processRequest();
+// // Test 4: Private access with authentication
+// echo "\n4. Testing private access with auth:\n";
+// $_GET['action'] = 'profile';
+// $controller->processRequest();
 
-// Test 5: Admin access without admin role
-echo "\n5. Testing admin access without admin role:\n";
-$_GET['action'] = 'admin';
-$controller->processRequest();
+// // Test 5: Admin access without admin role
+// echo "\n5. Testing admin access without admin role:\n";
+// $_GET['action'] = 'admin';
+// $controller->processRequest();
 
-// Test 6: Grant admin role and try again
-echo "\n6. Granting admin role and testing admin access:\n";
-SecurityContext::setRoles(['USER', 'ADMIN']);
-$controller->processRequest();
+// // Test 6: Grant admin role and try again
+// echo "\n6. Granting admin role and testing admin access:\n";
+// SecurityContext::setRoles(['USER', 'ADMIN']);
+// $controller->processRequest();
 
-// Test 7: Authority-based access
-echo "\n7. Testing authority-based access:\n";
-$_GET['action'] = 'manage';
-$controller->processRequest();
+// // Test 7: Authority-based access
+// echo "\n7. Testing authority-based access:\n";
+// $_GET['action'] = 'manage';
+// $controller->processRequest();
 
-// Test 8: Grant required authority
-echo "\n8. Granting USER_MANAGE authority:\n";
-SecurityContext::setAuthorities(['USER_READ', 'USER_MANAGE']);
-$controller->processRequest();
+// // Test 8: Grant required authority
+// echo "\n8. Granting USER_MANAGE authority:\n";
+// SecurityContext::setAuthorities(['USER_READ', 'USER_MANAGE']);
+// $controller->processRequest();
 
-// Cleanup
-SecurityContext::clear();
-unset($_GET['action']);
+// // Cleanup
+// SecurityContext::clear();
+// unset($_GET['action']);

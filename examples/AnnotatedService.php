@@ -1,5 +1,4 @@
 <?php
-require_once '../vendor/autoload.php';
 
 use WebFiori\Http\Annotations\RestController;
 use WebFiori\Http\WebService;
@@ -21,7 +20,3 @@ class AnnotatedHelloService extends WebService {
     }
 }
 
-// Usage example
-$service = new AnnotatedHelloService();
-echo "Service name: " . $service->getName() . "\n";
-echo "Service description: " . $service->getDescription() . "\n";
