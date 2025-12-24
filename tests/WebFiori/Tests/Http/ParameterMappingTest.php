@@ -9,6 +9,11 @@ class ParameterMappingTest extends TestCase {
     
     public function testParametersFromAnnotations() {
         $service = new ParameterMappedService();
+        
+        // Trigger parameter configuration for both HTTP methods
+        $service->getParameterByName('id', 'GET');
+        $service->getParameterByName('email', 'POST');
+        
         $parameters = $service->getParameters();
         
         $this->assertCount(4, $parameters); // id, name, email, age
