@@ -77,7 +77,7 @@ class FullAnnotationIntegrationTest extends TestCase {
         $this->assertContains(\WebFiori\Http\RequestMethod::POST, $methods); // From annotation
         $this->assertContains(\WebFiori\Http\RequestMethod::PATCH, $methods); // Manual addition
         
-        $this->assertNotNull($service->getParameterByName('annotated_param')); // From annotation
+        $this->assertNotNull($service->getParameterByName('annotated_param', 'POST')); // From annotation
         $this->assertNotNull($service->getParameterByName('manual_param')); // Manual addition
     }
 }
