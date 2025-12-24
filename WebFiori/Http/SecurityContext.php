@@ -118,26 +118,140 @@ class SecurityContext {
      * Evaluate security expression.
      * 
      * @param string $expression Security expression to evaluate
-     *                           Example: "hasRole('ADMIN')", "hasAuthority('USER_CREATE')", "isAuthenticated()"
+     *                           
+     *                           Simple expressions:
+     *                           - "hasRole('ADMIN')" - Check single role
+     *                           - "hasAuthority('USER_CREATE')" - Check single authority
+     *                           - "isAuthenticated()" - Check if user is logged in
+     *                           - "permitAll()" - Always allow access
+     *                           
+     *                           Multiple values:
+     *                           - "hasAnyRole('ADMIN', 'MODERATOR')" - Check any of multiple roles
+     *                           - "hasAnyAuthority('USER_CREATE', 'USER_UPDATE')" - Check any of multiple authorities
+     *                           
+     *                           Complex boolean expressions:
+     *                           - "hasRole('ADMIN') && hasAuthority('USER_CREATE')" - Both conditions must be true
+     *                           - "hasRole('ADMIN') || hasRole('MODERATOR')" - Either condition can be true
+     *                           - "isAuthenticated() && hasAnyRole('USER', 'ADMIN')" - Authenticated with any role
+     * 
      * @return bool True if expression evaluates to true
+     * @throws \InvalidArgumentException If expression is invalid
      */
     public static function evaluateExpression(string $expression): bool {
-        $evalResult = false;
+        $expression = trim($expression);
+        
+        if (empty($expression)) {
+            throw new \InvalidArgumentException('Security expression cannot be empty');
+        }
+        
+        // Handle complex boolean expressions with && and ||
+        if (strpos($expression, '&&') !== false) {
+            return self::evaluateAndExpression($expression);
+        }
+        
+        if (strpos($expression, '||') !== false) {
+            return self::evaluateOrExpression($expression);
+        }
+        
+        // Handle single expressions
+        return self::evaluateSingleExpression($expression);
+    }
+    
+    /**
+     * Evaluate AND expression (all conditions must be true).
+     */
+    private static function evaluateAndExpression(string $expression): bool {
+        $parts = array_map('trim', explode('&&', $expression));
+        
+        foreach ($parts as $part) {
+            if (!self::evaluateSingleExpression($part)) {
+                return false;
+            }
+        }
+        
+        return true;
+    }
+    
+    /**
+     * Evaluate OR expression (at least one condition must be true).
+     */
+    private static function evaluateOrExpression(string $expression): bool {
+        $parts = array_map('trim', explode('||', $expression));
+        
+        foreach ($parts as $part) {
+            if (self::evaluateSingleExpression($part)) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+    
+    /**
+     * Evaluate single security expression.
+     */
+    private static function evaluateSingleExpression(string $expression): bool {
         // Handle hasRole('ROLE_NAME')
         if (preg_match("/hasRole\('([^']+)'\)/", $expression, $matches)) {
-            $evalResult = self::hasRole($matches[1]);
+            return self::hasRole($matches[1]);
+        }
+        
+        // Handle hasAnyRole('ROLE1', 'ROLE2', ...)
+        if (preg_match("/hasAnyRole\(([^)]+)\)/", $expression, $matches)) {
+            $roles = self::parseArgumentList($matches[1]);
+            foreach ($roles as $role) {
+                if (self::hasRole($role)) {
+                    return true;
+                }
+            }
+            return false;
         }
         
         // Handle hasAuthority('AUTHORITY_NAME')
         if (preg_match("/hasAuthority\('([^']+)'\)/", $expression, $matches)) {
-            $evalResult &= self::hasAuthority($matches[1]);
+            return self::hasAuthority($matches[1]);
+        }
+        
+        // Handle hasAnyAuthority('AUTH1', 'AUTH2', ...)
+        if (preg_match("/hasAnyAuthority\(([^)]+)\)/", $expression, $matches)) {
+            $authorities = self::parseArgumentList($matches[1]);
+            foreach ($authorities as $authority) {
+                if (self::hasAuthority($authority)) {
+                    return true;
+                }
+            }
+            return false;
         }
         
         // Handle isAuthenticated()
         if ($expression === 'isAuthenticated()') {
-            $evalResult &= self::isAuthenticated();
+            return self::isAuthenticated();
         }
         
-        return $evalResult;
+        // Handle permitAll()
+        if ($expression === 'permitAll()') {
+            return true;
+        }
+        
+        throw new \InvalidArgumentException("Invalid security expression: '$expression'");
+    }
+    
+    /**
+     * Parse comma-separated argument list from function call.
+     */
+    private static function parseArgumentList(string $args): array {
+        $result = [];
+        $parts = explode(',', $args);
+        
+        foreach ($parts as $part) {
+            $part = trim($part);
+            if (preg_match("/^'([^']+)'$/", $part, $matches)) {
+                $result[] = $matches[1];
+            } else {
+                throw new \InvalidArgumentException("Invalid argument format: '$part'");
+            }
+        }
+        
+        return $result;
     }
 }
