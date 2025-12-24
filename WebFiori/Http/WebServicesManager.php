@@ -1047,11 +1047,13 @@ class WebServicesManager implements JsonI {
         $isAuth = false;
 
         if ($service->isAuthRequired()) {
-            // Check method-level authorization first (handles AllowAnonymous, etc.)
-            $isAuth = $service->checkMethodAuthorization();
-            if ($isAuth) {
-                return true;
+            // Check if method has authorization annotations
+            if ($service->hasMethodAuthorizationAnnotations()) {
+                // Use annotation-based authorization
+                return $service->checkMethodAuthorization();
             }
+            
+            // Fall back to legacy HTTP-method-specific authorization
             $isAuthCheck = 'isAuthorized'.$this->getRequest()->getMethod();
 
             if (!method_exists($service, $isAuthCheck)) {
