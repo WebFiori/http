@@ -6,33 +6,43 @@ namespace WebFiori\Http;
  * 
  * Provides static methods to manage the current user's authentication status,
  * roles, and authorities for request-level security checks.
+ * 
+ * @author Ibrahim
  */
 class SecurityContext {
-    /** @var array|null Current authenticated user data */
-    private static ?array $currentUser = null;
+    /** @var UserInterface|null Current authenticated user */
+    private static ?UserInterface $currentUser = null;
     
-    /** @var array User roles (e.g., ['USER', 'ADMIN']) */
+    /** @var array User roles (e.g., ['USER', 'ADMIN']) - deprecated, use user object */
     private static array $roles = [];
     
-    /** @var array User authorities/permissions (e.g., ['USER_CREATE', 'USER_DELETE']) */
+    /** @var array User authorities/permissions (e.g., ['USER_CREATE', 'USER_DELETE']) - deprecated, use user object */
     private static array $authorities = [];
     
     /**
      * Set the current authenticated user.
      * 
-     * @param array|null $user User data array or null for unauthenticated
-     *                         Example: ['id' => 123, 'name' => 'John Doe', 'email' => 'john@example.com']
+     * @param UserInterface|null $user User object or null for unauthenticated
      */
-    public static function setCurrentUser(?array $user): void {
+    public static function setCurrentUser(?UserInterface $user): void {
         self::$currentUser = $user;
+        
+        // Update legacy arrays for backward compatibility
+        if ($user) {
+            self::$roles = $user->getRoles();
+            self::$authorities = $user->getAuthorities();
+        } else {
+            self::$roles = [];
+            self::$authorities = [];
+        }
     }
     
     /**
      * Get the current authenticated user.
      * 
-     * @return array|null User data or null if not authenticated
+     * @return UserInterface|null User object or null if not authenticated
      */
-    public static function getCurrentUser(): ?array {
+    public static function getCurrentUser(): ?UserInterface {
         return self::$currentUser;
     }
     
@@ -99,10 +109,10 @@ class SecurityContext {
     /**
      * Check if a user is currently authenticated.
      * 
-     * @return bool True if user is authenticated
+     * @return bool True if user is authenticated and active
      */
     public static function isAuthenticated(): bool {
-        return self::$currentUser !== null;
+        return self::$currentUser !== null && self::$currentUser->isActive();
     }
     
     /**
@@ -138,6 +148,10 @@ class SecurityContext {
      * @throws \InvalidArgumentException If expression is invalid
      */
     public static function evaluateExpression(string $expression): bool {
+
+        if (self::getCurrentUser() === null || !self::getCurrentUser()->isActive()) {
+            return false;
+        }
         $expression = trim($expression);
         
         if (empty($expression)) {

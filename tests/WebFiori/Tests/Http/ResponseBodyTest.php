@@ -3,6 +3,7 @@ namespace WebFiori\Tests\Http;
 
 use PHPUnit\Framework\TestCase;
 use WebFiori\Http\SecurityContext;
+use WebFiori\Tests\Http\TestUser;
 use WebFiori\Tests\Http\TestServices\ResponseBodyTestService;
 use WebFiori\Tests\Http\TestServices\MixedResponseService;
 use WebFiori\Tests\Http\TestServices\LegacyService;
@@ -95,8 +96,7 @@ class ResponseBodyTest extends TestCase {
         $this->assertFalse($service->hasResponseBodyAnnotation('traditionalMethod'));
         
         // Test with authentication
-        SecurityContext::setCurrentUser(['id' => 1]);
-        SecurityContext::setRoles(['USER']);
+        SecurityContext::setCurrentUser(new TestUser(1, ['USER']));
         
         // The service should be authorized since we set up proper authentication
         $this->assertTrue($service->checkMethodAuthorization());

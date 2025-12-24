@@ -108,7 +108,7 @@ class RestControllerTest extends APITestCase {
         $manager = new WebServicesManager();
         $service = new AnnotatedService();
         $manager->addService($service);
-
+        //Missing param
         $this->assertEquals('{'.self::NL
                 . '    "message":"The following required parameter(s) where missing from the request body: \'id\'.",'.self::NL
                 . '    "type":"error",'.self::NL
@@ -119,7 +119,7 @@ class RestControllerTest extends APITestCase {
                 . '        ]'.self::NL
                 . '    }'.self::NL
                 . '}', $this->deleteRequest($manager, 'annotated-service'));
-
+        //No auth user
         $this->assertEquals('{'.self::NL
                 . '    "message":"Not Authorized.",'.self::NL
                 . '    "type":"error",'.self::NL
@@ -127,30 +127,37 @@ class RestControllerTest extends APITestCase {
                 . '}', $this->deleteRequest($manager, 'annotated-service', [
                     'id' => 1
                 ]));
-
-        SecurityContext::setCurrentUser(['id' => 1, 'name' => 'Ibrahim']);
+        //User with no roles
         $this->assertEquals('{'.self::NL
                 . '    "message":"Not Authorized.",'.self::NL
                 . '    "type":"error",'.self::NL
                 . '    "http-code":401'.self::NL
                 . '}', $this->deleteRequest($manager, 'annotated-service', [
                     'id' => 1
-                ]));
-        SecurityContext::setRoles(['ADMIN']);
+                ], [], new TestUser(1, [''], [''], true)));
+        //user with no authorites
         $this->assertEquals('{'.self::NL
                 . '    "message":"Not Authorized.",'.self::NL
                 . '    "type":"error",'.self::NL
                 . '    "http-code":401'.self::NL
                 . '}', $this->deleteRequest($manager, 'annotated-service', [
                     'id' => 1
-                ]));
-        SecurityContext::setAuthorities(['USER_DELETE']);
+                ], [], new TestUser(1, ['ADMIN'], [''], true)));
+        // Inactive user
+        $this->assertEquals('{'.self::NL
+                . '    "message":"Not Authorized.",'.self::NL
+                . '    "type":"error",'.self::NL
+                . '    "http-code":401'.self::NL
+                . '}', $this->deleteRequest($manager, 'annotated-service', [
+                    'id' => 1
+                ], [], new TestUser(1, ['ADMIN'], ['USER_DELETE'], false)));
+        //valid user
         $this->assertEquals('{'.self::NL
                 . '    "message":"Delete user with ID: 1",'.self::NL
                 . '    "type":"success",'.self::NL
                 . '    "http-code":200'.self::NL
                 . '}', $this->deleteRequest($manager, 'annotated-service', [
                     'id' => 1
-                ]));
+                ], [], new TestUser(1, ['ADMIN'], ['USER_DELETE'], true)));
     }
 }

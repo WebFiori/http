@@ -3,6 +3,7 @@ namespace WebFiori\Tests\Http;
 
 use PHPUnit\Framework\TestCase;
 use WebFiori\Http\SecurityContext;
+use WebFiori\Tests\Http\TestUser;
 use WebFiori\Tests\Http\TestServices\SecureService;
 use WebFiori\Tests\Http\TestServices\ClassLevelAuthService;
 
@@ -22,9 +23,7 @@ class AuthenticationAnnotationTest extends TestCase {
         $this->assertFalse(SecurityContext::isAuthenticated());
         
         // Set user and roles
-        SecurityContext::setCurrentUser(['id' => 1, 'name' => 'John']);
-        SecurityContext::setRoles(['ADMIN', 'USER']);
-        SecurityContext::setAuthorities(['USER_CREATE', 'USER_READ']);
+        SecurityContext::setCurrentUser(new TestUser(1, ['ADMIN', 'USER'], ['USER_CREATE', 'USER_READ']));
         
         $this->assertTrue(SecurityContext::isAuthenticated());
         $this->assertTrue(SecurityContext::hasRole('ADMIN'));
@@ -44,7 +43,7 @@ class AuthenticationAnnotationTest extends TestCase {
         $this->assertFalse($service->checkMethodAuthorization());
         
         // Test private method with auth
-        SecurityContext::setCurrentUser(['id' => 1, 'name' => 'John']);
+        SecurityContext::setCurrentUser(new TestUser(1));
         $this->assertTrue($service->checkMethodAuthorization());
         
         // Test admin method without admin role
@@ -66,25 +65,20 @@ class AuthenticationAnnotationTest extends TestCase {
     }
     
     public function testSecurityExpressions() {
-        $service = new SecureService();
-        $reflection = new \ReflectionClass($service);
-        $method = $reflection->getMethod('evaluateSecurityExpression');
-        $method->setAccessible(true);
+        SecurityContext::clear();
         
         // Test without authentication
-        $this->assertFalse($method->invoke($service, "hasRole('ADMIN')"));
-        $this->assertFalse($method->invoke($service, 'isAuthenticated()'));
-        $this->assertTrue($method->invoke($service, 'permitAll()'));
+        $this->assertFalse(SecurityContext::evaluateExpression("hasRole('ADMIN')"));
+        $this->assertFalse(SecurityContext::evaluateExpression('isAuthenticated()'));
+        $this->assertTrue(SecurityContext::evaluateExpression('permitAll()'));
         
         // Test with authentication and roles
-        SecurityContext::setCurrentUser(['id' => 1]);
-        SecurityContext::setRoles(['ADMIN']);
-        SecurityContext::setAuthorities(['USER_CREATE']);
+        SecurityContext::setCurrentUser(new TestUser(1, ['ADMIN'], ['USER_CREATE']));
         
-        $this->assertTrue($method->invoke($service, "hasRole('ADMIN')"));
-        $this->assertFalse($method->invoke($service, "hasRole('GUEST')"));
-        $this->assertTrue($method->invoke($service, "hasAuthority('USER_CREATE')"));
-        $this->assertTrue($method->invoke($service, 'isAuthenticated()'));
+        $this->assertTrue(SecurityContext::evaluateExpression("hasRole('ADMIN')"));
+        $this->assertFalse(SecurityContext::evaluateExpression("hasRole('GUEST')"));
+        $this->assertTrue(SecurityContext::evaluateExpression("hasAuthority('USER_CREATE')"));
+        $this->assertTrue(SecurityContext::evaluateExpression('isAuthenticated()'));
     }
     
     protected function tearDown(): void {
