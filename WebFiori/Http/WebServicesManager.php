@@ -483,7 +483,7 @@ class WebServicesManager implements JsonI {
                 $actionObj = $this->getServiceByName($this->getCalledServiceName());
                 
                 // Configure parameters for ResponseBody services before getting them
-                if (method_exists($actionObj, 'processWithAutoHandling') && $this->serviceHasResponseBodyMethods($actionObj)) {
+                if ($this->serviceHasResponseBodyMethods($actionObj)) {
                     $this->configureServiceParameters($actionObj);
                 }
                 
@@ -1044,12 +1044,14 @@ class WebServicesManager implements JsonI {
         return $retVal;
     }
     private function isAuth(WebService $service) {
+        $isAuth = false;
+
         if ($service->isAuthRequired()) {
             // Check method-level authorization first (handles AllowAnonymous, etc.)
-            if (method_exists($service, 'checkMethodAuthorization')) {
-                return $service->checkMethodAuthorization();
+            $isAuth = $service->checkMethodAuthorization();
+            if ($isAuth) {
+                return true;
             }
-            
             $isAuthCheck = 'isAuthorized'.$this->getRequest()->getMethod();
 
             if (!method_exists($service, $isAuthCheck)) {
@@ -1063,7 +1065,7 @@ class WebServicesManager implements JsonI {
     }
     private function processService(WebService $service) {
         // Try auto-processing only if service has ResponseBody methods
-        if (method_exists($service, 'processWithAutoHandling') && $this->serviceHasResponseBodyMethods($service)) {
+        if ($this->serviceHasResponseBodyMethods($service)) {
             // Configure parameters for the target method before processing
             $this->configureServiceParameters($service);
             $service->processWithAutoHandling();

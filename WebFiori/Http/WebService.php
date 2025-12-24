@@ -258,7 +258,7 @@ class WebService implements JsonI {
         // If class has AllowAnonymous, disable auth requirement
         if ($classAuth['allowAnonymous']) {
             $this->setIsAuthRequired(false);
-        } elseif ($classAuth['requiresAuth'] || $classAuth['preAuthorize']) {
+        } else if ($classAuth['requiresAuth'] || $classAuth['preAuthorize']) {
             $this->setIsAuthRequired(true);
         }
     }
@@ -303,37 +303,11 @@ class WebService implements JsonI {
         $preAuthAttributes = $reflectionMethod->getAttributes(\WebFiori\Http\Annotations\PreAuthorize::class);
         if (!empty($preAuthAttributes)) {
             $preAuth = $preAuthAttributes[0]->newInstance();
-            return $this->evaluateSecurityExpression($preAuth->expression);
+
+            return SecurityContext::evaluateExpression($preAuth->expression);
         }
         
         return $this->isAuthorized();
-    }
-    
-    /**
-     * Evaluate security expression (simplified version).
-     */
-    private function evaluateSecurityExpression(string $expression): bool {
-        // Handle hasRole('ROLE_NAME')
-        if (preg_match("/hasRole\('([^']+)'\)/", $expression, $matches)) {
-            return SecurityContext::hasRole($matches[1]);
-        }
-        
-        // Handle hasAuthority('AUTHORITY_NAME')
-        if (preg_match("/hasAuthority\('([^']+)'\)/", $expression, $matches)) {
-            return SecurityContext::hasAuthority($matches[1]);
-        }
-        
-        // Handle isAuthenticated()
-        if ($expression === 'isAuthenticated()') {
-            return SecurityContext::isAuthenticated();
-        }
-        
-        // Handle permitAll()
-        if ($expression === 'permitAll()') {
-            return true;
-        }
-        
-        return false;
     }
     
     /**
@@ -433,7 +407,7 @@ class WebService implements JsonI {
     }
     
     /**
-     * Configure HTTP methods from method annotations.
+     * Configure allowed HTTP methods from method annotations.
      */
     private function configureMethodMappings(): void {
         $reflection = new \ReflectionClass($this);
@@ -441,10 +415,10 @@ class WebService implements JsonI {
         
         foreach ($reflection->getMethods() as $method) {
             $methodMappings = [
-                \WebFiori\Http\Annotations\GetMapping::class => RequestMethod::GET,
-                \WebFiori\Http\Annotations\PostMapping::class => RequestMethod::POST,
-                \WebFiori\Http\Annotations\PutMapping::class => RequestMethod::PUT,
-                \WebFiori\Http\Annotations\DeleteMapping::class => RequestMethod::DELETE
+                GetMapping::class => RequestMethod::GET,
+                PostMapping::class => RequestMethod::POST,
+                PutMapping::class => RequestMethod::PUT,
+                DeleteMapping::class => RequestMethod::DELETE
             ];
             
             foreach ($methodMappings as $annotationClass => $httpMethod) {
