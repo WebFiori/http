@@ -8,12 +8,4 @@ class NonAnnotatedService extends WebService {
         parent::__construct('non-annotated');
         $this->setDescription('A traditional service');
     }
-
-    public function isAuthorized(): bool {
-        return true;
-    }
-
-    public function processRequest() {
-        $this->sendResponse('Non-annotated service response');
-    }
 }

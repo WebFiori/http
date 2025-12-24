@@ -29,8 +29,6 @@ class RestControllerTest extends TestCase {
             public function __construct() {
                 parent::__construct('fallback-name');
             }
-            public function isAuthorized(): bool { return true; }
-            public function processRequest() {}
         };
         
         $this->assertEquals('fallback-name', $service->getName());
@@ -38,8 +36,6 @@ class RestControllerTest extends TestCase {
     
     public function testAnnotationWithoutFallback() {
         $service = new class extends \WebFiori\Http\WebService {
-            public function isAuthorized(): bool { return true; }
-            public function processRequest() {}
         };
         
         $this->assertEquals('new-service', $service->getName());
