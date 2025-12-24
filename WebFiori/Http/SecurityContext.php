@@ -148,10 +148,6 @@ class SecurityContext {
      * @throws \InvalidArgumentException If expression is invalid
      */
     public static function evaluateExpression(string $expression): bool {
-
-        if (self::getCurrentUser() === null || !self::getCurrentUser()->isActive()) {
-            return false;
-        }
         $expression = trim($expression);
         
         if (empty($expression)) {
