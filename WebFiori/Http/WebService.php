@@ -245,6 +245,51 @@ class WebService implements JsonI {
             // Method doesn't exist, ignore
         }
     }
+
+    /**
+     * Configure parameters for all methods with RequestParam annotations.
+     */
+    private function configureAllAnnotatedParameters(): void {
+        $reflection = new \ReflectionClass($this);
+        foreach ($reflection->getMethods() as $method) {
+            $paramAttributes = $method->getAttributes(\WebFiori\Http\Annotations\RequestParam::class);
+            if (!empty($paramAttributes)) {
+                $this->configureParametersFromMethod($method);
+            }
+        }
+    }
+    
+    /**
+     * Configure parameters for methods with specific HTTP method mapping.
+     * 
+     * @param string $httpMethod HTTP method (GET, POST, PUT, DELETE, etc.)
+     */
+    private function configureParametersForHttpMethod(string $httpMethod): void {
+        $reflection = new \ReflectionClass($this);
+        $httpMethod = strtoupper($httpMethod);
+        
+        foreach ($reflection->getMethods() as $method) {
+            // Check if method has HTTP method mapping annotation
+            $mappingFound = false;
+            
+            // Check for specific HTTP method annotations
+            $annotations = [
+                'GET' => \WebFiori\Http\Annotations\GetMapping::class,
+                'POST' => \WebFiori\Http\Annotations\PostMapping::class,
+                'PUT' => \WebFiori\Http\Annotations\PutMapping::class,
+                'DELETE' => \WebFiori\Http\Annotations\DeleteMapping::class,
+                'PATCH' => \WebFiori\Http\Annotations\PatchMapping::class,
+            ];
+            
+            if (isset($annotations[$httpMethod])) {
+                $mappingFound = !empty($method->getAttributes($annotations[$httpMethod]));
+            }
+            
+            if ($mappingFound) {
+                $this->configureParametersFromMethod($method);
+            }
+        }
+    }
     
     /**
      * Configure authentication from annotations.
@@ -308,6 +353,24 @@ class WebService implements JsonI {
         }
         
         return $this->isAuthorized();
+    }
+    
+    /**
+     * Check if the method has any authorization annotations.
+     */
+    public function hasMethodAuthorizationAnnotations(): bool {
+        $reflection = new \ReflectionClass($this);
+        $method = $this->getCurrentProcessingMethod() ?: $this->getTargetMethod();
+        
+        if (!$method) {
+            return false;
+        }
+        
+        $reflectionMethod = $reflection->getMethod($method);
+        
+        return !empty($reflectionMethod->getAttributes(\WebFiori\Http\Annotations\AllowAnonymous::class)) ||
+               !empty($reflectionMethod->getAttributes(\WebFiori\Http\Annotations\RequiresAuth::class)) ||
+               !empty($reflectionMethod->getAttributes(\WebFiori\Http\Annotations\PreAuthorize::class));
     }
     
     /**
@@ -796,7 +859,15 @@ class WebService implements JsonI {
      * a parameter with the given name was found. null if nothing is found.
      * 
      */
-    public final function getParameterByName(string $paramName) {
+    public final function getParameterByName(string $paramName, ?string $httpMethod = null) {
+        // Configure parameters if HTTP method specified
+        if ($httpMethod !== null) {
+            $this->configureParametersForHttpMethod($httpMethod);
+        } else {
+            // Configure parameters for all methods with annotations
+            $this->configureAllAnnotatedParameters();
+        }
+        
         $trimmed = trim($paramName);
 
         if (strlen($trimmed) != 0) {
