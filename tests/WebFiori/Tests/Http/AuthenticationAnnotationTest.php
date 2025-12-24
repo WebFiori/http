@@ -23,7 +23,7 @@ class AuthenticationAnnotationTest extends TestCase {
         $this->assertFalse(SecurityContext::isAuthenticated());
         
         // Set user and roles
-        SecurityContext::setCurrentUser(new TestUser(1, ['ADMIN', 'USER'], ['USER_CREATE', 'USER_READ']));
+        SecurityContext::setCurrentUser(new TestUser(1, ['ADMIN', 'USER'], ['USER_CREATE', 'USER_READ'], true));
         
         $this->assertTrue(SecurityContext::isAuthenticated());
         $this->assertTrue(SecurityContext::hasRole('ADMIN'));
@@ -43,7 +43,7 @@ class AuthenticationAnnotationTest extends TestCase {
         $this->assertFalse($service->checkMethodAuthorization());
         
         // Test private method with auth
-        SecurityContext::setCurrentUser(new TestUser(1));
+        SecurityContext::setCurrentUser(new TestUser(1, [], [], true));
         $this->assertTrue($service->checkMethodAuthorization());
         
         // Test admin method without admin role
@@ -73,7 +73,7 @@ class AuthenticationAnnotationTest extends TestCase {
         $this->assertTrue(SecurityContext::evaluateExpression('permitAll()'));
         
         // Test with authentication and roles
-        SecurityContext::setCurrentUser(new TestUser(1, ['ADMIN'], ['USER_CREATE']));
+        SecurityContext::setCurrentUser(new TestUser(1, ['ADMIN'], ['USER_CREATE'], true));
         
         $this->assertTrue(SecurityContext::evaluateExpression("hasRole('ADMIN')"));
         $this->assertFalse(SecurityContext::evaluateExpression("hasRole('GUEST')"));
