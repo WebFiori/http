@@ -27,6 +27,7 @@ class MulNubmersService extends WebService {
         if ($this->getParamVal('first-number') < 0) {
             return false;
         }
+        return true;
     }
 
     public function processGet() {
