@@ -481,6 +481,13 @@ class WebServicesManager implements JsonI {
         if ($this->isContentTypeSupported()) {
             if ($this->_checkAction()) {
                 $actionObj = $this->getServiceByName($this->getCalledServiceName());
+                
+                // Configure parameters for ResponseBody services before getting them
+                if ($this->serviceHasResponseBodyMethods($actionObj)) {
+                    $this->configureServiceParameters($actionObj);
+                }
+                
+                $params = $actionObj->getParameters();
                 $params = $actionObj->getParameters();
                 $this->filter->clearParametersDef();
                 $this->filter->clearInputs();
@@ -1037,7 +1044,16 @@ class WebServicesManager implements JsonI {
         return $retVal;
     }
     private function isAuth(WebService $service) {
+        $isAuth = false;
+
         if ($service->isAuthRequired()) {
+            // Check if method has authorization annotations
+            if ($service->hasMethodAuthorizationAnnotations()) {
+                // Use annotation-based authorization
+                return $service->checkMethodAuthorization();
+            }
+            
+            // Fall back to legacy HTTP-method-specific authorization
             $isAuthCheck = 'isAuthorized'.$this->getRequest()->getMethod();
 
             if (!method_exists($service, $isAuthCheck)) {
@@ -1050,6 +1066,14 @@ class WebServicesManager implements JsonI {
         return true;
     }
     private function processService(WebService $service) {
+        // Try auto-processing only if service has ResponseBody methods
+        if ($this->serviceHasResponseBodyMethods($service)) {
+            // Configure parameters for the target method before processing
+            $this->configureServiceParameters($service);
+            $service->processWithAutoHandling();
+            return;
+        }
+        
         $processMethod = 'process'.$this->getRequest()->getMethod();
 
         if (!method_exists($service, $processMethod)) {
@@ -1058,7 +1082,35 @@ class WebServicesManager implements JsonI {
             $service->$processMethod();
         }
     }
-
+    /**
+     * Check if service has any methods with ResponseBody annotation.
+     */
+    private function serviceHasResponseBodyMethods(WebService $service): bool {
+        $reflection = new \ReflectionClass($service);
+        
+        foreach ($reflection->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
+            $attributes = $method->getAttributes(\WebFiori\Http\Annotations\ResponseBody::class);
+            if (!empty($attributes)) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+    
+    /**
+     * Configure parameters for the target method of a service.
+     */
+    private function configureServiceParameters(WebService $service): void {
+        if (method_exists($service, 'getTargetMethod')) {
+            $targetMethod = $service->getTargetMethod();
+            if ($targetMethod && method_exists($service, 'configureParametersForMethod')) {
+                $reflection = new \ReflectionMethod($service, 'configureParametersForMethod');
+                $reflection->setAccessible(true);
+                $reflection->invoke($service, $targetMethod);
+            }
+        }
+    }
     private function setOutputStreamHelper($trimmed, $mode) : bool {
         $tempStream = fopen($trimmed, $mode);
 
