@@ -35,11 +35,11 @@ class APITestCase extends TestCase {
      * 
      * @var array
      */
-    private $backupGlobals;
+    private $globalsBackup;
     
     protected function setUp(): void {
         parent::setUp();
-        $this->backupGlobals = [
+        $this->globalsBackup = [
             'GET' => $_GET,
             'POST' => $_POST,
             'FILES' => $_FILES,
@@ -48,10 +48,10 @@ class APITestCase extends TestCase {
     }
     
     protected function tearDown(): void {
-        $_GET = $this->backupGlobals['GET'];
-        $_POST = $this->backupGlobals['POST'];
-        $_FILES = $this->backupGlobals['FILES'];
-        $_SERVER = $this->backupGlobals['SERVER'];
+        $_GET = $this->globalsBackup['GET'];
+        $_POST = $this->globalsBackup['POST'];
+        $_FILES = $this->globalsBackup['FILES'];
+        $_SERVER = $this->globalsBackup['SERVER'];
         SecurityContext::clear();
         parent::tearDown();
     }
@@ -99,7 +99,7 @@ class APITestCase extends TestCase {
             $_FILES[$fileIdx]['error'] = [];
         }
         $info = $this->extractPathAndName($filePath);
-        $path = $info['path'].DS.$info['name'];
+        $path = $info['path'].DIRECTORY_SEPARATOR.$info['name'];
 
         $_FILES[$fileIdx]['name'][] = $info['name'];
         $_FILES[$fileIdx]['type'][] = mime_content_type($path);
