@@ -979,11 +979,11 @@ class WebServicesManager implements JsonI {
 
         if ($reqMeth == RequestMethod::GET || 
             $reqMeth == RequestMethod::DELETE || 
-            ($reqMeth == RequestMethod::PUT && $contentType != 'application/json') || 
-            $reqMeth == RequestMethod::HEAD || 
-            $reqMeth == RequestMethod::PATCH) {
+            $reqMeth == RequestMethod::HEAD) {
             $this->filter->filterGET();
-        } else if ($reqMeth == RequestMethod::POST || ($reqMeth == RequestMethod::PUT && $contentType == 'application/json')) {
+        } else if ($reqMeth == RequestMethod::POST || 
+                   $reqMeth == RequestMethod::PUT || 
+                   $reqMeth == RequestMethod::PATCH) {
             $this->filter->filterPOST();
         }
     }
@@ -1034,14 +1034,91 @@ class WebServicesManager implements JsonI {
                $reqMeth == RequestMethod::TRACE || 
                $reqMeth == RequestMethod::OPTIONS) && isset($_GET[$serviceNameIndex])) {
                 $retVal = filter_var($_GET[$serviceNameIndex]);
-            } else if (($reqMeth == RequestMethod::POST || 
-                    $reqMeth == RequestMethod::PUT || 
-                    $reqMeth == RequestMethod::PATCH) && isset($_POST[$serviceNameIndex])) {
+            } else if ($reqMeth == RequestMethod::POST && isset($_POST[$serviceNameIndex])) {
                 $retVal = filter_var($_POST[$serviceNameIndex]);
+            } else if ($reqMeth == RequestMethod::PUT || $reqMeth == RequestMethod::PATCH) {
+                $this->populatePutData($contentType);
+                if (isset($_POST[$serviceNameIndex])) {
+                    $retVal = filter_var($_POST[$serviceNameIndex]);
+                }
             }
         }
 
         return $retVal;
+    }
+    private function populatePutData(string $contentType) {
+
+        $contentType = $_SERVER['CONTENT_TYPE'] ?? '';
+        $input = file_get_contents('php://input');
+
+        if (empty($input)) {
+            return;
+        }
+
+        // Handle application/x-www-form-urlencoded
+        if (strpos($contentType, 'application/x-www-form-urlencoded') === 0) {
+            parse_str($input, $_POST);
+            return;
+        }
+
+        // Handle multipart/form-data
+        if (strpos($contentType, 'multipart/form-data') === 0) {
+            // Extract boundary from content type
+            preg_match('/boundary=(.+)$/', $contentType, $matches);
+            if (!isset($matches[1])) {
+                return;
+            }
+
+            $boundary = '--' . $matches[1];
+            $parts = explode($boundary, $input);
+
+            foreach ($parts as $part) {
+                if (trim($part) === '' || trim($part) === '--') {
+                    continue;
+                }
+
+                // Split headers and content
+                $sections = explode("\r\n\r\n", $part, 2);
+                if (count($sections) !== 2) {
+                    continue;
+                }
+
+                $headers = $sections[0];
+                $content = rtrim($sections[1], "\r\n");
+
+                // Parse Content-Disposition header
+                if (preg_match('/name="([^"]+)"/', $headers, $nameMatch)) {
+                    $fieldName = $nameMatch[1];
+
+                    // Check if it's a file upload
+                    if (preg_match('/filename="([^"]*)"/', $headers, $fileMatch)) {
+                        // Handle file upload
+                        $filename = $fileMatch[1];
+
+                        // Extract content type if present
+                        $fileType = 'application/octet-stream';
+                        if (preg_match('/Content-Type:\s*(.+)/i', $headers, $typeMatch)) {
+                            $fileType = trim($typeMatch[1]);
+                        }
+
+                        // Create temporary file
+                        $tmpFile = tempnam(sys_get_temp_dir(), 'put_upload_');
+                        file_put_contents($tmpFile, $content);
+
+                        $_FILES[$fieldName] = [
+                            'name' => $filename,
+                            'type' => $fileType,
+                            'tmp_name' => $tmpFile,
+                            'error' => UPLOAD_ERR_OK,
+                            'size' => strlen($content)
+                        ];
+                    } else {
+                        // Regular form field
+                        $_POST[$fieldName] = $content;
+                    }
+                }
+            }
+        }
     }
     private function isAuth(WebService $service) {
         $isAuth = false;
