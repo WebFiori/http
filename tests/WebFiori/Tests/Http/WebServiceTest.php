@@ -303,4 +303,114 @@ class WebServiceTest extends TestCase {
         $this->assertEquals('{"post":{"responses":{"201":{"description":"User created successfully"}}},'
                 .'"put":{"responses":{"200":{"description":"User updated successfully"}}}}',$action.'');
     }
+    /**
+     * @test
+     */
+    public function testDuplicateGetMappingThrowsException() {
+        $this->expectException(\WebFiori\Http\Exceptions\DuplicateMappingException::class);
+        $this->expectExceptionMessage('HTTP method GET is mapped to multiple methods: getUsers, getUsersAgain');
+        
+        new class extends \WebFiori\Http\WebService {
+            #[\WebFiori\Http\Annotations\GetMapping]
+            public function getUsers() {}
+            
+            #[\WebFiori\Http\Annotations\GetMapping]
+            public function getUsersAgain() {}
+            
+            public function isAuthorized(): bool { return true; }
+            public function processRequest() {}
+        };
+    }
+
+    /**
+     * @test
+     */
+    public function testDuplicatePostMappingThrowsException() {
+        $this->expectException(\WebFiori\Http\Exceptions\DuplicateMappingException::class);
+        $this->expectExceptionMessage('HTTP method POST is mapped to multiple methods: createUser, addUser');
+        
+        new class extends \WebFiori\Http\WebService {
+            #[\WebFiori\Http\Annotations\PostMapping]
+            public function createUser() {}
+            
+            #[\WebFiori\Http\Annotations\PostMapping]
+            public function addUser() {}
+            
+            public function isAuthorized(): bool { return true; }
+            public function processRequest() {}
+        };
+    }
+
+    /**
+     * @test
+     */
+    public function testDuplicateMixedMappingsThrowsException() {
+        $this->expectException(\WebFiori\Http\Exceptions\DuplicateMappingException::class);
+        $this->expectExceptionMessage('HTTP method PUT is mapped to multiple methods: updateUser, modifyUser');
+        
+        new class extends \WebFiori\Http\WebService {
+            #[\WebFiori\Http\Annotations\GetMapping]
+            public function getUser() {}
+            
+            #[\WebFiori\Http\Annotations\PutMapping]
+            public function updateUser() {}
+            
+            #[\WebFiori\Http\Annotations\PutMapping]
+            public function modifyUser() {}
+            
+            public function isAuthorized(): bool { return true; }
+            public function processRequest() {}
+        };
+    }
+
+    /**
+     * @test
+     */
+    public function testMultipleDuplicateGetMappingThrowsException() {
+        $this->expectException(\WebFiori\Http\Exceptions\DuplicateMappingException::class);
+        $this->expectExceptionMessage('HTTP method GET is mapped to multiple methods: getUsers, getUsersAgain, fetchUsers');
+        
+        new class extends \WebFiori\Http\WebService {
+            #[\WebFiori\Http\Annotations\GetMapping]
+            public function getUsers() {}
+            
+            #[\WebFiori\Http\Annotations\GetMapping]
+            public function getUsersAgain() {}
+            
+            #[\WebFiori\Http\Annotations\GetMapping]
+            public function fetchUsers() {}
+            
+            public function isAuthorized(): bool { return true; }
+            public function processRequest() {}
+        };
+    }
+
+    /**
+     * @test
+     */
+    public function testNoDuplicateMappingsDoesNotThrowException() {
+        $service = new class extends \WebFiori\Http\WebService {
+            #[\WebFiori\Http\Annotations\GetMapping]
+            public function getUser() {}
+            
+            #[\WebFiori\Http\Annotations\PostMapping]
+            public function createUser() {}
+            
+            #[\WebFiori\Http\Annotations\PutMapping]
+            public function updateUser() {}
+            
+            #[\WebFiori\Http\Annotations\DeleteMapping]
+            public function deleteUser() {}
+            
+            public function isAuthorized(): bool { return true; }
+            public function processRequest() {}
+        };
+        
+        $methods = $service->getRequestMethods();
+        $this->assertContains('GET', $methods);
+        $this->assertContains('POST', $methods);
+        $this->assertContains('PUT', $methods);
+        $this->assertContains('DELETE', $methods);
+        $this->assertCount(4, $methods);
+    }
 }

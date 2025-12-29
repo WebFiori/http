@@ -474,7 +474,7 @@ class WebService implements JsonI {
      */
     private function configureMethodMappings(): void {
         $reflection = new \ReflectionClass($this);
-        $methods = [];
+        $httpMethodToMethods = [];
         
         foreach ($reflection->getMethods() as $method) {
             $methodMappings = [
@@ -487,14 +487,29 @@ class WebService implements JsonI {
             foreach ($methodMappings as $annotationClass => $httpMethod) {
                 $attributes = $method->getAttributes($annotationClass);
                 if (!empty($attributes)) {
-                    $methods[] = $httpMethod;
-                    // Don't configure parameters here - do it dynamically per request
+                    if (!isset($httpMethodToMethods[$httpMethod])) {
+                        $httpMethodToMethods[$httpMethod] = [];
+                    }
+                    $httpMethodToMethods[$httpMethod][] = $method->getName();
                 }
             }
         }
         
-        if (!empty($methods)) {
-            $this->setRequestMethods(array_unique($methods));
+        // Check for duplicates only if getCurrentProcessingMethod is not overridden
+        $hasCustomRouting = $reflection->getMethod('getCurrentProcessingMethod')->getDeclaringClass()->getName() !== self::class;
+        
+        if (!$hasCustomRouting) {
+            foreach ($httpMethodToMethods as $httpMethod => $methods) {
+                if (count($methods) > 1) {
+                    throw new Exceptions\DuplicateMappingException(
+                        "HTTP method $httpMethod is mapped to multiple methods: " . implode(', ', $methods)
+                    );
+                }
+            }
+        }
+        
+        if (!empty($httpMethodToMethods)) {
+            $this->setRequestMethods(array_keys($httpMethodToMethods));
         }
     }
     

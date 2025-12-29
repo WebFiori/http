@@ -65,7 +65,7 @@ class ResponseBodyTest extends TestCase {
         
         $result = $service->getObjectData();
         $this->assertIsObject($result);
-        $this->assertTrue(property_exists($result, 'message', "The object should have the attribute 'message'."));
+        $this->assertTrue(property_exists($result, 'message'), "The object should have the attribute 'message'.");
     }
     
     public function testMethodWithoutResponseBody() {
