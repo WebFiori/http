@@ -1,5 +1,18 @@
 # Changelog
 
+## [4.0.0](https://github.com/WebFiori/http/compare/v3.6.1...v4.0.0) (2025-08-06)
+
+
+### Miscellaneous Chores
+
+* Copy of Folders ([03de388](https://github.com/WebFiori/http/commit/03de3889af334ad1f085cce30be8c41a51a64284))
+* release v4.0.0 ([956c14c](https://github.com/WebFiori/http/commit/956c14c7d89f5d6ce7090319720d5d7c5767c2c6))
+* Rename Folders ([a7249d3](https://github.com/WebFiori/http/commit/a7249d3260e0b9c9a0f517a9dfe5f3eba3cd8024))
+* Rename of File ([a6cce14](https://github.com/WebFiori/http/commit/a6cce14b1cb6f4b676102a9ebd853ce597683440))
+* Rename of Folders ([ad28047](https://github.com/WebFiori/http/commit/ad28047a7035049ae1295a7691ea6fcb7613c34e))
+* Renamed Folders ([2ea43ec](https://github.com/WebFiori/http/commit/2ea43ec6088edc3fd6243f8d8a51be8e071ca16b))
+* Updated Code Sample ([c8420e7](https://github.com/WebFiori/http/commit/c8420e722ced6e6ae30ae7d5214d19f1512173f8))
+
 ## [3.6.1](https://github.com/WebFiori/http/compare/v3.6.0...v3.6.1) (2025-08-04)
 
 
