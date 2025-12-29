@@ -16,7 +16,7 @@ class WebServiceTest extends TestCase {
     public function testGetAuthHeaders00() {
         $service = new TestServiceObj('Hello');
         $this->assertNull($service->getAuthHeader());
-        $this->assertNull($service->isAuthorized());
+        $this->assertTrue($service->isAuthorized());
     }
     /**
      * 
@@ -108,7 +108,8 @@ class WebServiceTest extends TestCase {
             'password' => [
                 ParamOption::OPTIONAL => true,
                 ParamOption::DEFAULT => 1234,
-                ParamOption::TYPE => 'integer'
+                ParamOption::TYPE => 'integer',
+                ParamOption::METHODS => 'get'
             ]
         ]);
         $this->assertEquals(2,count($action->getParameters()));
@@ -119,6 +120,7 @@ class WebServiceTest extends TestCase {
         $this->assertEquals('integer', $param2->getType());
         $this->assertTrue($param2->isOptional());
         $this->assertEquals(1234, $param2->getDefault());
+        $this->assertEquals(['GET'], $param2->getMethods());
     }
     /**
      * @test
@@ -252,79 +254,27 @@ class WebServiceTest extends TestCase {
      */
     public function testToJson00() {
         $action = new TestServiceObj('login');
-        $this->assertEquals(''
-                .'{"name":"login",'
-                .'"since":"1.0.0",'
-                .'"description":"",'
-                .'"request-methods":[],'
-                .'"parameters":[],'
-                .'"responses":[]}',$action->toJSON().'');
+        $this->assertEquals('{}',$action->toJSON().'');
         $action->setSince('1.0.1');
         $action->setDescription('Allow the user to login to the system.');
-        $this->assertEquals(''
-                .'{"name":"login",'
-                .'"since":"1.0.1",'
-                .'"description":"Allow the user to login to the system.",'
-                .'"request-methods":[],'
-                .'"parameters":[],'
-                .'"responses":[]}',$action->toJSON().'');
+        $this->assertEquals('{}',$action->toJSON().'');
         $action->setRequestMethods([RequestMethod::GET, RequestMethod::POST, RequestMethod::PUT]);
 
         $this->assertEquals(''
-                .'{"name":"login",'
-                .'"since":"1.0.1",'
-                .'"description":"Allow the user to login to the system.",'
-                .'"request-methods":["GET","POST","PUT"],'
-                .'"parameters":[],'
-                .'"responses":[]}',$action->toJSON().'');
+                .'{"get":{"responses":{"200":{"description":"Successful operation"}}},'
+                .'"post":{"responses":{"200":{"description":"Successful operation"}}},'
+                .'"put":{"responses":{"200":{"description":"Successful operation"}}}}',$action->toJSON().'');
         $action->removeRequestMethod('put');
         $action->addParameter(new RequestParameter('username'));
         $this->assertEquals(''
-                .'{"name":"login",'
-                .'"since":"1.0.1",'
-                .'"description":"Allow the user to login to the system.",'
-                .'"request-methods":["GET","POST"],'
-                .'"parameters":['
-                .'{"name":"username",'
-                .'"type":"string",'
-                .'"description":null,'
-                .'"is-optional":false,'
-                .'"default-value":null,'
-                .'"min-val":null,'
-                .'"max-val":null,'
-                .'"min-length":null,'
-                .'"max-length":null}'
-                .'],'
-                .'"responses":[]}',$action->toJSON().'');
+                .'{"get":{"responses":{"200":{"description":"Successful operation"}}},'
+                .'"post":{"responses":{"200":{"description":"Successful operation"}}}}',$action->toJSON().'');
         $action->addParameter(new RequestParameter('password', 'integer'));
         $action->getParameterByName('password')->setDescription('The password of the user.');
         $action->getParameterByName('password')->setMinValue(1000000);
         $this->assertEquals(''
-                .'{"name":"login",'
-                .'"since":"1.0.1",'
-                .'"description":"Allow the user to login to the system.",'
-                .'"request-methods":["GET","POST"],'
-                .'"parameters":['
-                .'{"name":"username",'
-                .'"type":"string",'
-                .'"description":null,'
-                .'"is-optional":false,'
-                .'"default-value":null,'
-                .'"min-val":null,'
-                .'"max-val":null,'
-                .'"min-length":null,'
-                .'"max-length":null},'
-                .'{"name":"password",'
-                .'"type":"integer",'
-                .'"description":"The password of the user.",'
-                .'"is-optional":false,'
-                .'"default-value":null,'
-                .'"min-val":1000000,'
-                .'"max-val":'.PHP_INT_MAX.','
-                .'"min-length":null,'
-                .'"max-length":null}'
-                .'],'
-                .'"responses":[]}',$action->toJSON().'');
+                .'{"get":{"responses":{"200":{"description":"Successful operation"}}},'
+                .'"post":{"responses":{"200":{"description":"Successful operation"}}}}',$action->toJSON().'');
     }
     /**
      * @test
@@ -335,26 +285,7 @@ class WebServiceTest extends TestCase {
         $action->addParameter(new RequestParameter('user-id', 'integer'));
         $action->getParameterByName('user-id')->setDescription('The ID of the user.');
         $action->setDescription('Returns a JSON string which holds user profile info.');
-        $this->assertEquals("APIAction[\n"
-                ."    Name => 'get-user',\n"
-                ."    Description => 'Returns a JSON string which holds user profile info.',\n"
-                ."    Since => '1.0.0',\n"
-                ."    Request Methods => [\n"
-                ."        GET\n"
-                ."    ],\n"
-                ."    Parameters => [\n"
-                ."        user-id => [\n"
-                ."            Type => 'integer',\n"
-                ."            Description => 'The ID of the user.',\n"
-                ."            Is Optional => 'false',\n"
-                ."            Default => 'null',\n"
-                ."            Minimum Value => '".~PHP_INT_MAX."',\n"
-                ."            Maximum Value => '".PHP_INT_MAX."'\n"
-                ."        ]\n"
-                ."    ],\n"
-                ."    Responses Descriptions => [\n"
-                ."    ]\n"
-                ."]\n",$action.'');
+        $this->assertEquals('{"get":{"responses":{"200":{"description":"Successful operation"}}}}',$action.'');
     }
     /**
      * @test
@@ -367,38 +298,119 @@ class WebServiceTest extends TestCase {
         $action->getParameterByName('username')->setDescription('The username of the user.');
         $action->getParameterByName('email')->setDescription('The email address of the user.');
         $action->setDescription('Adds new user profile to the system.');
-        $action->addResponseDescription('If the user is added, a 201 HTTP response is send with a JSON string that contains user ID.');
-        $action->addResponseDescription('If a user is already exist wich has the given email, a 404 code is sent back.');
-        $this->assertEquals("APIAction[\n"
-                ."    Name => 'add-user',\n"
-                ."    Description => 'Adds new user profile to the system.',\n"
-                ."    Since => '1.0.0',\n"
-                ."    Request Methods => [\n"
-                ."        POST,\n"
-                ."        PUT\n"
-                ."    ],\n"
-                ."    Parameters => [\n"
-                ."        username => [\n"
-                ."            Type => 'string',\n"
-                ."            Description => 'The username of the user.',\n"
-                ."            Is Optional => 'false',\n"
-                ."            Default => 'null',\n"
-                ."            Minimum Value => 'null',\n"
-                ."            Maximum Value => 'null'\n"
-                ."        ],\n"
-                ."        email => [\n"
-                ."            Type => 'string',\n"
-                ."            Description => 'The email address of the user.',\n"
-                ."            Is Optional => 'false',\n"
-                ."            Default => 'null',\n"
-                ."            Minimum Value => 'null',\n"
-                ."            Maximum Value => 'null'\n"
-                ."        ]\n"
-                ."    ],\n"
-                ."    Responses Descriptions => [\n"
-                ."        Response #0 => 'If the user is added, a 201 HTTP response is send with a JSON string that contains user ID.',\n"
-                ."        Response #1 => 'If a user is already exist wich has the given email, a 404 code is sent back.'\n"
-                ."    ]\n"
-                ."]\n",$action.'');
+        $action->addResponse(RequestMethod::POST, '201', 'User created successfully');
+        $action->addResponse(RequestMethod::PUT, '200', 'User updated successfully');
+        $this->assertEquals('{"post":{"responses":{"201":{"description":"User created successfully"}}},'
+                .'"put":{"responses":{"200":{"description":"User updated successfully"}}}}',$action.'');
+    }
+    /**
+     * @test
+     */
+    public function testDuplicateGetMappingThrowsException() {
+        $this->expectException(\WebFiori\Http\Exceptions\DuplicateMappingException::class);
+        $this->expectExceptionMessage('HTTP method GET is mapped to multiple methods: getUsers, getUsersAgain');
+        
+        new class extends \WebFiori\Http\WebService {
+            #[\WebFiori\Http\Annotations\GetMapping]
+            public function getUsers() {}
+            
+            #[\WebFiori\Http\Annotations\GetMapping]
+            public function getUsersAgain() {}
+            
+            public function isAuthorized(): bool { return true; }
+            public function processRequest() {}
+        };
+    }
+
+    /**
+     * @test
+     */
+    public function testDuplicatePostMappingThrowsException() {
+        $this->expectException(\WebFiori\Http\Exceptions\DuplicateMappingException::class);
+        $this->expectExceptionMessage('HTTP method POST is mapped to multiple methods: createUser, addUser');
+        
+        new class extends \WebFiori\Http\WebService {
+            #[\WebFiori\Http\Annotations\PostMapping]
+            public function createUser() {}
+            
+            #[\WebFiori\Http\Annotations\PostMapping]
+            public function addUser() {}
+            
+            public function isAuthorized(): bool { return true; }
+            public function processRequest() {}
+        };
+    }
+
+    /**
+     * @test
+     */
+    public function testDuplicateMixedMappingsThrowsException() {
+        $this->expectException(\WebFiori\Http\Exceptions\DuplicateMappingException::class);
+        $this->expectExceptionMessage('HTTP method PUT is mapped to multiple methods: updateUser, modifyUser');
+        
+        new class extends \WebFiori\Http\WebService {
+            #[\WebFiori\Http\Annotations\GetMapping]
+            public function getUser() {}
+            
+            #[\WebFiori\Http\Annotations\PutMapping]
+            public function updateUser() {}
+            
+            #[\WebFiori\Http\Annotations\PutMapping]
+            public function modifyUser() {}
+            
+            public function isAuthorized(): bool { return true; }
+            public function processRequest() {}
+        };
+    }
+
+    /**
+     * @test
+     */
+    public function testMultipleDuplicateGetMappingThrowsException() {
+        $this->expectException(\WebFiori\Http\Exceptions\DuplicateMappingException::class);
+        $this->expectExceptionMessage('HTTP method GET is mapped to multiple methods: getUsers, getUsersAgain, fetchUsers');
+        
+        new class extends \WebFiori\Http\WebService {
+            #[\WebFiori\Http\Annotations\GetMapping]
+            public function getUsers() {}
+            
+            #[\WebFiori\Http\Annotations\GetMapping]
+            public function getUsersAgain() {}
+            
+            #[\WebFiori\Http\Annotations\GetMapping]
+            public function fetchUsers() {}
+            
+            public function isAuthorized(): bool { return true; }
+            public function processRequest() {}
+        };
+    }
+
+    /**
+     * @test
+     */
+    public function testNoDuplicateMappingsDoesNotThrowException() {
+        $service = new class extends \WebFiori\Http\WebService {
+            #[\WebFiori\Http\Annotations\GetMapping]
+            public function getUser() {}
+            
+            #[\WebFiori\Http\Annotations\PostMapping]
+            public function createUser() {}
+            
+            #[\WebFiori\Http\Annotations\PutMapping]
+            public function updateUser() {}
+            
+            #[\WebFiori\Http\Annotations\DeleteMapping]
+            public function deleteUser() {}
+            
+            public function isAuthorized(): bool { return true; }
+            public function processRequest() {}
+        };
+        
+        $methods = $service->getRequestMethods();
+        $this->assertContains('GET', $methods);
+        $this->assertContains('POST', $methods);
+        $this->assertContains('PUT', $methods);
+        $this->assertContains('DELETE', $methods);
+        $this->assertCount(4, $methods);
     }
 }

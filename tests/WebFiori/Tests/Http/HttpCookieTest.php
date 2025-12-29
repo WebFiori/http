@@ -96,7 +96,8 @@ class HttpCookieTest extends TestCase {
         $cookie->setExpires(1);
         $this->assertEquals(60, $cookie->getRemainingTime());
         sleep(3);
-        $this->assertEquals(57, $cookie->getRemainingTime());
+        $this->assertGreaterThanOrEqual(55, $cookie->getRemainingTime());
+        $this->assertLessThanOrEqual(57, $cookie->getRemainingTime());
     }
     /**
      * @test

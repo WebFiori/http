@@ -23,13 +23,38 @@ use WebFiori\Json\JsonException;
  */
 class APITestCase extends TestCase {
     const NL = "\r\n";
-    const DEFAULT_OUTPUT_STREAM = __DIR__.DIRECTORY_SEPARATOR.'outputStream.txt';
+    const DEFAULT_OUTPUT_STREAM = __DIR__.DIRECTORY_SEPARATOR.'output-stream.txt';
     /**
      * The path to the output stream file.
      * 
      * @var string
      */
     private $outputStreamPath;
+    /**
+     * Backup of global variables.
+     * 
+     * @var array
+     */
+    private $globalsBackup;
+    
+    protected function setUp(): void {
+        parent::setUp();
+        $this->globalsBackup = [
+            'GET' => $_GET,
+            'POST' => $_POST,
+            'FILES' => $_FILES,
+            'SERVER' => $_SERVER
+        ];
+    }
+    
+    protected function tearDown(): void {
+        $_GET = $this->globalsBackup['GET'];
+        $_POST = $this->globalsBackup['POST'];
+        $_FILES = $this->globalsBackup['FILES'];
+        $_SERVER = $this->globalsBackup['SERVER'];
+        SecurityContext::clear();
+        parent::tearDown();
+    }
     /**
      * Sets the path to the file which is used to store API output temporarily.
      * 
@@ -74,7 +99,7 @@ class APITestCase extends TestCase {
             $_FILES[$fileIdx]['error'] = [];
         }
         $info = $this->extractPathAndName($filePath);
-        $path = $info['path'].DS.$info['name'];
+        $path = $info['path'].DIRECTORY_SEPARATOR.$info['name'];
 
         $_FILES[$fileIdx]['name'][] = $info['name'];
         $_FILES[$fileIdx]['type'][] = mime_content_type($path);
@@ -102,47 +127,109 @@ class APITestCase extends TestCase {
      * @param array $httpHeaders An optional associative array that can be used
      * to mimic HTTP request headers. The keys of the array are names of headers
      * and the value of each key represents the value of the header.
+     * 
+     * @param UserInterface|null $user Optional user to authenticate the request with.
+     * to mimic HTTP request headers. The keys of the array are names of headers
+     * and the value of each key represents the value of the header.
      *  
      * @return string The method will return the output of the endpoint.
      */
-    public function callEndpoint(WebServicesManager $manager, string $requestMethod, string $apiEndpointName, array $parameters = [], array $httpHeaders = []) : string {
-        $manager->setOutputStream(fopen($this->getOutputFile(),'w'));
+    public function callEndpoint(WebServicesManager $manager, string $requestMethod, string $apiEndpointName, array $parameters = [], array $httpHeaders = [], ?UserInterface $user = null) : string {
         $method = strtoupper($requestMethod);
-        putenv('REQUEST_METHOD='.$method);
+        $serviceName = $this->resolveServiceName($apiEndpointName);
         
-        if (class_exists($apiEndpointName)) {
-            $service = new $apiEndpointName();
+        $this->setupRequest($method, $serviceName, $parameters, $httpHeaders);
+        
+        $manager->setOutputStream(fopen($this->getOutputFile(), 'w'));
+        $manager->setRequest(Request::createFromGlobals());
+        SecurityContext::setCurrentUser($user);
+        $manager->process();
+        
+        $result = $manager->readOutputStream();
+        
+        if (file_exists($this->getOutputFile())) {
+            unlink($this->getOutputFile());
+        }
+        
+        return $this->formatOutput($result);
+    }
+    
+    /**
+     * Resolves service name from class name or returns the name as-is.
+     * 
+     * @param string $nameOrClass Service name or class name
+     * 
+     * @return string The resolved service name
+     */
+    private function resolveServiceName(string $nameOrClass): string {
+        if (class_exists($nameOrClass)) {
+            $reflection = new \ReflectionClass($nameOrClass);
             
-            if ($service instanceof AbstractWebService) {
-                $apiEndpointName = $service->getName();
+            if ($reflection->isSubclassOf(WebService::class)) {
+                $constructor = $reflection->getConstructor();
+                
+                if ($constructor && $constructor->getNumberOfRequiredParameters() === 0) {
+                    $service = $reflection->newInstance();
+                    return $service->getName();
+                }
             }
         }
-        if ($method == RequestMethod::POST || $method == RequestMethod::PUT || $method == RequestMethod::PATCH) {
-            foreach ($parameters as $key => $val) {
-                $_POST[$key] = $this->parseVal($val);
-            }
-            $_POST['service'] = $apiEndpointName;
-            $_SERVER['CONTENT_TYPE'] = 'multipart/form-data';
-            $this->unset($_POST, $parameters, $manager, $httpHeaders);
+        
+        return $nameOrClass;
+    }
+    
+    /**
+     * Sets up the request environment.
+     * 
+     * @param string $method HTTP method
+     * @param string $serviceName Service name
+     * @param array $parameters Request parameters
+     * @param array $httpHeaders An optional associative array that can be used
+     * to mimic HTTP request headers. The keys of the array are names of headers
+     * and the value of each key represents the value of the header.
+     * 
+     * @param UserInterface|null $user Optional user to authenticate the request with.
+     */
+    private function setupRequest(string $method, string $serviceName, array $parameters, array $httpHeaders) {
+        putenv('REQUEST_METHOD=' . $method);
+        
+        // Normalize header names to lowercase for case-insensitive comparison
+        $normalizedHeaders = [];
+        foreach ($httpHeaders as $name => $value) {
+            $normalizedHeaders[strtolower($name)] = $value;
+        }
+        
+        if (in_array($method, [RequestMethod::POST, RequestMethod::PUT, RequestMethod::PATCH])) {
+            $_POST = $parameters;
+            $_POST['service'] = $serviceName;
+            $_SERVER['CONTENT_TYPE'] = $normalizedHeaders['content-type'] ?? 'application/x-www-form-urlencoded';
         } else {
-            foreach ($parameters as $key => $val) {
-                $_GET[$key] = $this->parseVal($val);
+            $_GET = $parameters;
+            $_GET['service'] = $serviceName;
+        }
+        
+        foreach ($normalizedHeaders as $name => $value) {
+            if ($name !== 'content-type') {
+                $_SERVER['HTTP_' . strtoupper(str_replace('-', '_', $name))] = $value;
             }
-            $_GET['service'] = $apiEndpointName;
-            $this->unset($_GET, $parameters, $manager, $httpHeaders);
         }
-
-        $retVal = $manager->readOutputStream();
-        unlink($this->getOutputFile());
-        
+    }
+    
+    /**
+     * Formats the output, attempting to pretty-print JSON if possible.
+     * 
+     * @param string $output Raw output
+     * 
+     * @return string Formatted output
+     */
+    private function formatOutput(string $output): string {
         try {
-            $json = Json::decode($retVal);
+            $json = Json::decode($output);
             $json->setIsFormatted(true);
-            return $json.'';
+            return $json . '';
         } catch (JsonException $ex) {
-            return $retVal;
+            return $output;
         }
-        
     }
     /**
      * Creates a formatted string from calling an API.
@@ -166,26 +253,6 @@ class APITestCase extends TestCase {
             echo ". '$expl[$x]]'".$nl;
         }
     }
-    private function parseVal($val) {
-        $type = gettype($val);
-        
-        if ($type == 'array') {
-            $array = [];
-            
-            foreach ($val as $arrVal) {
-                if (gettype($val) == 'string') {
-                    $array[] = "'".$arrVal."'";
-                } else {
-                    $array[] = $arrVal;
-                }
-            }
-            
-            return implode(',', $array);
-        } else if ($type == 'boolean') {
-            return $type === true ? 'y' : 'n';
-        }
-        return $val;
-    }
     /**
      * Sends a DELETE request to specific endpoint.
      * 
@@ -200,11 +267,15 @@ class APITestCase extends TestCase {
      * to mimic HTTP request headers. The keys of the array are names of headers
      * and the value of each key represents the value of the header.
      * 
+     * @param UserInterface|null $user Optional user to authenticate the request with.
+     * to mimic HTTP request headers. The keys of the array are names of headers
+     * and the value of each key represents the value of the header.
+     * 
      * @return string The method will return the output that was produced by
      * the endpoint as string.
      */
-    public function deletRequest(WebServicesManager $manager, string $endpoint, array $parameters = [], array $httpHeaders = []) : string {
-        return $this->callEndpoint($manager, RequestMethod::DELETE, $endpoint, $parameters, $httpHeaders);
+    public function deleteRequest(WebServicesManager $manager, string $endpoint, array $parameters = [], array $httpHeaders = [], ?UserInterface $user = null) : string {
+        return $this->callEndpoint($manager, RequestMethod::DELETE, $endpoint, $parameters, $httpHeaders, $user);
     }
     /**
      * Sends a GET request to specific endpoint.
@@ -219,8 +290,8 @@ class APITestCase extends TestCase {
      * @return string The method will return the output that was produced by
      * the endpoint as string.
      */
-    public function getRequest(WebServicesManager $manager, string $endpoint, array $parameters = [], array $httpHeaders = []) : string {
-        return $this->callEndpoint($manager, RequestMethod::GET, $endpoint, $parameters, $httpHeaders);
+    public function getRequest(WebServicesManager $manager, string $endpoint, array $parameters = [], array $httpHeaders = [], ?UserInterface $user = null) : string {
+        return $this->callEndpoint($manager, RequestMethod::GET, $endpoint, $parameters, $httpHeaders, $user);
     }
     /**
      * Sends a POST request to specific endpoint.
@@ -236,11 +307,15 @@ class APITestCase extends TestCase {
      * to mimic HTTP request headers. The keys of the array are names of headers
      * and the value of each key represents the value of the header.
      * 
+     * @param UserInterface|null $user Optional user to authenticate the request with.
+     * to mimic HTTP request headers. The keys of the array are names of headers
+     * and the value of each key represents the value of the header.
+     * 
      * @return string The method will return the output that was produced by
      * the endpoint as string.
      */
-    public function postRequest(WebServicesManager $manager, string $endpoint, array $parameters = [], array $httpHeaders = []) : string {
-        return $this->callEndpoint($manager, RequestMethod::POST, $endpoint, $parameters, $httpHeaders);
+    public function postRequest(WebServicesManager $manager, string $endpoint, array $parameters = [], array $httpHeaders = [], ?UserInterface $user = null) : string {
+        return $this->callEndpoint($manager, RequestMethod::POST, $endpoint, $parameters, $httpHeaders, $user);
     }
     /**
      * Sends a PUT request to specific endpoint.
@@ -256,11 +331,87 @@ class APITestCase extends TestCase {
      * to mimic HTTP request headers. The keys of the array are names of headers
      * and the value of each key represents the value of the header.
      * 
+     * @param UserInterface|null $user Optional user to authenticate the request with.
+     * to mimic HTTP request headers. The keys of the array are names of headers
+     * and the value of each key represents the value of the header.
+     * 
      * @return string The method will return the output that was produced by
      * the endpoint as string.
      */
-    public function putRequest(WebServicesManager $manager, string $endpoint, array $parameters = [], array $httpHeaders = []) : string {
-        return $this->callEndpoint($manager, RequestMethod::PUT, $endpoint, $parameters, $httpHeaders);
+    public function putRequest(WebServicesManager $manager, string $endpoint, array $parameters = [], array $httpHeaders = [], ?UserInterface $user = null) : string {
+        return $this->callEndpoint($manager, RequestMethod::PUT, $endpoint, $parameters, $httpHeaders, $user);
+    }
+    /**
+     * Sends a PATCH request to specific endpoint.
+     * 
+     * @param WebServicesManager $manager The manager which is used to manage the endpoint.
+     * 
+     * @param string $endpoint The name of the endpoint.
+     * 
+     * @param array $parameters An optional array of request parameters that can be
+     * passed to the endpoint.
+     * 
+     * @param array $httpHeaders An optional associative array that can be used
+     * to mimic HTTP request headers. The keys of the array are names of headers
+     * and the value of each key represents the value of the header.
+     * 
+     * @param UserInterface|null $user Optional user to authenticate the request with.
+     * to mimic HTTP request headers. The keys of the array are names of headers
+     * and the value of each key represents the value of the header.
+     * 
+     * @return string The method will return the output that was produced by
+     * the endpoint as string.
+     */
+    public function patchRequest(WebServicesManager $manager, string $endpoint, array $parameters = [], array $httpHeaders = [], ?UserInterface $user = null) : string {
+        return $this->callEndpoint($manager, RequestMethod::PATCH, $endpoint, $parameters, $httpHeaders, $user);
+    }
+    /**
+     * Sends an OPTIONS request to specific endpoint.
+     * 
+     * @param WebServicesManager $manager The manager which is used to manage the endpoint.
+     * 
+     * @param string $endpoint The name of the endpoint.
+     * 
+     * @param array $parameters An optional array of request parameters that can be
+     * passed to the endpoint.
+     * 
+     * @param array $httpHeaders An optional associative array that can be used
+     * to mimic HTTP request headers. The keys of the array are names of headers
+     * and the value of each key represents the value of the header.
+     * 
+     * @param UserInterface|null $user Optional user to authenticate the request with.
+     * to mimic HTTP request headers. The keys of the array are names of headers
+     * and the value of each key represents the value of the header.
+     * 
+     * @return string The method will return the output that was produced by
+     * the endpoint as string.
+     */
+    public function optionsRequest(WebServicesManager $manager, string $endpoint, array $parameters = [], array $httpHeaders = [], ?UserInterface $user = null) : string {
+        return $this->callEndpoint($manager, RequestMethod::OPTIONS, $endpoint, $parameters, $httpHeaders, $user);
+    }
+    /**
+     * Sends a HEAD request to specific endpoint.
+     * 
+     * @param WebServicesManager $manager The manager which is used to manage the endpoint.
+     * 
+     * @param string $endpoint The name of the endpoint.
+     * 
+     * @param array $parameters An optional array of request parameters that can be
+     * passed to the endpoint.
+     * 
+     * @param array $httpHeaders An optional associative array that can be used
+     * to mimic HTTP request headers. The keys of the array are names of headers
+     * and the value of each key represents the value of the header.
+     * 
+     * @param UserInterface|null $user Optional user to authenticate the request with.
+     * to mimic HTTP request headers. The keys of the array are names of headers
+     * and the value of each key represents the value of the header.
+     * 
+     * @return string The method will return the output that was produced by
+     * the endpoint as string.
+     */
+    public function headRequest(WebServicesManager $manager, string $endpoint, array $parameters = [], array $httpHeaders = [], ?UserInterface $user = null) : string {
+        return $this->callEndpoint($manager, RequestMethod::HEAD, $endpoint, $parameters, $httpHeaders, $user);
     }
     private function extractPathAndName($absPath): array {
         $DS = DIRECTORY_SEPARATOR;
@@ -285,25 +436,5 @@ class APITestCase extends TestCase {
             'name' => $cleanPath,
             'path' => ''
         ];
-    }
-    private function unset(array &$arr, array $params, WebServicesManager $m, array $httpHeaders) {
-        foreach ($httpHeaders as $header => $value) {
-            $trHeader = trim($header.'');
-            $trVal = trim($value.'');
-            if (strlen($trHeader) != 0) {
-                $_SERVER['HTTP_'.strtoupper($trHeader)] = $trVal;
-            }
-        }
-        $m->setRequest(Request::createFromGlobals());
-        $m->process();
-
-        foreach ($params as $key => $val) {
-            unset($arr[$key]);
-        }
-        
-        foreach ($httpHeaders as $header => $value) {
-            $trHeader = trim($header.'');
-            unset($_SERVER['HTTP_'.strtoupper($trHeader)]);
-        }
     }
 }

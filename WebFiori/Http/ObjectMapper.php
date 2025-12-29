@@ -39,12 +39,12 @@ class ObjectMapper {
      * @param string $clazz The name of the class that API request will be mapped
      * to. Usually obtained using the syntax 'Class::class'.
      *
-     * @param AbstractWebService $service The service at which its parameters
+     * @param WebService $service The service at which its parameters
      * will be mapped to the object.
      *
      * @throws Exception
      */
-    public function __construct(string $clazz, AbstractWebService $service) {
+    public function __construct(string $clazz, WebService $service) {
         $this->settersMap = [];
         $this->setClass($clazz);
         $this->extractMethodsNames($service->getInputs());

@@ -96,6 +96,12 @@ class WebServicesManager implements JsonI {
      * 
      */
     private $services;
+    /**
+     * The base path for all services in this manager.
+     * 
+     * @var string
+     */
+    private string $basePath = '';
     private $request;
     /**
      * The response object used to send output.
@@ -147,11 +153,11 @@ class WebServicesManager implements JsonI {
     /**
      * Adds new web service to the set of web services.
      * 
-     * @param AbstractWebService $service The web service that will be added.
+     * @param WebService $service The web service that will be added.
      * 
      * 
      */
-    public function addService(AbstractWebService $service) : WebServicesManager {
+    public function addService(WebService $service) : WebServicesManager {
         return $this->addAction($service);
     }
     /**
@@ -175,7 +181,7 @@ class WebServicesManager implements JsonI {
     public function contentTypeNotSupported(string $cType = '') {
         $j = new Json();
         $j->add('request-content-type', $cType);
-        $this->sendResponse(ResponseMessage::get('415'), 415, AbstractWebService::E, $j);
+        $this->sendResponse(ResponseMessage::get('415'), 415, WebService::E, $j);
     }
     /**
      * Returns the name of the service which is being called.
@@ -202,6 +208,29 @@ class WebServicesManager implements JsonI {
      */
     public function getDescription() {
         return $this->apiDesc;
+    }
+    /**
+     * Sets the base path for all services in this manager.
+     * 
+     * The base path will be prepended to each service name when generating paths.
+     * For example, if base path is "/api/v1" and service name is "user",
+     * the final path will be "/api/v1/user".
+     * 
+     * @param string $basePath The base path (e.g., "/api/v1"). Leading/trailing slashes are handled automatically.
+     * 
+     * @return WebServicesManager Returns self for method chaining.
+     */
+    public function setBasePath(string $basePath): WebServicesManager {
+        $this->basePath = rtrim($basePath, '/');
+        return $this;
+    }
+    /**
+     * Returns the base path for all services.
+     * 
+     * @return string The base path.
+     */
+    public function getBasePath(): string {
+        return $this->basePath;
     }
     /**
      * Returns an associative array or an object of type Json of filtered request inputs.
@@ -281,7 +310,7 @@ class WebServicesManager implements JsonI {
      * 
      * @param string $serviceName The name of the service.
      * 
-     * @return AbstractWebService|null The method will return an object of type 'WebService' 
+     * @return WebService|null The method will return an object of type 'WebService' 
      * if the service is found. If no service was found which has the given name, 
      * The method will return null.
      * 
@@ -342,7 +371,7 @@ class WebServicesManager implements JsonI {
             }
             $i++;
         }
-        $this->sendResponse(ResponseMessage::get('404-1').$val.'.', 404, AbstractWebService::E, new Json([
+        $this->sendResponse(ResponseMessage::get('404-1').$val.'.', 404, WebService::E, new Json([
             'invalid' => $paramsNamesArr
         ]));
     }
@@ -398,7 +427,7 @@ class WebServicesManager implements JsonI {
             }
             $i++;
         }
-        $this->sendResponse(ResponseMessage::get('404-2').$val.'.', 404, AbstractWebService::E, new Json([
+        $this->sendResponse(ResponseMessage::get('404-2').$val.'.', 404, WebService::E, new Json([
             'missing' => $paramsNamesArr
         ]));
     }
@@ -417,7 +446,7 @@ class WebServicesManager implements JsonI {
      * 
      */
     public function missingServiceName() {
-        $this->sendResponse(ResponseMessage::get('404-3'), 404, AbstractWebService::E);
+        $this->sendResponse(ResponseMessage::get('404-3'), 404, WebService::E);
     }
     /**
      * Sends a response message to indicate that a user is not authorized call a 
@@ -434,7 +463,7 @@ class WebServicesManager implements JsonI {
      * 
      */
     public function notAuth() {
-        $this->sendResponse(ResponseMessage::get('401'), 401, AbstractWebService::E);
+        $this->sendResponse(ResponseMessage::get('401'), 401, WebService::E);
     }
 
     /**
@@ -452,20 +481,32 @@ class WebServicesManager implements JsonI {
         if ($this->isContentTypeSupported()) {
             if ($this->_checkAction()) {
                 $actionObj = $this->getServiceByName($this->getCalledServiceName());
+                
+                // Configure parameters for ResponseBody services before getting them
+                if ($this->serviceHasResponseBodyMethods($actionObj)) {
+                    $this->configureServiceParameters($actionObj);
+                }
+                
+                $params = $actionObj->getParameters();
                 $params = $actionObj->getParameters();
                 $this->filter->clearParametersDef();
                 $this->filter->clearInputs();
-
+                $requestMethod = $this->getRequest()->getRequestMethod();
+                
                 foreach ($params as $param) {
-                    $this->filter->addRequestParameter($param);
+                    $paramMethods = $param->getMethods();
+                    
+                    if (count($paramMethods) == 0 || in_array($requestMethod, $paramMethods)) {
+                        $this->filter->addRequestParameter($param);
+                    }
                 }
                 $this->filterInputsHelper();
                 $i = $this->getInputs();
 
                 if (!($i instanceof Json)) {
-                    $this->_processNonJson($params);
+                    $this->_processNonJson($this->filter->getParameters());
                 } else {
-                    $this->_processJson($params);
+                    $this->_processJson($this->filter->getParameters());
                 }
             }
         } else {
@@ -501,7 +542,7 @@ class WebServicesManager implements JsonI {
      * 
      * @param string $name The name of the service.
      * 
-     * @return AbstractWebService|null If a web service which has the given name was found 
+     * @return WebService|null If a web service which has the given name was found 
      * and removed, the method will return an object that represent the removed 
      * service. Other than that, the method will return null.
      * 
@@ -542,7 +583,7 @@ class WebServicesManager implements JsonI {
      * 
      */
     public function requestMethodNotAllowed() {
-        $this->sendResponse(ResponseMessage::get('405'), 405, AbstractWebService::E);
+        $this->sendResponse(ResponseMessage::get('405'), 405, WebService::E);
     }
     /**
      * Sends Back a data using specific content type and specific response code.
@@ -646,7 +687,7 @@ class WebServicesManager implements JsonI {
      * 
      */
     public function serviceNotImplemented() {
-        $this->sendResponse(ResponseMessage::get('404-4'), 404, AbstractWebService::E);
+        $this->sendResponse(ResponseMessage::get('404-4'), 404, WebService::E);
     }
     /**
      * Sends a response message to indicate that called web service is not supported by the API.
@@ -662,7 +703,7 @@ class WebServicesManager implements JsonI {
      * 
      */
     public function serviceNotSupported() {
-        $this->sendResponse(ResponseMessage::get('404-5'), 404, AbstractWebService::E);
+        $this->sendResponse(ResponseMessage::get('404-5'), 404, WebService::E);
     }
     /**
      * Sets the description of the web services set.
@@ -760,6 +801,32 @@ class WebServicesManager implements JsonI {
         return false;
     }
     /**
+     * Converts the services manager to an OpenAPI document.
+     * 
+     * This method generates a complete OpenAPI 3.1.0 specification document
+     * from the registered services. Each service becomes a path in the document.
+     * 
+     * @return OpenAPI\OpenAPIObj The OpenAPI document.
+     */
+    public function toOpenAPI(): OpenAPI\OpenAPIObj {
+        $info = new OpenAPI\InfoObj(
+            $this->getDescription(),
+            $this->getVersion()
+        );
+        
+        $openapi = new OpenAPI\OpenAPIObj($info);
+        
+        $paths = new OpenAPI\PathsObj();
+        foreach ($this->getServices() as $service) {
+            $path = $this->basePath . '/' . $service->getName();
+            $paths->addPath($path, $service->toPathItemObj());
+        }
+        
+        $openapi->setPaths($paths);
+        
+        return $openapi;
+    }
+    /**
      * Returns Json object that represents services set.
      * 
      * @return Json An object of type Json.
@@ -843,7 +910,7 @@ class WebServicesManager implements JsonI {
                         return true;
                     }
                 } else {
-                    $this->sendResponse(ResponseMessage::get('404-6'), 404, AbstractWebService::E);
+                    $this->sendResponse(ResponseMessage::get('404-6'), 404, WebService::E);
                 }
             } else {
                 $this->serviceNotSupported();
@@ -892,12 +959,12 @@ class WebServicesManager implements JsonI {
     /**
      * Adds new web service to the set of web services.
      * 
-     * @param AbstractWebService $service The web service that will be added.
+     * @param WebService $service The web service that will be added.
      * 
      * 
      * @deprecated since version 1.4.7 Use WebservicesSet::addService()
      */
-    private function addAction(AbstractWebService $service) : WebServicesManager {
+    private function addAction(WebService $service) : WebServicesManager {
         $this->services[$service->getName()] = $service;
         $service->setManager($this);
         return $this;
@@ -976,8 +1043,17 @@ class WebServicesManager implements JsonI {
 
         return $retVal;
     }
-    private function isAuth(AbstractWebService $service) {
+    private function isAuth(WebService $service) {
+        $isAuth = false;
+
         if ($service->isAuthRequired()) {
+            // Check if method has authorization annotations
+            if ($service->hasMethodAuthorizationAnnotations()) {
+                // Use annotation-based authorization
+                return $service->checkMethodAuthorization();
+            }
+            
+            // Fall back to legacy HTTP-method-specific authorization
             $isAuthCheck = 'isAuthorized'.$this->getRequest()->getMethod();
 
             if (!method_exists($service, $isAuthCheck)) {
@@ -989,7 +1065,15 @@ class WebServicesManager implements JsonI {
 
         return true;
     }
-    private function processService(AbstractWebService $service) {
+    private function processService(WebService $service) {
+        // Try auto-processing only if service has ResponseBody methods
+        if ($this->serviceHasResponseBodyMethods($service)) {
+            // Configure parameters for the target method before processing
+            $this->configureServiceParameters($service);
+            $service->processWithAutoHandling();
+            return;
+        }
+        
         $processMethod = 'process'.$this->getRequest()->getMethod();
 
         if (!method_exists($service, $processMethod)) {
@@ -998,7 +1082,35 @@ class WebServicesManager implements JsonI {
             $service->$processMethod();
         }
     }
-
+    /**
+     * Check if service has any methods with ResponseBody annotation.
+     */
+    private function serviceHasResponseBodyMethods(WebService $service): bool {
+        $reflection = new \ReflectionClass($service);
+        
+        foreach ($reflection->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
+            $attributes = $method->getAttributes(\WebFiori\Http\Annotations\ResponseBody::class);
+            if (!empty($attributes)) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+    
+    /**
+     * Configure parameters for the target method of a service.
+     */
+    private function configureServiceParameters(WebService $service): void {
+        if (method_exists($service, 'getTargetMethod')) {
+            $targetMethod = $service->getTargetMethod();
+            if ($targetMethod && method_exists($service, 'configureParametersForMethod')) {
+                $reflection = new \ReflectionMethod($service, 'configureParametersForMethod');
+                $reflection->setAccessible(true);
+                $reflection->invoke($service, $targetMethod);
+            }
+        }
+    }
     private function setOutputStreamHelper($trimmed, $mode) : bool {
         $tempStream = fopen($trimmed, $mode);
 

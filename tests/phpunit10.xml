@@ -1,22 +1,21 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version='1.0' encoding='UTF-8'?>
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" colors="true" bootstrap="loader.php" xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.5/phpunit.xsd" cacheDirectory=".phpunit.cache">
   <coverage includeUncoveredFiles="true">
     <report>
-      <clover outputFile="clover.xml"/>
+      <clover outputFile="clover.xml" />
     </report>
   </coverage>
   <php>
     </php>
-  <logging/>
+  <logging />
   <testsuites>
     <testsuite name="Tests">
       <directory>./WebFiori/Tests/Http</directory>
     </testsuite>
   </testsuites>
   <source>
-    <include>
-      <file>../WebFiori/Http/AbstractWebService.php</file>
-      <file>../WebFiori/Http/APIFilter.php</file>
+    <include><file>../WebFiori/Http/AbstractWebService.php</file>
+      <file>../WebFiori/Http/WebService.php</file><file>../WebFiori/Http/APIFilter.php</file>
       <file>../WebFiori/Http/RequestParameter.php</file>
       <file>../WebFiori/Http/WebServicesManager.php</file>
       <file>../WebFiori/Http/Request.php</file>
@@ -31,6 +30,5 @@
       <file>../WebFiori/Http/HttpMessage.php</file>
       <file>../WebFiori/Http/RequestV2.php</file>
       <file>../WebFiori/Http/RequestUri.php</file>
-    </include>
-  </source>
+    <file>../WebFiori/Http/OpenAPI/ComponentsObj.php</file><file>../WebFiori/Http/OpenAPI/ContactObj.php</file><file>../WebFiori/Http/OpenAPI/ExternalDocObj.php</file><file>../WebFiori/Http/OpenAPI/HeaderObj.php</file><file>../WebFiori/Http/OpenAPI/InfoObj.php</file><file>../WebFiori/Http/OpenAPI/LicenseObj.php</file><file>../WebFiori/Http/OpenAPI/MediaTypeObj.php</file><file>../WebFiori/Http/OpenAPI/OAuthFlowObj.php</file><file>../WebFiori/Http/OpenAPI/OAuthFlowsObj.php</file><file>../WebFiori/Http/OpenAPI/OpenAPIObj.php</file><file>../WebFiori/Http/OpenAPI/OperationObj.php</file><file>../WebFiori/Http/OpenAPI/ParameterObj.php</file><file>../WebFiori/Http/OpenAPI/PathItemObj.php</file><file>../WebFiori/Http/OpenAPI/PathsObj.php</file><file>../WebFiori/Http/OpenAPI/ReferenceObj.php</file><file>../WebFiori/Http/OpenAPI/ResponseObj.php</file><file>../WebFiori/Http/OpenAPI/ResponsesObj.php</file><file>../WebFiori/Http/OpenAPI/Schema.php</file><file>../WebFiori/Http/OpenAPI/SecurityRequirementObj.php</file><file>../WebFiori/Http/OpenAPI/SecuritySchemeObj.php</file><file>../WebFiori/Http/OpenAPI/ServerObj.php</file><file>../WebFiori/Http/OpenAPI/TagObj.php</file><file>../WebFiori/Http/ManagerInfoService.php</file><file>../WebFiori/Http/ResponseMessage.php</file></include></source>
 </phpunit>

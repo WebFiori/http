@@ -2,14 +2,14 @@
 
 namespace WebFiori\Tests\Http\TestServices;
 
-use WebFiori\Http\AbstractWebService;
+use WebFiori\Http\WebService;
 use WebFiori\Http\RequestMethod;
 use WebFiori\Http\RequestParameter;
 /**
  *
  * @author Ibrahim
  */
-class MulNubmersService extends AbstractWebService {
+class MulNubmersService extends WebService {
     public function __construct() {
         parent::__construct('mul-two-integers');
         $this->setDescription('Returns a JSON string that has the multiplication of two integers.');
@@ -19,10 +19,15 @@ class MulNubmersService extends AbstractWebService {
         $this->addParameter(new RequestParameter('second-number', 'integer'));
     }
     
+    public function isAuthorized(): bool {
+        return true;
+    }
+
     public function isAuthorizedGET() {
         if ($this->getParamVal('first-number') < 0) {
             return false;
         }
+        return true;
     }
 
     public function processGet() {

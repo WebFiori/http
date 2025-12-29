@@ -1,7 +1,7 @@
 <?php
 namespace WebFiori\Tests\Http;
 
-use WebFiori\Http\AbstractWebService;
+use WebFiori\Http\WebService;
 use WebFiori\Http\APITestCase;
 use WebFiori\Http\Request;
 use WebFiori\Http\ResponseMessage;
@@ -16,7 +16,7 @@ use WebFiori\Tests\Http\TestServices\SampleServicesManager;
  * @author Eng.Ibrahim
  */
 class WebServicesManagerTest extends APITestCase {
-    private $outputStreamName = __DIR__.DIRECTORY_SEPARATOR.'outputStream.txt';
+    private $outputStreamName = __DIR__.DIRECTORY_SEPARATOR.'output-stream.txt';
     public function test00() {
         $manager = new WebServicesManager();
         $manager->addService(new NoAuthService());
@@ -144,7 +144,7 @@ class WebServicesManagerTest extends APITestCase {
     public function testRemoveService00(WebServicesManager $manager) {
         $this->assertNull($manager->removeService('xyz'));
         $service = $manager->removeService('ok-service');
-        $this->assertTrue($service instanceof AbstractWebService);
+        $this->assertTrue($service instanceof WebService);
         $this->assertEquals(0, count($manager->getServices()));
         $this->assertNull($service->getManager());
     }
@@ -160,9 +160,9 @@ class WebServicesManagerTest extends APITestCase {
         $this->assertEquals('1.0.1',$api->getVersion());
         $this->assertEquals('NO DESCRIPTION',$api->getDescription());
         $api->setDescription('Test API.');
-        $this->assertEquals(5,count($api->getServices()));
+        $this->assertEquals(6,count($api->getServices()));
         $this->assertEquals('Test API.',$api->getDescription());
-        $this->assertTrue($api->getServiceByName('sum-array') instanceof AbstractWebService);
+        $this->assertTrue($api->getServiceByName('sum-array') instanceof WebService);
         $this->assertNull($api->getServiceByName('request-info'));
         $this->assertNull($api->getServiceByName('api-info-2'));
 
@@ -299,6 +299,61 @@ class WebServicesManagerTest extends APITestCase {
         
         $manager->process();
         $this->assertEquals('{"user":{"Id":3,"FullName":"Me","Username":"Cpool"}}', $manager->readOutputStream());
+    }
+    /**
+     * @test
+     */
+    public function testCreateUser02() {
+        $this->clrearVars();
+        putenv('REQUEST_METHOD=GET');
+        $_GET['service'] = 'user-profile';
+        $_GET['id'] = '99';
+        $api = new SampleServicesManager();
+        $api->setOutputStream($this->outputStreamName);
+        $api->process();
+        $this->assertEquals('{"user":{"Id":99,"FullName":"Ibx"}}', $api->readOutputStream());
+    }
+    /**
+     * @test
+     */
+    public function testCreateUser03() {
+        $this->clrearVars();
+        putenv('REQUEST_METHOD=POST');
+        $_SERVER['CONTENT_TYPE'] = 'application/x-www-form-urlencoded';
+        $_POST['service'] = 'user-profile';
+        $_POST['id'] = '99';
+        $api = new SampleServicesManager();
+        $api->setOutputStream($this->outputStreamName);
+        $api->process();
+        $this->assertEquals('{"message":"The following required parameter(s) where missing from the request body: \'name\', \'username\'.","type":"error","http-code":404,"more-info":{"missing":["name","username"]}}', $api->readOutputStream());
+    }
+    /**
+     * @test
+     */
+    public function testCreateUser04() {
+        $this->clrearVars();
+        putenv('REQUEST_METHOD=POST');
+        $_SERVER['CONTENT_TYPE'] = 'application/x-www-form-urlencoded';
+        $_POST['service'] = 'user-profile';
+        $_POST['name'] = '99';
+        $_POST['username'] = 'Cool';
+        $api = new SampleServicesManager();
+        $api->setOutputStream($this->outputStreamName);
+        $api->process();
+        $this->assertEquals('{"user":{"Id":3,"FullName":"99","Username":"Cool"}}', $api->readOutputStream());
+    }
+    /**
+     * @test
+     */
+    public function testCreateUser05() {
+        $this->clrearVars();
+        putenv('REQUEST_METHOD=GET');
+        $_GET['service'] = 'user-profile';
+        
+        $api = new SampleServicesManager();
+        $api->setOutputStream($this->outputStreamName);
+        $api->process();
+        $this->assertEquals('{"message":"The following required parameter(s) where missing from the request body: \'id\'.","type":"error","http-code":404,"more-info":{"missing":["id"]}}', $api->readOutputStream());
     }
     /**
      * @test
@@ -595,10 +650,10 @@ class WebServicesManagerTest extends APITestCase {
      */
     public function testSetOutputStream03() {
         $api = new SampleServicesManager();
-        $this->assertTrue($api->setOutputStream(__DIR__.DIRECTORY_SEPARATOR.'outputStream.txt', true));
+        $this->assertTrue($api->setOutputStream(__DIR__.DIRECTORY_SEPARATOR.'output-stream.txt', true));
         $this->assertNotNull($api->getOutputStream());
         $this->assertNotNull($api->getOutputStreamPath());
-        $this->assertEquals(__DIR__.DIRECTORY_SEPARATOR.'outputStream.txt', $api->getOutputStreamPath());
+        $this->assertEquals(__DIR__.DIRECTORY_SEPARATOR.'output-stream.txt', $api->getOutputStreamPath());
     }
     private function clrearVars() {
         foreach ($_GET as $k => $v) {

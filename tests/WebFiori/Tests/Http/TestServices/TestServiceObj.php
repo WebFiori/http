@@ -2,19 +2,19 @@
 
 namespace WebFiori\Tests\Http\TestServices;
 
-use WebFiori\Http\AbstractWebService;
+use WebFiori\Http\WebService;
 /**
  * Description of TestServiceObj
  *
  * @author Ibrahim
  */
-class TestServiceObj extends AbstractWebService {
+class TestServiceObj extends WebService {
     public function __construct($name) {
         parent::__construct($name);
     }
     //put your code here
-    public function isAuthorized() {
-        return parent::isAuthorized();
+    public function isAuthorized(): bool {
+        return true;
     }
 
     public function processRequest() {

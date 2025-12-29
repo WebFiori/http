@@ -1,7 +1,7 @@
 <?php
 namespace WebFiori\Tests\Http\TestServices;
 
-use WebFiori\Http\AbstractWebService;
+use WebFiori\Http\WebService;
 use WebFiori\Http\RequestParameter;
 
 /**
@@ -9,12 +9,12 @@ use WebFiori\Http\RequestParameter;
  *
  * @author Ibrahim
  */
-abstract class AbstractNumbersService extends AbstractWebService {
+abstract class AbstractNumbersService extends WebService {
     public function __construct($name) {
         parent::__construct($name);
         $this->addParameter(new RequestParameter('pass','string'));
     }
-    public function isAuthorized() {
+    public function isAuthorized(): bool {
         $inputs = $this->getInputs();
         if ($inputs instanceof \webfiori\json\Json) {
             $pass = $inputs->get('pass');

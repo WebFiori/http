@@ -1,25 +1,27 @@
 <?php
+require_once '../vendor/autoload.php';
 
-require 'loader.php';
-
-use WebFiori\Http\AbstractWebService;
-use WebFiori\Http\ParamOption;
-use WebFiori\Http\ParamType;
+use WebFiori\Http\WebService;
 use WebFiori\Http\RequestMethod;
+use WebFiori\Http\ParamType;
+use WebFiori\Http\ParamOption;
 
-class HelloWorldService extends AbstractWebService {
+class HelloWorldService extends WebService {
     public function __construct() {
         parent::__construct('hello');
         $this->setRequestMethods([RequestMethod::GET]);
+        $this->setDescription('Returns a greeting message.');
         
         $this->addParameters([
             'my-name' => [
                 ParamOption::TYPE => ParamType::STRING,
-                ParamOption::OPTIONAL => true
+                ParamOption::OPTIONAL => true,
+                ParamOption::DESCRIPTION => 'Your name to include in the greeting.'
             ]
         ]);
     }
-    public function isAuthorized() {
+    public function isAuthorized(): bool {
+        return true;
     }
 
     public function processRequest() {
@@ -27,7 +29,8 @@ class HelloWorldService extends AbstractWebService {
         
         if ($name !== null) {
             $this->sendResponse("Hello '$name'.");
+        } else {
+            $this->sendResponse('Hello World!');
         }
-        $this->sendResponse('Hello World!');
     }
 }

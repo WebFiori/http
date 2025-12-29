@@ -13,30 +13,22 @@ namespace WebFiori\Http;
  * A service which can be used to display information about services manager.
  * 
  * The developer must extend this class and complete the implementation of 
- * the method AbstractWebService::isAuthorized() in order to use it.
+ * the method WebService::isAuthorized() in order to use it.
  * 
  * @author Ibrahim
  * 
  */
-abstract class ManagerInfoService extends AbstractWebService {
+abstract class ManagerInfoService extends WebService {
     /**
      * Creates new instance of the class.
      * 
      */
     public function __construct() {
-        parent::__construct('api-info');
+        parent::__construct('api-docs');
         $this->setDescription('Returns a JSON string that contains all '
                 .'needed information about all end points which are registered '
                 .'under given manager.');
-        $this->addParameter([
-            ParamOption::NAME => 'version',
-            ParamOption::TYPE => ParamType::STRING,
-            ParamOption::OPTIONAL => true,
-            ParamOption::DESCRIPTION => 'Optional parameter. '
-                .'If set, the information that will be returned will be specific '
-                .'to the given version number.'
-        ]);
-        $this->setRequestMethods(RequestMethod::GET, RequestMethod::POST);
+        $this->addRequestMethod(RequestMethod::GET);
     }
     /**
      * Sends back JSON response that contains information about the services 
