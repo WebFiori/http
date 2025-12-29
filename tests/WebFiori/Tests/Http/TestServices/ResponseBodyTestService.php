@@ -28,7 +28,7 @@ class ResponseBodyTestService extends WebService {
     // Test 3: Return null (should be empty response)
     #[PostMapping]
     #[ResponseBody(status: 204)]
-    public function deleteData(): null {
+    public function deleteData(): ?object {
         // Simulate deletion
         return null;
     }
