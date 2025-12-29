@@ -4,7 +4,7 @@ A powerful and flexible PHP library for creating RESTful web APIs with built-in 
 
 <p align="center">
   <a href="https://github.com/WebFiori/http/actions">
-    <img src="https://github.com/WebFiori/http/actions/workflows/php84.yaml/badge.svg?branch=main">
+    <img src="https://github.com/WebFiori/http/actions/workflows/php85.yaml/badge.svg?branch=main">
   </a>
   <a href="https://codecov.io/gh/WebFiori/http">
     <img src="https://codecov.io/gh/WebFiori/http/branch/main/graph/badge.svg" />
@@ -44,6 +44,7 @@ A powerful and flexible PHP library for creating RESTful web APIs with built-in 
 | <a target="_blank" href="https://github.com/WebFiori/http/actions/workflows/php82.yaml"><img src="https://github.com/WebFiori/http/actions/workflows/php82.yaml/badge.svg?branch=main"></a> |
 | <a target="_blank" href="https://github.com/WebFiori/http/actions/workflows/php83.yaml"><img src="https://github.com/WebFiori/http/actions/workflows/php83.yaml/badge.svg?branch=main"></a> |
 | <a target="_blank" href="https://github.com/WebFiori/http/actions/workflows/php84.yaml"><img src="https://github.com/WebFiori/http/actions/workflows/php84.yaml/badge.svg?branch=main"></a> |
+| <a target="_blank" href="https://github.com/WebFiori/http/actions/workflows/php85.yaml"><img src="https://github.com/WebFiori/http/actions/workflows/php85.yaml/badge.svg?branch=main"></a> |
 
 ## Key Features
 
