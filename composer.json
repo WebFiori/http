@@ -12,7 +12,7 @@
         "PSR-7",
         "JSONx"
     ],
-    "version": "4.0.0",
+    "version": "5.0.0",
     "license": "MIT",
     "require": {
         "php": ">=7.0",
