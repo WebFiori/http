@@ -161,6 +161,37 @@ class WebServicesManager implements JsonI {
         return $this->addAction($service);
     }
     /**
+     * Automatically discovers and registers web services from a directory.
+     * 
+     * @param string $path The directory path to scan for service classes. Defaults to current directory.
+     * 
+     * @return WebServicesManager Returns the same instance for method chaining.
+     */
+    public function autoDiscoverServices(string $path = null) : WebServicesManager {
+        if ($path === null) {
+            $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1);
+            $path = dirname($trace[0]['file']);
+        }
+        
+        $files = glob($path . '/*.php');
+        $beforeClasses = get_declared_classes();
+        
+        foreach ($files as $file) {
+            require_once $file;
+        }
+        
+        $afterClasses = get_declared_classes();
+        $newClasses = array_diff($afterClasses, $beforeClasses);
+        
+        foreach ($newClasses as $class) {
+            if (is_subclass_of($class, WebService::class)) {
+                $this->addService(new $class());
+            }
+        }
+        
+        return $this;
+    }
+    /**
      * Sends a response message to indicate that request content type is 
      * not supported by the API.
      * 
