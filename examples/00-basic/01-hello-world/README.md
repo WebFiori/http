@@ -11,8 +11,8 @@ The most basic WebFiori HTTP service demonstrating minimal setup and response ha
 
 ## Files
 
-- `HelloService.php` - The service implementation
-- `index.php` - Main application entry point
+- [`HelloService.php`](HelloService.php) - The service implementation
+- [`index.php`](index.php) - Main application entry point
 
 ## How to Run
 

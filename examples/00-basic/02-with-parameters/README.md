@@ -11,8 +11,8 @@ Demonstrates how to define and handle request parameters with validation.
 
 ## Files
 
-- `GreetingService.php` - Service with name parameter
-- `index.php` - Main application entry point
+- [`GreetingService.php`](GreetingService.php) - Service with name parameter
+- [`index.php`](index.php) - Main application entry point
 
 ## How to Run
 
