@@ -62,6 +62,7 @@ With valid auth:
 - `getAuthHeader()` retrieves the Authorization header
 - Basic auth credentials are base64 encoded as "username:password"
 - Custom user validation logic checks against predefined credentials
-- `#[RequiresAuth]` now properly calls `isAuthorized()` first, then checks `#[PreAuthorize]` if present
+- `#[RequiresAuth]` calls `isAuthorized()` first, then checks `#[PreAuthorize]` if present
+- **Authorization flow:** `isAuthorized()` → `#[PreAuthorize]` (if exists) → SecurityContext
 - Service is auto-discovered using `autoDiscoverServices()`
 - Different users get different access levels
