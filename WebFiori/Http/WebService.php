@@ -333,23 +333,43 @@ class WebService implements JsonI {
         
         $reflectionMethod = $reflection->getMethod($method);
         
+        // Check for conflicting annotations
+        $hasAllowAnonymous = !empty($reflectionMethod->getAttributes(\WebFiori\Http\Annotations\AllowAnonymous::class));
+        $hasRequiresAuth = !empty($reflectionMethod->getAttributes(\WebFiori\Http\Annotations\RequiresAuth::class));
+        
+        if ($hasAllowAnonymous && $hasRequiresAuth) {
+            throw new \InvalidArgumentException(
+                "Method '$method' has conflicting annotations: #[AllowAnonymous] and #[RequiresAuth] cannot be used together"
+            );
+        }
+        
         // Check AllowAnonymous first
-        if (!empty($reflectionMethod->getAttributes(\WebFiori\Http\Annotations\AllowAnonymous::class))) {
+        if ($hasAllowAnonymous) {
             return true;
         }
         
         // Check RequiresAuth
-        if (!empty($reflectionMethod->getAttributes(\WebFiori\Http\Annotations\RequiresAuth::class))) {
-            if (!SecurityContext::isAuthenticated()) {
+        if ($hasRequiresAuth) {
+            // First call isAuthorized()
+            if (!$this->isAuthorized()) {
                 return false;
             }
+            
+            // Then check for PreAuthorize
+            $preAuthAttributes = $reflectionMethod->getAttributes(\WebFiori\Http\Annotations\PreAuthorize::class);
+            if (!empty($preAuthAttributes)) {
+                $preAuth = $preAuthAttributes[0]->newInstance();
+                return SecurityContext::evaluateExpression($preAuth->expression);
+            }
+            
+            // If no PreAuthorize, continue based on isAuthorized (already passed)
+            return true;
         }
         
-        // Check PreAuthorize
+        // Check PreAuthorize without RequiresAuth
         $preAuthAttributes = $reflectionMethod->getAttributes(\WebFiori\Http\Annotations\PreAuthorize::class);
         if (!empty($preAuthAttributes)) {
             $preAuth = $preAuthAttributes[0]->newInstance();
-
             return SecurityContext::evaluateExpression($preAuth->expression);
         }
         
