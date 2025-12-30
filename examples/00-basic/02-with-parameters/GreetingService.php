@@ -19,9 +19,7 @@ class GreetingService extends WebService {
     #[ResponseBody]
     #[AllowAnonymous]
     #[RequestParam('name', 'string', true, null, 'Name to include in greeting (1-50 chars)')]
-    public function greet(): string {
-        $name = $this->getParamVal('name');
-        
+    public function greet(?string $name = null): string {
         if ($name !== null) {
             return "Hello, $name!";
         } else {
