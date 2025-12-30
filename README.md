@@ -26,12 +26,18 @@ A powerful and flexible PHP library for creating RESTful web APIs with built-in 
 - [Key Features](#key-features)
 - [Installation](#installation)
 - [Quick Start](#quick-start)
+  - [Modern Approach with Attributes](#modern-approach-with-attributes)
+  - [Traditional Approach](#traditional-approach)
 - [Core Concepts](#core-concepts)
 - [Creating Web Services](#creating-web-services)
+  - [Using Attributes (Recommended)](#using-attributes-recommended)
+  - [Traditional Class-Based Approach](#traditional-class-based-approach)
 - [Parameter Management](#parameter-management)
 - [Authentication & Authorization](#authentication--authorization)
 - [Request & Response Handling](#request--response-handling)
 - [Advanced Features](#advanced-features)
+  - [Object Mapping](#object-mapping-1)
+  - [OpenAPI Documentation](#openapi-documentation)
 - [Testing](#testing)
 - [Examples](#examples)
 - [API Documentation](#api-documentation)
@@ -77,19 +83,53 @@ require_once 'path/to/webfiori-http/vendor/autoload.php';
 
 ## Quick Start
 
-Here's a simple example to get you started:
+### Modern Approach with Attributes
+
+PHP 8+ attributes provide a clean, declarative way to define web services:
 
 ```php
 <?php
-require_once 'vendor/autoload.php';
+use WebFiori\Http\WebService;
+use WebFiori\Http\Annotations\RestController;
+use WebFiori\Http\Annotations\GetMapping;
+use WebFiori\Http\Annotations\PostMapping;
+use WebFiori\Http\Annotations\Param;
+use WebFiori\Http\Annotations\ResponseBody;
+use WebFiori\Http\Annotations\AllowAnonymous;
+use WebFiori\Http\ParamType;
 
+#[RestController('hello', 'A simple greeting service')]
+class HelloService extends WebService {
+    
+    #[GetMapping]
+    #[ResponseBody]
+    #[AllowAnonymous]
+    #[Param('name', ParamType::STRING, 'Your name')]
+    public function sayHello(?string $name): string {
+        return $name ? "Hello, $name!" : "Hello, World!";
+    }
+    
+    #[PostMapping]
+    #[ResponseBody]
+    #[AllowAnonymous]
+    #[Param('message', ParamType::STRING, 'Custom message')]
+    public function customGreeting(string $message): array {
+        return ['greeting' => $message, 'timestamp' => time()];
+    }
+}
+```
+
+### Traditional Approach
+
+The traditional approach using constructor configuration:
+
+```php
+<?php
 use WebFiori\Http\AbstractWebService;
-use WebFiori\Http\WebServicesManager;
 use WebFiori\Http\RequestMethod;
 use WebFiori\Http\ParamType;
 use WebFiori\Http\ParamOption;
 
-// Create a simple web service
 class HelloService extends AbstractWebService {
     public function __construct() {
         parent::__construct('hello');
@@ -104,22 +144,19 @@ class HelloService extends AbstractWebService {
     }
     
     public function isAuthorized() {
-        // No authentication required
         return true;
     }
     
     public function processRequest() {
         $name = $this->getParamVal('name');
-        
-        if ($name !== null) {
-            $this->sendResponse("Hello, $name!");
-        } else {
-            $this->sendResponse("Hello, World!");
-        }
+        $this->sendResponse($name ? "Hello, $name!" : "Hello, World!");
     }
 }
+```
 
-// Set up the services manager
+Both approaches work with `WebServicesManager`:
+
+```php
 $manager = new WebServicesManager();
 $manager->addService(new HelloService());
 $manager->process();
@@ -148,7 +185,60 @@ The library follows a service-oriented architecture:
 
 ## Creating Web Services
 
-### Basic Service Structure
+### Using Attributes (Recommended)
+
+PHP 8+ attributes provide a modern, declarative approach:
+
+```php
+<?php
+use WebFiori\Http\WebService;
+use WebFiori\Http\Annotations\RestController;
+use WebFiori\Http\Annotations\GetMapping;
+use WebFiori\Http\Annotations\PostMapping;
+use WebFiori\Http\Annotations\PutMapping;
+use WebFiori\Http\Annotations\DeleteMapping;
+use WebFiori\Http\Annotations\Param;
+use WebFiori\Http\Annotations\ResponseBody;
+use WebFiori\Http\Annotations\RequiresAuth;
+use WebFiori\Http\ParamType;
+
+#[RestController('users', 'User management operations')]
+#[RequiresAuth]
+class UserService extends WebService {
+    
+    #[GetMapping]
+    #[ResponseBody]
+    #[Param('id', ParamType::INT, 'User ID', min: 1)]
+    public function getUser(?int $id): array {
+        return ['id' => $id ?? 1, 'name' => 'John Doe'];
+    }
+    
+    #[PostMapping]
+    #[ResponseBody]
+    #[Param('name', ParamType::STRING, 'User name', minLength: 2)]
+    #[Param('email', ParamType::EMAIL, 'User email')]
+    public function createUser(string $name, string $email): array {
+        return ['id' => 2, 'name' => $name, 'email' => $email];
+    }
+    
+    #[PutMapping]
+    #[ResponseBody]
+    #[Param('id', ParamType::INT, 'User ID')]
+    #[Param('name', ParamType::STRING, 'User name')]
+    public function updateUser(int $id, string $name): array {
+        return ['id' => $id, 'name' => $name];
+    }
+    
+    #[DeleteMapping]
+    #[ResponseBody]
+    #[Param('id', ParamType::INT, 'User ID')]
+    public function deleteUser(int $id): array {
+        return ['deleted' => $id];
+    }
+}
+```
+
+### Traditional Class-Based Approach
 
 Every web service must extend `AbstractWebService` and implement the `processRequest()` method:
 
@@ -527,7 +617,7 @@ $customFilter = function($original, $filtered) {
     
     // Additional processing
     return strtoupper($filtered);
-};
+];
 
 $this->addParameters([
     'code' => [
@@ -536,6 +626,36 @@ $this->addParameters([
     ]
 ]);
 ```
+
+### OpenAPI Documentation
+
+Generate OpenAPI 3.1.0 specification for your API:
+
+```php
+$manager = new WebServicesManager();
+$manager->setVersion('1.0.0');
+$manager->setDescription('My REST API');
+
+// Add your services
+$manager->addService(new UserService());
+$manager->addService(new ProductService());
+
+// Generate OpenAPI specification
+$openApiObj = $manager->toOpenAPI();
+
+// Customize if needed
+$info = $openApiObj->getInfo();
+$info->setTermsOfService('https://example.com/terms');
+
+// Output as JSON
+header('Content-Type: application/json');
+echo $openApiObj->toJSON();
+```
+
+The generated specification can be used with:
+- Swagger UI for interactive documentation
+- Postman for API testing
+- Code generators for client SDKs
 
 ## Testing
 
@@ -735,9 +855,6 @@ class FileUploadService extends AbstractWebService {
 
 For more examples, check the [examples](examples/) directory in this repository.
 
-## API Documentation
-
-This library is part of the WebFiori Framework. For complete API documentation, visit: https://webfiori.com/docs/webfiori/http
 
 ### Key Classes Documentation
 

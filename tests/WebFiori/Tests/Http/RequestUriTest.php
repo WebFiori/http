@@ -196,4 +196,13 @@ class RequestUriTest extends TestCase {
         $this->assertEquals(['hell','is','not','heven'], $uri->getAllowedParameterValues('second-var'));
         $this->assertEquals([], $uri->getAllowedParameterValues('secohhnd-var'));
     }
+    
+    public function testEqualsWithDifferentMethods() {
+        $uri1 = new RequestUri('https://example.com/test');
+        $uri1->addRequestMethod('GET');
+        $uri2 = new RequestUri('https://example.com/test');
+        $uri2->addRequestMethod('POST');
+        $this->assertFalse($uri1->equals($uri2));
+    }
 }
+
