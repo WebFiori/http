@@ -548,13 +548,19 @@ class WebService implements JsonI {
         foreach ($paramAttributes as $attribute) {
             $param = $attribute->newInstance();
             
+            $options = [
+                \WebFiori\Http\ParamOption::TYPE => $this->mapParamType($param->type),
+                \WebFiori\Http\ParamOption::OPTIONAL => $param->optional,
+                \WebFiori\Http\ParamOption::DEFAULT => $param->default,
+                \WebFiori\Http\ParamOption::DESCRIPTION => $param->description
+            ];
+            
+            if ($param->filter !== null) {
+                $options[\WebFiori\Http\ParamOption::FILTER] = $param->filter;
+            }
+            
             $this->addParameters([
-                $param->name => [
-                    \WebFiori\Http\ParamOption::TYPE => $this->mapParamType($param->type),
-                    \WebFiori\Http\ParamOption::OPTIONAL => $param->optional,
-                    \WebFiori\Http\ParamOption::DEFAULT => $param->default,
-                    \WebFiori\Http\ParamOption::DESCRIPTION => $param->description
-                ]
+                $param->name => $options
             ]);
         }
     }

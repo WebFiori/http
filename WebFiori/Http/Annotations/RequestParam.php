@@ -10,6 +10,7 @@ class RequestParam {
         public readonly string $type = 'string',
         public readonly bool $optional = false,
         public readonly mixed $default = null,
-        public readonly string $description = ''
+        public readonly string $description = '',
+        public readonly mixed $filter = null
     ) {}
 }
