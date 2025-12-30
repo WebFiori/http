@@ -1327,6 +1327,121 @@ class APIFilterTest extends TestCase {
         fwrite($stream, $jsonData);
         fclose($stream);
     }
+    
+    public function testOptionalParameterWithDefault() {
+        $filter = new APIFilter();
+        $param = new RequestParameter('test', 'string', true);
+        $param->setDefault('default_value');
+        $filter->addRequestParameter($param);
+        
+        $filter->filterGET();
+        $inputs = $filter->getInputs();
+        $this->assertEquals('default_value', $inputs['test']);
+    }
+    
+    public function testEmptyStringNotAllowed() {
+        $filter = new APIFilter();
+        $param = new RequestParameter('test', 'string');
+        $param->setIsEmptyStringAllowed(false);
+        $filter->addRequestParameter($param);
+        
+        $_GET['test'] = '';
+        $filter->filterGET();
+        $inputs = $filter->getInputs();
+        $this->assertEquals(APIFilter::INVALID, $inputs['test']);
+        unset($_GET['test']);
+    }
+    
+    public function testInvalidValueWithDefault() {
+        $filter = new APIFilter();
+        $param = new RequestParameter('age', 'integer', true);
+        $param->setDefault(25);
+        $filter->addRequestParameter($param);
+        
+        $_GET['age'] = 'invalid';
+        $filter->filterGET();
+        $inputs = $filter->getInputs();
+        $this->assertEquals(25, $inputs['age']);
+        unset($_GET['age']);
+    }
+    
+    public function testArrayParameter() {
+        $filter = new APIFilter();
+        $param = new RequestParameter('items', 'array');
+        $filter->addRequestParameter($param);
+        
+        $_GET['items'] = ['a', 'b', 'c'];
+        $filter->filterGET();
+        $inputs = $filter->getInputs();
+        $this->assertIsArray($inputs['items']);
+        $this->assertCount(3, $inputs['items']);
+        unset($_GET['items']);
+    }
+    
+    public function testDoubleWithMinMax() {
+        $filter = new APIFilter();
+        $param = new RequestParameter('price', 'double');
+        $param->setMinValue(0);
+        $param->setMaxValue(100);
+        $filter->addRequestParameter($param);
+        
+        $_GET['price'] = '50.5';
+        $filter->filterGET();
+        $inputs = $filter->getInputs();
+        $this->assertNotEquals(APIFilter::INVALID, $inputs['price']);
+        unset($_GET['price']);
+    }
+    
+    public function testArrayStringParsing() {
+        $filter = new APIFilter();
+        $param = new RequestParameter('values', 'array');
+        $filter->addRequestParameter($param);
+        
+        $_GET['values'] = '[true,false,null,123,45.6]';
+        $filter->filterGET();
+        $inputs = $filter->getInputs();
+        
+        if (is_array($inputs['values'])) {
+            $this->assertGreaterThan(0, count($inputs['values']));
+        }
+        unset($_GET['values']);
+    }
+    
+    public function testBooleanParameter() {
+        $filter = new APIFilter();
+        $param = new RequestParameter('active', 'boolean');
+        $filter->addRequestParameter($param);
+        
+        $_GET['active'] = 'true';
+        $filter->filterGET();
+        $inputs = $filter->getInputs();
+        $this->assertTrue($inputs['active'] === true || $inputs['active'] === 1);
+        unset($_GET['active']);
+    }
+    
+    public function testOptionalParameterNotProvided() {
+        $filter = new APIFilter();
+        $param = new RequestParameter('optional', 'string', true);
+        $filter->addRequestParameter($param);
+        
+        $filter->filterGET();
+        $inputs = $filter->getInputs();
+        $this->assertArrayHasKey('optional', $inputs);
+    }
+    
+    public function testClearInputs() {
+        $filter = new APIFilter();
+        $param = new RequestParameter('test', 'string');
+        $filter->addRequestParameter($param);
+        
+        $_GET['test'] = 'value';
+        $filter->filterGET();
+        $this->assertNotEmpty($filter->getInputs());
+        
+        $filter->clearInputs();
+        $this->assertEmpty($filter->getInputs());
+        unset($_GET['test']);
+    }
 }
 
 

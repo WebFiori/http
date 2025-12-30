@@ -673,4 +673,38 @@ class RequestParameterTest extends TestCase {
         $rp->addMethods(['geT', 'PoSt ']);
         $this->assertEquals(['GET', 'POST'], $rp->getMethods());
     }
+    
+    public function testReservedParameterName() {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('reserved');
+        new RequestParameter('service', 'string');
+    }
+    
+    public function testToJSONWithMethods() {
+        $rp = new RequestParameter('user-id', 'integer');
+        $rp->addMethod('POST');
+        $json = $rp->toJSON();
+        $this->assertEquals('body', $json->get('in'));
+    }
+    
+    public function testSetCustomFilter() {
+        $rp = new RequestParameter('custom', 'string');
+        $rp->setCustomFilterFunction(function($val) {
+            return strtoupper($val);
+        });
+        $this->assertNotNull($rp->getCustomFilterFunction());
+    }
+    
+    public function testSetDescription() {
+        $rp = new RequestParameter('test', 'string');
+        $rp->setDescription('Test parameter');
+        $this->assertEquals('Test parameter', $rp->getDescription());
+    }
+    
+    public function testIsEmptyStringAllowed() {
+        $rp = new RequestParameter('test', 'string');
+        $rp->setIsEmptyStringAllowed(true);
+        $this->assertTrue($rp->isEmptyStringAllowed());
+    }
 }
+

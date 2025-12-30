@@ -370,4 +370,11 @@ class UriTest extends TestCase {
         $uri = 'https://programmingacademia.com/{?}/{another}/not/super';
         $uriObj = new RequestUri($uri);
     }
+    
+    public function testInvalidUri() {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Invalid URI');
+        new Uri('not a valid uri!!!');
+    }
 }
+

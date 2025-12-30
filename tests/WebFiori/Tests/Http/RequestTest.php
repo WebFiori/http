@@ -214,4 +214,44 @@ class RequestTest extends TestCase {
         $this->request = Request::createFromGlobals();
         $this->assertEquals('cool_cookie', $this->request->getCookieValue('cool'));
     }
+    
+    public function testGetPathWithScriptName() {
+        unset($_SERVER['REQUEST_URI']);
+        $_SERVER['SCRIPT_NAME'] = '/api/index.php';
+        $this->request = Request::createFromGlobals();
+        $path = $this->request->getPath();
+        $this->assertNotEmpty($path);
+    }
+    
+    public function testGetUri() {
+        $_SERVER['REQUEST_URI'] = '/api/users';
+        $this->request = Request::createFromGlobals();
+        $uri = $this->request->getUri();
+        $this->assertInstanceOf(\WebFiori\Http\RequestUri::class, $uri);
+    }
+    
+    public function testGetRequestedURIWithPath() {
+        $_SERVER['REQUEST_URI'] = '/api/test';
+        $_SERVER['HTTP_HOST'] = 'example.com';
+        $this->request = Request::createFromGlobals();
+        $uri = $this->request->getRequestedURI('extra/path');
+        $this->assertStringContainsString('extra/path', $uri);
+    }
+    
+    public function testGetPathReturnsSlashWhenNull() {
+        unset($_SERVER['REQUEST_URI']);
+        unset($_SERVER['SCRIPT_NAME']);
+        $this->request = Request::createFromGlobals();
+        $path = $this->request->getPath();
+        $this->assertEquals('/', $path);
+    }
+    
+    public function testGetRequestedURIWithTrailingSlash() {
+        $_SERVER['REQUEST_URI'] = '/api/';
+        $_SERVER['HTTP_HOST'] = 'example.com';
+        $this->request = Request::createFromGlobals();
+        $uri = $this->request->getRequestedURI('users');
+        $this->assertStringContainsString('users', $uri);
+    }
 }
+

@@ -693,6 +693,173 @@ class WebServicesManagerTest extends APITestCase {
         $this->assertTrue($found, 'AutoDiscoveredService should be found');
     }
     
+    public function testGetResponse() {
+        $manager = new WebServicesManager();
+        $response = $manager->getResponse();
+        $this->assertNotNull($response);
+    }
+    
+    public function testSetAndGetBasePath() {
+        $manager = new WebServicesManager();
+        $manager->setBasePath('/api/v1/');
+        $this->assertEquals('/api/v1', $manager->getBasePath());
+        
+        $manager->setBasePath('/api/v2');
+        $this->assertEquals('/api/v2', $manager->getBasePath());
+    }
+    
+    public function testRemoveServices() {
+        $manager = new WebServicesManager();
+        $manager->addService(new NoAuthService());
+        $this->assertGreaterThan(0, count($manager->getServices()));
+        
+        $manager->removeServices();
+        $this->assertEquals(0, count($manager->getServices()));
+    }
+    
+    public function testSendWithOutputStream() {
+        $manager = new WebServicesManager();
+        $outputFile = __DIR__ . '/test-output.txt';
+        $manager->setOutputStream(fopen($outputFile, 'w'));
+        
+        $manager->send('text/plain', 'Test content', 200);
+        
+        $this->assertFileExists($outputFile);
+        $content = file_get_contents($outputFile);
+        $this->assertEquals('Test content', $content);
+        
+        unlink($outputFile);
+    }
+    
+    public function testAutoDiscoverServicesWithNullPath() {
+        $manager = new WebServicesManager();
+        $result = $manager->autoDiscoverServices();
+        $this->assertInstanceOf(WebServicesManager::class, $result);
+    }
+    
+    public function testToJSON() {
+        $manager = new WebServicesManager();
+        $manager->setVersion('1.0.0');
+        $manager->setDescription('Test API');
+        $manager->addService(new NoAuthService());
+        
+        $json = $manager->toJSON();
+        $this->assertNotNull($json);
+        $this->assertEquals('1.0.0', $json->get('api-version'));
+        $this->assertEquals('Test API', $json->get('description'));
+    }
+    
+    public function testToJSONWithVersion() {
+        $manager = new WebServicesManager();
+        $manager->setVersion('2.0.0');
+        $service = new NoAuthService();
+        $service->setSince('2.0.0');
+        $manager->addService($service);
+        
+        $_GET['version'] = '2.0.0';
+        $json = $manager->toJSON();
+        $services = $json->get('services');
+        $this->assertNotEmpty($services);
+        unset($_GET['version']);
+    }
+    
+    public function testToOpenAPI() {
+        $manager = new WebServicesManager();
+        $manager->setVersion('1.0.0');
+        $manager->setDescription('Test API');
+        $manager->addService(new NoAuthService());
+        
+        $openapi = $manager->toOpenAPI();
+        $this->assertInstanceOf(\WebFiori\Http\OpenAPI\OpenAPIObj::class, $openapi);
+    }
+    
+    public function testPutRequest() {
+        $manager = new WebServicesManager();
+        $manager->addService(new \WebFiori\Tests\Http\TestServices\PutTestService());
+        
+        $response = $this->putRequest($manager, 'put-test', [
+            'name' => 'test',
+            'value' => 123
+        ]);
+        
+        $this->assertStringContainsString('PUT received', $response);
+    }
+    
+    public function testPatchRequest() {
+        $manager = new WebServicesManager();
+        $manager->addService(new \WebFiori\Tests\Http\TestServices\PatchTestService());
+        
+        $response = $this->patchRequest($manager, 'patch-test', [
+            'field' => 'updated'
+        ]);
+        
+        $this->assertStringContainsString('PATCH received', $response);
+    }
+    
+    public function testToJSONWithVersionFilter() {
+        $manager = new WebServicesManager();
+        $manager->setVersion('2.0.0');
+        
+        $service1 = new NoAuthService();
+        $service1->setSince('1.0.0');
+        $manager->addService($service1);
+        
+        $service2 = new \WebFiori\Tests\Http\TestServices\PutTestService();
+        $service2->setSince('2.0.0');
+        $manager->addService($service2);
+        
+        $_POST['version'] = '2.0.0';
+        $json = $manager->toJSON();
+        $services = $json->get('services');
+        $this->assertGreaterThan(0, count($services));
+        unset($_POST['version']);
+    }
+    
+    public function testAnnotatedMethodService() {
+        $manager = new WebServicesManager();
+        $manager->addService(new \WebFiori\Tests\Http\TestServices\AnnotatedMethodService());
+        
+        $response = $this->getRequest($manager, 'annotated-method', ['id' => 123]);
+        
+        $this->assertStringContainsString('Test Item', $response);
+    }
+    
+    public function testJsonBodyRequest() {
+        $manager = new WebServicesManager();
+        $manager->addService(new \WebFiori\Tests\Http\TestServices\JsonBodyService());
+        
+        $response = $this->postRequest($manager, 'json-body', ['data' => 'test']);
+        
+        $this->assertStringContainsString('JSON received', $response);
+    }
+    
+    public function testMethodAuthorizationFailure() {
+        $manager = new WebServicesManager();
+        $manager->addService(new \WebFiori\Tests\Http\TestServices\MethodAuthFailService());
+        
+        $response = $this->getRequest($manager, 'method-auth-fail');
+        
+        $this->assertStringContainsString('http-code', $response);
+    }
+    
+    public function testHttpExceptionInMethod() {
+        $manager = new WebServicesManager();
+        $manager->addService(new \WebFiori\Tests\Http\TestServices\HttpExceptionMethodService());
+        
+        $response = $this->getRequest($manager, 'http-exception-method');
+        
+        $this->assertStringContainsString('404', $response);
+    }
+    
+    public function testGenericExceptionInMethod() {
+        $manager = new WebServicesManager();
+        $manager->addService(new \WebFiori\Tests\Http\TestServices\GenericExceptionMethodService());
+        
+        $response = $this->getRequest($manager, 'generic-exception-method');
+        
+        $this->assertStringContainsString('500', $response);
+    }
+    
     public static function setTestJson($fName, $jsonData) {
         $stream = fopen($fName, 'w+');
         fwrite($stream, $jsonData);

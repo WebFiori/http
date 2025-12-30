@@ -230,4 +230,54 @@ class ResponseTest extends TestCase {
         $this->assertEquals('', $response->getBody());
         $this->assertEquals([], $response->getHeaders());
     }
+    
+    public function testAppendBody() {
+        $response = new Response();
+        $response->write('First ');
+        $response->write('Second');
+        $this->assertEquals('First Second', $response->getBody());
+    }
+    
+    public function testGetHeadersPool() {
+        $response = new Response();
+        $pool = $response->getHeadersPool();
+        $this->assertInstanceOf(\WebFiori\Http\HeadersPool::class, $pool);
+    }
+    
+    public function testHasCookie() {
+        $response = new Response();
+        $this->assertFalse($response->hasCookie('test'));
+    }
+    
+    public function testGetCookies() {
+        $response = new Response();
+        $cookies = $response->getCookies();
+        $this->assertIsArray($cookies);
+    }
+    
+    public function testSetCode() {
+        $response = new Response();
+        $response->setCode(404);
+        $this->assertEquals(404, $response->getCode());
+    }
+    
+    public function testIsSent() {
+        $response = new Response();
+        $this->assertFalse($response->isSent());
+    }
+    
+    public function testRemoveHeader() {
+        $response = new Response();
+        $response->addHeader('X-Test', 'value');
+        $response->removeHeader('X-Test');
+        $this->assertFalse($response->hasHeader('X-Test'));
+    }
+    
+    public function testClearHeaders() {
+        $response = new Response();
+        $response->addHeader('X-Test', 'value');
+        $response->clearHeaders();
+        $this->assertEmpty($response->getHeaders());
+    }
 }
+

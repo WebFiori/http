@@ -181,4 +181,11 @@ class HttpMessageTest extends TestCase {
         $this->assertTrue($message2->hasHeader('Accept'));
         $this->assertFalse($message2->hasHeader('Content-Type'));
     }
+    
+    public function testGetBody() {
+        $message = new \WebFiori\Http\Response();
+        $message->write('test body');
+        $this->assertEquals('test body', $message->getBody());
+    }
 }
+

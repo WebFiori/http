@@ -413,4 +413,18 @@ class WebServiceTest extends TestCase {
         $this->assertContains('DELETE', $methods);
         $this->assertCount(4, $methods);
     }
+    
+    public function testConflictingAnnotations() {
+        $service = new \WebFiori\Tests\Http\TestServices\ConflictingAnnotationsService();
+        
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('conflicting annotations');
+        
+        $service->checkMethodAuthorization();
+    }
 }
+
+
+
+
+
