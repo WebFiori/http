@@ -1015,6 +1015,10 @@ class WebServicesManager implements JsonI {
         } else if ($reqMeth == RequestMethod::POST || 
                    $reqMeth == RequestMethod::PUT || 
                    $reqMeth == RequestMethod::PATCH) {
+            // Populate PUT/PATCH data before filtering
+            if ($reqMeth == RequestMethod::PUT || $reqMeth == RequestMethod::PATCH) {
+                $this->populatePutData($contentType);
+            }
             $this->filter->filterPOST();
         }
     }
