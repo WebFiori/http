@@ -2,7 +2,7 @@
 /**
  * This file is licensed under MIT License.
  * 
- * Copyright (c) 2019 WebFiori Framework
+ * Copyright (c) 2019-present WebFiori Framework
  * 
  * For more information on the license, please visit: 
  * https://github.com/WebFiori/http/blob/master/LICENSE
@@ -24,7 +24,15 @@ use WebFiori\Json\JsonI;
  */
 class RequestParameter implements JsonI {
     /**
-     * A boolean value that is set to true in case the 
+     * Reserved parameter names that cannot be used by developers.
+     * These names are used internally by the framework for service routing.
+     * 
+     * @var array
+     */
+    public const RESERVED_NAMES = ['action', 'service', 'service-name'];
+    
+
+    /** A boolean value that is set to true in case the 
      * basic filter will be applied before custom one.
      * 
      * @var boolean
@@ -638,6 +646,11 @@ class RequestParameter implements JsonI {
 
         if (WebService::isValidName($nameTrimmed)) {
             $this->name = $nameTrimmed;
+            // Check for reserved parameter names
+            if (in_array(strtolower($nameTrimmed), self::RESERVED_NAMES)) {
+                throw new \InvalidArgumentException("Parameter name '$nameTrimmed' is reserved and cannot be used. Reserved names: " . implode(', ', self::RESERVED_NAMES));
+            }
+
 
             return true;
         }

@@ -2,7 +2,7 @@
 /**
  * This file is licensed under MIT License.
  * 
- * Copyright (c) 2019 WebFiori Framework
+ * Copyright (c) 2019-present WebFiori Framework
  * 
  * For more information on the license, please visit: 
  * https://github.com/WebFiori/http/blob/master/LICENSE
@@ -188,8 +188,9 @@ class WebService implements JsonI {
             }
             
             try {
-                // Call the target method and process its return value
-                $result = $this->$targetMethod();
+                // Inject parameters into method call
+                $params = $this->getMethodParameters($targetMethod);
+                $result = $this->$targetMethod(...$params);
                 $this->handleMethodResponse($result, $targetMethod);
             } catch (HttpException $e) {
                 // Handle HTTP exceptions automatically
@@ -332,23 +333,43 @@ class WebService implements JsonI {
         
         $reflectionMethod = $reflection->getMethod($method);
         
+        // Check for conflicting annotations
+        $hasAllowAnonymous = !empty($reflectionMethod->getAttributes(\WebFiori\Http\Annotations\AllowAnonymous::class));
+        $hasRequiresAuth = !empty($reflectionMethod->getAttributes(\WebFiori\Http\Annotations\RequiresAuth::class));
+        
+        if ($hasAllowAnonymous && $hasRequiresAuth) {
+            throw new \InvalidArgumentException(
+                "Method '$method' has conflicting annotations: #[AllowAnonymous] and #[RequiresAuth] cannot be used together"
+            );
+        }
+        
         // Check AllowAnonymous first
-        if (!empty($reflectionMethod->getAttributes(\WebFiori\Http\Annotations\AllowAnonymous::class))) {
+        if ($hasAllowAnonymous) {
             return true;
         }
         
         // Check RequiresAuth
-        if (!empty($reflectionMethod->getAttributes(\WebFiori\Http\Annotations\RequiresAuth::class))) {
-            if (!SecurityContext::isAuthenticated()) {
+        if ($hasRequiresAuth) {
+            // First call isAuthorized()
+            if (!$this->isAuthorized()) {
                 return false;
             }
+            
+            // Then check for PreAuthorize
+            $preAuthAttributes = $reflectionMethod->getAttributes(\WebFiori\Http\Annotations\PreAuthorize::class);
+            if (!empty($preAuthAttributes)) {
+                $preAuth = $preAuthAttributes[0]->newInstance();
+                return SecurityContext::evaluateExpression($preAuth->expression);
+            }
+            
+            // If no PreAuthorize, continue based on isAuthorized (already passed)
+            return true;
         }
         
-        // Check PreAuthorize
+        // Check PreAuthorize without RequiresAuth
         $preAuthAttributes = $reflectionMethod->getAttributes(\WebFiori\Http\Annotations\PreAuthorize::class);
         if (!empty($preAuthAttributes)) {
             $preAuth = $preAuthAttributes[0]->newInstance();
-
             return SecurityContext::evaluateExpression($preAuth->expression);
         }
         
@@ -440,6 +461,41 @@ class WebService implements JsonI {
     }
     
     /**
+     * Get method parameters by extracting values from request.
+     * 
+     * @param string $methodName The method name
+     * @return array Array of parameter values in correct order
+     */
+    private function getMethodParameters(string $methodName): array {
+        $reflection = new \ReflectionMethod($this, $methodName);
+        $params = [];
+        
+        // Check for MapEntity attribute
+        $mapEntityAttrs = $reflection->getAttributes(\WebFiori\Http\Annotations\MapEntity::class);
+        
+        if (!empty($mapEntityAttrs)) {
+            $mapEntity = $mapEntityAttrs[0]->newInstance();
+            $mappedObject = $this->getObject($mapEntity->entityClass, $mapEntity->setters);
+            $params[] = $mappedObject;
+        } else {
+            // Original parameter handling
+            foreach ($reflection->getParameters() as $param) {
+                $paramName = $param->getName();
+                $value = $this->getParamVal($paramName);
+                
+                // Handle optional parameters with defaults
+                if ($value === null && $param->isDefaultValueAvailable()) {
+                    $value = $param->getDefaultValue();
+                }
+                
+                $params[] = $value;
+            }
+        }
+        
+        return $params;
+    }
+    
+    /**
      * Handle method response by auto-converting return values to HTTP responses.
      * 
      * @param mixed $result The return value from the method
@@ -456,7 +512,15 @@ class WebService implements JsonI {
         
         $responseBody = $responseBodyAttrs[0]->newInstance();
         
-        // Auto-convert return value to response
+        // Handle custom content types
+        if ($responseBody->contentType !== 'application/json') {
+            // For non-JSON content types, send raw result
+            $content = is_string($result) ? $result : (is_array($result) || is_object($result) ? json_encode($result) : (string)$result);
+            $this->send($responseBody->contentType, $content, $responseBody->status);
+            return;
+        }
+        
+        // Auto-convert return value to JSON response
         if ($result === null) {
             // Null return = empty response with configured status
             $this->sendResponse('', $responseBody->status, $responseBody->type);
@@ -522,13 +586,19 @@ class WebService implements JsonI {
         foreach ($paramAttributes as $attribute) {
             $param = $attribute->newInstance();
             
+            $options = [
+                \WebFiori\Http\ParamOption::TYPE => $this->mapParamType($param->type),
+                \WebFiori\Http\ParamOption::OPTIONAL => $param->optional,
+                \WebFiori\Http\ParamOption::DEFAULT => $param->default,
+                \WebFiori\Http\ParamOption::DESCRIPTION => $param->description
+            ];
+            
+            if ($param->filter !== null) {
+                $options[\WebFiori\Http\ParamOption::FILTER] = $param->filter;
+            }
+            
             $this->addParameters([
-                $param->name => [
-                    \WebFiori\Http\ParamOption::TYPE => $this->mapParamType($param->type),
-                    \WebFiori\Http\ParamOption::OPTIONAL => $param->optional,
-                    \WebFiori\Http\ParamOption::DEFAULT => $param->default,
-                    \WebFiori\Http\ParamOption::DESCRIPTION => $param->description
-                ]
+                $param->name => $options
             ]);
         }
     }
@@ -617,6 +687,11 @@ class WebService implements JsonI {
         }
 
         if ($param instanceof RequestParameter && !$this->hasParameter($param->getName())) {
+            // Additional validation for reserved parameter names
+            if (in_array(strtolower($param->getName()), \WebFiori\Http\RequestParameter::RESERVED_NAMES)) {
+                throw new \InvalidArgumentException("Cannot add parameter '" . $param->getName() . "' to service '" . $this->getName() . "': parameter name is reserved. Reserved names: " . implode(', ', \WebFiori\Http\RequestParameter::RESERVED_NAMES));
+            }
+
             $this->parameters[] = $param;
 
             return true;

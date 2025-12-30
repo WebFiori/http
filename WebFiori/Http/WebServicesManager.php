@@ -2,7 +2,7 @@
 /**
  * This file is licensed under MIT License.
  * 
- * Copyright (c) 2019 WebFiori Framework
+ * Copyright (c) 2019-present WebFiori Framework
  * 
  * For more information on the license, please visit: 
  * https://github.com/WebFiori/http/blob/master/LICENSE
@@ -159,6 +159,40 @@ class WebServicesManager implements JsonI {
      */
     public function addService(WebService $service) : WebServicesManager {
         return $this->addAction($service);
+    }
+    /**
+     * Automatically discovers and registers web services from a directory.
+     * 
+     * @param string $path The directory path to scan for service classes. Defaults to current directory.
+     * 
+     * @return WebServicesManager Returns the same instance for method chaining.
+     */
+    public function autoDiscoverServices(string $path = null) : WebServicesManager {
+        if ($path === null) {
+            $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1);
+            $path = dirname($trace[0]['file']);
+        }
+        
+        $files = glob($path . '/*.php');
+        $beforeClasses = get_declared_classes();
+        
+        foreach ($files as $file) {
+            require_once $file;
+        }
+        
+        $afterClasses = get_declared_classes();
+        $newClasses = array_diff($afterClasses, $beforeClasses);
+        
+        foreach ($newClasses as $class) {
+            if (is_subclass_of($class, WebService::class)) {
+                $reflection = new \ReflectionClass($class);
+                if (!$reflection->isAbstract()) {
+                    $this->addService(new $class());
+                }
+            }
+        }
+        
+        return $this;
     }
     /**
      * Sends a response message to indicate that request content type is 
@@ -393,7 +427,13 @@ class WebServicesManager implements JsonI {
         $rm = $this->getRequest()->getMethod();
 
         if ($c !== null && ($rm == RequestMethod::POST || $rm == RequestMethod::PUT)) {
-            return in_array($c, self::POST_CONTENT_TYPES);
+            // Check if content type starts with any of the supported types
+            foreach (self::POST_CONTENT_TYPES as $supportedType) {
+                if (strpos($c, $supportedType) === 0) {
+                    return true;
+                }
+            }
+            return false;
         } else if ($c === null && ($rm == RequestMethod::POST || $rm == RequestMethod::PUT)) {
             return false;
         }
@@ -979,11 +1019,15 @@ class WebServicesManager implements JsonI {
 
         if ($reqMeth == RequestMethod::GET || 
             $reqMeth == RequestMethod::DELETE || 
-            ($reqMeth == RequestMethod::PUT && $contentType != 'application/json') || 
-            $reqMeth == RequestMethod::HEAD || 
-            $reqMeth == RequestMethod::PATCH) {
+            $reqMeth == RequestMethod::HEAD) {
             $this->filter->filterGET();
-        } else if ($reqMeth == RequestMethod::POST || ($reqMeth == RequestMethod::PUT && $contentType == 'application/json')) {
+        } else if ($reqMeth == RequestMethod::POST || 
+                   $reqMeth == RequestMethod::PUT || 
+                   $reqMeth == RequestMethod::PATCH) {
+            // Populate PUT/PATCH data before filtering
+            if ($reqMeth == RequestMethod::PUT || $reqMeth == RequestMethod::PATCH) {
+                $this->populatePutData($contentType);
+            }
             $this->filter->filterPOST();
         }
     }
@@ -1001,6 +1045,11 @@ class WebServicesManager implements JsonI {
      * @deprecated since version 1.4.6 Use WebServicesManager::getCalledServiceName() instead.
      */
     private function getAction() {
+        $services = $this->getServices();
+        
+        if (count($services) == 1) {
+            return $services[array_keys($services)[0]]->getName();
+        }
         $reqMeth = $this->getRequest()->getMethod();
 
         $serviceIdx = ['action','service', 'service-name'];
@@ -1034,14 +1083,91 @@ class WebServicesManager implements JsonI {
                $reqMeth == RequestMethod::TRACE || 
                $reqMeth == RequestMethod::OPTIONS) && isset($_GET[$serviceNameIndex])) {
                 $retVal = filter_var($_GET[$serviceNameIndex]);
-            } else if (($reqMeth == RequestMethod::POST || 
-                    $reqMeth == RequestMethod::PUT || 
-                    $reqMeth == RequestMethod::PATCH) && isset($_POST[$serviceNameIndex])) {
+            } else if ($reqMeth == RequestMethod::POST && isset($_POST[$serviceNameIndex])) {
                 $retVal = filter_var($_POST[$serviceNameIndex]);
+            } else if ($reqMeth == RequestMethod::PUT || $reqMeth == RequestMethod::PATCH) {
+                $this->populatePutData($contentType);
+                if (isset($_POST[$serviceNameIndex])) {
+                    $retVal = filter_var($_POST[$serviceNameIndex]);
+                }
             }
         }
 
         return $retVal;
+    }
+    private function populatePutData(string $contentType) {
+
+        $contentType = $_SERVER['CONTENT_TYPE'] ?? '';
+        $input = file_get_contents('php://input');
+
+        if (empty($input)) {
+            return;
+        }
+
+        // Handle application/x-www-form-urlencoded
+        if (strpos($contentType, 'application/x-www-form-urlencoded') === 0) {
+            parse_str($input, $_POST);
+            return;
+        }
+
+        // Handle multipart/form-data
+        if (strpos($contentType, 'multipart/form-data') === 0) {
+            // Extract boundary from content type
+            preg_match('/boundary=(.+)$/', $contentType, $matches);
+            if (!isset($matches[1])) {
+                return;
+            }
+
+            $boundary = '--' . $matches[1];
+            $parts = explode($boundary, $input);
+
+            foreach ($parts as $part) {
+                if (trim($part) === '' || trim($part) === '--') {
+                    continue;
+                }
+
+                // Split headers and content
+                $sections = explode("\r\n\r\n", $part, 2);
+                if (count($sections) !== 2) {
+                    continue;
+                }
+
+                $headers = $sections[0];
+                $content = rtrim($sections[1], "\r\n");
+
+                // Parse Content-Disposition header
+                if (preg_match('/name="([^"]+)"/', $headers, $nameMatch)) {
+                    $fieldName = $nameMatch[1];
+
+                    // Check if it's a file upload
+                    if (preg_match('/filename="([^"]*)"/', $headers, $fileMatch)) {
+                        // Handle file upload
+                        $filename = $fileMatch[1];
+
+                        // Extract content type if present
+                        $fileType = 'application/octet-stream';
+                        if (preg_match('/Content-Type:\s*(.+)/i', $headers, $typeMatch)) {
+                            $fileType = trim($typeMatch[1]);
+                        }
+
+                        // Create temporary file
+                        $tmpFile = tempnam(sys_get_temp_dir(), 'put_upload_');
+                        file_put_contents($tmpFile, $content);
+
+                        $_FILES[$fieldName] = [
+                            'name' => $filename,
+                            'type' => $fileType,
+                            'tmp_name' => $tmpFile,
+                            'error' => UPLOAD_ERR_OK,
+                            'size' => strlen($content)
+                        ];
+                    } else {
+                        // Regular form field
+                        $_POST[$fieldName] = $content;
+                    }
+                }
+            }
+        }
     }
     private function isAuth(WebService $service) {
         $isAuth = false;

@@ -2,7 +2,7 @@
 /**
  * This file is licensed under MIT License.
  * 
- * Copyright (c) 2019 WebFiori Framework
+ * Copyright (c) 2019-present WebFiori Framework
  * 
  * For more information on the license, please visit: 
  * https://github.com/WebFiori/.github/blob/main/LICENSE
@@ -119,13 +119,10 @@ class ObjectMapper {
 
         foreach ($this->getSettersMap() as $method => $paramName) {
             if (is_callable([$instance, $method])) {
-                try {
-                    if ($inputs instanceof Json) {
-                        $instance->$method($inputs->get($paramName));
-                    } else if (gettype($inputs) == 'array') {
-                        $instance->$method($inputs[$paramName]);
-                    }
-                } catch (Throwable $ex) {
+                if ($inputs instanceof Json) {
+                    $instance->$method($inputs->get($paramName));
+                } else if (gettype($inputs) == 'array') {
+                    $instance->$method($inputs[$paramName]);
                 }
             }
         }
