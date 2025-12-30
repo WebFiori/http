@@ -185,7 +185,10 @@ class WebServicesManager implements JsonI {
         
         foreach ($newClasses as $class) {
             if (is_subclass_of($class, WebService::class)) {
-                $this->addService(new $class());
+                $reflection = new \ReflectionClass($class);
+                if (!$reflection->isAbstract()) {
+                    $this->addService(new $class());
+                }
             }
         }
         
@@ -424,7 +427,13 @@ class WebServicesManager implements JsonI {
         $rm = $this->getRequest()->getMethod();
 
         if ($c !== null && ($rm == RequestMethod::POST || $rm == RequestMethod::PUT)) {
-            return in_array($c, self::POST_CONTENT_TYPES);
+            // Check if content type starts with any of the supported types
+            foreach (self::POST_CONTENT_TYPES as $supportedType) {
+                if (strpos($c, $supportedType) === 0) {
+                    return true;
+                }
+            }
+            return false;
         } else if ($c === null && ($rm == RequestMethod::POST || $rm == RequestMethod::PUT)) {
             return false;
         }
