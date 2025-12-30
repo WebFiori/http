@@ -617,6 +617,11 @@ class WebService implements JsonI {
         }
 
         if ($param instanceof RequestParameter && !$this->hasParameter($param->getName())) {
+            // Additional validation for reserved parameter names
+            if (in_array(strtolower($param->getName()), \WebFiori\Http\RequestParameter::RESERVED_NAMES)) {
+                throw new \InvalidArgumentException("Cannot add parameter '" . $param->getName() . "' to service '" . $this->getName() . "': parameter name is reserved. Reserved names: " . implode(', ', \WebFiori\Http\RequestParameter::RESERVED_NAMES));
+            }
+
             $this->parameters[] = $param;
 
             return true;
