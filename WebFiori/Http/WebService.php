@@ -470,16 +470,26 @@ class WebService implements JsonI {
         $reflection = new \ReflectionMethod($this, $methodName);
         $params = [];
         
-        foreach ($reflection->getParameters() as $param) {
-            $paramName = $param->getName();
-            $value = $this->getParamVal($paramName);
-            
-            // Handle optional parameters with defaults
-            if ($value === null && $param->isDefaultValueAvailable()) {
-                $value = $param->getDefaultValue();
+        // Check for MapEntity attribute
+        $mapEntityAttrs = $reflection->getAttributes(\WebFiori\Http\Annotations\MapEntity::class);
+        
+        if (!empty($mapEntityAttrs)) {
+            $mapEntity = $mapEntityAttrs[0]->newInstance();
+            $mappedObject = $this->getObject($mapEntity->entityClass, $mapEntity->setters);
+            $params[] = $mappedObject;
+        } else {
+            // Original parameter handling
+            foreach ($reflection->getParameters() as $param) {
+                $paramName = $param->getName();
+                $value = $this->getParamVal($paramName);
+                
+                // Handle optional parameters with defaults
+                if ($value === null && $param->isDefaultValueAvailable()) {
+                    $value = $param->getDefaultValue();
+                }
+                
+                $params[] = $value;
             }
-            
-            $params[] = $value;
         }
         
         return $params;
