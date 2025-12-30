@@ -1032,6 +1032,11 @@ class WebServicesManager implements JsonI {
      * @deprecated since version 1.4.6 Use WebServicesManager::getCalledServiceName() instead.
      */
     private function getAction() {
+        $services = $this->getServices();
+        
+        if (count($services) == 1) {
+            return $services[array_keys($services)[0]]->getName();
+        }
         $reqMeth = $this->getRequest()->getMethod();
 
         $serviceIdx = ['action','service', 'service-name'];
