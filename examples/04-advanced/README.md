@@ -9,6 +9,7 @@ This folder demonstrates advanced WebFiori HTTP patterns and techniques.
 3. **03-exception-handling** - Global exception handling
 4. **04-middleware-pattern** - Request/response interceptors
 5. **05-streaming-responses** - Large data streaming
+3. **[03-manual-openapi](03-manual-openapi/)** - Using OpenAPIObj to serve API documentation
 
 ## Advanced Concepts
 
