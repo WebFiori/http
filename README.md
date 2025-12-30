@@ -93,7 +93,7 @@ use WebFiori\Http\WebService;
 use WebFiori\Http\Annotations\RestController;
 use WebFiori\Http\Annotations\GetMapping;
 use WebFiori\Http\Annotations\PostMapping;
-use WebFiori\Http\Annotations\Param;
+use WebFiori\Http\Annotations\RequestParam;
 use WebFiori\Http\Annotations\ResponseBody;
 use WebFiori\Http\Annotations\AllowAnonymous;
 use WebFiori\Http\ParamType;
@@ -104,7 +104,7 @@ class HelloService extends WebService {
     #[GetMapping]
     #[ResponseBody]
     #[AllowAnonymous]
-    #[Param('name', ParamType::STRING, 'Your name')]
+    #[RequestParam('name', ParamType::STRING, true)]
     public function sayHello(?string $name): string {
         return $name ? "Hello, $name!" : "Hello, World!";
     }
@@ -112,7 +112,7 @@ class HelloService extends WebService {
     #[PostMapping]
     #[ResponseBody]
     #[AllowAnonymous]
-    #[Param('message', ParamType::STRING, 'Custom message')]
+    #[RequestParam('message', ParamType::STRING)]
     public function customGreeting(string $message): array {
         return ['greeting' => $message, 'timestamp' => time()];
     }
@@ -197,7 +197,7 @@ use WebFiori\Http\Annotations\GetMapping;
 use WebFiori\Http\Annotations\PostMapping;
 use WebFiori\Http\Annotations\PutMapping;
 use WebFiori\Http\Annotations\DeleteMapping;
-use WebFiori\Http\Annotations\Param;
+use WebFiori\Http\Annotations\RequestParam;
 use WebFiori\Http\Annotations\ResponseBody;
 use WebFiori\Http\Annotations\RequiresAuth;
 use WebFiori\Http\ParamType;
@@ -208,30 +208,30 @@ class UserService extends WebService {
     
     #[GetMapping]
     #[ResponseBody]
-    #[Param('id', ParamType::INT, 'User ID', min: 1)]
+    #[RequestParam('id', ParamType::INT, true)]
     public function getUser(?int $id): array {
         return ['id' => $id ?? 1, 'name' => 'John Doe'];
     }
     
     #[PostMapping]
     #[ResponseBody]
-    #[Param('name', ParamType::STRING, 'User name', minLength: 2)]
-    #[Param('email', ParamType::EMAIL, 'User email')]
+    #[RequestParam('name', ParamType::STRING)]
+    #[RequestParam('email', ParamType::EMAIL)]
     public function createUser(string $name, string $email): array {
         return ['id' => 2, 'name' => $name, 'email' => $email];
     }
     
     #[PutMapping]
     #[ResponseBody]
-    #[Param('id', ParamType::INT, 'User ID')]
-    #[Param('name', ParamType::STRING, 'User name')]
+    #[RequestParam('id', ParamType::INT)]
+    #[RequestParam('name', ParamType::STRING)]
     public function updateUser(int $id, string $name): array {
         return ['id' => $id, 'name' => $name];
     }
     
     #[DeleteMapping]
     #[ResponseBody]
-    #[Param('id', ParamType::INT, 'User ID')]
+    #[RequestParam('id', ParamType::INT)]
     public function deleteUser(int $id): array {
         return ['deleted' => $id];
     }
