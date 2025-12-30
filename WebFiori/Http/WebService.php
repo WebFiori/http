@@ -188,8 +188,9 @@ class WebService implements JsonI {
             }
             
             try {
-                // Call the target method and process its return value
-                $result = $this->$targetMethod();
+                // Inject parameters into method call
+                $params = $this->getMethodParameters($targetMethod);
+                $result = $this->$targetMethod(...$params);
                 $this->handleMethodResponse($result, $targetMethod);
             } catch (HttpException $e) {
                 // Handle HTTP exceptions automatically
@@ -437,6 +438,31 @@ class WebService implements JsonI {
         }
         
         return false;
+    }
+    
+    /**
+     * Get method parameters by extracting values from request.
+     * 
+     * @param string $methodName The method name
+     * @return array Array of parameter values in correct order
+     */
+    private function getMethodParameters(string $methodName): array {
+        $reflection = new \ReflectionMethod($this, $methodName);
+        $params = [];
+        
+        foreach ($reflection->getParameters() as $param) {
+            $paramName = $param->getName();
+            $value = $this->getParamVal($paramName);
+            
+            // Handle optional parameters with defaults
+            if ($value === null && $param->isDefaultValueAvailable()) {
+                $value = $param->getDefaultValue();
+            }
+            
+            $params[] = $value;
+        }
+        
+        return $params;
     }
     
     /**
