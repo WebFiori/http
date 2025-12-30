@@ -674,6 +674,25 @@ class WebServicesManagerTest extends APITestCase {
         unset($_SERVER['CONTENT_TYPE']);
         putenv('REQUEST_METHOD');
     }
+    
+    public function testAutoDiscoverServices() {
+        $manager = new WebServicesManager();
+        $servicesPath = __DIR__ . '/TestServices';
+        $manager->autoDiscoverServices($servicesPath);
+        
+        $services = $manager->getServices();
+        $this->assertGreaterThan(0, count($services));
+        
+        $found = false;
+        foreach ($services as $service) {
+            if ($service->getName() === 'auto-discovered') {
+                $found = true;
+                break;
+            }
+        }
+        $this->assertTrue($found, 'AutoDiscoveredService should be found');
+    }
+    
     public static function setTestJson($fName, $jsonData) {
         $stream = fopen($fName, 'w+');
         fwrite($stream, $jsonData);

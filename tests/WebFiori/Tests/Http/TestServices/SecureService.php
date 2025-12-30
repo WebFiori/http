@@ -39,7 +39,7 @@ class SecureService extends WebService {
     }
     
     public function isAuthorized(): bool {
-        return true; // Default fallback
+        return SecurityContext::isAuthenticated();
     }
 
     public function processRequest() {

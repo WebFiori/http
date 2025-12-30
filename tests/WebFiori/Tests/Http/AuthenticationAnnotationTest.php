@@ -48,19 +48,19 @@ class AuthenticationAnnotationTest extends TestCase {
         
         // Test admin method without admin role
         $_GET['action'] = 'admin';
-        SecurityContext::setRoles(['USER']);
+        SecurityContext::setCurrentUser(new TestUser(1, ['USER'], [], true));
         $this->assertFalse($service->checkMethodAuthorization());
         
         // Test admin method with admin role
-        SecurityContext::setRoles(['ADMIN']);
+        SecurityContext::setCurrentUser(new TestUser(1, ['ADMIN'], [], true));
         $this->assertTrue($service->checkMethodAuthorization());
         
         // Test authority-based method
         $_GET['action'] = 'create';
-        SecurityContext::setAuthorities(['USER_READ']);
+        SecurityContext::setCurrentUser(new TestUser(1, [], ['USER_READ'], true));
         $this->assertFalse($service->checkMethodAuthorization());
         
-        SecurityContext::setAuthorities(['USER_CREATE']);
+        SecurityContext::setCurrentUser(new TestUser(1, [], ['USER_CREATE'], true));
         $this->assertTrue($service->checkMethodAuthorization());
     }
     

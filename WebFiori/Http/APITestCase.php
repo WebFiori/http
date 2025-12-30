@@ -128,13 +128,13 @@ class APITestCase extends TestCase {
      * to mimic HTTP request headers. The keys of the array are names of headers
      * and the value of each key represents the value of the header.
      * 
-     * @param UserInterface|null $user Optional user to authenticate the request with.
+     * @param SecurityPrincipal|null $user Optional user to authenticate the request with.
      * to mimic HTTP request headers. The keys of the array are names of headers
      * and the value of each key represents the value of the header.
      *  
      * @return string The method will return the output of the endpoint.
      */
-    public function callEndpoint(WebServicesManager $manager, string $requestMethod, string $apiEndpointName, array $parameters = [], array $httpHeaders = [], ?UserInterface $user = null) : string {
+    public function callEndpoint(WebServicesManager $manager, string $requestMethod, string $apiEndpointName, array $parameters = [], array $httpHeaders = [], ?SecurityPrincipal $user = null) : string {
         $method = strtoupper($requestMethod);
         $serviceName = $this->resolveServiceName($apiEndpointName);
         
@@ -188,7 +188,7 @@ class APITestCase extends TestCase {
      * to mimic HTTP request headers. The keys of the array are names of headers
      * and the value of each key represents the value of the header.
      * 
-     * @param UserInterface|null $user Optional user to authenticate the request with.
+     * @param SecurityPrincipal|null $user Optional user to authenticate the request with.
      */
     private function setupRequest(string $method, string $serviceName, array $parameters, array $httpHeaders) {
         putenv('REQUEST_METHOD=' . $method);
@@ -267,14 +267,14 @@ class APITestCase extends TestCase {
      * to mimic HTTP request headers. The keys of the array are names of headers
      * and the value of each key represents the value of the header.
      * 
-     * @param UserInterface|null $user Optional user to authenticate the request with.
+     * @param SecurityPrincipal|null $user Optional user to authenticate the request with.
      * to mimic HTTP request headers. The keys of the array are names of headers
      * and the value of each key represents the value of the header.
      * 
      * @return string The method will return the output that was produced by
      * the endpoint as string.
      */
-    public function deleteRequest(WebServicesManager $manager, string $endpoint, array $parameters = [], array $httpHeaders = [], ?UserInterface $user = null) : string {
+    public function deleteRequest(WebServicesManager $manager, string $endpoint, array $parameters = [], array $httpHeaders = [], ?SecurityPrincipal $user = null) : string {
         return $this->callEndpoint($manager, RequestMethod::DELETE, $endpoint, $parameters, $httpHeaders, $user);
     }
     /**
@@ -290,7 +290,7 @@ class APITestCase extends TestCase {
      * @return string The method will return the output that was produced by
      * the endpoint as string.
      */
-    public function getRequest(WebServicesManager $manager, string $endpoint, array $parameters = [], array $httpHeaders = [], ?UserInterface $user = null) : string {
+    public function getRequest(WebServicesManager $manager, string $endpoint, array $parameters = [], array $httpHeaders = [], ?SecurityPrincipal $user = null) : string {
         return $this->callEndpoint($manager, RequestMethod::GET, $endpoint, $parameters, $httpHeaders, $user);
     }
     /**
@@ -307,14 +307,14 @@ class APITestCase extends TestCase {
      * to mimic HTTP request headers. The keys of the array are names of headers
      * and the value of each key represents the value of the header.
      * 
-     * @param UserInterface|null $user Optional user to authenticate the request with.
+     * @param SecurityPrincipal|null $user Optional user to authenticate the request with.
      * to mimic HTTP request headers. The keys of the array are names of headers
      * and the value of each key represents the value of the header.
      * 
      * @return string The method will return the output that was produced by
      * the endpoint as string.
      */
-    public function postRequest(WebServicesManager $manager, string $endpoint, array $parameters = [], array $httpHeaders = [], ?UserInterface $user = null) : string {
+    public function postRequest(WebServicesManager $manager, string $endpoint, array $parameters = [], array $httpHeaders = [], ?SecurityPrincipal $user = null) : string {
         return $this->callEndpoint($manager, RequestMethod::POST, $endpoint, $parameters, $httpHeaders, $user);
     }
     /**
@@ -331,14 +331,14 @@ class APITestCase extends TestCase {
      * to mimic HTTP request headers. The keys of the array are names of headers
      * and the value of each key represents the value of the header.
      * 
-     * @param UserInterface|null $user Optional user to authenticate the request with.
+     * @param SecurityPrincipal|null $user Optional user to authenticate the request with.
      * to mimic HTTP request headers. The keys of the array are names of headers
      * and the value of each key represents the value of the header.
      * 
      * @return string The method will return the output that was produced by
      * the endpoint as string.
      */
-    public function putRequest(WebServicesManager $manager, string $endpoint, array $parameters = [], array $httpHeaders = [], ?UserInterface $user = null) : string {
+    public function putRequest(WebServicesManager $manager, string $endpoint, array $parameters = [], array $httpHeaders = [], ?SecurityPrincipal $user = null) : string {
         return $this->callEndpoint($manager, RequestMethod::PUT, $endpoint, $parameters, $httpHeaders, $user);
     }
     /**
@@ -355,14 +355,14 @@ class APITestCase extends TestCase {
      * to mimic HTTP request headers. The keys of the array are names of headers
      * and the value of each key represents the value of the header.
      * 
-     * @param UserInterface|null $user Optional user to authenticate the request with.
+     * @param SecurityPrincipal|null $user Optional user to authenticate the request with.
      * to mimic HTTP request headers. The keys of the array are names of headers
      * and the value of each key represents the value of the header.
      * 
      * @return string The method will return the output that was produced by
      * the endpoint as string.
      */
-    public function patchRequest(WebServicesManager $manager, string $endpoint, array $parameters = [], array $httpHeaders = [], ?UserInterface $user = null) : string {
+    public function patchRequest(WebServicesManager $manager, string $endpoint, array $parameters = [], array $httpHeaders = [], ?SecurityPrincipal $user = null) : string {
         return $this->callEndpoint($manager, RequestMethod::PATCH, $endpoint, $parameters, $httpHeaders, $user);
     }
     /**
@@ -379,14 +379,14 @@ class APITestCase extends TestCase {
      * to mimic HTTP request headers. The keys of the array are names of headers
      * and the value of each key represents the value of the header.
      * 
-     * @param UserInterface|null $user Optional user to authenticate the request with.
+     * @param SecurityPrincipal|null $user Optional user to authenticate the request with.
      * to mimic HTTP request headers. The keys of the array are names of headers
      * and the value of each key represents the value of the header.
      * 
      * @return string The method will return the output that was produced by
      * the endpoint as string.
      */
-    public function optionsRequest(WebServicesManager $manager, string $endpoint, array $parameters = [], array $httpHeaders = [], ?UserInterface $user = null) : string {
+    public function optionsRequest(WebServicesManager $manager, string $endpoint, array $parameters = [], array $httpHeaders = [], ?SecurityPrincipal $user = null) : string {
         return $this->callEndpoint($manager, RequestMethod::OPTIONS, $endpoint, $parameters, $httpHeaders, $user);
     }
     /**
@@ -403,14 +403,14 @@ class APITestCase extends TestCase {
      * to mimic HTTP request headers. The keys of the array are names of headers
      * and the value of each key represents the value of the header.
      * 
-     * @param UserInterface|null $user Optional user to authenticate the request with.
+     * @param SecurityPrincipal|null $user Optional user to authenticate the request with.
      * to mimic HTTP request headers. The keys of the array are names of headers
      * and the value of each key represents the value of the header.
      * 
      * @return string The method will return the output that was produced by
      * the endpoint as string.
      */
-    public function headRequest(WebServicesManager $manager, string $endpoint, array $parameters = [], array $httpHeaders = [], ?UserInterface $user = null) : string {
+    public function headRequest(WebServicesManager $manager, string $endpoint, array $parameters = [], array $httpHeaders = [], ?SecurityPrincipal $user = null) : string {
         return $this->callEndpoint($manager, RequestMethod::HEAD, $endpoint, $parameters, $httpHeaders, $user);
     }
     private function extractPathAndName($absPath): array {
