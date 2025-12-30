@@ -33,14 +33,10 @@ A powerful and flexible PHP library for creating RESTful web APIs with built-in 
   - [Using Attributes (Recommended)](#using-attributes-recommended)
   - [Traditional Class-Based Approach](#traditional-class-based-approach)
 - [Parameter Management](#parameter-management)
-- [Authentication & Authorization](#authentication--authorization)
-- [Request & Response Handling](#request--response-handling)
-- [Advanced Features](#advanced-features)
-  - [Object Mapping](#object-mapping-1)
-  - [OpenAPI Documentation](#openapi-documentation)
+
 - [Testing](#testing)
 - [Examples](#examples)
-- [API Documentation](#api-documentation)
+
 
 ## Supported PHP Versions
 
@@ -83,7 +79,7 @@ require_once 'path/to/webfiori-http/vendor/autoload.php';
 
 ## Quick Start
 
-### Modern Approach with Attributes
+### Modern Approach with Attributes (Recommended)
 
 PHP 8+ attributes provide a clean, declarative way to define web services:
 
@@ -121,7 +117,7 @@ class HelloService extends WebService {
 
 ### Traditional Approach
 
-The traditional approach using constructor configuration:
+For comparison, here's the traditional approach using constructor configuration:
 
 ```php
 <?php
@@ -390,273 +386,6 @@ public function processRequest() {
 }
 ```
 
-## Authentication & Authorization
-
-### Basic Authentication Implementation
-
-```php
-public function isAuthorized() {
-    $authHeader = $this->getAuthHeader();
-    
-    if ($authHeader === null) {
-        return false;
-    }
-    
-    $scheme = $authHeader->getScheme();
-    $credentials = $authHeader->getCredentials();
-    
-    if ($scheme === 'basic') {
-        // Decode base64 credentials
-        $decoded = base64_decode($credentials);
-        list($username, $password) = explode(':', $decoded);
-        
-        // Validate credentials
-        return $this->validateUser($username, $password);
-    }
-    
-    return false;
-}
-```
-
-### Bearer Token Authentication
-
-```php
-public function isAuthorized() {
-    $authHeader = $this->getAuthHeader();
-    
-    if ($authHeader === null) {
-        return false;
-    }
-    
-    if ($authHeader->getScheme() === 'bearer') {
-        $token = $authHeader->getCredentials();
-        return $this->validateToken($token);
-    }
-    
-    return false;
-}
-```
-
-### Skipping Authentication
-
-```php
-public function __construct() {
-    parent::__construct('public-service');
-    $this->setIsAuthRequired(false); // Skip authentication
-}
-```
-
-### Custom Error Messages
-
-```php
-use WebFiori\Http\ResponseMessage;
-
-public function isAuthorized() {
-    ResponseMessage::set('401', 'Custom unauthorized message');
-    
-    // Your authorization logic
-    return false;
-}
-```
-
-## Request & Response Handling
-
-### Sending JSON Responses
-
-```php
-// Simple message response
-$this->sendResponse('Operation completed successfully');
-
-// Response with type and status code
-$this->sendResponse('User created', 'success', 201);
-
-// Response with additional data
-$userData = ['id' => 123, 'name' => 'John Doe'];
-$this->sendResponse('User retrieved', 'success', 200, $userData);
-```
-
-### Custom Content Type Responses
-
-```php
-// Send XML response
-$xmlData = '<user><id>123</id><name>John Doe</name></user>';
-$this->send('application/xml', $xmlData, 200);
-
-// Send plain text
-$this->send('text/plain', 'Hello, World!', 200);
-
-// Send file download
-$this->send('application/octet-stream', $fileContent, 200);
-```
-
-### Handling Different Request Methods
-
-```php
-public function processRequest() {
-    $method = $this->getManager()->getRequestMethod();
-    
-    switch ($method) {
-        case RequestMethod::GET:
-            $this->handleGet();
-            break;
-        case RequestMethod::POST:
-            $this->handlePost();
-            break;
-        case RequestMethod::PUT:
-            $this->handlePut();
-            break;
-        case RequestMethod::DELETE:
-            $this->handleDelete();
-            break;
-    }
-}
-```
-
-### JSON Request Handling
-
-The library automatically handles JSON requests when `Content-Type: application/json`:
-
-```php
-public function processRequest() {
-    $inputs = $this->getInputs();
-    
-    if ($inputs instanceof \WebFiori\Json\Json) {
-        // Handle JSON input
-        $name = $inputs->get('name');
-        $email = $inputs->get('email');
-    } else {
-        // Handle form data
-        $name = $inputs['name'] ?? null;
-        $email = $inputs['email'] ?? null;
-    }
-}
-```
-
-## Advanced Features
-
-### Object Mapping
-
-Automatically map request parameters to PHP objects:
-
-```php
-class User {
-    private $name;
-    private $email;
-    private $age;
-    
-    public function setName($name) { $this->name = $name; }
-    public function setEmail($email) { $this->email = $email; }
-    public function setAge($age) { $this->age = $age; }
-    
-    // Getters...
-}
-
-public function processRequest() {
-    // Automatic mapping
-    $user = $this->getObject(User::class);
-    
-    // Custom setter mapping
-    $user = $this->getObject(User::class, [
-        'full-name' => 'setName',
-        'email-address' => 'setEmail'
-    ]);
-}
-```
-
-### Services Manager Configuration
-
-```php
-$manager = new WebServicesManager();
-
-// Set API version and description
-$manager->setVersion('2.1.0');
-$manager->setDescription('User Management API');
-
-// Add multiple services
-$manager->addService(new CreateUserService());
-$manager->addService(new GetUserService());
-$manager->addService(new UpdateUserService());
-$manager->addService(new DeleteUserService());
-
-// Custom input/output streams
-$manager->setInputStream('php://input');
-$manager->setOutputStream(fopen('api-log.txt', 'a'));
-
-// Process requests
-$manager->process();
-```
-
-### Error Handling
-
-```php
-public function processRequest() {
-    try {
-        // Service logic
-        $result = $this->performOperation();
-        $this->sendResponse('Success', 'success', 200, $result);
-    } catch (ValidationException $e) {
-        $this->sendResponse($e->getMessage(), 'error', 400);
-    } catch (AuthenticationException $e) {
-        $this->sendResponse('Unauthorized', 'error', 401);
-    } catch (Exception $e) {
-        $this->sendResponse('Internal server error', 'error', 500);
-    }
-}
-```
-
-### Custom Filters
-
-```php
-use WebFiori\Http\APIFilter;
-
-$customFilter = function($original, $filtered) {
-    // Custom validation logic
-    if (strlen($filtered) < 3) {
-        return APIFilter::INVALID;
-    }
-    
-    // Additional processing
-    return strtoupper($filtered);
-];
-
-$this->addParameters([
-    'code' => [
-        ParamOption::TYPE => ParamType::STRING,
-        ParamOption::FILTER => $customFilter
-    ]
-]);
-```
-
-### OpenAPI Documentation
-
-Generate OpenAPI 3.1.0 specification for your API:
-
-```php
-$manager = new WebServicesManager();
-$manager->setVersion('1.0.0');
-$manager->setDescription('My REST API');
-
-// Add your services
-$manager->addService(new UserService());
-$manager->addService(new ProductService());
-
-// Generate OpenAPI specification
-$openApiObj = $manager->toOpenAPI();
-
-// Customize if needed
-$info = $openApiObj->getInfo();
-$info->setTermsOfService('https://example.com/terms');
-
-// Output as JSON
-header('Content-Type: application/json');
-echo $openApiObj->toJSON();
-```
-
-The generated specification can be used with:
-- Swagger UI for interactive documentation
-- Postman for API testing
-- Code generators for client SDKs
-
 ## Testing
 
 ### Using APITestCase
@@ -693,18 +422,6 @@ class MyServiceTest extends APITestCase {
 }
 ```
 
-### Manual Testing
-
-```php
-// Set up test environment
-$_GET['service'] = 'my-service';
-$_GET['param1'] = 'test-value';
-$_SERVER['REQUEST_METHOD'] = 'GET';
-
-$manager = new WebServicesManager();
-$manager->addService(new MyService());
-$manager->process();
-```
 
 ## Examples
 
@@ -712,149 +429,76 @@ $manager->process();
 
 ```php
 <?php
-class UserService extends AbstractWebService {
-    public function __construct() {
-        parent::__construct('user');
-        $this->setRequestMethods([
-            RequestMethod::GET,
-            RequestMethod::POST,
-            RequestMethod::PUT,
-            RequestMethod::DELETE
-        ]);
-        
-        $this->addParameters([
-            'id' => [
-                ParamOption::TYPE => ParamType::INT,
-                ParamOption::OPTIONAL => true
-            ],
-            'name' => [
-                ParamOption::TYPE => ParamType::STRING,
-                ParamOption::OPTIONAL => true,
-                ParamOption::MIN_LENGTH => 2
-            ],
-            'email' => [
-                ParamOption::TYPE => ParamType::EMAIL,
-                ParamOption::OPTIONAL => true
-            ]
-        ]);
-    }
-    
-    public function isAuthorized() {
-        return true; // Implement your auth logic
-    }
-    
-    public function processRequest() {
-        $method = $this->getManager()->getRequestMethod();
-        
-        switch ($method) {
-            case RequestMethod::GET:
-                $this->getUser();
-                break;
-            case RequestMethod::POST:
-                $this->createUser();
-                break;
-            case RequestMethod::PUT:
-                $this->updateUser();
-                break;
-            case RequestMethod::DELETE:
-                $this->deleteUser();
-                break;
-        }
-    }
-    
-    private function getUser() {
-        $id = $this->getParamVal('id');
-        
-        if ($id) {
-            // Get specific user
-            $user = $this->findUserById($id);
-            $this->sendResponse('User found', 'success', 200, $user);
-        } else {
-            // Get all users
-            $users = $this->getAllUsers();
-            $this->sendResponse('Users retrieved', 'success', 200, $users);
-        }
-    }
-    
-    private function createUser() {
-        $name = $this->getParamVal('name');
-        $email = $this->getParamVal('email');
-        
-        $user = $this->createNewUser($name, $email);
-        $this->sendResponse('User created', 'success', 201, $user);
-    }
-    
-    private function updateUser() {
-        $id = $this->getParamVal('id');
-        $name = $this->getParamVal('name');
-        $email = $this->getParamVal('email');
-        
-        $user = $this->updateExistingUser($id, $name, $email);
-        $this->sendResponse('User updated', 'success', 200, $user);
-    }
-    
-    private function deleteUser() {
-        $id = $this->getParamVal('id');
-        
-        $this->removeUser($id);
-        $this->sendResponse('User deleted', 'success', 200);
-    }
-}
-```
+use WebFiori\Http\WebService;
+use WebFiori\Http\Annotations\RestController;
+use WebFiori\Http\Annotations\GetMapping;
+use WebFiori\Http\Annotations\PostMapping;
+use WebFiori\Http\Annotations\PutMapping;
+use WebFiori\Http\Annotations\DeleteMapping;
+use WebFiori\Http\Annotations\RequestParam;
+use WebFiori\Http\Annotations\ResponseBody;
+use WebFiori\Http\Annotations\AllowAnonymous;
+use WebFiori\Http\ParamType;
 
-### File Upload Service
-
-```php
-<?php
-class FileUploadService extends AbstractWebService {
-    public function __construct() {
-        parent::__construct('upload');
-        $this->setRequestMethods([RequestMethod::POST]);
-        
-        $this->addParameters([
-            'file' => [
-                ParamOption::TYPE => ParamType::STRING,
-                ParamOption::OPTIONAL => false
+#[RestController('tasks', 'Task management service')]
+class TaskService extends WebService {
+    
+    #[GetMapping]
+    #[ResponseBody]
+    #[AllowAnonymous]
+    public function getTasks(): array {
+        return [
+            'tasks' => [
+                ['id' => 1, 'title' => 'Task 1', 'completed' => false],
+                ['id' => 2, 'title' => 'Task 2', 'completed' => true]
             ],
-            'description' => [
-                ParamOption::TYPE => ParamType::STRING,
-                ParamOption::OPTIONAL => true
-            ]
-        ]);
+            'count' => 2
+        ];
     }
     
-    public function isAuthorized() {
-        return true;
+    #[PostMapping]
+    #[ResponseBody]
+    #[AllowAnonymous]
+    #[RequestParam('title', ParamType::STRING)]
+    #[RequestParam('description', ParamType::STRING, true)]
+    public function createTask(string $title, ?string $description): array {
+        
+        return [
+            'id' => 3,
+            'title' => $title,
+            'description' => $description ?: '',
+            'completed' => false
+        ];
     }
     
-    public function processRequest() {
-        if (isset($_FILES['file'])) {
-            $file = $_FILES['file'];
-            
-            if ($file['error'] === UPLOAD_ERR_OK) {
-                $uploadPath = 'uploads/' . basename($file['name']);
-                
-                if (move_uploaded_file($file['tmp_name'], $uploadPath)) {
-                    $this->sendResponse('File uploaded successfully', 'success', 200, [
-                        'filename' => $file['name'],
-                        'size' => $file['size'],
-                        'path' => $uploadPath
-                    ]);
-                } else {
-                    $this->sendResponse('Failed to move uploaded file', 'error', 500);
-                }
-            } else {
-                $this->sendResponse('File upload error', 'error', 400);
-            }
-        } else {
-            $this->sendResponse('No file uploaded', 'error', 400);
-        }
+    #[PutMapping]
+    #[ResponseBody]
+    #[AllowAnonymous]
+    #[RequestParam('id', ParamType::INT)]
+    #[RequestParam('title', ParamType::STRING, true)]
+    public function updateTask(int $id, ?string $title): array {
+        
+        return [
+            'id' => $id,
+            'title' => $title,
+            'updated_at' => date('Y-m-d H:i:s')
+        ];
+    }
+    
+    #[DeleteMapping]
+    #[ResponseBody]
+    #[AllowAnonymous]
+    #[RequestParam('id', ParamType::INT)]
+    public function deleteTask(int $id): array {
+        return [
+            'id' => $id,
+            'deleted_at' => date('Y-m-d H:i:s')
+        ];
     }
 }
 ```
 
 For more examples, check the [examples](examples/) directory in this repository.
-
 
 ### Key Classes Documentation
 
@@ -876,7 +520,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Support
 
 - **Issues**: [GitHub Issues](https://github.com/WebFiori/http/issues)
-- **Documentation**: [WebFiori Docs](https://webfiori.com/docs/webfiori/http)
 - **Examples**: [Examples Directory](examples/)
 
 ## Changelog
