@@ -10,8 +10,8 @@ namespace WebFiori\Http;
  * @author Ibrahim
  */
 class SecurityContext {
-    /** @var UserInterface|null Current authenticated user */
-    private static ?UserInterface $currentUser = null;
+    /** @var SecurityPrincipal|null Current authenticated user */
+    private static ?SecurityPrincipal $currentUser = null;
     
     /** @var array User roles (e.g., ['USER', 'ADMIN']) - deprecated, use user object */
     private static array $roles = [];
@@ -22,9 +22,9 @@ class SecurityContext {
     /**
      * Set the current authenticated user.
      * 
-     * @param UserInterface|null $user User object or null for unauthenticated
+     * @param SecurityPrincipal|null $user User object or null for unauthenticated
      */
-    public static function setCurrentUser(?UserInterface $user): void {
+    public static function setCurrentUser(?SecurityPrincipal $user): void {
         self::$currentUser = $user;
         
         // Update legacy arrays for backward compatibility
@@ -40,9 +40,9 @@ class SecurityContext {
     /**
      * Get the current authenticated user.
      * 
-     * @return UserInterface|null User object or null if not authenticated
+     * @return SecurityPrincipal|null User object or null if not authenticated
      */
-    public static function getCurrentUser(): ?UserInterface {
+    public static function getCurrentUser(): ?SecurityPrincipal {
         return self::$currentUser;
     }
     
