@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  * 
@@ -24,19 +25,14 @@ use WebFiori\Json\JsonI;
  */
 class OAuthFlowsObj implements JsonI {
     /**
-     * Configuration for the OAuth Implicit flow.
+     * Configuration for the OAuth Authorization Code flow.
+     * 
+     * Previously called accessCode in OpenAPI 2.0.
      * 
      * @var OAuthFlowObj|null
      */
-    private ?OAuthFlowObj $implicit = null;
-    
-    /**
-     * Configuration for the OAuth Resource Owner Password flow.
-     * 
-     * @var OAuthFlowObj|null
-     */
-    private ?OAuthFlowObj $password = null;
-    
+    private ?OAuthFlowObj $authorizationCode = null;
+
     /**
      * Configuration for the OAuth Client Credentials flow.
      * 
@@ -45,70 +41,29 @@ class OAuthFlowsObj implements JsonI {
      * @var OAuthFlowObj|null
      */
     private ?OAuthFlowObj $clientCredentials = null;
-    
     /**
-     * Configuration for the OAuth Authorization Code flow.
-     * 
-     * Previously called accessCode in OpenAPI 2.0.
+     * Configuration for the OAuth Implicit flow.
      * 
      * @var OAuthFlowObj|null
      */
-    private ?OAuthFlowObj $authorizationCode = null;
-    
+    private ?OAuthFlowObj $implicit = null;
+
     /**
-     * Sets configuration for the OAuth Implicit flow.
+     * Configuration for the OAuth Resource Owner Password flow.
      * 
-     * @param OAuthFlowObj $implicit OAuth Flow Object for implicit flow.
-     * 
-     * @return OAuthFlowsObj Returns self for method chaining.
+     * @var OAuthFlowObj|null
      */
-    public function setImplicit(OAuthFlowObj $implicit): OAuthFlowsObj {
-        $this->implicit = $implicit;
-        return $this;
-    }
-    
+    private ?OAuthFlowObj $password = null;
+
     /**
-     * Returns the implicit flow configuration.
+     * Returns the authorization code flow configuration.
      * 
      * @return OAuthFlowObj|null Returns the value, or null if not set.
      */
-    public function getImplicit(): ?OAuthFlowObj {
-        return $this->implicit;
+    public function getAuthorizationCode(): ?OAuthFlowObj {
+        return $this->authorizationCode;
     }
-    
-    /**
-     * Sets configuration for the OAuth Resource Owner Password flow.
-     * 
-     * @param OAuthFlowObj $password OAuth Flow Object for password flow.
-     * 
-     * @return OAuthFlowsObj Returns self for method chaining.
-     */
-    public function setPassword(OAuthFlowObj $password): OAuthFlowsObj {
-        $this->password = $password;
-        return $this;
-    }
-    
-    /**
-     * Returns the password flow configuration.
-     * 
-     * @return OAuthFlowObj|null Returns the value, or null if not set.
-     */
-    public function getPassword(): ?OAuthFlowObj {
-        return $this->password;
-    }
-    
-    /**
-     * Sets configuration for the OAuth Client Credentials flow.
-     * 
-     * @param OAuthFlowObj $clientCredentials OAuth Flow Object for client credentials flow.
-     * 
-     * @return OAuthFlowsObj Returns self for method chaining.
-     */
-    public function setClientCredentials(OAuthFlowObj $clientCredentials): OAuthFlowsObj {
-        $this->clientCredentials = $clientCredentials;
-        return $this;
-    }
-    
+
     /**
      * Returns the client credentials flow configuration.
      * 
@@ -117,7 +72,25 @@ class OAuthFlowsObj implements JsonI {
     public function getClientCredentials(): ?OAuthFlowObj {
         return $this->clientCredentials;
     }
-    
+
+    /**
+     * Returns the implicit flow configuration.
+     * 
+     * @return OAuthFlowObj|null Returns the value, or null if not set.
+     */
+    public function getImplicit(): ?OAuthFlowObj {
+        return $this->implicit;
+    }
+
+    /**
+     * Returns the password flow configuration.
+     * 
+     * @return OAuthFlowObj|null Returns the value, or null if not set.
+     */
+    public function getPassword(): ?OAuthFlowObj {
+        return $this->password;
+    }
+
     /**
      * Sets configuration for the OAuth Authorization Code flow.
      * 
@@ -127,18 +100,49 @@ class OAuthFlowsObj implements JsonI {
      */
     public function setAuthorizationCode(OAuthFlowObj $authorizationCode): OAuthFlowsObj {
         $this->authorizationCode = $authorizationCode;
+
         return $this;
     }
-    
+
     /**
-     * Returns the authorization code flow configuration.
+     * Sets configuration for the OAuth Client Credentials flow.
      * 
-     * @return OAuthFlowObj|null Returns the value, or null if not set.
+     * @param OAuthFlowObj $clientCredentials OAuth Flow Object for client credentials flow.
+     * 
+     * @return OAuthFlowsObj Returns self for method chaining.
      */
-    public function getAuthorizationCode(): ?OAuthFlowObj {
-        return $this->authorizationCode;
+    public function setClientCredentials(OAuthFlowObj $clientCredentials): OAuthFlowsObj {
+        $this->clientCredentials = $clientCredentials;
+
+        return $this;
     }
-    
+
+    /**
+     * Sets configuration for the OAuth Implicit flow.
+     * 
+     * @param OAuthFlowObj $implicit OAuth Flow Object for implicit flow.
+     * 
+     * @return OAuthFlowsObj Returns self for method chaining.
+     */
+    public function setImplicit(OAuthFlowObj $implicit): OAuthFlowsObj {
+        $this->implicit = $implicit;
+
+        return $this;
+    }
+
+    /**
+     * Sets configuration for the OAuth Resource Owner Password flow.
+     * 
+     * @param OAuthFlowObj $password OAuth Flow Object for password flow.
+     * 
+     * @return OAuthFlowsObj Returns self for method chaining.
+     */
+    public function setPassword(OAuthFlowObj $password): OAuthFlowsObj {
+        $this->password = $password;
+
+        return $this;
+    }
+
     /**
      * Returns a Json object that represents the OAuth Flows Object.
      * 
@@ -146,23 +150,23 @@ class OAuthFlowsObj implements JsonI {
      */
     public function toJSON(): Json {
         $json = new Json();
-        
+
         if ($this->getImplicit() !== null) {
             $json->add('implicit', $this->getImplicit());
         }
-        
+
         if ($this->getPassword() !== null) {
             $json->add('password', $this->getPassword());
         }
-        
+
         if ($this->getClientCredentials() !== null) {
             $json->add('clientCredentials', $this->getClientCredentials());
         }
-        
+
         if ($this->getAuthorizationCode() !== null) {
             $json->add('authorizationCode', $this->getAuthorizationCode());
         }
-        
+
         return $json;
     }
 }

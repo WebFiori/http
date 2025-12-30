@@ -2,18 +2,17 @@
 
 require_once '../../../vendor/autoload.php';
 
-use WebFiori\Http\WebService;
-use WebFiori\Http\Annotations\RestController;
+use WebFiori\Http\Annotations\AllowAnonymous;
 use WebFiori\Http\Annotations\GetMapping;
 use WebFiori\Http\Annotations\ResponseBody;
-use WebFiori\Http\Annotations\AllowAnonymous;
+use WebFiori\Http\Annotations\RestController;
+use WebFiori\Http\WebService;
 
 /**
  * A simple product management service
  */
 #[RestController('products', 'Product catalog operations')]
 class ProductService extends WebService {
-    
     #[GetMapping]
     #[ResponseBody]
     #[AllowAnonymous]

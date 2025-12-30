@@ -2,20 +2,19 @@
 
 require_once '../../../vendor/autoload.php';
 
-use WebFiori\Http\WebService;
-use WebFiori\Http\Annotations\RestController;
-use WebFiori\Http\Annotations\GetMapping;
-use WebFiori\Http\Annotations\ResponseBody;
-use WebFiori\Http\Annotations\RequestParam;
 use WebFiori\Http\Annotations\AllowAnonymous;
+use WebFiori\Http\Annotations\GetMapping;
+use WebFiori\Http\Annotations\RequestParam;
+use WebFiori\Http\Annotations\ResponseBody;
+use WebFiori\Http\Annotations\RestController;
 use WebFiori\Http\APIFilter;
+use WebFiori\Http\WebService;
 
 /**
  * Service demonstrating comprehensive parameter validation
  */
 #[RestController('validate', 'Parameter validation demonstration')]
 class ValidationService extends WebService {
-    
     #[GetMapping]
     #[ResponseBody]
     #[AllowAnonymous]
@@ -44,7 +43,7 @@ class ValidationService extends WebService {
             ]
         ];
     }
-    
+
     /**
      * Custom validation function for username
      */
@@ -53,11 +52,11 @@ class ValidationService extends WebService {
         if (strlen($filtered) < 3 || strlen($filtered) > 20) {
             return APIFilter::INVALID;
         }
-        
+
         if (!ctype_alnum($filtered)) {
             return APIFilter::INVALID;
         }
-        
+
         return strtolower($filtered); // Normalize to lowercase
     }
 }

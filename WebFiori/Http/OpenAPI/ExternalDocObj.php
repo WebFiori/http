@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  * 
@@ -31,7 +32,7 @@ class ExternalDocObj implements JsonI {
      * @var string|null
      */
     private ?string $description = null;
-    
+
     /**
      * The URI for the target documentation.
      * 
@@ -40,7 +41,7 @@ class ExternalDocObj implements JsonI {
      * @var string
      */
     private string $url;
-    
+
     /**
      * Creates new instance of External Documentation Object.
      * 
@@ -49,12 +50,30 @@ class ExternalDocObj implements JsonI {
      */
     public function __construct(string $url, ?string $description = null) {
         $this->setUrl($url);
-        
+
         if ($description !== null) {
             $this->setDescription($description);
         }
     }
-    
+
+    /**
+     * Returns the description of the target documentation.
+     * 
+     * @return string|null The description, or null if not set.
+     */
+    public function getDescription(): ?string {
+        return $this->description;
+    }
+
+    /**
+     * Returns the URI for the target documentation.
+     * 
+     * @return string The URI for the target documentation.
+     */
+    public function getUrl(): string {
+        return $this->url;
+    }
+
     /**
      * Sets the description of the target documentation.
      * 
@@ -66,18 +85,10 @@ class ExternalDocObj implements JsonI {
      */
     public function setDescription(string $description): ExternalDocObj {
         $this->description = $description;
+
         return $this;
     }
-    
-    /**
-     * Returns the description of the target documentation.
-     * 
-     * @return string|null The description, or null if not set.
-     */
-    public function getDescription(): ?string {
-        return $this->description;
-    }
-    
+
     /**
      * Sets the URI for the target documentation.
      * 
@@ -89,18 +100,10 @@ class ExternalDocObj implements JsonI {
      */
     public function setUrl(string $url): ExternalDocObj {
         $this->url = $url;
+
         return $this;
     }
-    
-    /**
-     * Returns the URI for the target documentation.
-     * 
-     * @return string The URI for the target documentation.
-     */
-    public function getUrl(): string {
-        return $this->url;
-    }
-    
+
     /**
      * Returns a Json object that represents the External Documentation Object.
      * 
@@ -112,11 +115,11 @@ class ExternalDocObj implements JsonI {
         $json = new Json([
             'url' => $this->getUrl()
         ]);
-        
+
         if ($this->getDescription() !== null) {
             $json->add('description', $this->getDescription());
         }
-        
+
         return $json;
     }
 }

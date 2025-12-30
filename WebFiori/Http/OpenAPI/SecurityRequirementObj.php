@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  * 
@@ -36,7 +37,7 @@ class SecurityRequirementObj implements JsonI {
      * @var array
      */
     private array $requirements = [];
-    
+
     /**
      * Adds a security requirement with optional scopes.
      * 
@@ -51,9 +52,10 @@ class SecurityRequirementObj implements JsonI {
      */
     public function addRequirement(string $name, array $scopes = []): SecurityRequirementObj {
         $this->requirements[$name] = $scopes;
+
         return $this;
     }
-    
+
     /**
      * Returns all security requirements.
      * 
@@ -62,7 +64,7 @@ class SecurityRequirementObj implements JsonI {
     public function getRequirements(): array {
         return $this->requirements;
     }
-    
+
     /**
      * Returns a Json object that represents the Security Requirement Object.
      * 
@@ -72,11 +74,11 @@ class SecurityRequirementObj implements JsonI {
      */
     public function toJSON(): Json {
         $json = new Json();
-        
+
         foreach ($this->requirements as $name => $scopes) {
             $json->add($name, $scopes);
         }
-        
+
         return $json;
     }
 }

@@ -2,15 +2,14 @@
 
 require_once '../../../vendor/autoload.php';
 
-use WebFiori\Http\WebService;
-use WebFiori\Http\Annotations\RestController;
+use WebFiori\Http\Annotations\AllowAnonymous;
 use WebFiori\Http\Annotations\GetMapping;
 use WebFiori\Http\Annotations\ResponseBody;
-use WebFiori\Http\Annotations\AllowAnonymous;
+use WebFiori\Http\Annotations\RestController;
+use WebFiori\Http\WebService;
 
 #[RestController('xml-response', 'XML response service')]
 class XmlResponseService extends WebService {
-    
     #[GetMapping]
     #[ResponseBody(contentType: 'application/xml')]
     #[AllowAnonymous]
@@ -24,24 +23,27 @@ class XmlResponseService extends WebService {
                 'server_time' => time()
             ]
         ];
-        
+
         return $this->arrayToXml($data);
     }
-    
+
     private function arrayToXml(array $data, string $root = 'response'): string {
         $xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<$root>\n";
+
         foreach ($data as $key => $value) {
             if (is_array($value)) {
                 $xml .= "  <$key>\n";
+
                 foreach ($value as $k => $v) {
-                    $xml .= "    <$k>" . htmlspecialchars($v) . "</$k>\n";
+                    $xml .= "    <$k>".htmlspecialchars($v)."</$k>\n";
                 }
                 $xml .= "  </$key>\n";
             } else {
-                $xml .= "  <$key>" . htmlspecialchars($value) . "</$key>\n";
+                $xml .= "  <$key>".htmlspecialchars($value)."</$key>\n";
             }
         }
         $xml .= "</$root>";
+
         return $xml;
     }
 }

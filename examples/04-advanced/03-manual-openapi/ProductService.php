@@ -1,19 +1,35 @@
 <?php
 
-use WebFiori\Http\WebService;
-use WebFiori\Http\Annotations\RestController;
+use WebFiori\Http\Annotations\AllowAnonymous;
+use WebFiori\Http\Annotations\DeleteMapping;
 use WebFiori\Http\Annotations\GetMapping;
+use WebFiori\Http\Annotations\Param;
 use WebFiori\Http\Annotations\PostMapping;
 use WebFiori\Http\Annotations\PutMapping;
-use WebFiori\Http\Annotations\DeleteMapping;
-use WebFiori\Http\Annotations\Param;
 use WebFiori\Http\Annotations\ResponseBody;
-use WebFiori\Http\Annotations\AllowAnonymous;
+use WebFiori\Http\Annotations\RestController;
 use WebFiori\Http\ParamType;
+use WebFiori\Http\WebService;
 
 #[RestController('products', 'Product catalog management')]
 class ProductService extends WebService {
-    
+    #[PostMapping]
+    #[ResponseBody]
+    #[AllowAnonymous]
+    #[Param('name', ParamType::STRING, 'Product name')]
+    #[Param('price', ParamType::DOUBLE, 'Product price', min: 0)]
+    public function createProduct(string $name, float $price): array {
+        return ['id' => 3, 'name' => $name, 'price' => $price];
+    }
+
+    #[DeleteMapping]
+    #[ResponseBody]
+    #[AllowAnonymous]
+    #[Param('id', ParamType::INT, 'Product ID')]
+    public function deleteProduct(int $id): array {
+        return ['deleted' => $id];
+    }
+
     #[GetMapping]
     #[ResponseBody]
     #[AllowAnonymous]
@@ -24,16 +40,7 @@ class ProductService extends WebService {
             ['id' => 2, 'name' => 'Product B', 'category' => $category ?? 'Electronics']
         ];
     }
-    
-    #[PostMapping]
-    #[ResponseBody]
-    #[AllowAnonymous]
-    #[Param('name', ParamType::STRING, 'Product name')]
-    #[Param('price', ParamType::DOUBLE, 'Product price', min: 0)]
-    public function createProduct(string $name, float $price): array {
-        return ['id' => 3, 'name' => $name, 'price' => $price];
-    }
-    
+
     #[PutMapping]
     #[ResponseBody]
     #[AllowAnonymous]
@@ -41,13 +48,5 @@ class ProductService extends WebService {
     #[Param('name', ParamType::STRING, 'Product name')]
     public function updateProduct(int $id, string $name): array {
         return ['id' => $id, 'name' => $name];
-    }
-    
-    #[DeleteMapping]
-    #[ResponseBody]
-    #[AllowAnonymous]
-    #[Param('id', ParamType::INT, 'Product ID')]
-    public function deleteProduct(int $id): array {
-        return ['deleted' => $id];
     }
 }

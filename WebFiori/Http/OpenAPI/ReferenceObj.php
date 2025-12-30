@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  * 
@@ -28,6 +29,15 @@ use WebFiori\Json\JsonI;
  */
 class ReferenceObj implements JsonI {
     /**
+     * A description which by default SHOULD override that of the referenced component.
+     * 
+     * CommonMark syntax MAY be used for rich text representation.
+     * If the referenced object-type does not allow a description field, then this field has no effect.
+     * 
+     * @var string|null
+     */
+    private ?string $description = null;
+    /**
      * The reference identifier.
      * 
      * This MUST be in the form of a URI.
@@ -37,7 +47,7 @@ class ReferenceObj implements JsonI {
      * @var string
      */
     private string $ref;
-    
+
     /**
      * A short summary which by default SHOULD override that of the referenced component.
      * 
@@ -46,17 +56,7 @@ class ReferenceObj implements JsonI {
      * @var string|null
      */
     private ?string $summary = null;
-    
-    /**
-     * A description which by default SHOULD override that of the referenced component.
-     * 
-     * CommonMark syntax MAY be used for rich text representation.
-     * If the referenced object-type does not allow a description field, then this field has no effect.
-     * 
-     * @var string|null
-     */
-    private ?string $description = null;
-    
+
     /**
      * Creates new instance.
      * 
@@ -65,19 +65,16 @@ class ReferenceObj implements JsonI {
     public function __construct(string $ref) {
         $this->setRef($ref);
     }
-    
+
     /**
-     * Sets the reference identifier.
+     * Returns the description.
      * 
-     * @param string $ref The reference identifier. This MUST be in the form of a URI.
-     * 
-     * @return ReferenceObj Returns self for method chaining.
+     * @return string|null Returns the value, or null if not set.
      */
-    public function setRef(string $ref): ReferenceObj {
-        $this->ref = $ref;
-        return $this;
+    public function getDescription(): ?string {
+        return $this->description;
     }
-    
+
     /**
      * Returns the reference identifier.
      * 
@@ -86,19 +83,7 @@ class ReferenceObj implements JsonI {
     public function getRef(): string {
         return $this->ref;
     }
-    
-    /**
-     * Sets a short summary which by default SHOULD override that of the referenced component.
-     * 
-     * @param string $summary A short summary.
-     * 
-     * @return ReferenceObj Returns self for method chaining.
-     */
-    public function setSummary(string $summary): ReferenceObj {
-        $this->summary = $summary;
-        return $this;
-    }
-    
+
     /**
      * Returns the summary.
      * 
@@ -107,7 +92,7 @@ class ReferenceObj implements JsonI {
     public function getSummary(): ?string {
         return $this->summary;
     }
-    
+
     /**
      * Sets a description which by default SHOULD override that of the referenced component.
      * 
@@ -118,18 +103,36 @@ class ReferenceObj implements JsonI {
      */
     public function setDescription(string $description): ReferenceObj {
         $this->description = $description;
+
         return $this;
     }
-    
+
     /**
-     * Returns the description.
+     * Sets the reference identifier.
      * 
-     * @return string|null Returns the value, or null if not set.
+     * @param string $ref The reference identifier. This MUST be in the form of a URI.
+     * 
+     * @return ReferenceObj Returns self for method chaining.
      */
-    public function getDescription(): ?string {
-        return $this->description;
+    public function setRef(string $ref): ReferenceObj {
+        $this->ref = $ref;
+
+        return $this;
     }
-    
+
+    /**
+     * Sets a short summary which by default SHOULD override that of the referenced component.
+     * 
+     * @param string $summary A short summary.
+     * 
+     * @return ReferenceObj Returns self for method chaining.
+     */
+    public function setSummary(string $summary): ReferenceObj {
+        $this->summary = $summary;
+
+        return $this;
+    }
+
     /**
      * Returns a Json object that represents the Reference Object.
      * 
@@ -139,15 +142,15 @@ class ReferenceObj implements JsonI {
         $json = new Json([
             '$ref' => $this->getRef()
         ]);
-        
+
         if ($this->getSummary() !== null) {
             $json->add('summary', $this->getSummary());
         }
-        
+
         if ($this->getDescription() !== null) {
             $json->add('description', $this->getDescription());
         }
-        
+
         return $json;
     }
 }

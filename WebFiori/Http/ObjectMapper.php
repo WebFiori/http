@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  * 
@@ -11,7 +12,6 @@
 namespace WebFiori\Http;
 
 use Exception;
-use Throwable;
 use WebFiori\Json\Json;
 
 /**

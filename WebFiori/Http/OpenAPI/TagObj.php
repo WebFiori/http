@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  * 
@@ -25,15 +26,6 @@ use WebFiori\Json\JsonI;
  */
 class TagObj implements JsonI {
     /**
-     * The name of the tag.
-     * 
-     * REQUIRED.
-     * 
-     * @var string
-     */
-    private string $name;
-    
-    /**
      * A description for the tag.
      * 
      * CommonMark syntax MAY be used for rich text representation.
@@ -41,14 +33,22 @@ class TagObj implements JsonI {
      * @var string|null
      */
     private ?string $description = null;
-    
+
     /**
      * Additional external documentation for this tag.
      * 
      * @var ExternalDocObj|null
      */
     private ?ExternalDocObj $externalDocs = null;
-    
+    /**
+     * The name of the tag.
+     * 
+     * REQUIRED.
+     * 
+     * @var string
+     */
+    private string $name;
+
     /**
      * Creates new instance.
      * 
@@ -57,26 +57,30 @@ class TagObj implements JsonI {
      */
     public function __construct(string $name, ?string $description = null) {
         $this->setName($name);
-        
+
         if ($description !== null) {
             $this->setDescription($description);
         }
     }
-    
+
     /**
-     * Sets the name of the tag.
+     * Returns the description for the tag.
      * 
-     * The tag name is used to group operations in the OpenAPI Description.
-     * 
-     * @param string $name The name of the tag.
-     * 
-     * @return TagObj Returns self for method chaining.
+     * @return string|null The description, or null if not set.
      */
-    public function setName(string $name): TagObj {
-        $this->name = $name;
-        return $this;
+    public function getDescription(): ?string {
+        return $this->description;
     }
-    
+
+    /**
+     * Returns the external documentation for this tag.
+     * 
+     * @return ExternalDocObj|null The external documentation object, or null if not set.
+     */
+    public function getExternalDocs(): ?ExternalDocObj {
+        return $this->externalDocs;
+    }
+
     /**
      * Returns the name of the tag.
      * 
@@ -85,7 +89,7 @@ class TagObj implements JsonI {
     public function getName(): string {
         return $this->name;
     }
-    
+
     /**
      * Sets the description for the tag.
      * 
@@ -97,18 +101,10 @@ class TagObj implements JsonI {
      */
     public function setDescription(string $description): TagObj {
         $this->description = $description;
+
         return $this;
     }
-    
-    /**
-     * Returns the description for the tag.
-     * 
-     * @return string|null The description, or null if not set.
-     */
-    public function getDescription(): ?string {
-        return $this->description;
-    }
-    
+
     /**
      * Sets additional external documentation for this tag.
      * 
@@ -118,18 +114,25 @@ class TagObj implements JsonI {
      */
     public function setExternalDocs(ExternalDocObj $externalDocs): TagObj {
         $this->externalDocs = $externalDocs;
+
         return $this;
     }
-    
+
     /**
-     * Returns the external documentation for this tag.
+     * Sets the name of the tag.
      * 
-     * @return ExternalDocObj|null The external documentation object, or null if not set.
+     * The tag name is used to group operations in the OpenAPI Description.
+     * 
+     * @param string $name The name of the tag.
+     * 
+     * @return TagObj Returns self for method chaining.
      */
-    public function getExternalDocs(): ?ExternalDocObj {
-        return $this->externalDocs;
+    public function setName(string $name): TagObj {
+        $this->name = $name;
+
+        return $this;
     }
-    
+
     /**
      * Returns a Json object that represents the Tag Object.
      * 
@@ -141,15 +144,15 @@ class TagObj implements JsonI {
         $json = new Json([
             'name' => $this->getName()
         ]);
-        
+
         if ($this->getDescription() !== null) {
             $json->add('description', $this->getDescription());
         }
-        
+
         if ($this->getExternalDocs() !== null) {
             $json->add('externalDocs', $this->getExternalDocs());
         }
-        
+
         return $json;
     }
 }

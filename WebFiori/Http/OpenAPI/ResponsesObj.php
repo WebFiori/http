@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  * 
@@ -33,7 +34,7 @@ class ResponsesObj implements JsonI {
      * @var array
      */
     private array $responses = [];
-    
+
     /**
      * Adds a response for a specific HTTP status code.
      * 
@@ -50,9 +51,10 @@ class ResponsesObj implements JsonI {
             $response = new ResponseObj($response);
         }
         $this->responses[$statusCode] = $response;
+
         return $this;
     }
-    
+
     /**
      * Returns all responses mapped by status code.
      * 
@@ -61,7 +63,7 @@ class ResponsesObj implements JsonI {
     public function getResponses(): array {
         return $this->responses;
     }
-    
+
     /**
      * Returns a Json object that represents the Responses Object.
      * 
@@ -71,11 +73,11 @@ class ResponsesObj implements JsonI {
      */
     public function toJSON(): Json {
         $json = new Json();
-        
+
         foreach ($this->responses as $code => $response) {
             $json->add($code, $response);
         }
-        
+
         return $json;
     }
 }

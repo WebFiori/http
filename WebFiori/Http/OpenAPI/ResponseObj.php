@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  * 
@@ -34,25 +35,26 @@ class ResponseObj implements JsonI {
      * @var string
      */
     private string $description;
-    
+
     public function __construct(string $description) {
         $this->description = $description;
     }
-    
-    public function setDescription(string $description): ResponseObj {
-        $this->description = $description;
-        return $this;
-    }
-    
+
     public function getDescription(): string {
         return $this->description;
     }
-    
+
+    public function setDescription(string $description): ResponseObj {
+        $this->description = $description;
+
+        return $this;
+    }
+
     public function toJSON(): Json {
         $json = new Json([
             'description' => $this->getDescription()
         ]);
-        
+
         return $json;
     }
 }

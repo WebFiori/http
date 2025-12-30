@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  * 
@@ -25,108 +26,112 @@ use WebFiori\Json\JsonI;
  */
 class PathItemObj implements JsonI {
     /**
-     * A definition of a GET operation on this path.
-     * 
-     * @var OperationObj|null
-     */
-    private ?OperationObj $get = null;
-    
-    /**
-     * A definition of a POST operation on this path.
-     * 
-     * @var OperationObj|null
-     */
-    private ?OperationObj $post = null;
-    
-    /**
-     * A definition of a PUT operation on this path.
-     * 
-     * @var OperationObj|null
-     */
-    private ?OperationObj $put = null;
-    
-    /**
      * A definition of a DELETE operation on this path.
      * 
      * @var OperationObj|null
      */
     private ?OperationObj $delete = null;
-    
+    /**
+     * A definition of a GET operation on this path.
+     * 
+     * @var OperationObj|null
+     */
+    private ?OperationObj $get = null;
+
     /**
      * A definition of a PATCH operation on this path.
      * 
      * @var OperationObj|null
      */
     private ?OperationObj $patch = null;
-    
-    public function setGet(OperationObj $operation): PathItemObj {
-        $this->get = $operation;
-        return $this;
-    }
-    
-    public function getGet(): ?OperationObj {
-        return $this->get;
-    }
-    
-    public function setPost(OperationObj $operation): PathItemObj {
-        $this->post = $operation;
-        return $this;
-    }
-    
-    public function getPost(): ?OperationObj {
-        return $this->post;
-    }
-    
-    public function setPut(OperationObj $operation): PathItemObj {
-        $this->put = $operation;
-        return $this;
-    }
-    
-    public function getPut(): ?OperationObj {
-        return $this->put;
-    }
-    
-    public function setDelete(OperationObj $operation): PathItemObj {
-        $this->delete = $operation;
-        return $this;
-    }
-    
+
+    /**
+     * A definition of a POST operation on this path.
+     * 
+     * @var OperationObj|null
+     */
+    private ?OperationObj $post = null;
+
+    /**
+     * A definition of a PUT operation on this path.
+     * 
+     * @var OperationObj|null
+     */
+    private ?OperationObj $put = null;
+
     public function getDelete(): ?OperationObj {
         return $this->delete;
     }
-    
-    public function setPatch(OperationObj $operation): PathItemObj {
-        $this->patch = $operation;
-        return $this;
+
+    public function getGet(): ?OperationObj {
+        return $this->get;
     }
-    
+
     public function getPatch(): ?OperationObj {
         return $this->patch;
     }
-    
+
+    public function getPost(): ?OperationObj {
+        return $this->post;
+    }
+
+    public function getPut(): ?OperationObj {
+        return $this->put;
+    }
+
+    public function setDelete(OperationObj $operation): PathItemObj {
+        $this->delete = $operation;
+
+        return $this;
+    }
+
+    public function setGet(OperationObj $operation): PathItemObj {
+        $this->get = $operation;
+
+        return $this;
+    }
+
+    public function setPatch(OperationObj $operation): PathItemObj {
+        $this->patch = $operation;
+
+        return $this;
+    }
+
+    public function setPost(OperationObj $operation): PathItemObj {
+        $this->post = $operation;
+
+        return $this;
+    }
+
+    public function setPut(OperationObj $operation): PathItemObj {
+        $this->put = $operation;
+
+        return $this;
+    }
+
     public function toJSON(): Json {
         $json = new Json();
-        
+
         if ($this->getGet() !== null) {
             $json->add('get', $this->getGet());
         }
-        
+
         if ($this->getPost() !== null) {
             $json->add('post', $this->getPost());
         }
-        
+
         if ($this->getPut() !== null) {
             $json->add('put', $this->getPut());
         }
-        
+
         if ($this->getDelete() !== null) {
             $json->add('delete', $this->getDelete());
         }
-        
+
         if ($this->getPatch() !== null) {
             $json->add('patch', $this->getPatch());
         }
-        
+
         return $json;
     }
 }

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  * 
@@ -16,7 +17,6 @@ namespace WebFiori\Http\Exceptions;
  * @author Ibrahim
  */
 class NotFoundException extends HttpException {
-    
     public function __construct(string $message = 'Not Found') {
         parent::__construct($message, 404, 'error');
     }

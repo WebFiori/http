@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  * 
@@ -21,7 +22,6 @@ use WebFiori\Json\Json;
  * 
  */
 class APIFilter {
-    private $requestParameters = [];
     /**
      * A constant that indicates a given value is invalid.
      * 
@@ -57,6 +57,7 @@ class APIFilter {
      * 
      */
     private $paramDefs = [];
+    private $requestParameters = [];
     /**
      * Adds a new request parameter to the filter.
      * 
@@ -105,9 +106,6 @@ class APIFilter {
         }
         $this->paramDefs[] = $attribute;
         $this->requestParameters[] = $reqParam;
-    }
-    public function getParameters() : array {
-        return $this->requestParameters;
     }
     /**
      * Clears the arrays that are used to store filtered and not-filtered variables.
@@ -198,17 +196,6 @@ class APIFilter {
             }
         }
 
-        return $retVal;
-    }
-    private static function decodeArray(array $array) {
-        $retVal = [];
-        foreach ($array as $arrEl) {
-            if (gettype($arrEl) == 'array') {
-                $retVal[] = self::decodeArray($arrEl);
-            } else {
-                $retVal[] = urldecode($arrEl.'');
-            }
-        }
         return $retVal;
     }
     /**
@@ -320,6 +307,9 @@ class APIFilter {
      */
     public final function getNonFiltered() {
         return $this->nonFilteredInputs;
+    }
+    public function getParameters() : array {
+        return $this->requestParameters;
     }
     /**
      * Sets the stream at which the filter will use to read the inputs.
@@ -556,6 +546,19 @@ class APIFilter {
         if (strlen($cleaned) == 0 && $def['options']['options']['allow-empty'] === false) {
             $extraClean->add($name, null);
         }
+    }
+    private static function decodeArray(array $array) {
+        $retVal = [];
+
+        foreach ($array as $arrEl) {
+            if (gettype($arrEl) == 'array') {
+                $retVal[] = self::decodeArray($arrEl);
+            } else {
+                $retVal[] = urldecode($arrEl.'');
+            }
+        }
+
+        return $retVal;
     }
     /**
      * Converts a string to an array.

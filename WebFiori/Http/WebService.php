@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  * 
@@ -9,10 +10,10 @@
  */
 namespace WebFiori\Http;
 
+use WebFiori\Http\Annotations\DeleteMapping;
 use WebFiori\Http\Annotations\GetMapping;
 use WebFiori\Http\Annotations\PostMapping;
 use WebFiori\Http\Annotations\PutMapping;
-use WebFiori\Http\Annotations\DeleteMapping;
 use WebFiori\Http\Annotations\ResponseBody;
 use WebFiori\Http\Exceptions\HttpException;
 use WebFiori\Json\Json;
@@ -141,493 +142,9 @@ class WebService implements JsonI {
         $this->sinceVersion = '1.0.0';
         $this->serviceDesc = '';
         $this->request = Request::createFromGlobals();
-        
+
         $this->configureFromAnnotations($name);
     }
-    
-    /**
-     * Configure service from annotations if present.
-     */
-    private function configureFromAnnotations(string $fallbackName): void {
-        $reflection = new \ReflectionClass($this);
-        $attributes = $reflection->getAttributes(\WebFiori\Http\Annotations\RestController::class);
-        
-        if (!empty($attributes)) {
-            $restController = $attributes[0]->newInstance();
-            $serviceName = $restController->name ?: $fallbackName;
-            $description = $restController->description;
-        } else {
-            $serviceName = $fallbackName;
-            $description = '';
-        }
-        
-        if (!$this->setName($serviceName)) {
-            $this->setName('new-service');
-        }
-        
-        if ($description) {
-            $this->setDescription($description);
-        }
-        
-        $this->configureMethodMappings();
-        $this->configureAuthentication();
-    }
-    
-    /**
-     * Process the web service request with auto-processing support.
-     * This method should be called instead of processRequest() for auto-processing.
-     */
-    public function processWithAutoHandling(): void {
-        $targetMethod = $this->getTargetMethod();
-        
-        if ($targetMethod && $this->hasResponseBodyAnnotation($targetMethod)) {
-            // Check method-level authorization first
-            if (!$this->checkMethodAuthorization()) {
-                $this->sendResponse('Access denied', 403, 'error');
-                return;
-            }
-            
-            try {
-                // Inject parameters into method call
-                $params = $this->getMethodParameters($targetMethod);
-                $result = $this->$targetMethod(...$params);
-                $this->handleMethodResponse($result, $targetMethod);
-            } catch (HttpException $e) {
-                // Handle HTTP exceptions automatically
-                $this->handleException($e);
-            } catch (\Exception $e) {
-                // Handle other exceptions as 500 Internal Server Error
-                $this->sendResponse($e->getMessage(), 500, 'error');
-            }
-        } else {
-            // Fall back to traditional processRequest() approach
-            $this->processRequest();
-        }
-    }
-    
-    /**
-     * Check if a method has the ResponseBody annotation.
-     * 
-     * @param string $methodName The method name to check
-     * @return bool True if the method has ResponseBody annotation
-     */
-    public function hasResponseBodyAnnotation(string $methodName): bool {
-        try {
-            $reflection = new \ReflectionMethod($this, $methodName);
-            return !empty($reflection->getAttributes(ResponseBody::class));
-        } catch (\ReflectionException $e) {
-            return false;
-        }
-    }
-    
-    /**
-     * Handle HTTP exceptions by converting them to appropriate responses.
-     * 
-     * @param HttpException $exception The HTTP exception to handle
-     */
-    protected function handleException(HttpException $exception): void {
-        $this->sendResponse(
-            $exception->getMessage(),
-            $exception->getStatusCode(),
-            $exception->getResponseType()
-        );
-    }
-    
-    /**
-     * Configure parameters dynamically for a specific method.
-     * 
-     * @param string $methodName The method name to configure parameters for
-     */
-    public function configureParametersForMethod(string $methodName): void {
-        try {
-            $reflection = new \ReflectionMethod($this, $methodName);
-            $this->configureParametersFromMethod($reflection);
-        } catch (\ReflectionException $e) {
-            // Method doesn't exist, ignore
-        }
-    }
-
-    /**
-     * Configure parameters for all methods with RequestParam annotations.
-     */
-    private function configureAllAnnotatedParameters(): void {
-        $reflection = new \ReflectionClass($this);
-        foreach ($reflection->getMethods() as $method) {
-            $paramAttributes = $method->getAttributes(\WebFiori\Http\Annotations\RequestParam::class);
-            if (!empty($paramAttributes)) {
-                $this->configureParametersFromMethod($method);
-            }
-        }
-    }
-    
-    /**
-     * Configure parameters for methods with specific HTTP method mapping.
-     * 
-     * @param string $httpMethod HTTP method (GET, POST, PUT, DELETE, etc.)
-     */
-    private function configureParametersForHttpMethod(string $httpMethod): void {
-        $reflection = new \ReflectionClass($this);
-        $httpMethod = strtoupper($httpMethod);
-        
-        foreach ($reflection->getMethods() as $method) {
-            // Check if method has HTTP method mapping annotation
-            $mappingFound = false;
-            
-            // Check for specific HTTP method annotations
-            $annotations = [
-                'GET' => \WebFiori\Http\Annotations\GetMapping::class,
-                'POST' => \WebFiori\Http\Annotations\PostMapping::class,
-                'PUT' => \WebFiori\Http\Annotations\PutMapping::class,
-                'DELETE' => \WebFiori\Http\Annotations\DeleteMapping::class,
-                'PATCH' => \WebFiori\Http\Annotations\PatchMapping::class,
-            ];
-            
-            if (isset($annotations[$httpMethod])) {
-                $mappingFound = !empty($method->getAttributes($annotations[$httpMethod]));
-            }
-            
-            if ($mappingFound) {
-                $this->configureParametersFromMethod($method);
-            }
-        }
-    }
-    
-    /**
-     * Configure authentication from annotations.
-     */
-    private function configureAuthentication(): void {
-        $reflection = new \ReflectionClass($this);
-        
-        // Check class-level authentication
-        $classAuth = $this->getAuthenticationFromClass($reflection);
-        
-        // If class has AllowAnonymous, disable auth requirement
-        if ($classAuth['allowAnonymous']) {
-            $this->setIsAuthRequired(false);
-        } else if ($classAuth['requiresAuth'] || $classAuth['preAuthorize']) {
-            $this->setIsAuthRequired(true);
-        }
-    }
-    
-    /**
-     * Get authentication configuration from class annotations.
-     */
-    private function getAuthenticationFromClass(\ReflectionClass $reflection): array {
-        return [
-            'allowAnonymous' => !empty($reflection->getAttributes(\WebFiori\Http\Annotations\AllowAnonymous::class)),
-            'requiresAuth' => !empty($reflection->getAttributes(\WebFiori\Http\Annotations\RequiresAuth::class)),
-            'preAuthorize' => $reflection->getAttributes(\WebFiori\Http\Annotations\PreAuthorize::class)
-        ];
-    }
-    
-    /**
-     * Check method-level authorization before processing.
-     */
-    public function checkMethodAuthorization(): bool {
-        $reflection = new \ReflectionClass($this);
-        $method = $this->getCurrentProcessingMethod() ?: $this->getTargetMethod();
-        
-        if (!$method) {
-            return $this->isAuthorized();
-        }
-        
-        $reflectionMethod = $reflection->getMethod($method);
-        
-        // Check for conflicting annotations
-        $hasAllowAnonymous = !empty($reflectionMethod->getAttributes(\WebFiori\Http\Annotations\AllowAnonymous::class));
-        $hasRequiresAuth = !empty($reflectionMethod->getAttributes(\WebFiori\Http\Annotations\RequiresAuth::class));
-        
-        if ($hasAllowAnonymous && $hasRequiresAuth) {
-            throw new \InvalidArgumentException(
-                "Method '$method' has conflicting annotations: #[AllowAnonymous] and #[RequiresAuth] cannot be used together"
-            );
-        }
-        
-        // Check AllowAnonymous first
-        if ($hasAllowAnonymous) {
-            return true;
-        }
-        
-        // Check RequiresAuth
-        if ($hasRequiresAuth) {
-            // First call isAuthorized()
-            if (!$this->isAuthorized()) {
-                return false;
-            }
-            
-            // Then check for PreAuthorize
-            $preAuthAttributes = $reflectionMethod->getAttributes(\WebFiori\Http\Annotations\PreAuthorize::class);
-            if (!empty($preAuthAttributes)) {
-                $preAuth = $preAuthAttributes[0]->newInstance();
-                return SecurityContext::evaluateExpression($preAuth->expression);
-            }
-            
-            // If no PreAuthorize, continue based on isAuthorized (already passed)
-            return true;
-        }
-        
-        // Check PreAuthorize without RequiresAuth
-        $preAuthAttributes = $reflectionMethod->getAttributes(\WebFiori\Http\Annotations\PreAuthorize::class);
-        if (!empty($preAuthAttributes)) {
-            $preAuth = $preAuthAttributes[0]->newInstance();
-            return SecurityContext::evaluateExpression($preAuth->expression);
-        }
-        
-        return $this->isAuthorized();
-    }
-    
-    /**
-     * Check if the method has any authorization annotations.
-     */
-    public function hasMethodAuthorizationAnnotations(): bool {
-        $reflection = new \ReflectionClass($this);
-        $method = $this->getCurrentProcessingMethod() ?: $this->getTargetMethod();
-        
-        if (!$method) {
-            return false;
-        }
-        
-        $reflectionMethod = $reflection->getMethod($method);
-        
-        return !empty($reflectionMethod->getAttributes(\WebFiori\Http\Annotations\AllowAnonymous::class)) ||
-               !empty($reflectionMethod->getAttributes(\WebFiori\Http\Annotations\RequiresAuth::class)) ||
-               !empty($reflectionMethod->getAttributes(\WebFiori\Http\Annotations\PreAuthorize::class));
-    }
-    
-    /**
-     * Get the current processing method name (to be overridden by subclasses if needed).
-     */
-    protected function getCurrentProcessingMethod(): ?string {
-        return null; // Default implementation
-    }
-    
-    /**
-     * Get the target method name based on current HTTP request.
-     * 
-     * @return string|null The method name that should handle this request, or null if none found
-     */
-    public function getTargetMethod(): ?string {
-        $httpMethod = $this->getManager() ? 
-            $this->getManager()->getRequest()->getMethod() : 
-            ($_SERVER['REQUEST_METHOD'] ?? 'GET');
-        
-        // First try to get method from getCurrentProcessingMethod (if implemented)
-        $currentMethod = $this->getCurrentProcessingMethod();
-        if ($currentMethod) {
-            $reflection = new \ReflectionClass($this);
-            try {
-                $method = $reflection->getMethod($currentMethod);
-                if ($this->methodHandlesHttpMethod($method, $httpMethod)) {
-                    return $currentMethod;
-                }
-            } catch (\ReflectionException $e) {
-                // Method doesn't exist, continue with discovery
-            }
-        }
-        
-        // Fall back to finding first method that matches HTTP method
-        $reflection = new \ReflectionClass($this);
-        foreach ($reflection->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
-            if ($this->methodHandlesHttpMethod($method, $httpMethod)) {
-                return $method->getName();
-            }
-        }
-        
-        return null;
-    }
-    
-    /**
-     * Check if a method handles the specified HTTP method.
-     * 
-     * @param \ReflectionMethod $method The method to check
-     * @param string $httpMethod The HTTP method (GET, POST, etc.)
-     * @return bool True if the method handles this HTTP method
-     */
-    private function methodHandlesHttpMethod(\ReflectionMethod $method, string $httpMethod): bool {
-        $methodMappings = [
-            GetMapping::class => RequestMethod::GET,
-            PostMapping::class => RequestMethod::POST,
-            PutMapping::class => RequestMethod::PUT,
-            DeleteMapping::class => RequestMethod::DELETE
-        ];
-        
-        foreach ($methodMappings as $annotationClass => $mappedMethod) {
-            if ($httpMethod === $mappedMethod && !empty($method->getAttributes($annotationClass))) {
-                return true;
-            }
-        }
-        
-        return false;
-    }
-    
-    /**
-     * Get method parameters by extracting values from request.
-     * 
-     * @param string $methodName The method name
-     * @return array Array of parameter values in correct order
-     */
-    private function getMethodParameters(string $methodName): array {
-        $reflection = new \ReflectionMethod($this, $methodName);
-        $params = [];
-        
-        // Check for MapEntity attribute
-        $mapEntityAttrs = $reflection->getAttributes(\WebFiori\Http\Annotations\MapEntity::class);
-        
-        if (!empty($mapEntityAttrs)) {
-            $mapEntity = $mapEntityAttrs[0]->newInstance();
-            $mappedObject = $this->getObject($mapEntity->entityClass, $mapEntity->setters);
-            $params[] = $mappedObject;
-        } else {
-            // Original parameter handling
-            foreach ($reflection->getParameters() as $param) {
-                $paramName = $param->getName();
-                $value = $this->getParamVal($paramName);
-                
-                // Handle optional parameters with defaults
-                if ($value === null && $param->isDefaultValueAvailable()) {
-                    $value = $param->getDefaultValue();
-                }
-                
-                $params[] = $value;
-            }
-        }
-        
-        return $params;
-    }
-    
-    /**
-     * Handle method response by auto-converting return values to HTTP responses.
-     * 
-     * @param mixed $result The return value from the method
-     * @param string $methodName The name of the method that was called
-     * @return void
-     */
-    protected function handleMethodResponse(mixed $result, string $methodName): void {
-        $reflection = new \ReflectionMethod($this, $methodName);
-        $responseBodyAttrs = $reflection->getAttributes(ResponseBody::class);
-        
-        if (empty($responseBodyAttrs)) {
-            return; // No auto-processing, method should handle response manually
-        }
-        
-        $responseBody = $responseBodyAttrs[0]->newInstance();
-        
-        // Handle custom content types
-        if ($responseBody->contentType !== 'application/json') {
-            // For non-JSON content types, send raw result
-            $content = is_string($result) ? $result : (is_array($result) || is_object($result) ? json_encode($result) : (string)$result);
-            $this->send($responseBody->contentType, $content, $responseBody->status);
-            return;
-        }
-        
-        // Auto-convert return value to JSON response
-        if ($result === null) {
-            // Null return = empty response with configured status
-            $this->sendResponse('', $responseBody->status, $responseBody->type);
-        } elseif (is_array($result) || is_object($result)) {
-            // Array/object = JSON response
-            $this->sendResponse('Success', $responseBody->status, $responseBody->type, $result);
-        } else {
-            // String/scalar = plain response
-            $this->sendResponse($result, $responseBody->status, $responseBody->type);
-        }
-    }
-    
-    /**
-     * Configure allowed HTTP methods from method annotations.
-     */
-    private function configureMethodMappings(): void {
-        $reflection = new \ReflectionClass($this);
-        $httpMethodToMethods = [];
-        
-        foreach ($reflection->getMethods() as $method) {
-            $methodMappings = [
-                GetMapping::class => RequestMethod::GET,
-                PostMapping::class => RequestMethod::POST,
-                PutMapping::class => RequestMethod::PUT,
-                DeleteMapping::class => RequestMethod::DELETE
-            ];
-            
-            foreach ($methodMappings as $annotationClass => $httpMethod) {
-                $attributes = $method->getAttributes($annotationClass);
-                if (!empty($attributes)) {
-                    if (!isset($httpMethodToMethods[$httpMethod])) {
-                        $httpMethodToMethods[$httpMethod] = [];
-                    }
-                    $httpMethodToMethods[$httpMethod][] = $method->getName();
-                }
-            }
-        }
-        
-        // Check for duplicates only if getCurrentProcessingMethod is not overridden
-        $hasCustomRouting = $reflection->getMethod('getCurrentProcessingMethod')->getDeclaringClass()->getName() !== self::class;
-        
-        if (!$hasCustomRouting) {
-            foreach ($httpMethodToMethods as $httpMethod => $methods) {
-                if (count($methods) > 1) {
-                    throw new Exceptions\DuplicateMappingException(
-                        "HTTP method $httpMethod is mapped to multiple methods: " . implode(', ', $methods)
-                    );
-                }
-            }
-        }
-        
-        if (!empty($httpMethodToMethods)) {
-            $this->setRequestMethods(array_keys($httpMethodToMethods));
-        }
-    }
-    
-    /**
-     * Configure parameters from method RequestParam annotations.
-     */
-    private function configureParametersFromMethod(\ReflectionMethod $method): void {
-        $paramAttributes = $method->getAttributes(\WebFiori\Http\Annotations\RequestParam::class);
-        
-        foreach ($paramAttributes as $attribute) {
-            $param = $attribute->newInstance();
-            
-            $options = [
-                \WebFiori\Http\ParamOption::TYPE => $this->mapParamType($param->type),
-                \WebFiori\Http\ParamOption::OPTIONAL => $param->optional,
-                \WebFiori\Http\ParamOption::DEFAULT => $param->default,
-                \WebFiori\Http\ParamOption::DESCRIPTION => $param->description
-            ];
-            
-            if ($param->filter !== null) {
-                $options[\WebFiori\Http\ParamOption::FILTER] = $param->filter;
-            }
-            
-            $this->addParameters([
-                $param->name => $options
-            ]);
-        }
-    }
-    
-    /**
-     * Map string type to ParamType constant.
-     */
-    private function mapParamType(string $type): string {
-        return match(strtolower($type)) {
-            'int', 'integer' => \WebFiori\Http\ParamType::INT,
-            'float', 'double' => \WebFiori\Http\ParamType::DOUBLE,
-            'bool', 'boolean' => \WebFiori\Http\ParamType::BOOL,
-            'email' => \WebFiori\Http\ParamType::EMAIL,
-            'url' => \WebFiori\Http\ParamType::URL,
-            'array' => \WebFiori\Http\ParamType::ARR,
-            'json' => \WebFiori\Http\ParamType::JSON_OBJ,
-            default => \WebFiori\Http\ParamType::STRING
-        };
-    }    /**
-     * Returns an array that contains all possible requests methods at which the 
-     * service can be called with.
-     * 
-     * The array will contain strings like 'GET' or 'POST'. If no request methods
-     * where added, the array will be empty.
-     * 
-     * @return array An array that contains all possible requests methods at which the 
-     * service can be called using.
-     * 
-     */
     public function &getRequestMethods() : array {
         return $this->reqMethods;
     }
@@ -688,8 +205,8 @@ class WebService implements JsonI {
 
         if ($param instanceof RequestParameter && !$this->hasParameter($param->getName())) {
             // Additional validation for reserved parameter names
-            if (in_array(strtolower($param->getName()), \WebFiori\Http\RequestParameter::RESERVED_NAMES)) {
-                throw new \InvalidArgumentException("Cannot add parameter '" . $param->getName() . "' to service '" . $this->getName() . "': parameter name is reserved. Reserved names: " . implode(', ', \WebFiori\Http\RequestParameter::RESERVED_NAMES));
+            if (in_array(strtolower($param->getName()), RequestParameter::RESERVED_NAMES)) {
+                throw new \InvalidArgumentException("Cannot add parameter '".$param->getName()."' to service '".$this->getName()."': parameter name is reserved. Reserved names: ".implode(', ', RequestParameter::RESERVED_NAMES));
             }
 
             $this->parameters[] = $param;
@@ -754,12 +271,13 @@ class WebService implements JsonI {
      */
     public function addResponse(string $method, string $statusCode, OpenAPI\ResponseObj|string $response): WebService {
         $method = strtoupper($method);
-        
+
         if (!isset($this->responsesByMethod[$method])) {
             $this->responsesByMethod[$method] = new OpenAPI\ResponsesObj();
         }
-        
+
         $this->responsesByMethod[$method]->addResponse($statusCode, $response);
+
         return $this;
     }
 
@@ -770,23 +288,81 @@ class WebService implements JsonI {
             $this->responses[] = $trimmed;
         }
     }
-    public function getResponsesForMethod(string $method): ?OpenAPI\ResponsesObj {
-        $method = strtoupper($method);
-        return $this->responsesByMethod[$method] ?? null;
-    }
+
     /**
-     * Sets all responses for a specific HTTP method.
-     * 
-     * @param string $method HTTP method.
-     * @param OpenAPI\ResponsesObj $responses Responses object.
-     * 
-     * @return WebService Returns self for method chaining.
+     * Check method-level authorization before processing.
      */
-    public function setResponsesForMethod(string $method, OpenAPI\ResponsesObj $responses): WebService {
-        $this->responsesByMethod[strtoupper($method)] = $responses;
-        return $this;
+    public function checkMethodAuthorization(): bool {
+        $reflection = new \ReflectionClass($this);
+        $method = $this->getCurrentProcessingMethod() ?: $this->getTargetMethod();
+
+        if (!$method) {
+            return $this->isAuthorized();
+        }
+
+        $reflectionMethod = $reflection->getMethod($method);
+
+        // Check for conflicting annotations
+        $hasAllowAnonymous = !empty($reflectionMethod->getAttributes(Annotations\AllowAnonymous::class));
+        $hasRequiresAuth = !empty($reflectionMethod->getAttributes(Annotations\RequiresAuth::class));
+
+        if ($hasAllowAnonymous && $hasRequiresAuth) {
+            throw new \InvalidArgumentException(
+                "Method '$method' has conflicting annotations: #[AllowAnonymous] and #[RequiresAuth] cannot be used together"
+            );
+        }
+
+        // Check AllowAnonymous first
+        if ($hasAllowAnonymous) {
+            return true;
+        }
+
+        // Check RequiresAuth
+        if ($hasRequiresAuth) {
+            // First call isAuthorized()
+            if (!$this->isAuthorized()) {
+                return false;
+            }
+
+            // Then check for PreAuthorize
+            $preAuthAttributes = $reflectionMethod->getAttributes(Annotations\PreAuthorize::class);
+
+            if (!empty($preAuthAttributes)) {
+                $preAuth = $preAuthAttributes[0]->newInstance();
+
+                return SecurityContext::evaluateExpression($preAuth->expression);
+            }
+
+            // If no PreAuthorize, continue based on isAuthorized (already passed)
+            return true;
+        }
+
+        // Check PreAuthorize without RequiresAuth
+        $preAuthAttributes = $reflectionMethod->getAttributes(Annotations\PreAuthorize::class);
+
+        if (!empty($preAuthAttributes)) {
+            $preAuth = $preAuthAttributes[0]->newInstance();
+
+            return SecurityContext::evaluateExpression($preAuth->expression);
+        }
+
+        return $this->isAuthorized();
     }
-    
+
+    /**
+     * Configure parameters dynamically for a specific method.
+     * 
+     * @param string $methodName The method name to configure parameters for
+     */
+    public function configureParametersForMethod(string $methodName): void {
+        try {
+            $reflection = new \ReflectionMethod($this, $methodName);
+            $this->configureParametersFromMethod($reflection);
+        } catch (\ReflectionException $e) {
+            // Method doesn't exist, ignore
+        }
+    }
+
     /**
      * Gets all responses mapped by HTTP method.
      * 
@@ -795,47 +371,6 @@ class WebService implements JsonI {
     public function getAllResponses(): array {
         return $this->responsesByMethod;
     }
-    
-    /**
-     * Converts this web service to an OpenAPI PathItemObj.
-     * 
-     * Each HTTP method supported by this service becomes an operation in the path item.
-     * 
-     * @return OpenAPI\PathItemObj The PathItemObj representation of this service.
-     */
-    public function toPathItemObj(): OpenAPI\PathItemObj {
-        $pathItem = new OpenAPI\PathItemObj();
-        
-        foreach ($this->getRequestMethods() as $method) {
-            $responses = $this->getResponsesForMethod($method);
-            
-            if ($responses === null) {
-                $responses = new OpenAPI\ResponsesObj();
-                $responses->addResponse('200', 'Successful operation');
-            }
-            
-            $operation = new OpenAPI\OperationObj($responses);
-            
-            switch ($method) {
-                case RequestMethod::GET:
-                    $pathItem->setGet($operation);
-                    break;
-                case RequestMethod::POST:
-                    $pathItem->setPost($operation);
-                    break;
-                case RequestMethod::PUT:
-                    $pathItem->setPut($operation);
-                    break;
-                case RequestMethod::DELETE:
-                    $pathItem->setDelete($operation);
-                    break;
-                case RequestMethod::PATCH:
-                    $pathItem->setPatch($operation);
-                    break;
-        }
-        
-        
-    }return $pathItem;}
     /**
      * Returns an object that contains the value of the header 'authorization'.
      * 
@@ -850,16 +385,8 @@ class WebService implements JsonI {
         if ($this->request !== null) {
             return $this->request->getAuthHeader();
         }
-        return null;
-    }
 
-    /**
-     * Sets the request instance for the service.
-     * 
-     * @param mixed $request The request instance (Request, etc.)
-     */
-    public function setRequest($request) {
-        $this->request = $request;
+        return null;
     }
     /**
      * Returns the description of the service.
@@ -957,7 +484,7 @@ class WebService implements JsonI {
             // Configure parameters for all methods with annotations
             $this->configureAllAnnotatedParameters();
         }
-        
+
         $trimmed = trim($paramName);
 
         if (strlen($trimmed) != 0) {
@@ -1008,6 +535,11 @@ class WebService implements JsonI {
     public final function getResponsesDescriptions() : array {
         return $this->responses;
     }
+    public function getResponsesForMethod(string $method): ?OpenAPI\ResponsesObj {
+        $method = strtoupper($method);
+
+        return $this->responsesByMethod[$method] ?? null;
+    }
     /**
      * Returns version number or name at which the service was added to the API.
      * 
@@ -1020,6 +552,62 @@ class WebService implements JsonI {
      */
     public final function getSince() : string {
         return $this->sinceVersion;
+    }
+
+    /**
+     * Get the target method name based on current HTTP request.
+     * 
+     * @return string|null The method name that should handle this request, or null if none found
+     */
+    public function getTargetMethod(): ?string {
+        $httpMethod = $this->getManager() ? 
+            $this->getManager()->getRequest()->getMethod() : 
+            ($_SERVER['REQUEST_METHOD'] ?? 'GET');
+
+        // First try to get method from getCurrentProcessingMethod (if implemented)
+        $currentMethod = $this->getCurrentProcessingMethod();
+
+        if ($currentMethod) {
+            $reflection = new \ReflectionClass($this);
+            try {
+                $method = $reflection->getMethod($currentMethod);
+
+                if ($this->methodHandlesHttpMethod($method, $httpMethod)) {
+                    return $currentMethod;
+                }
+            } catch (\ReflectionException $e) {
+                // Method doesn't exist, continue with discovery
+            }
+        }
+
+        // Fall back to finding first method that matches HTTP method
+        $reflection = new \ReflectionClass($this);
+
+        foreach ($reflection->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
+            if ($this->methodHandlesHttpMethod($method, $httpMethod)) {
+                return $method->getName();
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Check if the method has any authorization annotations.
+     */
+    public function hasMethodAuthorizationAnnotations(): bool {
+        $reflection = new \ReflectionClass($this);
+        $method = $this->getCurrentProcessingMethod() ?: $this->getTargetMethod();
+
+        if (!$method) {
+            return false;
+        }
+
+        $reflectionMethod = $reflection->getMethod($method);
+
+        return !empty($reflectionMethod->getAttributes(Annotations\AllowAnonymous::class)) ||
+               !empty($reflectionMethod->getAttributes(Annotations\RequiresAuth::class)) ||
+               !empty($reflectionMethod->getAttributes(Annotations\PreAuthorize::class));
     }
     /**
      * Checks if the service has a specific request parameter given its name.
@@ -1047,6 +635,22 @@ class WebService implements JsonI {
 
         return false;
     }
+
+    /**
+     * Check if a method has the ResponseBody annotation.
+     * 
+     * @param string $methodName The method name to check
+     * @return bool True if the method has ResponseBody annotation
+     */
+    public function hasResponseBodyAnnotation(string $methodName): bool {
+        try {
+            $reflection = new \ReflectionMethod($this, $methodName);
+
+            return !empty($reflection->getAttributes(ResponseBody::class));
+        } catch (\ReflectionException $e) {
+            return false;
+        }
+    }
     /**
      * Checks if the client is authorized to use the service or not.
      * 
@@ -1060,7 +664,9 @@ class WebService implements JsonI {
      * @return bool True if the user is allowed to perform the action. False otherwise.
      * 
      */
-    public function isAuthorized() : bool {return false;}
+    public function isAuthorized() : bool {
+        return false;
+    }
     /**
      * Returns the value of the property 'requireAuth'.
      * 
@@ -1103,7 +709,41 @@ class WebService implements JsonI {
     /**
      * Process client's request.
      */
-    public function processRequest() {}
+    public function processRequest() {
+    }
+
+    /**
+     * Process the web service request with auto-processing support.
+     * This method should be called instead of processRequest() for auto-processing.
+     */
+    public function processWithAutoHandling(): void {
+        $targetMethod = $this->getTargetMethod();
+
+        if ($targetMethod && $this->hasResponseBodyAnnotation($targetMethod)) {
+            // Check method-level authorization first
+            if (!$this->checkMethodAuthorization()) {
+                $this->sendResponse('Access denied', 403, 'error');
+
+                return;
+            }
+
+            try {
+                // Inject parameters into method call
+                $params = $this->getMethodParameters($targetMethod);
+                $result = $this->$targetMethod(...$params);
+                $this->handleMethodResponse($result, $targetMethod);
+            } catch (HttpException $e) {
+                // Handle HTTP exceptions automatically
+                $this->handleException($e);
+            } catch (\Exception $e) {
+                // Handle other exceptions as 500 Internal Server Error
+                $this->sendResponse($e->getMessage(), 500, 'error');
+            }
+        } else {
+            // Fall back to traditional processRequest() approach
+            $this->processRequest();
+        }
+    }
     /**
      * Removes a request parameter from the service given its name.
      * 
@@ -1300,6 +940,15 @@ class WebService implements JsonI {
 
         return false;
     }
+
+    /**
+     * Sets the request instance for the service.
+     * 
+     * @param mixed $request The request instance (Request, etc.)
+     */
+    public function setRequest($request) {
+        $this->request = $request;
+    }
     /**
      * Adds multiple request methods as one group.
      * 
@@ -1309,6 +958,19 @@ class WebService implements JsonI {
         foreach ($methods as $m) {
             $this->addRequestMethod($m);
         }
+    }
+    /**
+     * Sets all responses for a specific HTTP method.
+     * 
+     * @param string $method HTTP method.
+     * @param OpenAPI\ResponsesObj $responses Responses object.
+     * 
+     * @return WebService Returns self for method chaining.
+     */
+    public function setResponsesForMethod(string $method, OpenAPI\ResponsesObj $responses): WebService {
+        $this->responsesByMethod[strtoupper($method)] = $responses;
+
+        return $this;
     }
     /**
      * Sets version number or name at which the service was added to a manager.
@@ -1330,5 +992,365 @@ class WebService implements JsonI {
      */
     public function toJSON() : Json {
         return $this->toPathItemObj()->toJSON();
+    }
+
+    /**
+     * Converts this web service to an OpenAPI PathItemObj.
+     * 
+     * Each HTTP method supported by this service becomes an operation in the path item.
+     * 
+     * @return OpenAPI\PathItemObj The PathItemObj representation of this service.
+     */
+    public function toPathItemObj(): OpenAPI\PathItemObj {
+        $pathItem = new OpenAPI\PathItemObj();
+
+        foreach ($this->getRequestMethods() as $method) {
+            $responses = $this->getResponsesForMethod($method);
+
+            if ($responses === null) {
+                $responses = new OpenAPI\ResponsesObj();
+                $responses->addResponse('200', 'Successful operation');
+            }
+
+            $operation = new OpenAPI\OperationObj($responses);
+
+            switch ($method) {
+                case RequestMethod::GET:
+                    $pathItem->setGet($operation);
+                    break;
+                case RequestMethod::POST:
+                    $pathItem->setPost($operation);
+                    break;
+                case RequestMethod::PUT:
+                    $pathItem->setPut($operation);
+                    break;
+                case RequestMethod::DELETE:
+                    $pathItem->setDelete($operation);
+                    break;
+                case RequestMethod::PATCH:
+                    $pathItem->setPatch($operation);
+                    break;
+            }
+        }
+
+return $pathItem;
+    }
+
+    /**
+     * Configure parameters for all methods with RequestParam annotations.
+     */
+    private function configureAllAnnotatedParameters(): void {
+        $reflection = new \ReflectionClass($this);
+
+        foreach ($reflection->getMethods() as $method) {
+            $paramAttributes = $method->getAttributes(Annotations\RequestParam::class);
+
+            if (!empty($paramAttributes)) {
+                $this->configureParametersFromMethod($method);
+            }
+        }
+    }
+
+    /**
+     * Configure authentication from annotations.
+     */
+    private function configureAuthentication(): void {
+        $reflection = new \ReflectionClass($this);
+
+        // Check class-level authentication
+        $classAuth = $this->getAuthenticationFromClass($reflection);
+
+        // If class has AllowAnonymous, disable auth requirement
+        if ($classAuth['allowAnonymous']) {
+            $this->setIsAuthRequired(false);
+        } else if ($classAuth['requiresAuth'] || $classAuth['preAuthorize']) {
+            $this->setIsAuthRequired(true);
+        }
+    }
+
+    /**
+     * Configure service from annotations if present.
+     */
+    private function configureFromAnnotations(string $fallbackName): void {
+        $reflection = new \ReflectionClass($this);
+        $attributes = $reflection->getAttributes(Annotations\RestController::class);
+
+        if (!empty($attributes)) {
+            $restController = $attributes[0]->newInstance();
+            $serviceName = $restController->name ?: $fallbackName;
+            $description = $restController->description;
+        } else {
+            $serviceName = $fallbackName;
+            $description = '';
+        }
+
+        if (!$this->setName($serviceName)) {
+            $this->setName('new-service');
+        }
+
+        if ($description) {
+            $this->setDescription($description);
+        }
+
+        $this->configureMethodMappings();
+        $this->configureAuthentication();
+    }
+
+    /**
+     * Configure allowed HTTP methods from method annotations.
+     */
+    private function configureMethodMappings(): void {
+        $reflection = new \ReflectionClass($this);
+        $httpMethodToMethods = [];
+
+        foreach ($reflection->getMethods() as $method) {
+            $methodMappings = [
+                GetMapping::class => RequestMethod::GET,
+                PostMapping::class => RequestMethod::POST,
+                PutMapping::class => RequestMethod::PUT,
+                DeleteMapping::class => RequestMethod::DELETE
+            ];
+
+            foreach ($methodMappings as $annotationClass => $httpMethod) {
+                $attributes = $method->getAttributes($annotationClass);
+
+                if (!empty($attributes)) {
+                    if (!isset($httpMethodToMethods[$httpMethod])) {
+                        $httpMethodToMethods[$httpMethod] = [];
+                    }
+                    $httpMethodToMethods[$httpMethod][] = $method->getName();
+                }
+            }
+        }
+
+        // Check for duplicates only if getCurrentProcessingMethod is not overridden
+        $hasCustomRouting = $reflection->getMethod('getCurrentProcessingMethod')->getDeclaringClass()->getName() !== self::class;
+
+        if (!$hasCustomRouting) {
+            foreach ($httpMethodToMethods as $httpMethod => $methods) {
+                if (count($methods) > 1) {
+                    throw new Exceptions\DuplicateMappingException(
+                        "HTTP method $httpMethod is mapped to multiple methods: ".implode(', ', $methods)
+                    );
+                }
+            }
+        }
+
+        if (!empty($httpMethodToMethods)) {
+            $this->setRequestMethods(array_keys($httpMethodToMethods));
+        }
+    }
+
+    /**
+     * Configure parameters for methods with specific HTTP method mapping.
+     * 
+     * @param string $httpMethod HTTP method (GET, POST, PUT, DELETE, etc.)
+     */
+    private function configureParametersForHttpMethod(string $httpMethod): void {
+        $reflection = new \ReflectionClass($this);
+        $httpMethod = strtoupper($httpMethod);
+
+        foreach ($reflection->getMethods() as $method) {
+            // Check if method has HTTP method mapping annotation
+            $mappingFound = false;
+
+            // Check for specific HTTP method annotations
+            $annotations = [
+                'GET' => GetMapping::class,
+                'POST' => PostMapping::class,
+                'PUT' => PutMapping::class,
+                'DELETE' => DeleteMapping::class,
+                'PATCH' => Annotations\PatchMapping::class,
+            ];
+
+            if (isset($annotations[$httpMethod])) {
+                $mappingFound = !empty($method->getAttributes($annotations[$httpMethod]));
+            }
+
+            if ($mappingFound) {
+                $this->configureParametersFromMethod($method);
+            }
+        }
+    }
+
+    /**
+     * Configure parameters from method RequestParam annotations.
+     */
+    private function configureParametersFromMethod(\ReflectionMethod $method): void {
+        $paramAttributes = $method->getAttributes(Annotations\RequestParam::class);
+
+        foreach ($paramAttributes as $attribute) {
+            $param = $attribute->newInstance();
+
+            $options = [
+                ParamOption::TYPE => $this->mapParamType($param->type),
+                ParamOption::OPTIONAL => $param->optional,
+                ParamOption::DEFAULT => $param->default,
+                ParamOption::DESCRIPTION => $param->description
+            ];
+
+            if ($param->filter !== null) {
+                $options[ParamOption::FILTER] = $param->filter;
+            }
+
+            $this->addParameters([
+                $param->name => $options
+            ]);
+        }
+    }
+
+    /**
+     * Get authentication configuration from class annotations.
+     */
+    private function getAuthenticationFromClass(\ReflectionClass $reflection): array {
+        return [
+            'allowAnonymous' => !empty($reflection->getAttributes(Annotations\AllowAnonymous::class)),
+            'requiresAuth' => !empty($reflection->getAttributes(Annotations\RequiresAuth::class)),
+            'preAuthorize' => $reflection->getAttributes(Annotations\PreAuthorize::class)
+        ];
+    }
+
+    /**
+     * Get method parameters by extracting values from request.
+     * 
+     * @param string $methodName The method name
+     * @return array Array of parameter values in correct order
+     */
+    private function getMethodParameters(string $methodName): array {
+        $reflection = new \ReflectionMethod($this, $methodName);
+        $params = [];
+
+        // Check for MapEntity attribute
+        $mapEntityAttrs = $reflection->getAttributes(Annotations\MapEntity::class);
+
+        if (!empty($mapEntityAttrs)) {
+            $mapEntity = $mapEntityAttrs[0]->newInstance();
+            $mappedObject = $this->getObject($mapEntity->entityClass, $mapEntity->setters);
+            $params[] = $mappedObject;
+        } else {
+            // Original parameter handling
+            foreach ($reflection->getParameters() as $param) {
+                $paramName = $param->getName();
+                $value = $this->getParamVal($paramName);
+
+                // Handle optional parameters with defaults
+                if ($value === null && $param->isDefaultValueAvailable()) {
+                    $value = $param->getDefaultValue();
+                }
+
+                $params[] = $value;
+            }
+        }
+
+        return $params;
+    }
+
+    /**
+     * Map string type to ParamType constant.
+     */
+    private function mapParamType(string $type): string {
+        return match (strtolower($type)) {
+            'int', 'integer' => ParamType::INT,
+            'float', 'double' => ParamType::DOUBLE,
+            'bool', 'boolean' => ParamType::BOOL,
+            'email' => ParamType::EMAIL,
+            'url' => ParamType::URL,
+            'array' => ParamType::ARR,
+            'json' => ParamType::JSON_OBJ,
+            default => ParamType::STRING
+        };
+    }    /**
+     * Returns an array that contains all possible requests methods at which the 
+     * service can be called with.
+     * 
+     * The array will contain strings like 'GET' or 'POST'. If no request methods
+     * where added, the array will be empty.
+     * 
+     * @return array An array that contains all possible requests methods at which the 
+     * service can be called using.
+     * 
+     */
+
+    /**
+     * Check if a method handles the specified HTTP method.
+     * 
+     * @param \ReflectionMethod $method The method to check
+     * @param string $httpMethod The HTTP method (GET, POST, etc.)
+     * @return bool True if the method handles this HTTP method
+     */
+    private function methodHandlesHttpMethod(\ReflectionMethod $method, string $httpMethod): bool {
+        $methodMappings = [
+            GetMapping::class => RequestMethod::GET,
+            PostMapping::class => RequestMethod::POST,
+            PutMapping::class => RequestMethod::PUT,
+            DeleteMapping::class => RequestMethod::DELETE
+        ];
+
+        foreach ($methodMappings as $annotationClass => $mappedMethod) {
+            if ($httpMethod === $mappedMethod && !empty($method->getAttributes($annotationClass))) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Get the current processing method name (to be overridden by subclasses if needed).
+     */
+    protected function getCurrentProcessingMethod(): ?string {
+        return null; // Default implementation
+    }
+
+    /**
+     * Handle HTTP exceptions by converting them to appropriate responses.
+     * 
+     * @param HttpException $exception The HTTP exception to handle
+     */
+    protected function handleException(HttpException $exception): void {
+        $this->sendResponse(
+            $exception->getMessage(),
+            $exception->getStatusCode(),
+            $exception->getResponseType()
+        );
+    }
+
+    /**
+     * Handle method response by auto-converting return values to HTTP responses.
+     * 
+     * @param mixed $result The return value from the method
+     * @param string $methodName The name of the method that was called
+     * @return void
+     */
+    protected function handleMethodResponse(mixed $result, string $methodName): void {
+        $reflection = new \ReflectionMethod($this, $methodName);
+        $responseBodyAttrs = $reflection->getAttributes(ResponseBody::class);
+
+        if (empty($responseBodyAttrs)) {
+            return; // No auto-processing, method should handle response manually
+        }
+
+        $responseBody = $responseBodyAttrs[0]->newInstance();
+
+        // Handle custom content types
+        if ($responseBody->contentType !== 'application/json') {
+            // For non-JSON content types, send raw result
+            $content = is_string($result) ? $result : (is_array($result) || is_object($result) ? json_encode($result) : (string)$result);
+            $this->send($responseBody->contentType, $content, $responseBody->status);
+
+            return;
+        }
+
+        // Auto-convert return value to JSON response
+        if ($result === null) {
+            // Null return = empty response with configured status
+            $this->sendResponse('', $responseBody->status, $responseBody->type);
+        } elseif (is_array($result) || is_object($result)) {
+            // Array/object = JSON response
+            $this->sendResponse('Success', $responseBody->status, $responseBody->type, $result);
+        } else {
+            // String/scalar = plain response
+            $this->sendResponse($result, $responseBody->status, $responseBody->type);
+        }
     }
 }
