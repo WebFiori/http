@@ -18,9 +18,11 @@ class ResponseBody {
      * 
      * @param int $status The HTTP status code to return (default: 200)
      * @param string $type The response type indicator (default: 'success')
+     * @param string $contentType The content type for the response (default: 'application/json')
      */
     public function __construct(
         public readonly int $status = 200,
-        public readonly string $type = 'success'
+        public readonly string $type = 'success',
+        public readonly string $contentType = 'application/json'
     ) {}
 }

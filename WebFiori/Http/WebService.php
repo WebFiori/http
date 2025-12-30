@@ -482,7 +482,15 @@ class WebService implements JsonI {
         
         $responseBody = $responseBodyAttrs[0]->newInstance();
         
-        // Auto-convert return value to response
+        // Handle custom content types
+        if ($responseBody->contentType !== 'application/json') {
+            // For non-JSON content types, send raw result
+            $content = is_string($result) ? $result : (is_array($result) || is_object($result) ? json_encode($result) : (string)$result);
+            $this->send($responseBody->contentType, $content, $responseBody->status);
+            return;
+        }
+        
+        // Auto-convert return value to JSON response
         if ($result === null) {
             // Null return = empty response with configured status
             $this->sendResponse('', $responseBody->status, $responseBody->type);
