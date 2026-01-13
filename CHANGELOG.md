@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.0.1](https://github.com/WebFiori/http/compare/v5.0.0...v5.0.1) (2026-01-13)
+
+
+### Bug Fixes
+
+* Auto-Discover Null Path ([e5fe330](https://github.com/WebFiori/http/commit/e5fe330a990198604617e161f0db3d3fb2f96e70))
+
 ## [5.0.0](https://github.com/WebFiori/http/compare/v4.0.0...v5.0.0) (2025-12-30)
 
 
