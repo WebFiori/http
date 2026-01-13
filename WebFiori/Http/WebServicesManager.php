@@ -156,7 +156,7 @@ class WebServicesManager implements JsonI {
      * 
      * @return WebServicesManager Returns the same instance for method chaining.
      */
-    public function autoDiscoverServices(string $path = null) : WebServicesManager {
+    public function autoDiscoverServices(?string $path = null) : WebServicesManager {
         if ($path === null) {
             $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1);
             $path = dirname($trace[0]['file']);
