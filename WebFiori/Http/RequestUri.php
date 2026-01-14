@@ -110,11 +110,12 @@ class RequestUri extends Uri {
      * equal. False if not.
      */
     public function equals(Uri $otherUri) : bool {
-        if (!parent::equals($otherUri)) {
+        $thisUri = $this->getAuthority().$this->getPath();
+        $otherUriStr = $otherUri->getAuthority().$otherUri->getPath();
+        
+        if ($thisUri != $otherUriStr) {
             return false;
         }
-        $thisPath = $this->getPath();
-        $otherPath = $otherUri->getPath();
 
         $thisMethods = $this->getRequestMethods();
         $otherMethods = $otherUri->getRequestMethods();

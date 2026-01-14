@@ -139,8 +139,8 @@ class UriTest extends TestCase {
     public function testEquals03() {
         $uri1 = new RequestUri('http://example.com/my-folder');
         $uri2 = new RequestUri('https://example.com/my-folder');
-        $this->assertFalse($uri1->equals($uri2));
-        $this->assertFalse($uri2->equals($uri1));
+        $this->assertTrue($uri1->equals($uri2));
+        $this->assertTrue($uri2->equals($uri1));
     }
     /**
      * @test
@@ -148,8 +148,8 @@ class UriTest extends TestCase {
     public function testEquals04() {
         $uri1 = new RequestUri('http://example.com/my-folder/{a-var}');
         $uri2 = new RequestUri('https://example.com/my-folder/{a-var}');
-        $this->assertFalse($uri1->equals($uri2));
-        $this->assertFalse($uri2->equals($uri1));
+        $this->assertTrue($uri1->equals($uri2));
+        $this->assertTrue($uri2->equals($uri1));
     }
     /**
      * @test
