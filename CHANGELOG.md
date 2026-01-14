@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.0.4](https://github.com/WebFiori/http/compare/v5.0.3...v5.0.4) (2026-01-14)
+
+
+### Miscellaneous Chores
+
+* Updated Required PHP Version ([c6c8b2a](https://github.com/WebFiori/http/commit/c6c8b2a3783c2f787ca5340c2ebb64a1f1e78dbc))
+
 ## [5.0.3](https://github.com/WebFiori/http/compare/v5.0.2...v5.0.3) (2026-01-14)
 
 
