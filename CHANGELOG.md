@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.0.3](https://github.com/WebFiori/http/compare/v5.0.2...v5.0.3) (2026-01-14)
+
+
+### Bug Fixes
+
+* Return Empty String if No Path ([05566fb](https://github.com/WebFiori/http/commit/05566fb96835b1ea3d62ce5b4da79368d0ea2c57))
+
 ## [5.0.2](https://github.com/WebFiori/http/compare/v5.0.1...v5.0.2) (2026-01-14)
 
 
