@@ -1,5 +1,13 @@
 # Changelog
 
+## [5.0.2](https://github.com/WebFiori/http/compare/v5.0.1...v5.0.2) (2026-01-14)
+
+
+### Miscellaneous Chores
+
+* Fail Tests on Deprecations ([b3710ca](https://github.com/WebFiori/http/commit/b3710ca552b3c5a5cdaf21f184500c29b5df8270))
+* Revert Fail on Deprications ([747b3ad](https://github.com/WebFiori/http/commit/747b3ad8c367ade2ded3968fe8ea0269785d7359))
+
 ## [5.0.1](https://github.com/WebFiori/http/compare/v5.0.0...v5.0.1) (2026-01-13)
 
 
