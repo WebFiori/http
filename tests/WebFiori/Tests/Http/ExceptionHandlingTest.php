@@ -94,7 +94,6 @@ class ExceptionHandlingTest extends TestCase {
         // Test the handleException method directly
         $reflection = new \ReflectionClass($service);
         $method = $reflection->getMethod('handleException');
-        $method->setAccessible(true);
         
         // The method should not throw an exception
         $this->expectNotToPerformAssertions();

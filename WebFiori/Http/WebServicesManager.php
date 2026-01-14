@@ -1026,7 +1026,6 @@ class WebServicesManager implements JsonI {
 
             if ($targetMethod && method_exists($service, 'configureParametersForMethod')) {
                 $reflection = new \ReflectionMethod($service, 'configureParametersForMethod');
-                $reflection->setAccessible(true);
                 $reflection->invoke($service, $targetMethod);
             }
         }
