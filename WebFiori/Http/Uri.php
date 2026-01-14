@@ -163,7 +163,7 @@ class Uri {
         $path = $this->uriBroken['path'];
 
         if (count($path) == 0) {
-            return '/';
+            return '';
         }
 
         return '/'.implode('/', $path);
