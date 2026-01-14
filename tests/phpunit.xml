@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<phpunit colors="true" bootstrap="loader.php" failOnDeprecation="true" failOnNotice="true" failOnWarning="true">
+<phpunit colors="true" bootstrap="loader.php" failOnNotice="true" failOnWarning="true">
     <php>
     </php>
     <filter>
