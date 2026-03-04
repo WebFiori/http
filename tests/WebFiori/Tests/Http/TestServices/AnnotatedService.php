@@ -4,6 +4,7 @@ namespace WebFiori\Tests\Http\TestServices;
 use WebFiori\Http\Annotations\AllowAnonymous;
 use WebFiori\Http\Annotations\DeleteMapping;
 use WebFiori\Http\Annotations\GetMapping;
+use WebFiori\Http\Annotations\MapEntity;
 use WebFiori\Http\Annotations\PreAuthorize;
 use WebFiori\Http\Annotations\RequestParam;
 use WebFiori\Http\Annotations\ResponseBody;
@@ -17,9 +18,8 @@ class AnnotatedService extends WebService {
     #[ResponseBody]
     #[AllowAnonymous]
     #[RequestParam('name', ParamType::STRING, true)]
-    public function sayHi() {
-        $name = $this->getParamVal('name');
-        
+    public function sayHi(?string $name) {
+
         if ($name !== null) {
             return "Hi ".$name.'!';
         }
@@ -29,8 +29,7 @@ class AnnotatedService extends WebService {
     #[ResponseBody]
     #[RequestParam('id', ParamType::INT)]
     #[PreAuthorize("isAuthenticated() && hasRole('ADMIN') && hasAuthority('USER_DELETE')")]
-    public function delete() {
-        $id = $this->getParamVal('id');
+    public function delete(int $id) {
         return "Delete user with ID: ".$id;
     }
 }
