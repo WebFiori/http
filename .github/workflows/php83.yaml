@@ -8,6 +8,10 @@ on:
 env:
   OPERATING_SYS: ubuntu-latest
   PHP_VERSION: 8.3
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
 
   test:
