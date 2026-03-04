@@ -2,18 +2,17 @@
 
 require_once '../../../vendor/autoload.php';
 
-use WebFiori\Http\WebService;
-use WebFiori\Http\Annotations\RestController;
+use WebFiori\Http\Annotations\AllowAnonymous;
 use WebFiori\Http\Annotations\GetMapping;
 use WebFiori\Http\Annotations\ResponseBody;
-use WebFiori\Http\Annotations\AllowAnonymous;
+use WebFiori\Http\Annotations\RestController;
+use WebFiori\Http\WebService;
 
 /**
  * API information service that provides metadata about the API
  */
 #[RestController('info', 'API information and metadata')]
 class InfoService extends WebService {
-    
     #[GetMapping]
     #[ResponseBody]
     #[AllowAnonymous]

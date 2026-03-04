@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  * 
@@ -24,6 +25,14 @@ use WebFiori\Json\JsonI;
  */
 class ServerObj implements JsonI {
     /**
+     * An optional string describing the host designated by the URL.
+     * 
+     * CommonMark syntax MAY be used for rich text representation.
+     * 
+     * @var string|null
+     */
+    private ?string $description = null;
+    /**
      * A URL to the target host.
      * 
      * This URL supports Server Variables and MAY be relative, to indicate that 
@@ -36,16 +45,7 @@ class ServerObj implements JsonI {
      * @var string
      */
     private string $url;
-    
-    /**
-     * An optional string describing the host designated by the URL.
-     * 
-     * CommonMark syntax MAY be used for rich text representation.
-     * 
-     * @var string|null
-     */
-    private ?string $description = null;
-    
+
     /**
      * Creates new instance.
      * 
@@ -54,24 +54,21 @@ class ServerObj implements JsonI {
      */
     public function __construct(string $url, ?string $description = null) {
         $this->setUrl($url);
-        
+
         if ($description !== null) {
             $this->setDescription($description);
         }
     }
-    
+
     /**
-     * Sets the URL to the target host.
+     * Returns the description of the host.
      * 
-     * @param string $url A URL to the target host. This URL supports Server Variables and MAY be relative.
-     * 
-     * @return ServerObj Returns self for method chaining.
+     * @return string|null Returns the value, or null if not set.
      */
-    public function setUrl(string $url): ServerObj {
-        $this->url = $url;
-        return $this;
+    public function getDescription(): ?string {
+        return $this->description;
     }
-    
+
     /**
      * Returns the URL to the target host.
      * 
@@ -80,7 +77,7 @@ class ServerObj implements JsonI {
     public function getUrl(): string {
         return $this->url;
     }
-    
+
     /**
      * Sets the description of the host designated by the URL.
      * 
@@ -91,18 +88,23 @@ class ServerObj implements JsonI {
      */
     public function setDescription(string $description): ServerObj {
         $this->description = $description;
+
         return $this;
     }
-    
+
     /**
-     * Returns the description of the host.
+     * Sets the URL to the target host.
      * 
-     * @return string|null Returns the value, or null if not set.
+     * @param string $url A URL to the target host. This URL supports Server Variables and MAY be relative.
+     * 
+     * @return ServerObj Returns self for method chaining.
      */
-    public function getDescription(): ?string {
-        return $this->description;
+    public function setUrl(string $url): ServerObj {
+        $this->url = $url;
+
+        return $this;
     }
-    
+
     /**
      * Returns a Json object that represents the Server Object.
      * 
@@ -112,11 +114,11 @@ class ServerObj implements JsonI {
         $json = new Json([
             'url' => $this->getUrl()
         ]);
-        
+
         if ($this->getDescription() !== null) {
             $json->add('description', $this->getDescription());
         }
-        
+
         return $json;
     }
 }

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  * 
@@ -33,5 +34,6 @@ class ResponseBody {
         public readonly int $status = 200,
         public readonly string $type = 'success',
         public readonly string $contentType = 'application/json'
-    ) {}
+    ) {
+    }
 }

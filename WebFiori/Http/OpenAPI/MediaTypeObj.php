@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  * 
@@ -29,23 +30,24 @@ class MediaTypeObj implements JsonI {
      * @var mixed
      */
     private $schema = null;
-    
-    public function setSchema($schema): MediaTypeObj {
-        $this->schema = $schema;
-        return $this;
-    }
-    
+
     public function getSchema() {
         return $this->schema;
     }
-    
+
+    public function setSchema($schema): MediaTypeObj {
+        $this->schema = $schema;
+
+        return $this;
+    }
+
     public function toJSON(): Json {
         $json = new Json();
-        
+
         if ($this->getSchema() !== null) {
             $json->add('schema', $this->getSchema());
         }
-        
+
         return $json;
     }
 }

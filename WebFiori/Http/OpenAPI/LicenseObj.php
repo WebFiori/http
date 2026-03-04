@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  * 
@@ -24,15 +25,6 @@ use WebFiori\Json\JsonI;
  */
 class LicenseObj implements JsonI {
     /**
-     * The license name used for the API.
-     * 
-     * REQUIRED.
-     * 
-     * @var string
-     */
-    private string $name;
-    
-    /**
      * An SPDX license expression for the API.
      * 
      * The identifier field is mutually exclusive of the url field.
@@ -41,7 +33,15 @@ class LicenseObj implements JsonI {
      * @see https://spdx.org/licenses/
      */
     private ?string $identifier = null;
-    
+    /**
+     * The license name used for the API.
+     * 
+     * REQUIRED.
+     * 
+     * @var string
+     */
+    private string $name;
+
     /**
      * A URI for the license used for the API.
      * 
@@ -51,7 +51,7 @@ class LicenseObj implements JsonI {
      * @var string|null
      */
     private ?string $url = null;
-    
+
     /**
      * Creates new instance.
      * 
@@ -60,19 +60,16 @@ class LicenseObj implements JsonI {
     public function __construct(string $name) {
         $this->setName($name);
     }
-    
+
     /**
-     * Sets the license name used for the API.
+     * Returns the SPDX license identifier.
      * 
-     * @param string $name The license name.
-     * 
-     * @return LicenseObj Returns self for method chaining.
+     * @return string|null Returns the value, or null if not set.
      */
-    public function setName(string $name): LicenseObj {
-        $this->name = $name;
-        return $this;
+    public function getIdentifier(): ?string {
+        return $this->identifier;
     }
-    
+
     /**
      * Returns the license name.
      * 
@@ -81,7 +78,16 @@ class LicenseObj implements JsonI {
     public function getName(): string {
         return $this->name;
     }
-    
+
+    /**
+     * Returns the license URL.
+     * 
+     * @return string|null Returns the value, or null if not set.
+     */
+    public function getUrl(): ?string {
+        return $this->url;
+    }
+
     /**
      * Sets an SPDX license expression for the API.
      * 
@@ -93,18 +99,23 @@ class LicenseObj implements JsonI {
     public function setIdentifier(string $identifier): LicenseObj {
         $this->identifier = $identifier;
         $this->url = null;
+
         return $this;
     }
-    
+
     /**
-     * Returns the SPDX license identifier.
+     * Sets the license name used for the API.
      * 
-     * @return string|null Returns the value, or null if not set.
+     * @param string $name The license name.
+     * 
+     * @return LicenseObj Returns self for method chaining.
      */
-    public function getIdentifier(): ?string {
-        return $this->identifier;
+    public function setName(string $name): LicenseObj {
+        $this->name = $name;
+
+        return $this;
     }
-    
+
     /**
      * Sets a URI for the license used for the API.
      * 
@@ -116,18 +127,10 @@ class LicenseObj implements JsonI {
     public function setUrl(string $url): LicenseObj {
         $this->url = $url;
         $this->identifier = null;
+
         return $this;
     }
-    
-    /**
-     * Returns the license URL.
-     * 
-     * @return string|null Returns the value, or null if not set.
-     */
-    public function getUrl(): ?string {
-        return $this->url;
-    }
-    
+
     /**
      * Returns a Json object that represents the License Object.
      * 
@@ -137,15 +140,15 @@ class LicenseObj implements JsonI {
         $json = new Json([
             'name' => $this->getName()
         ]);
-        
+
         if ($this->getIdentifier() !== null) {
             $json->add('identifier', $this->getIdentifier());
         }
-        
+
         if ($this->getUrl() !== null) {
             $json->add('url', $this->getUrl());
         }
-        
+
         return $json;
     }
 }

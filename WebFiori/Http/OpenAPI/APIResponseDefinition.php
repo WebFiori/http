@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  * 
@@ -18,10 +19,10 @@ use WebFiori\Json\Json;
  * @author Ibrahim
  */
 class APIResponseDefinition {
-    private string $statusCode;
-    private string $description;
     private array $content = [];
-    
+    private string $description;
+    private string $statusCode;
+
     /**
      * Creates a new response definition.
      * 
@@ -32,16 +33,7 @@ class APIResponseDefinition {
         $this->statusCode = $statusCode;
         $this->description = $description;
     }
-    
-    /**
-     * Gets the status code.
-     * 
-     * @return string
-     */
-    public function getStatusCode(): string {
-        return $this->statusCode;
-    }
-    
+
     /**
      * Adds content for a specific media type.
      * 
@@ -53,9 +45,19 @@ class APIResponseDefinition {
     public function addContent(string $mediaType, Schema $schema): ContentType {
         $content = new ContentType($mediaType, $schema);
         $this->content[$mediaType] = $content;
+
         return $content;
     }
-    
+
+    /**
+     * Gets the status code.
+     * 
+     * @return string
+     */
+    public function getStatusCode(): string {
+        return $this->statusCode;
+    }
+
     /**
      * Converts the response to JSON representation.
      * 
@@ -63,15 +65,16 @@ class APIResponseDefinition {
      */
     public function toJson(): Json {
         $json = new Json(['description' => $this->description]);
-        
+
         if (!empty($this->content)) {
             $contentJson = new Json();
+
             foreach ($this->content as $mediaType => $contentType) {
                 $contentJson->add($mediaType, $contentType->toJson());
             }
             $json->add('content', $contentJson);
         }
-        
+
         return $json;
     }
 }

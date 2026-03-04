@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  * 
@@ -24,12 +25,20 @@ use WebFiori\Json\JsonI;
  */
 class ContactObj implements JsonI {
     /**
+     * The email address of the contact person/organization.
+     * 
+     * This MUST be in the form of an email address.
+     * 
+     * @var string|null
+     */
+    private ?string $email = null;
+    /**
      * The identifying name of the contact person/organization.
      * 
      * @var string|null
      */
     private ?string $name = null;
-    
+
     /**
      * The URI for the contact information.
      * 
@@ -38,28 +47,16 @@ class ContactObj implements JsonI {
      * @var string|null
      */
     private ?string $url = null;
-    
+
     /**
-     * The email address of the contact person/organization.
+     * Returns the contact email.
      * 
-     * This MUST be in the form of an email address.
-     * 
-     * @var string|null
+     * @return string|null Returns the value, or null if not set.
      */
-    private ?string $email = null;
-    
-    /**
-     * Sets the identifying name of the contact person/organization.
-     * 
-     * @param string $name The identifying name.
-     * 
-     * @return ContactObj Returns self for method chaining.
-     */
-    public function setName(string $name): ContactObj {
-        $this->name = $name;
-        return $this;
+    public function getEmail(): ?string {
+        return $this->email;
     }
-    
+
     /**
      * Returns the contact name.
      * 
@@ -68,19 +65,7 @@ class ContactObj implements JsonI {
     public function getName(): ?string {
         return $this->name;
     }
-    
-    /**
-     * Sets the URI for the contact information.
-     * 
-     * @param string $url The URI for the contact information. This MUST be in the form of a URI.
-     * 
-     * @return ContactObj Returns self for method chaining.
-     */
-    public function setUrl(string $url): ContactObj {
-        $this->url = $url;
-        return $this;
-    }
-    
+
     /**
      * Returns the contact URL.
      * 
@@ -89,7 +74,7 @@ class ContactObj implements JsonI {
     public function getUrl(): ?string {
         return $this->url;
     }
-    
+
     /**
      * Sets the email address of the contact person/organization.
      * 
@@ -99,18 +84,36 @@ class ContactObj implements JsonI {
      */
     public function setEmail(string $email): ContactObj {
         $this->email = $email;
+
         return $this;
     }
-    
+
     /**
-     * Returns the contact email.
+     * Sets the identifying name of the contact person/organization.
      * 
-     * @return string|null Returns the value, or null if not set.
+     * @param string $name The identifying name.
+     * 
+     * @return ContactObj Returns self for method chaining.
      */
-    public function getEmail(): ?string {
-        return $this->email;
+    public function setName(string $name): ContactObj {
+        $this->name = $name;
+
+        return $this;
     }
-    
+
+    /**
+     * Sets the URI for the contact information.
+     * 
+     * @param string $url The URI for the contact information. This MUST be in the form of a URI.
+     * 
+     * @return ContactObj Returns self for method chaining.
+     */
+    public function setUrl(string $url): ContactObj {
+        $this->url = $url;
+
+        return $this;
+    }
+
     /**
      * Returns a Json object that represents the Contact Object.
      * 
@@ -118,19 +121,19 @@ class ContactObj implements JsonI {
      */
     public function toJSON(): Json {
         $json = new Json();
-        
+
         if ($this->getName() !== null) {
             $json->add('name', $this->getName());
         }
-        
+
         if ($this->getUrl() !== null) {
             $json->add('url', $this->getUrl());
         }
-        
+
         if ($this->getEmail() !== null) {
             $json->add('email', $this->getEmail());
         }
-        
+
         return $json;
     }
 }

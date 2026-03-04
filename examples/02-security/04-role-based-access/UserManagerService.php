@@ -3,19 +3,31 @@
 require_once '../../../vendor/autoload.php';
 require_once 'DemoUser.php';
 
-use WebFiori\Http\WebService;
-use WebFiori\Http\Annotations\RestController;
 use WebFiori\Http\Annotations\GetMapping;
-use WebFiori\Http\Annotations\ResponseBody;
 use WebFiori\Http\Annotations\PreAuthorize;
+use WebFiori\Http\Annotations\ResponseBody;
+use WebFiori\Http\Annotations\RestController;
 use WebFiori\Http\SecurityContext;
+use WebFiori\Http\WebService;
 
 /**
  * User management service - requires USER_MANAGE authority
  */
 #[RestController('user-manager', 'User management operations service')]
 class UserManagerService extends WebService {
-    
+    public function isAuthorized(): bool {
+        $demoUser = new DemoUser(
+            id: 1,
+            name: 'Demo User',
+            roles: ['USER', 'ADMIN'],
+            authorities: ['USER_CREATE', 'USER_UPDATE', 'USER_DELETE', 'USER_READ', 'USER_MANAGE']
+        );
+
+        SecurityContext::setCurrentUser($demoUser);
+
+        return true;
+    }
+
     #[GetMapping]
     #[ResponseBody]
     #[PreAuthorize("hasAuthority('USER_MANAGE')")]
@@ -34,17 +46,5 @@ class UserManagerService extends WebService {
                 ['id' => 2, 'name' => 'Jane Smith', 'status' => 'inactive']
             ]
         ];
-    }
-    
-    public function isAuthorized(): bool {
-        $demoUser = new DemoUser(
-            id: 1,
-            name: 'Demo User',
-            roles: ['USER', 'ADMIN'],
-            authorities: ['USER_CREATE', 'USER_UPDATE', 'USER_DELETE', 'USER_READ', 'USER_MANAGE']
-        );
-        
-        SecurityContext::setCurrentUser($demoUser);
-        return true;
     }
 }

@@ -2,15 +2,14 @@
 
 require_once '../../../vendor/autoload.php';
 
-use WebFiori\Http\WebService;
-use WebFiori\Http\Annotations\RestController;
+use WebFiori\Http\Annotations\AllowAnonymous;
 use WebFiori\Http\Annotations\GetMapping;
 use WebFiori\Http\Annotations\ResponseBody;
-use WebFiori\Http\Annotations\AllowAnonymous;
+use WebFiori\Http\Annotations\RestController;
+use WebFiori\Http\WebService;
 
 #[RestController('json-response', 'JSON response service')]
 class JsonResponseService extends WebService {
-    
     #[GetMapping]
     #[ResponseBody]
     #[AllowAnonymous]

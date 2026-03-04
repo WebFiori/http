@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  * 
@@ -24,10 +25,126 @@ class RequestUri extends Uri {
      */
     private $allowedMethods;
     private $vars;
-    public function getParametersNames() : array {
-        return array_map(function ($paramObj) {
-            return $paramObj->getName();
-        }, $this->getParameters());
+    /**
+     * Creates new instance of the class.
+     * 
+     * @param string $requestedUri The URI such as 'https://www3.programmingacademia.com:80/{some-var}/hell/{other-var}/?do=dnt&y=2018#xyz'
+     * 
+     * @throws InvalidArgumentException
+     */
+    public function __construct(string $requestedUri = '') {
+        parent::__construct($requestedUri);
+        $this->allowedMethods = [];
+        $this->vars = [];
+        $addedParams = [];
+        $pathArr = $this->getPathArray();
+
+
+        foreach ($pathArr as $part) {
+            $conv = mb_convert_encoding(urldecode($part), 'UTF-8', 'ISO-8859-1');
+
+            if ($conv[0] == '{' && $conv[strlen($conv) - 1] == '}') {
+                $name = trim($part, '{}');
+
+                if (!in_array($name, $addedParams)) {
+                    $addedParams[] = $name;
+                    $this->vars[] = new UriParameter($name);
+                }
+            }
+        }
+        $this->verifyOrderOfParams();
+    }
+
+    /**
+     * Adds a value to allowed URI parameter values.
+     * 
+     * @param string $paramName The name of the parameter.
+     * @param string $value The value to add.
+     */
+    public function addAllowedParameterValue(string $paramName, string $value) : RequestUri {
+        $normalized = trim($paramName);
+
+        foreach ($this->getParameters() as $param) {
+            if ($param->getName() == $normalized) {
+                $param->addAllowedValue($value);
+                break;
+            }
+        }
+
+        return $this;
+    }
+    public function addAllowedParameterValues(string $name, array $vals) : RequestUri {
+        $normalizedName = trim($name);
+
+        foreach ($this->getParameters() as $param) {
+            if ($param->getName() == $normalizedName) {
+                $param->addAllowedValues($vals);
+                break;
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * Adds new request method to the allowed methods.
+     * 
+     * @param string $method The request method (e.g. 'GET', 'POST', 'PUT', etc...).
+     */
+    public function addRequestMethod(string $method) : RequestUri {
+        $normalizedMethod = strtoupper(trim($method));
+
+        if (!in_array($normalizedMethod, $this->allowedMethods)) {
+            $this->allowedMethods[] = $normalizedMethod;
+        }
+
+        return $this;
+    }
+
+    /**
+     * Checks if two URIs are equal or not.
+     * 
+     * @param RequestUri $otherUri An object of type 'RequestUri'.
+     * 
+     * @return bool The method will return true if the URIs are 
+     * equal. False if not.
+     */
+    public function equals(Uri $otherUri) : bool {
+        if (!parent::equals($otherUri)) {
+            return false;
+        }
+        $thisPath = $this->getPath();
+        $otherPath = $otherUri->getPath();
+
+        $thisMethods = $this->getRequestMethods();
+        $otherMethods = $otherUri->getRequestMethods();
+
+        if (count($thisMethods) != count($otherMethods)) {
+            return false;
+        }
+
+        foreach ($thisMethods as $method) {
+            if (!in_array($method, $otherMethods)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Returns an array that contains allowed URI parameters values.
+     * 
+     * @return array
+     */
+    public function getAllowedParameterValues(string $varName) : array {
+        $param = $this->getParameter($varName);
+
+        if ($param !== null) {
+            return $param->getAllowedValues();
+        }
+
+        return [];
     }
     /**
      * Returns the base URL of the framework.
@@ -95,6 +212,40 @@ class RequestUri extends Uri {
             return $protocol.$host.'/'.trim($xToAppend, '/');
         }
     }
+
+    /**
+     * Returns the value of URI parameter given its name.
+     * 
+     * @param string $paramName The name of the parameter.
+     * 
+     * @return UriParameter|null If a parameter which has the given name 
+     * is found, it will be returned. If no such parameter, the method will 
+     * return null.
+     */
+    public function getParameter(string $paramName) : ?UriParameter {
+        foreach ($this->getParameters() as $param) {
+            if ($param->getName() == $paramName) {
+                return $param;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Returns an array that contains all URI parameters.
+     * 
+     * @return array An array that contains objects of type 'UriParameter'.
+     */
+    public function getParameters() : array {
+        return $this->vars;
+    }
+    public function getParametersNames() : array {
+        return array_map(function ($paramObj)
+        {
+            return $paramObj->getName();
+        }, $this->getParameters());
+    }
     /**
      * Returns the value of URI parameter given its name.
      * 
@@ -118,166 +269,7 @@ class RequestUri extends Uri {
 
         return null;
     }
-    /**
-     * Creates new instance of the class.
-     * 
-     * @param string $requestedUri The URI such as 'https://www3.programmingacademia.com:80/{some-var}/hell/{other-var}/?do=dnt&y=2018#xyz'
-     * 
-     * @throws InvalidArgumentException
-     */
-    public function __construct(string $requestedUri = '') {
-        parent::__construct($requestedUri);
-        $this->allowedMethods = [];
-        $this->vars = [];
-        $addedParams = [];
-        $pathArr = $this->getPathArray();
 
-        
-        foreach($pathArr as $part) {
-            $conv = mb_convert_encoding(urldecode($part), 'UTF-8', 'ISO-8859-1');
-
-            if ($conv[0] == '{' && $conv[strlen($conv) - 1] == '}') {
-                $name = trim($part, '{}');
-
-                if (!in_array($name, $addedParams)) {
-                    $addedParams[] = $name;
-                    $this->vars[] = new UriParameter($name);
-                }
-            }
-
-        }
-        $this->verifyOrderOfParams();
-    }
-    private function verifyOrderOfParams() {
-        $currentOptional = false;
-
-        foreach($this->getParameters() as $param) {
-            if ($currentOptional == true && !$param->isOptional()) {
-                throw new \Exception('Requred paramater cannot appear after optional');
-            }
-            $currentOptional = $param->isOptional() || $currentOptional;
-        }
-    }
-    
-    /**
-     * Adds new request method to the allowed methods.
-     * 
-     * @param string $method The request method (e.g. 'GET', 'POST', 'PUT', etc...).
-     */
-    public function addRequestMethod(string $method) : RequestUri {
-        $normalizedMethod = strtoupper(trim($method));
-        
-        if (!in_array($normalizedMethod, $this->allowedMethods)) {
-            $this->allowedMethods[] = $normalizedMethod;
-        }
-        return $this;
-    }
-    
-    /**
-     * Adds a value to allowed URI parameter values.
-     * 
-     * @param string $paramName The name of the parameter.
-     * @param string $value The value to add.
-     */
-    public function addAllowedParameterValue(string $paramName, string $value) : RequestUri {
-        
-        $normalized = trim($paramName);
-        foreach ($this->getParameters() as $param) {
-            if ($param->getName() == $normalized) {
-                $param->addAllowedValue($value);
-                break;
-            }
-        }
-        return $this;
-    }
-    public function addAllowedParameterValues(string $name, array $vals) : RequestUri  {
-        $normalizedName = trim($name);
-
-        foreach ($this->getParameters() as $param) {
-            if ($param->getName() == $normalizedName) {
-                $param->addAllowedValues($vals);
-                break;
-            }
-        }
-        return $this;
-    }
-    
-    /**
-     * Checks if two URIs are equal or not.
-     * 
-     * @param RequestUri $otherUri An object of type 'RequestUri'.
-     * 
-     * @return bool The method will return true if the URIs are 
-     * equal. False if not.
-     */
-    public function equals(Uri $otherUri) : bool {
-        if (!parent::equals($otherUri)) {
-            return false;
-        }
-        $thisPath = $this->getPath();
-        $otherPath = $otherUri->getPath();
-        
-        $thisMethods = $this->getRequestMethods();
-        $otherMethods = $otherUri->getRequestMethods();
-        
-        if (count($thisMethods) != count($otherMethods)) {
-            return false;
-        }
-        
-        foreach ($thisMethods as $method) {
-            if (!in_array($method, $otherMethods)) {
-                return false;
-            }
-        }
-        
-        return true;
-    }
-    
-    /**
-     * Returns the value of URI parameter given its name.
-     * 
-     * @param string $paramName The name of the parameter.
-     * 
-     * @return UriParameter|null If a parameter which has the given name 
-     * is found, it will be returned. If no such parameter, the method will 
-     * return null.
-     */
-    public function getParameter(string $paramName) : ?UriParameter {
-
-        foreach ($this->getParameters() as $param) {
-            if ($param->getName() == $paramName) {
-                return $param;
-            }
-        }
-        
-        return null;
-    }
-    
-    /**
-     * Returns an array that contains all URI parameters.
-     * 
-     * @return array An array that contains objects of type 'UriParameter'.
-     */
-    public function getParameters() : array {
-        return $this->vars;
-    }
-    
-    /**
-     * Returns an array that contains allowed URI parameters values.
-     * 
-     * @return array
-     */
-    public function getAllowedParameterValues(string $varName) : array {
-
-        $param = $this->getParameter($varName);
-        if ($param !== null) {
-           
-            return $param->getAllowedValues();
-        }
-
-        return [];
-    }
-    
     /**
      * Returns an array that contains all allowed request methods.
      * 
@@ -286,17 +278,7 @@ class RequestUri extends Uri {
     public function getRequestMethods() : array {
         return $this->allowedMethods;
     }
-    
-    /**
-     * Checks if the URI has any parameters or not.
-     * 
-     * @return bool The method will return true if the URI has any parameters. 
-     * false if not.
-     */
-    public function hasParameters() : bool {
-        return count($this->getParameters()) > 0;
-    }
-    
+
     /**
      * Checks if the URI has a specific parameter or not.
      * 
@@ -308,7 +290,17 @@ class RequestUri extends Uri {
     public function hasParameter(string $paramName) : bool {
         return $this->getParameter($paramName) !== null;
     }
-    
+
+    /**
+     * Checks if the URI has any parameters or not.
+     * 
+     * @return bool The method will return true if the URI has any parameters. 
+     * false if not.
+     */
+    public function hasParameters() : bool {
+        return count($this->getParameters()) > 0;
+    }
+
     /**
      * Checks if all URI parameters have values or not.
      * 
@@ -317,16 +309,16 @@ class RequestUri extends Uri {
      */
     public function isAllParametersSet() : bool {
         $uriVars = $this->getParameters();
-        
+
         foreach ($uriVars as $param) {
             if ($param->getValue() === null && !$param->isOptional()) {
                 return false;
             }
         }
-        
+
         return true;
     }
-    
+
     /**
      * Checks if a request method is allowed or not.
      * 
@@ -341,16 +333,17 @@ class RequestUri extends Uri {
     public function isRequestMethodAllowed(?string $method = null) : bool {
         if ($method === null) {
             $method = getenv('REQUEST_METHOD');
+
             if (!in_array($method, RequestMethod::getAll())) {
                 return false;
             }
         }
         $normalizedMethod = strtoupper(trim($method));
         $methods = $this->getRequestMethods();
-        
+
         return count($methods) == 0 || in_array($normalizedMethod, $methods);
     }
-    
+
     /**
      * Sets the value of a URI parameter.
      * 
@@ -359,13 +352,14 @@ class RequestUri extends Uri {
      */
     public function setParameterValue(string $paramName, string $value) : bool {
         $param = $this->getParameter($paramName);
-        
+
         if ($param !== null) {
             return $param->setValue($value);
         }
+
         return false;
     }
-    
+
     /**
      * Sets the array of allowed request methods.
      * 
@@ -373,10 +367,21 @@ class RequestUri extends Uri {
      */
     public function setRequestMethods(array $methods) : RequestUri {
         $this->allowedMethods = [];
-        
+
         foreach ($methods as $method) {
             $this->addRequestMethod($method);
         }
+
         return $this;
+    }
+    private function verifyOrderOfParams() {
+        $currentOptional = false;
+
+        foreach ($this->getParameters() as $param) {
+            if ($currentOptional == true && !$param->isOptional()) {
+                throw new \Exception('Requred paramater cannot appear after optional');
+            }
+            $currentOptional = $param->isOptional() || $currentOptional;
+        }
     }
 }

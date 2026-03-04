@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  * 
@@ -21,5 +22,6 @@ class RequestParam {
         public readonly mixed $default = null,
         public readonly string $description = '',
         public readonly mixed $filter = null
-    ) {}
+    ) {
+    }
 }

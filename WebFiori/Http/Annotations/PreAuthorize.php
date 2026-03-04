@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  * 
@@ -16,5 +17,6 @@ use Attribute;
 class PreAuthorize {
     public function __construct(
         public readonly string $expression
-    ) {}
+    ) {
+    }
 }

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  * 
@@ -8,8 +9,6 @@
  * https://github.com/WebFiori/.github/blob/main/LICENSE
  * 
  */
-
-
 namespace WebFiori\Http;
 
 use InvalidArgumentException;
@@ -19,13 +18,13 @@ use InvalidArgumentException;
  *
  */
 class AuthHeader extends HttpHeader {
+    private $credentials;
     /**
      * The authentication scheme (e.g., "Bearer", "Basic").
      * 
      * @var string
      */
     private $scheme;
-    private $credentials;
     /**
      * The credentials or authorization parameters.
      * 
@@ -51,6 +50,14 @@ class AuthHeader extends HttpHeader {
         }
     }
     /**
+     * Returns credentials part of the authorization header.
+     * 
+     * @return string The returned string structure will depend on scheme type.
+     */
+    public function getCredentials() : string {
+        return $this->credentials;
+    }
+    /**
      * Returns the scheme type which is used in authorization.
      * 
      * Note thar returned value will always be in lower case.
@@ -59,13 +66,5 @@ class AuthHeader extends HttpHeader {
      */
     public function getScheme() : string {
         return $this->scheme;
-    }
-    /**
-     * Returns credentials part of the authorization header.
-     * 
-     * @return string The returned string structure will depend on scheme type.
-     */
-    public function getCredentials() : string {
-        return $this->credentials;
     }
 }

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  * 
@@ -16,7 +17,6 @@ namespace WebFiori\Http\Exceptions;
  * @author Ibrahim
  */
 class DuplicateMappingException extends \Exception {
-    
     public function __construct(string $message) {
         parent::__construct($message);
     }

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  * 
@@ -21,10 +22,6 @@ class ParamOption {
      */
     const DEFAULT = 'default';
     /**
-     * An option which is used to set the methods at which the parameter must exist.
-     */
-    const METHODS = 'methods';
-    /**
      * An option which is used to set a description for the parameter
      */
     const DESCRIPTION = 'description';
@@ -45,6 +42,10 @@ class ParamOption {
      * An option which is used to set minimum allowed length. Applicable to string types only.
      */
     const MAX_LENGTH = 'max-length';
+    /**
+     * An option which is used to set the methods at which the parameter must exist.
+     */
+    const METHODS = 'methods';
     /**
      * An option which is used to set minimum allowed value. Applicable to numerical
      * types only.

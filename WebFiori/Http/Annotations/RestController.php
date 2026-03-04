@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  * 
@@ -17,5 +18,6 @@ class RestController {
     public function __construct(
         public readonly string $name = '',
         public readonly string $description = ''
-    ) {}
+    ) {
+    }
 }

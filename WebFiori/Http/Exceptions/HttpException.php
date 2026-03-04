@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  * 
@@ -18,21 +19,21 @@ use Exception;
  * @author Ibrahim
  */
 abstract class HttpException extends Exception {
-    
-    protected int $statusCode;
     protected string $responseType;
-    
+
+    protected int $statusCode;
+
     public function __construct(string $message = '', int $statusCode = 500, string $responseType = 'error') {
         parent::__construct($message);
         $this->statusCode = $statusCode;
         $this->responseType = $responseType;
     }
-    
-    public function getStatusCode(): int {
-        return $this->statusCode;
-    }
-    
+
     public function getResponseType(): string {
         return $this->responseType;
+    }
+
+    public function getStatusCode(): int {
+        return $this->statusCode;
     }
 }

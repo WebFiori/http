@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  * 
@@ -31,7 +32,7 @@ class PathsObj implements JsonI {
      * @var array
      */
     private array $paths = [];
-    
+
     /**
      * Adds a path and its operations to the Paths Object.
      * 
@@ -45,9 +46,10 @@ class PathsObj implements JsonI {
      */
     public function addPath(string $path, PathItemObj $pathItem): PathsObj {
         $this->paths[$path] = $pathItem;
+
         return $this;
     }
-    
+
     /**
      * Returns all paths and their operations.
      * 
@@ -56,7 +58,7 @@ class PathsObj implements JsonI {
     public function getPaths(): array {
         return $this->paths;
     }
-    
+
     /**
      * Returns a Json object that represents the Paths Object.
      * 
@@ -66,10 +68,11 @@ class PathsObj implements JsonI {
      */
     public function toJSON(): Json {
         $json = new Json();
-        
+
         foreach ($this->paths as $path => $pathItem) {
             $json->add($path, $pathItem);
         }
+
         return $json;
     }
 }

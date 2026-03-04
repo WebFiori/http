@@ -3,19 +3,18 @@
 require_once '../../../vendor/autoload.php';
 require_once 'DemoUser.php';
 
-use WebFiori\Http\WebService;
-use WebFiori\Http\Annotations\RestController;
 use WebFiori\Http\Annotations\GetMapping;
-use WebFiori\Http\Annotations\ResponseBody;
 use WebFiori\Http\Annotations\RequiresAuth;
+use WebFiori\Http\Annotations\ResponseBody;
+use WebFiori\Http\Annotations\RestController;
 use WebFiori\Http\SecurityContext;
+use WebFiori\Http\WebService;
 
 /**
  * User profile service - requires authentication
  */
 #[RestController('user', 'User profile and information service')]
 class UserService extends WebService {
-    
     #[GetMapping]
     #[ResponseBody]
     #[RequiresAuth]
@@ -28,7 +27,7 @@ class UserService extends WebService {
             'access_time' => date('Y-m-d H:i:s')
         ];
     }
-    
+
     public function isAuthorized(): bool {
         $demoUser = new DemoUser(
             id: 1,
@@ -36,8 +35,9 @@ class UserService extends WebService {
             roles: ['USER', 'ADMIN'],
             authorities: ['USER_CREATE', 'USER_UPDATE', 'USER_DELETE', 'USER_READ', 'USER_MANAGE']
         );
-        
+
         SecurityContext::setCurrentUser($demoUser);
+
         return true;
     }
 }

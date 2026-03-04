@@ -2,32 +2,32 @@
 
 require_once '../../../vendor/autoload.php';
 
-use WebFiori\Http\WebService;
-use WebFiori\Http\Annotations\RestController;
-use WebFiori\Http\Annotations\PostMapping;
-use WebFiori\Http\Annotations\ResponseBody;
-use WebFiori\Http\Annotations\RequestParam;
 use WebFiori\Http\Annotations\AllowAnonymous;
+use WebFiori\Http\Annotations\PostMapping;
+use WebFiori\Http\Annotations\RequestParam;
+use WebFiori\Http\Annotations\ResponseBody;
+use WebFiori\Http\Annotations\RestController;
+use WebFiori\Http\WebService;
 
 /**
  * Service demonstrating file upload handling
  */
 #[RestController('upload', 'File upload handling service')]
 class UploadService extends WebService {
-    
-    private const UPLOAD_DIR = 'uploads/';
-    private const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
     private const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'text/plain', 'application/pdf'];
-    
+    private const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+
+    private const UPLOAD_DIR = 'uploads/';
+
     public function __construct() {
         parent::__construct();
-        
+
         // Ensure upload directory exists
         if (!is_dir(self::UPLOAD_DIR)) {
             mkdir(self::UPLOAD_DIR, 0755, true);
         }
     }
-    
+
     #[PostMapping]
     #[ResponseBody]
     #[AllowAnonymous]
@@ -44,39 +44,19 @@ class UploadService extends WebService {
             case 'with-metadata':
                 return $this->handleUploadWithMetadata($title, $category);
             default:
-                throw new \InvalidArgumentException('Unknown upload operation');
+                throw new InvalidArgumentException('Unknown upload operation');
         }
     }
-    
-    private function handleSingleUpload(?string $description): array {
-        if (!isset($_FILES['file'])) {
-            throw new \InvalidArgumentException('No file uploaded. Expected field: file');
-        }
-        
-        $file = $_FILES['file'];
-        
-        $result = $this->processFile($file);
-        
-        if (!$result['success']) {
-            throw new \InvalidArgumentException($result['error']);
-        }
-        
-        return [
-            'file_info' => $result['data'],
-            'description' => $description,
-            'uploaded_at' => date('Y-m-d H:i:s')
-        ];
-    }
-    
+
     private function handleMultipleUpload(): array {
         if (!isset($_FILES['files'])) {
-            throw new \InvalidArgumentException('No files uploaded. Expected field: files[]');
+            throw new InvalidArgumentException('No files uploaded. Expected field: files[]');
         }
-        
+
         $files = $_FILES['files'];
         $results = [];
         $errors = [];
-        
+
         for ($i = 0; $i < count($files['name']); $i++) {
             $file = [
                 'name' => $files['name'][$i],
@@ -85,9 +65,9 @@ class UploadService extends WebService {
                 'error' => $files['error'][$i],
                 'size' => $files['size'][$i]
             ];
-            
+
             $result = $this->processFile($file);
-            
+
             if ($result['success']) {
                 $results[] = $result['data'];
             } else {
@@ -97,7 +77,7 @@ class UploadService extends WebService {
                 ];
             }
         }
-        
+
         return [
             'uploaded_files' => $results,
             'errors' => $errors,
@@ -105,20 +85,40 @@ class UploadService extends WebService {
             'total_errors' => count($errors)
         ];
     }
-    
+
+    private function handleSingleUpload(?string $description): array {
+        if (!isset($_FILES['file'])) {
+            throw new InvalidArgumentException('No file uploaded. Expected field: file');
+        }
+
+        $file = $_FILES['file'];
+
+        $result = $this->processFile($file);
+
+        if (!$result['success']) {
+            throw new InvalidArgumentException($result['error']);
+        }
+
+        return [
+            'file_info' => $result['data'],
+            'description' => $description,
+            'uploaded_at' => date('Y-m-d H:i:s')
+        ];
+    }
+
     private function handleUploadWithMetadata(?string $title, ?string $category): array {
         if (!isset($_FILES['file'])) {
-            throw new \InvalidArgumentException('No file uploaded');
+            throw new InvalidArgumentException('No file uploaded');
         }
-        
+
         $file = $_FILES['file'];
-        
+
         $result = $this->processFile($file);
-        
+
         if (!$result['success']) {
-            throw new \InvalidArgumentException($result['error']);
+            throw new InvalidArgumentException($result['error']);
         }
-        
+
         return [
             'title' => $title ?: $file['name'],
             'category' => $category ?: 'general',
@@ -127,7 +127,7 @@ class UploadService extends WebService {
             'file_info' => $result['data']
         ];
     }
-    
+
     private function processFile(array $file): array {
         // Check for upload errors
         if ($file['error'] !== UPLOAD_ERR_OK) {
@@ -137,7 +137,7 @@ class UploadService extends WebService {
                 'details' => ['upload_error_code' => $file['error']]
             ];
         }
-        
+
         // Validate file size
         if ($file['size'] > self::MAX_FILE_SIZE) {
             return [
@@ -149,7 +149,7 @@ class UploadService extends WebService {
                 ]
             ];
         }
-        
+
         // Validate file type
         if (!in_array($file['type'], self::ALLOWED_TYPES)) {
             return [
@@ -161,13 +161,13 @@ class UploadService extends WebService {
                 ]
             ];
         }
-        
+
         // Generate unique filename
         $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
         $filename = pathinfo($file['name'], PATHINFO_FILENAME);
-        $uniqueFilename = $filename . '_' . date('Ymd_His') . '.' . $extension;
-        $uploadPath = self::UPLOAD_DIR . $uniqueFilename;
-        
+        $uniqueFilename = $filename.'_'.date('Ymd_His').'.'.$extension;
+        $uploadPath = self::UPLOAD_DIR.$uniqueFilename;
+
         // Move uploaded file
         if (move_uploaded_file($file['tmp_name'], $uploadPath)) {
             return [
@@ -178,7 +178,7 @@ class UploadService extends WebService {
                     'size' => $file['size'],
                     'type' => $file['type'],
                     'upload_path' => $uploadPath,
-                    'url' => '/' . $uploadPath
+                    'url' => '/'.$uploadPath
                 ]
             ];
         } else {

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  * 
@@ -102,7 +103,7 @@ class HeadersPool {
     public function getHeaderAsObj(string $name) : array {
         $retVal = [];
         $trimmed = str_replace('_', '-', strtolower(trim($name)));
-        
+
         foreach ($this->getHeaders() as $headerObj) {
             if ($headerObj->getName() == $trimmed) {
                 $retVal[] = $headerObj;
@@ -139,6 +140,7 @@ class HeadersPool {
     public function hasHeader(string $name, ?string $val) : bool {
         $headers = $this->getHeaderAsObj($name);
         $trimmedVal = trim($val.'');
+
         if ($val === null || strlen($trimmedVal) == 0) {
             return count($headers) !== 0;
         }

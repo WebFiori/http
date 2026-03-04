@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  * 
@@ -8,7 +9,6 @@
  * https://github.com/WebFiori/.github/blob/main/LICENSE
  * 
  */
-
 namespace WebFiori\Http\Annotations;
 
 use Attribute;
@@ -18,9 +18,9 @@ use Attribute;
  */
 #[Attribute(Attribute::TARGET_METHOD)]
 class MapEntity {
-    
     public function __construct(
         public string $entityClass,
         public array $setters = []
-    ) {}
+    ) {
+    }
 }

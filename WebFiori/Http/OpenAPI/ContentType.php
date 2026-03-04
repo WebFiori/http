@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  * 
@@ -20,7 +21,7 @@ use WebFiori\Json\Json;
 class ContentType {
     private string $mediaType;
     private Schema $schema;
-    
+
     /**
      * Creates a new content type.
      * 
@@ -31,7 +32,7 @@ class ContentType {
         $this->mediaType = $mediaType;
         $this->schema = $schema;
     }
-    
+
     /**
      * Gets the media type.
      * 
@@ -40,7 +41,7 @@ class ContentType {
     public function getMediaType(): string {
         return $this->mediaType;
     }
-    
+
     /**
      * Gets the schema.
      * 
@@ -49,7 +50,7 @@ class ContentType {
     public function getSchema(): Schema {
         return $this->schema;
     }
-    
+
     /**
      * Converts the content type to JSON representation.
      * 

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  * 
@@ -23,7 +24,7 @@ class Uri {
      * @var array
      */
     private $uriBroken;
-    
+
     /**
      * Creates new instance of the class.
      * 
@@ -36,57 +37,14 @@ class Uri {
             throw new InvalidArgumentException('URI must be non-empty string');
         } else {
             $this->uriBroken = self::splitURI($requestedUri);
-            
+
             if ($this->uriBroken === false) {
                 throw new InvalidArgumentException('Invalid URI: \''.$requestedUri.'\'');
             }
         }
     }
-    /**
-     * Returns the original requested URI.
-     * 
-     * @param boolean $incQueryStr If set to true, the query string part 
-     * will be included in the URL. Default is false.
-     * 
-     * @param boolean $incFragment If set to true, the fragment part 
-     * will be included in the URL. Default is false.
-     * 
-     * @return string The original requested URI.
-     * 
-     */
-    public function getUri(bool $incQueryStr = false, bool $incFragment = false) : string {
-        $retVal = $this->getScheme().':'.$this->getAuthority().$this->getPath();
-
-        if ($incQueryStr === true && $incFragment === true) {
-            $queryStr = $this->getQueryString();
-
-            if (strlen($queryStr) != 0) {
-                $retVal .= '?'.$queryStr;
-            }
-            $fragment = $this->getFragment();
-
-            if (strlen($fragment) != 0) {
-                $retVal .= '#'.$fragment;
-            }
-        } else {
-            if ($incQueryStr === true && $incFragment === false) {
-                $queryStr = $this->getQueryString();
-
-                if (strlen($queryStr) != 0) {
-                    $retVal .= '?'.$queryStr;
-                }
-            } else {
-                if ($incQueryStr === false && $incFragment === true) {
-                    $fragment = $this->getFragment();
-
-                    if (strlen($fragment) != 0) {
-                        $retVal .= '#'.$fragment;
-                    }
-                }
-            }
-        }
-
-        return $retVal;
+    public function equals(Uri $uri) : bool {
+        return $this->getUri(true, true) == $uri->getUri(true, true);
     }
     /**
      * Returns the authority part of the URI.
@@ -97,7 +55,7 @@ class Uri {
     public function getAuthority() : string {
         return $this->uriBroken['authority'];
     }
-    
+
     /**
      * Returns the base URL of the framework.
      * 
@@ -154,7 +112,7 @@ class Uri {
             return $protocol.$host.'/'.trim($xToAppend, '/');
         }
     }
-    
+
     /**
      * Returns an array that contains all URI parts.
      * 
@@ -177,7 +135,7 @@ class Uri {
     public function getComponents() : array {
         return $this->uriBroken;
     }
-    
+
     /**
      * Returns the fragment part of the URI.
      * 
@@ -187,7 +145,7 @@ class Uri {
     public function getFragment() : string {
         return $this->uriBroken['fragment'];
     }
-    
+
     /**
      * Returns the host name from the authority part of the URI.
      * 
@@ -195,6 +153,20 @@ class Uri {
      */
     public function getHost() : string {
         return $this->uriBroken['host'];
+    }
+    /**
+     * Returns the path part of the URI.
+     * 
+     * @return string A string such as '/path1/path2/path3'.
+     */
+    public function getPath() : string {
+        $path = $this->uriBroken['path'];
+
+        if (count($path) == 0) {
+            return '/';
+        }
+
+        return '/'.implode('/', $path);
     }
     /**
      * Returns an array which contains the names of URI directories.
@@ -207,21 +179,7 @@ class Uri {
     public function getPathArray() : array {
         return $this->uriBroken['path'];
     }
-    /**
-     * Returns the path part of the URI.
-     * 
-     * @return string A string such as '/path1/path2/path3'.
-     */
-    public function getPath() : string {
-        $path = $this->uriBroken['path'];
-        
-        if (count($path) == 0) {
-            return '/';
-        }
-        
-        return '/'.implode('/', $path);
-    }
-    
+
     /**
      * Returns the port number of the authority part of the URI.
      * 
@@ -231,7 +189,7 @@ class Uri {
     public function getPort() : string {
         return $this->uriBroken['port'];
     }
-    
+
     /**
      * Returns the query string that was appended to the URI.
      * 
@@ -241,7 +199,7 @@ class Uri {
     public function getQueryString() : string {
         return $this->uriBroken['query-string'];
     }
-    
+
     /**
      * Returns an associative array which contains query string parameters.
      * 
@@ -252,7 +210,7 @@ class Uri {
     public function getQueryStringVars() : array {
         return $this->uriBroken['query-string-vars'];
     }
-    
+
     /**
      * Returns the scheme part of the URI.
      * 
@@ -262,46 +220,51 @@ class Uri {
     public function getScheme() : string {
         return $this->uriBroken['scheme'];
     }
-    
     /**
-     * Splits a string based on character mask.
+     * Returns the original requested URI.
      * 
-     * @param string $split The string to split.
+     * @param boolean $incQueryStr If set to true, the query string part 
+     * will be included in the URL. Default is false.
      * 
-     * @param string $char The character that the split is based on.
+     * @param boolean $incFragment If set to true, the fragment part 
+     * will be included in the URL. Default is false.
      * 
-     * @param string $encoded The character when encoded in URI.
+     * @return string The original requested URI.
      * 
-     * @return array
      */
-    private static function _queryOrFragment(string $split, string $char, string $encoded) : array {
-        $split2 = explode($char, $split);
-        $spCount = count($split2);
+    public function getUri(bool $incQueryStr = false, bool $incFragment = false) : string {
+        $retVal = $this->getScheme().':'.$this->getAuthority().$this->getPath();
 
-        if ($spCount > 2) {
-            $temp = [];
+        if ($incQueryStr === true && $incFragment === true) {
+            $queryStr = $this->getQueryString();
 
-            for ($x = 0 ; $x < $spCount - 1 ; $x++) {
-                $temp[] = $split2[$x];
+            if (strlen($queryStr) != 0) {
+                $retVal .= '?'.$queryStr;
             }
-            $lastStr = $split2[$spCount - 1];
+            $fragment = $this->getFragment();
 
-            if (strlen($lastStr) == 0) {
-                $split2 = [
-                    implode($encoded, $temp).$encoded
-                ];
+            if (strlen($fragment) != 0) {
+                $retVal .= '#'.$fragment;
+            }
+        } else {
+            if ($incQueryStr === true && $incFragment === false) {
+                $queryStr = $this->getQueryString();
+
+                if (strlen($queryStr) != 0) {
+                    $retVal .= '?'.$queryStr;
+                }
             } else {
-                $split2 = [
-                    implode($encoded, $temp),
-                    $split2[$spCount - 1]
-                ];
+                if ($incQueryStr === false && $incFragment === true) {
+                    $fragment = $this->getFragment();
+
+                    if (strlen($fragment) != 0) {
+                        $retVal .= '#'.$fragment;
+                    }
+                }
             }
         }
 
-        return $split2;
-    }
-    public function equals(Uri $uri) : bool {
-        return $this->getUri(true, true) == $uri->getUri(true, true);
+        return $retVal;
     }
     /**
      * Splits a URI into its basic components.
@@ -386,5 +349,43 @@ class Uri {
         }
 
         return $retVal;
+    }
+
+    /**
+     * Splits a string based on character mask.
+     * 
+     * @param string $split The string to split.
+     * 
+     * @param string $char The character that the split is based on.
+     * 
+     * @param string $encoded The character when encoded in URI.
+     * 
+     * @return array
+     */
+    private static function _queryOrFragment(string $split, string $char, string $encoded) : array {
+        $split2 = explode($char, $split);
+        $spCount = count($split2);
+
+        if ($spCount > 2) {
+            $temp = [];
+
+            for ($x = 0 ; $x < $spCount - 1 ; $x++) {
+                $temp[] = $split2[$x];
+            }
+            $lastStr = $split2[$spCount - 1];
+
+            if (strlen($lastStr) == 0) {
+                $split2 = [
+                    implode($encoded, $temp).$encoded
+                ];
+            } else {
+                $split2 = [
+                    implode($encoded, $temp),
+                    $split2[$spCount - 1]
+                ];
+            }
+        }
+
+        return $split2;
     }
 }

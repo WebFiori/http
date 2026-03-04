@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  * 
@@ -31,25 +32,26 @@ class OperationObj implements JsonI {
      * @var ResponsesObj
      */
     private ResponsesObj $responses;
-    
+
     public function __construct(ResponsesObj $responses) {
         $this->responses = $responses;
     }
-    
-    public function setResponses(ResponsesObj $responses): OperationObj {
-        $this->responses = $responses;
-        return $this;
-    }
-    
+
     public function getResponses(): ResponsesObj {
         return $this->responses;
     }
-    
+
+    public function setResponses(ResponsesObj $responses): OperationObj {
+        $this->responses = $responses;
+
+        return $this;
+    }
+
     public function toJSON(): Json {
         $json = new Json([
             'responses' => $this->getResponses()
         ]);
-        
+
         return $json;
     }
 }

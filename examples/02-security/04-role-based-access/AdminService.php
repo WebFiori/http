@@ -3,19 +3,18 @@
 require_once '../../../vendor/autoload.php';
 require_once 'DemoUser.php';
 
-use WebFiori\Http\WebService;
-use WebFiori\Http\Annotations\RestController;
 use WebFiori\Http\Annotations\GetMapping;
-use WebFiori\Http\Annotations\ResponseBody;
 use WebFiori\Http\Annotations\PreAuthorize;
+use WebFiori\Http\Annotations\ResponseBody;
+use WebFiori\Http\Annotations\RestController;
 use WebFiori\Http\SecurityContext;
+use WebFiori\Http\WebService;
 
 /**
  * Admin panel service - requires ADMIN role
  */
 #[RestController('admin', 'Administrative panel service')]
 class AdminService extends WebService {
-    
     #[GetMapping]
     #[ResponseBody]
     #[PreAuthorize("hasRole('ADMIN')")]
@@ -35,7 +34,7 @@ class AdminService extends WebService {
             ]
         ];
     }
-    
+
     public function isAuthorized(): bool {
         $demoUser = new DemoUser(
             id: 1,
@@ -43,8 +42,9 @@ class AdminService extends WebService {
             roles: ['USER', 'ADMIN'],
             authorities: ['USER_CREATE', 'USER_UPDATE', 'USER_DELETE', 'USER_READ', 'USER_MANAGE']
         );
-        
+
         SecurityContext::setCurrentUser($demoUser);
+
         return true;
     }
 }

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  * 
@@ -30,7 +31,7 @@ class RequestParameter implements JsonI {
      * @var array
      */
     public const RESERVED_NAMES = ['action', 'service', 'service-name'];
-    
+
 
     /** A boolean value that is set to true in case the 
      * basic filter will be applied before custom one.
@@ -89,6 +90,13 @@ class RequestParameter implements JsonI {
      */
     private $maxVal;
     /**
+     * An array of request methods at which the parameter must exist.
+     * 
+     * @var array
+     * 
+     */
+    private $methods;
+    /**
      * The minimum length. Used if the parameter type is string.
      * 
      * @var double|null
@@ -116,13 +124,6 @@ class RequestParameter implements JsonI {
      * 
      */
     private $type;
-    /**
-     * An array of request methods at which the parameter must exist.
-     * 
-     * @var array
-     * 
-     */
-    private $methods;
     /**
      * Creates new instance of the class.
      * 
@@ -206,6 +207,38 @@ class RequestParameter implements JsonI {
         $maxLength = $this->getMaxLength() === null ? 'null' : $this->getMaxLength();
 
         return $retVal."    Maximum Length => '$maxLength'\n]\n";
+    }
+
+    /**
+     * Adds a request method to the parameter.
+     * 
+     * @param string $requestMethod The request method name (e.g., 'GET', 'POST').
+     * 
+     * @return RequestParameter Returns self for method chaining.
+     */
+    public function addMethod(string $requestMethod): RequestParameter {
+        $method = strtoupper(trim($requestMethod));
+
+        if (!in_array($method, $this->methods) && in_array($method, RequestMethod::getAll())) {
+            $this->methods[] = $method;
+        }
+
+        return $this;
+    }
+
+    /**
+     * Adds multiple request methods to the parameter.
+     * 
+     * @param array $arr An array of request method names.
+     * 
+     * @return RequestParameter Returns self for method chaining.
+     */
+    public function addMethods(array $arr): RequestParameter {
+        foreach ($arr as $method) {
+            $this->addMethod($method);
+        }
+
+        return $this;
     }
     /**
      * Creates an object of the class given an associative array of options.
@@ -311,6 +344,14 @@ class RequestParameter implements JsonI {
      */
     public function getMaxValue() {
         return $this->maxVal;
+    }
+    /**
+     * Returns an array of request methods at which the parameter must exist.
+     * 
+     * @return array An array of request method names (e.g., ['GET', 'POST']).
+     */
+    public function getMethods(): array {
+        return $this->methods;
     }
     /**
      * Returns the minimum length the parameter can accept.
@@ -646,9 +687,10 @@ class RequestParameter implements JsonI {
 
         if (WebService::isValidName($nameTrimmed)) {
             $this->name = $nameTrimmed;
+
             // Check for reserved parameter names
             if (in_array(strtolower($nameTrimmed), self::RESERVED_NAMES)) {
-                throw new \InvalidArgumentException("Parameter name '$nameTrimmed' is reserved and cannot be used. Reserved names: " . implode(', ', self::RESERVED_NAMES));
+                throw new \InvalidArgumentException("Parameter name '$nameTrimmed' is reserved and cannot be used. Reserved names: ".implode(', ', self::RESERVED_NAMES));
             }
 
 
@@ -705,29 +747,27 @@ class RequestParameter implements JsonI {
     public function toJSON() : Json {
         $json = new Json();
         $json->add('name', $this->getName());
-        
+
         $methods = $this->getMethods();
+
         // Default to 'query' for GET/DELETE, 'body' for others
         if (count($methods) === 0 || in_array(RequestMethod::GET, $methods) || in_array(RequestMethod::DELETE, $methods)) {
             $json->add('in', 'query');
         } else {
             $json->add('in', 'body');
         }
-        
+
         $json->add('required', !$this->isOptional());
-        
+
         if ($this->getDescription() !== null) {
             $json->add('description', $this->getDescription());
         }
-        
+
         $json->add('schema', $this->getSchema());
-        
+
         return $json;
     }
-    private function getSchema() : Json {
-        return Schema::fromRequestParameter($this)->toJson();
-    }
-    
+
     /**
      * 
      * @param RequestParameter $param
@@ -763,6 +803,7 @@ class RequestParameter implements JsonI {
 
         if (isset($options[ParamOption::METHODS])) {
             $type = gettype($options[ParamOption::METHODS]);
+
             if ($type == 'string') {
                 $param->addMethod($options[ParamOption::METHODS]);
             } else if ($type == 'array') {
@@ -778,41 +819,7 @@ class RequestParameter implements JsonI {
             $param->setDescription($options[ParamOption::DESCRIPTION]);
         }
     }
-    /**
-     * Returns an array of request methods at which the parameter must exist.
-     * 
-     * @return array An array of request method names (e.g., ['GET', 'POST']).
-     */
-    public function getMethods(): array {
-        return $this->methods;
-    }
-    
-    /**
-     * Adds a request method to the parameter.
-     * 
-     * @param string $requestMethod The request method name (e.g., 'GET', 'POST').
-     * 
-     * @return RequestParameter Returns self for method chaining.
-     */
-    public function addMethod(string $requestMethod): RequestParameter {
-        $method = strtoupper(trim($requestMethod));
-        if (!in_array($method, $this->methods) && in_array($method, RequestMethod::getAll())) {
-            $this->methods[] = $method;
-        }
-        return $this;
-    }
-    
-    /**
-     * Adds multiple request methods to the parameter.
-     * 
-     * @param array $arr An array of request method names.
-     * 
-     * @return RequestParameter Returns self for method chaining.
-     */
-    public function addMethods(array $arr): RequestParameter {
-        foreach ($arr as $method) {
-            $this->addMethod($method);
-        }
-        return $this;
+    private function getSchema() : Json {
+        return Schema::fromRequestParameter($this)->toJson();
     }
 }

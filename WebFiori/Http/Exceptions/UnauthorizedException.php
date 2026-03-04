@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  * 
@@ -16,7 +17,6 @@ namespace WebFiori\Http\Exceptions;
  * @author Ibrahim
  */
 class UnauthorizedException extends HttpException {
-    
     public function __construct(string $message = 'Unauthorized') {
         parent::__construct($message, 401, 'error');
     }

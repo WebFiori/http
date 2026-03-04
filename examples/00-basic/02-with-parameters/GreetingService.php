@@ -2,19 +2,18 @@
 
 require_once '../../../vendor/autoload.php';
 
-use WebFiori\Http\WebService;
-use WebFiori\Http\Annotations\RestController;
-use WebFiori\Http\Annotations\GetMapping;
-use WebFiori\Http\Annotations\ResponseBody;
-use WebFiori\Http\Annotations\RequestParam;
 use WebFiori\Http\Annotations\AllowAnonymous;
+use WebFiori\Http\Annotations\GetMapping;
+use WebFiori\Http\Annotations\RequestParam;
+use WebFiori\Http\Annotations\ResponseBody;
+use WebFiori\Http\Annotations\RestController;
+use WebFiori\Http\WebService;
 
 /**
  * A service that accepts a name parameter and returns a personalized greeting
  */
 #[RestController('greeting', 'A greeting service with name parameter')]
 class GreetingService extends WebService {
-    
     #[GetMapping]
     #[ResponseBody]
     #[AllowAnonymous]

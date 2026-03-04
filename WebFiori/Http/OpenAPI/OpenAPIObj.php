@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  * 
@@ -24,6 +25,16 @@ use WebFiori\Json\JsonI;
  */
 class OpenAPIObj implements JsonI {
     /**
+     * Provides metadata about the API.
+     * 
+     * The metadata MAY be used by tooling as required.
+     * 
+     * REQUIRED.
+     * 
+     * @var InfoObj
+     */
+    private InfoObj $info;
+    /**
      * The version number of the OpenAPI Specification that the OpenAPI Document uses.
      * 
      * The openapi field SHOULD be used by tooling to interpret the OpenAPI Document.
@@ -34,25 +45,14 @@ class OpenAPIObj implements JsonI {
      * @var string
      */
     private string $openapi;
-    
-    /**
-     * Provides metadata about the API.
-     * 
-     * The metadata MAY be used by tooling as required.
-     * 
-     * REQUIRED.
-     * 
-     * @var InfoObj
-     */
-    private InfoObj $info;
-    
+
     /**
      * The available paths and operations for the API.
      * 
      * @var PathsObj|null
      */
     private ?PathsObj $paths = null;
-    
+
     /**
      * Creates a new OpenAPI Object instance.
      * 
@@ -65,7 +65,47 @@ class OpenAPIObj implements JsonI {
         $this->info = $info;
         $this->openapi = $openapi;
     }
-    
+
+    /**
+     * Returns the Info Object containing API metadata.
+     * 
+     * @return InfoObj The Info Object.
+     */
+    public function getInfo(): InfoObj {
+        return $this->info;
+    }
+
+    /**
+     * Returns the OpenAPI Specification version number.
+     * 
+     * @return string The OpenAPI Specification version.
+     */
+    public function getOpenapi(): string {
+        return $this->openapi;
+    }
+
+    /**
+     * Returns the Paths Object containing API paths and operations.
+     * 
+     * @return PathsObj|null The Paths Object or null if not set.
+     */
+    public function getPaths(): ?PathsObj {
+        return $this->paths;
+    }
+
+    /**
+     * Sets the Info Object containing API metadata.
+     * 
+     * @param InfoObj $info The Info Object with API metadata.
+     * 
+     * @return OpenAPIObj Returns self for method chaining.
+     */
+    public function setInfo(InfoObj $info): OpenAPIObj {
+        $this->info = $info;
+
+        return $this;
+    }
+
     /**
      * Sets the OpenAPI Specification version number.
      * 
@@ -78,39 +118,10 @@ class OpenAPIObj implements JsonI {
      */
     public function setOpenapi(string $openapi): OpenAPIObj {
         $this->openapi = $openapi;
+
         return $this;
     }
-    
-    /**
-     * Returns the OpenAPI Specification version number.
-     * 
-     * @return string The OpenAPI Specification version.
-     */
-    public function getOpenapi(): string {
-        return $this->openapi;
-    }
-    
-    /**
-     * Sets the Info Object containing API metadata.
-     * 
-     * @param InfoObj $info The Info Object with API metadata.
-     * 
-     * @return OpenAPIObj Returns self for method chaining.
-     */
-    public function setInfo(InfoObj $info): OpenAPIObj {
-        $this->info = $info;
-        return $this;
-    }
-    
-    /**
-     * Returns the Info Object containing API metadata.
-     * 
-     * @return InfoObj The Info Object.
-     */
-    public function getInfo(): InfoObj {
-        return $this->info;
-    }
-    
+
     /**
      * Sets the Paths Object containing API paths and operations.
      * 
@@ -120,18 +131,10 @@ class OpenAPIObj implements JsonI {
      */
     public function setPaths(PathsObj $paths): OpenAPIObj {
         $this->paths = $paths;
+
         return $this;
     }
-    
-    /**
-     * Returns the Paths Object containing API paths and operations.
-     * 
-     * @return PathsObj|null The Paths Object or null if not set.
-     */
-    public function getPaths(): ?PathsObj {
-        return $this->paths;
-    }
-    
+
     /**
      * Returns a Json object that represents the OpenAPI Object.
      * 
@@ -145,11 +148,11 @@ class OpenAPIObj implements JsonI {
             'openapi' => $this->getOpenapi(),
             'info' => $this->getInfo()
         ]);
-        
+
         if ($this->getPaths() !== null) {
             $json->add('paths', $this->getPaths());
         }
-        
+
         return $json;
     }
 }

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  * 
@@ -31,14 +32,14 @@ class ComponentsObj implements JsonI {
      * @var array
      */
     private array $schemas = [];
-    
+
     /**
      * An object to hold reusable Security Scheme Objects.
      * 
      * @var array
      */
     private array $securitySchemes = [];
-    
+
     /**
      * Adds a reusable Schema Object to the components.
      * 
@@ -51,9 +52,10 @@ class ComponentsObj implements JsonI {
      */
     public function addSchema(string $name, $schema): ComponentsObj {
         $this->schemas[$name] = $schema;
+
         return $this;
     }
-    
+
     /**
      * Adds a reusable Security Scheme Object to the components.
      * 
@@ -66,9 +68,10 @@ class ComponentsObj implements JsonI {
      */
     public function addSecurityScheme(string $name, SecuritySchemeObj $scheme): ComponentsObj {
         $this->securitySchemes[$name] = $scheme;
+
         return $this;
     }
-    
+
     /**
      * Returns all schemas.
      * 
@@ -77,7 +80,7 @@ class ComponentsObj implements JsonI {
     public function getSchemas(): array {
         return $this->schemas;
     }
-    
+
     /**
      * Returns all security schemes.
      * 
@@ -86,7 +89,7 @@ class ComponentsObj implements JsonI {
     public function getSecuritySchemes(): array {
         return $this->securitySchemes;
     }
-    
+
     /**
      * Returns a Json object that represents the Components Object.
      * 
@@ -96,15 +99,15 @@ class ComponentsObj implements JsonI {
      */
     public function toJSON(): Json {
         $json = new Json();
-        
+
         if (!empty($this->schemas)) {
             $json->add('schemas', $this->schemas);
         }
-        
+
         if (!empty($this->securitySchemes)) {
             $json->add('securitySchemes', $this->securitySchemes);
         }
-        
+
         return $json;
     }
 }

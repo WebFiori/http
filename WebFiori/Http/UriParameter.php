@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is licensed under MIT License.
  * 
@@ -17,6 +18,7 @@ use InvalidArgumentException;
  * @author Ibrahim
  */
 class UriParameter {
+    private $allowedValues;
     /**
      * A boolean value that indicates if the parameter is optional or not.
      * 
@@ -30,7 +32,6 @@ class UriParameter {
      * @var string
      */
     private $value;
-    private $allowedValues;
     /**
      * Creates new instance of the class.
      * 
@@ -59,18 +60,21 @@ class UriParameter {
         $this->name = trim($trimmed, '?');
         $this->allowedValues = [];
     }
-    public function addAllowedValues(array $vals)  : UriParameter  {
-        foreach ($vals as $val) {
-            $this->addAllowedValue($val);
-        }
-        return $this;
-    }
     public function addAllowedValue(string $val) : UriParameter {
         $this->allowedValues[] = trim($val);
         $currentVal = $this->getValue();
+
         if ($currentVal !== null && !in_array($currentVal, $this->allowedValues)) {
             $this->value = null;
         }
+
+        return $this;
+    }
+    public function addAllowedValues(array $vals)  : UriParameter {
+        foreach ($vals as $val) {
+            $this->addAllowedValue($val);
+        }
+
         return $this;
     }
     public function getAllowedValues() : array {
@@ -112,13 +116,17 @@ class UriParameter {
     public function setValue(string $val) : bool {
         $allowed = $this->getAllowedValues();
         $trimmed = trim($val);
+
         if (count($allowed) > 0 && !in_array($trimmed, $allowed)) {
             return false;
         }
+
         if ($trimmed != '') {
             $this->value = $trimmed;
+
             return true;
         }
+
         return false;
     }
 }
