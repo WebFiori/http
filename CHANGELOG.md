@@ -1,5 +1,19 @@
 # Changelog
 
+## [5.0.5](https://github.com/WebFiori/http/compare/v5.0.4...v5.0.5) (2026-03-05)
+
+
+### Bug Fixes
+
+* Deprecation Warning ([a37745f](https://github.com/WebFiori/http/commit/a37745f62e1bec3109542224832b8ea19db5dbc8))
+
+
+### Miscellaneous Chores
+
+* Added PHP CS Fixer ([6de946b](https://github.com/WebFiori/http/commit/6de946bff25ef2b518769f7f61a6f39ba9ce4dd0))
+* Merge pull request [#94](https://github.com/WebFiori/http/issues/94) from WebFiori/dev ([9164496](https://github.com/WebFiori/http/commit/916449626e655e196a4a4161ffa260c3a1df986c))
+* Run CS Fixer ([d2d015b](https://github.com/WebFiori/http/commit/d2d015b4a89191245d1f63f38c55d23429d53a65))
+
 ## [5.0.4](https://github.com/WebFiori/http/compare/v5.0.3...v5.0.4) (2026-01-14)
 
 
