@@ -1331,12 +1331,24 @@ return $pathItem;
         }
 
         $responseBody = $responseBodyAttrs[0]->newInstance();
+        $contentType = $responseBody->contentType;
 
         // Handle custom content types
-        if ($responseBody->contentType !== 'application/json') {
+        if ($contentType !== 'application/json') {
             // For non-JSON content types, send raw result
-            $content = is_string($result) ? $result : (is_array($result) || is_object($result) ? json_encode($result) : (string)$result);
-            $this->send($responseBody->contentType, $content, $responseBody->status);
+            if (is_array($result)) {
+                $content = new Json();
+                $content->addArray('data', $result);
+                $contentType = 'application/json';
+            } else if (is_object($result)) {
+                $content = new Json();
+                $content->addObject('data', $result);
+                $contentType = 'application/json';
+            } else {
+                $content = (string)$result;
+            }
+
+            $this->send($contentType, $content, $responseBody->status);
 
             return;
         }
@@ -1345,12 +1357,20 @@ return $pathItem;
         if ($result === null) {
             // Null return = empty response with configured status
             $this->sendResponse('', $responseBody->status, $responseBody->type);
-        } elseif (is_array($result) || is_object($result)) {
+        } else if (is_array($result) || is_object($result)) {
             // Array/object = JSON response
-            $this->sendResponse('Success', $responseBody->status, $responseBody->type, $result);
+            if ($result instanceof Json) {
+                $json = $result;
+            } else if ($result instanceof JsonI) {
+                $json = $result->toJSON();
+            } else {
+                $json = new Json();
+                $json->add('data', $result);
+            }
+            $this->send($responseBody->contentType, $json, $responseBody->status);
         } else {
             // String/scalar = plain response
-            $this->sendResponse($result, $responseBody->status, $responseBody->type);
+            $this->send($responseBody->contentType, $result, $responseBody->status);
         }
     }
 }

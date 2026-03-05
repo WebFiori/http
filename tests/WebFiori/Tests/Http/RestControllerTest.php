@@ -55,17 +55,9 @@ class RestControllerTest extends APITestCase {
                 . '    "http-code":405'.self::NL
                 . '}', $this->postRequest($manager, 'annotated-service'));
 
-        $this->assertEquals('{'.self::NL
-                . '    "message":"Hi user!",'.self::NL
-                . '    "type":"success",'.self::NL
-                . '    "http-code":200'.self::NL
-                . '}', $this->getRequest($manager, 'annotated-service'));
+        $this->assertEquals('Hi user!', $this->getRequest($manager, 'annotated-service'));
 
-        $this->assertEquals('{'.self::NL
-                . '    "message":"Hi Ibrahim!",'.self::NL
-                . '    "type":"success",'.self::NL
-                . '    "http-code":200'.self::NL
-                . '}', $this->getRequest($manager, 'annotated-service', [
+        $this->assertEquals('Hi Ibrahim!', $this->getRequest($manager, 'annotated-service', [
                     'name' => 'Ibrahim'
                 ]));
     }
@@ -90,17 +82,9 @@ class RestControllerTest extends APITestCase {
         $this->assertNotNull($retrievedService);
         $this->assertEquals('A service configured via annotations', $retrievedService->getDescription());
 
-        $this->assertEquals('{'.self::NL
-                . '    "message":"Hi user!",'.self::NL
-                . '    "type":"success",'.self::NL
-                . '    "http-code":200'.self::NL
-                . '}', $this->getRequest($manager, 'annotated-service'));
+        $this->assertEquals('Hi user!', $this->getRequest($manager, 'annotated-service'));
 
-        $this->assertEquals('{'.self::NL
-                . '    "message":"Hi Ibrahim!",'.self::NL
-                . '    "type":"success",'.self::NL
-                . '    "http-code":200'.self::NL
-                . '}', $this->getRequest($manager, 'annotated-service', [
+        $this->assertEquals('Hi Ibrahim!', $this->getRequest($manager, 'annotated-service', [
                     'name' => 'Ibrahim'
                 ]));
     }
@@ -152,11 +136,7 @@ class RestControllerTest extends APITestCase {
                     'id' => 1
                 ], [], new TestUser(1, ['ADMIN'], ['USER_DELETE'], false)));
         //valid user
-        $this->assertEquals('{'.self::NL
-                . '    "message":"Delete user with ID: 1",'.self::NL
-                . '    "type":"success",'.self::NL
-                . '    "http-code":200'.self::NL
-                . '}', $this->deleteRequest($manager, 'annotated-service', [
+        $this->assertEquals('Delete user with ID: 1', $this->deleteRequest($manager, 'annotated-service', [
                     'id' => 1
                 ], [], new TestUser(1, ['ADMIN'], ['USER_DELETE'], true)));
     }
