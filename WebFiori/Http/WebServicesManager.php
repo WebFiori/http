@@ -137,7 +137,18 @@ class WebServicesManager implements JsonI {
         $this->invParamsArr = [];
         $this->missingParamsArr = [];
         $this->request = $request ?? Request::createFromGlobals();
-        $this->response = new Response();
+
+        if (class_exists('\WebFiori\Framework\App', false)) {
+            $resp = \WebFiori\Framework\App::getResponse();
+
+            if ($resp !== null) {
+                $this->response = $resp;
+            } else {
+                $this->response = new Response();
+            }
+        } else {
+            $this->response = new Response();
+        }
     }
     /**
      * Adds new web service to the set of web services.
@@ -696,6 +707,10 @@ class WebServicesManager implements JsonI {
             $this->response->setCode($code);
             $this->response->send();
         }
+    }
+    
+    public function setResponse(Response $response) {
+        $this->response = $response;
     }
     /**
      * Sends a response message to indicate that web service is not implemented.
