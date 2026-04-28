@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.0.6](https://github.com/WebFiori/http/compare/v5.0.5...v5.0.6) (2026-04-28)
+
+
+### Bug Fixes
+
+* Response Object Usage ([34ce8e8](https://github.com/WebFiori/http/commit/34ce8e8d472c19d516cd17bb395d60617141bca8)), closes [#97](https://github.com/WebFiori/http/issues/97)
+
 ## [5.0.5](https://github.com/WebFiori/http/compare/v5.0.4...v5.0.5) (2026-03-05)
 
 
