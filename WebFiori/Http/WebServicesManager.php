@@ -522,7 +522,11 @@ class WebServicesManager implements JsonI {
                     $this->configureServiceParameters($actionObj);
                 }
 
-                $params = $actionObj->getParameters();
+                // Resolve #[RequestParam] annotations for the current HTTP method.
+                // This ensures annotated parameters are registered before filtering,
+                // even for services using the traditional processRequest() pattern.
+                $actionObj->getParameterByName('', $this->getRequest()->getRequestMethod());
+
                 $params = $actionObj->getParameters();
                 $this->filter->clearParametersDef();
                 $this->filter->clearInputs();
