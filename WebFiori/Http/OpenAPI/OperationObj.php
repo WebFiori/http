@@ -33,6 +33,20 @@ class OperationObj implements JsonI {
      */
     private ResponsesObj $responses;
 
+    /**
+     * A list of parameters that are applicable for this operation.
+     * 
+     * @var ParameterObj[]
+     */
+    private array $parameters = [];
+
+    /**
+     * The request body applicable for this operation.
+     * 
+     * @var Json|null
+     */
+    private ?Json $requestBody = null;
+
     public function __construct(ResponsesObj $responses) {
         $this->responses = $responses;
     }
@@ -47,10 +61,62 @@ class OperationObj implements JsonI {
         return $this;
     }
 
+    /**
+     * Adds a parameter to this operation.
+     * 
+     * @param ParameterObj $param The parameter to add.
+     * 
+     * @return OperationObj Returns self for method chaining.
+     */
+    public function addParameter(ParameterObj $param): OperationObj {
+        $this->parameters[] = $param;
+
+        return $this;
+    }
+
+    /**
+     * Returns the parameters for this operation.
+     * 
+     * @return ParameterObj[]
+     */
+    public function getParameters(): array {
+        return $this->parameters;
+    }
+
+    /**
+     * Sets the request body for this operation.
+     * 
+     * @param Json $requestBody The request body object.
+     * 
+     * @return OperationObj Returns self for method chaining.
+     */
+    public function setRequestBody(Json $requestBody): OperationObj {
+        $this->requestBody = $requestBody;
+
+        return $this;
+    }
+
+    /**
+     * Returns the request body.
+     * 
+     * @return Json|null
+     */
+    public function getRequestBody(): ?Json {
+        return $this->requestBody;
+    }
+
     public function toJSON(): Json {
-        $json = new Json([
-            'responses' => $this->getResponses()
-        ]);
+        $json = new Json();
+
+        if (!empty($this->parameters)) {
+            $json->add('parameters', $this->parameters);
+        }
+
+        if ($this->requestBody !== null) {
+            $json->add('requestBody', $this->requestBody);
+        }
+
+        $json->add('responses', $this->getResponses());
 
         return $json;
     }
