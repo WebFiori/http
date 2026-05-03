@@ -1,5 +1,22 @@
 # Changelog
 
+## [5.0.7](https://github.com/WebFiori/http/compare/v5.0.6...v5.0.7) (2026-05-03)
+
+
+### Features
+
+* OpenAPI Support for Annotations ([5b99eb5](https://github.com/WebFiori/http/commit/5b99eb593c8b2df765a76572189cc24eb8d9af90))
+
+
+### Bug Fixes
+
+* Annotations on `processRequest` ([23ac100](https://github.com/WebFiori/http/commit/23ac1004b852f96a3444607d0be38149b451d5fd))
+
+
+### Miscellaneous Chores
+
+* Version Update ([442f336](https://github.com/WebFiori/http/commit/442f336dbc3a973b2d63e161a94f1d63bb99f775))
+
 ## [5.0.6](https://github.com/WebFiori/http/compare/v5.0.5...v5.0.6) (2026-04-28)
 
 
