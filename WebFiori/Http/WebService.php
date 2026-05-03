@@ -1003,6 +1003,7 @@ class WebService implements JsonI {
      */
     public function toPathItemObj(): OpenAPI\PathItemObj {
         $pathItem = new OpenAPI\PathItemObj();
+        $annotatedParams = $this->getAnnotatedRequestParams();
 
         foreach ($this->getRequestMethods() as $method) {
             $responses = $this->getResponsesForMethod($method);
@@ -1013,6 +1014,27 @@ class WebService implements JsonI {
             }
 
             $operation = new OpenAPI\OperationObj($responses);
+            $methodParams = $annotatedParams[$method] ?? [];
+
+            if (!empty($methodParams)) {
+                $isBodyMethod = in_array($method, [
+                    RequestMethod::POST,
+                    RequestMethod::PUT,
+                    RequestMethod::PATCH
+                ]);
+
+                if ($isBodyMethod) {
+                    $operation->setRequestBody(
+                        self::buildRequestBody($methodParams)
+                    );
+                } else {
+                    foreach ($methodParams as $param) {
+                        $operation->addParameter(
+                            self::buildQueryParameter($param)
+                        );
+                    }
+                }
+            }
 
             switch ($method) {
                 case RequestMethod::GET:
@@ -1033,7 +1055,112 @@ class WebService implements JsonI {
             }
         }
 
-return $pathItem;
+        return $pathItem;
+    }
+
+    /**
+     * Reads #[RequestParam] annotations from methods and groups them by HTTP method.
+     *
+     * @return array<string, Annotations\RequestParam[]> Map of HTTP method to RequestParam annotations.
+     */
+    private function getAnnotatedRequestParams(): array {
+        $reflection = new \ReflectionClass($this);
+        $result = [];
+
+        $mappings = [
+            Annotations\GetMapping::class => RequestMethod::GET,
+            Annotations\PostMapping::class => RequestMethod::POST,
+            Annotations\PutMapping::class => RequestMethod::PUT,
+            Annotations\DeleteMapping::class => RequestMethod::DELETE,
+        ];
+
+        foreach ($reflection->getMethods() as $method) {
+            $paramAttrs = $method->getAttributes(Annotations\RequestParam::class);
+
+            if (empty($paramAttrs)) {
+                continue;
+            }
+
+            $params = array_map(fn($a) => $a->newInstance(), $paramAttrs);
+
+            foreach ($mappings as $annotationClass => $httpMethod) {
+                if (!empty($method->getAttributes($annotationClass))) {
+                    $result[$httpMethod] = array_merge($result[$httpMethod] ?? [], $params);
+                }
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Builds an OpenAPI ParameterObj (query param) from a RequestParam annotation.
+     */
+    private static function buildQueryParameter(Annotations\RequestParam $param): OpenAPI\ParameterObj {
+        $p = new OpenAPI\ParameterObj($param->name, 'query');
+        $p->setRequired(!$param->optional);
+        $p->setSchema(self::buildParamSchema($param)->toJson());
+
+        if ($param->description !== '') {
+            $p->setDescription($param->description);
+        }
+
+        return $p;
+    }
+
+    /**
+     * Builds an OpenAPI requestBody Json object from RequestParam annotations.
+     *
+     * @param Annotations\RequestParam[] $params
+     */
+    private static function buildRequestBody(array $params): \WebFiori\Json\Json {
+        $properties = new \WebFiori\Json\Json();
+        $required = [];
+
+        foreach ($params as $param) {
+            $properties->add($param->name, self::buildParamSchema($param)->toJson());
+
+            if (!$param->optional) {
+                $required[] = $param->name;
+            }
+        }
+
+        $schema = new \WebFiori\Json\Json();
+        $schema->add('type', 'object');
+        $schema->add('properties', $properties);
+
+        if (!empty($required)) {
+            $schema->add('required', $required);
+        }
+
+        $content = new \WebFiori\Json\Json();
+        $mediaType = new \WebFiori\Json\Json();
+        $mediaType->add('schema', $schema);
+        $content->add('application/x-www-form-urlencoded', $mediaType);
+
+        $body = new \WebFiori\Json\Json();
+        $body->add('content', $content);
+
+        return $body;
+    }
+
+    /**
+     * Builds an OpenAPI Schema from a RequestParam annotation.
+     */
+    private static function buildParamSchema(Annotations\RequestParam $param): OpenAPI\Schema {
+        $schema = new OpenAPI\Schema(OpenAPI\Schema::mapType($param->type));
+
+        if ($param->type === ParamType::EMAIL) {
+            $schema->setFormat('email');
+        } else if ($param->type === ParamType::URL) {
+            $schema->setFormat('uri');
+        }
+
+        if ($param->default !== null) {
+            // Schema doesn't have a public setter for default, build inline
+        }
+
+        return $schema;
     }
 
     /**
