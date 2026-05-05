@@ -33,6 +33,7 @@ A powerful and flexible PHP library for creating RESTful web APIs with built-in 
   - [Using Attributes (Recommended)](#using-attributes-recommended)
   - [Traditional Class-Based Approach](#traditional-class-based-approach)
 - [Parameter Management](#parameter-management)
+- [Dynamic Status Codes with ResponseEntity](#dynamic-status-codes-with-responseentity)
 
 - [Testing](#testing)
 - [Examples](#examples)
@@ -384,6 +385,63 @@ public function processRequest() {
     // Get all inputs as array
     $allInputs = $this->getInputs();
 }
+```
+
+### Positional Parameter Injection
+
+When using `#[ResponseBody]`, method parameters are matched **positionally** to `#[RequestParam]` attributes. The PHP variable names do not need to match the request parameter names:
+
+```php
+#[GetMapping]
+#[ResponseBody]
+#[AllowAnonymous]
+#[RequestParam('app-id', ParamType::INT)]
+#[RequestParam('user-name', ParamType::STRING, true)]
+public function getData(int $id, ?string $name): array {
+    // $id receives the value of 'app-id' (1st attribute → 1st parameter)
+    // $name receives the value of 'user-name' (2nd attribute → 2nd parameter)
+    return ['id' => $id, 'name' => $name];
+}
+```
+
+## Dynamic Status Codes with ResponseEntity
+
+The `ResponseEntity` class allows `#[ResponseBody]` methods to return different HTTP status codes based on runtime logic:
+
+```php
+use WebFiori\Http\ResponseEntity;
+use WebFiori\Json\Json;
+
+#[PostMapping]
+#[ResponseBody]
+#[AllowAnonymous]
+#[RequestParam('username', ParamType::STRING)]
+#[RequestParam('password', ParamType::STRING)]
+public function login(string $username, string $password): ResponseEntity {
+    if ($username === 'admin' && $password === 'secret') {
+        return ResponseEntity::ok(new Json(['token' => 'abc123']));
+    }
+    return ResponseEntity::unauthorized(new Json(['message' => 'Invalid credentials']));
+}
+```
+
+### Available Factory Methods
+
+| Method | Status Code | Use Case |
+|:-------|:------------|:---------|
+| `ResponseEntity::ok($body)` | 200 | Successful response |
+| `ResponseEntity::created($body)` | 201 | Resource created |
+| `ResponseEntity::noContent()` | 204 | Successful deletion |
+| `ResponseEntity::badRequest($body)` | 400 | Invalid input |
+| `ResponseEntity::unauthorized($body)` | 401 | Authentication failure |
+| `ResponseEntity::forbidden($body)` | 403 | Authorization failure |
+| `ResponseEntity::notFound($body)` | 404 | Resource not found |
+| `ResponseEntity::error($body)` | 500 | Server error |
+
+You can also use the constructor directly for custom status codes:
+
+```php
+return new ResponseEntity($body, 418, 'text/plain');
 ```
 
 ## Testing
