@@ -1488,6 +1488,25 @@ class WebService implements JsonI {
             return;
         }
 
+        // Handle ResponseEntity for dynamic status codes
+        if ($result instanceof ResponseEntity) {
+            $body = $result->getBody();
+            if ($body === null) {
+                $this->send($result->getContentType(), "", $result->getStatus());
+            } else if ($body instanceof Json || $body instanceof JsonI) {
+                $json = $body instanceof JsonI ? $body->toJSON() : $body;
+                $this->send($result->getContentType(), $json, $result->getStatus());
+            } else if (is_array($body) || is_object($body)) {
+                $json = new Json();
+                $asObj = is_array($body) && !array_is_list($body);
+                $json->add("data", $body, $asObj);
+                $this->send($result->getContentType(), $json, $result->getStatus());
+            } else {
+                $this->send($result->getContentType(), $body, $result->getStatus());
+            }
+            return;
+        }
+
         // Auto-convert return value to JSON response
         if ($result === null) {
             // Null return = empty response with configured status
