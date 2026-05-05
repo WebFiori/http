@@ -1,5 +1,22 @@
 # Changelog
 
+## [5.0.8](https://github.com/WebFiori/http/compare/v5.0.7...v5.0.8) (2026-05-05)
+
+
+### Features
+
+* add ResponseEntity class for dynamic HTTP status codes with #[ResponseBody] ([09162ce](https://github.com/WebFiori/http/commit/09162ce7f8f6954101334e8a9a79a8212b6cf676)), closes [#107](https://github.com/WebFiori/http/issues/107)
+
+
+### Bug Fixes
+
+* resolve method parameter injection for hyphenated request param names ([83caed4](https://github.com/WebFiori/http/commit/83caed403b1ccc4f51f84faaa84ce4f326cdceeb)), closes [#106](https://github.com/WebFiori/http/issues/106)
+
+
+### Miscellaneous Chores
+
+* Merge pull request [#110](https://github.com/WebFiori/http/issues/110) from WebFiori/dev ([fa077cd](https://github.com/WebFiori/http/commit/fa077cdd649719ce6eca3f745a2f14cd0afd38cc))
+
 ## [5.0.7](https://github.com/WebFiori/http/compare/v5.0.6...v5.0.7) (2026-05-03)
 
 
