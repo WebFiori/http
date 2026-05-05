@@ -1355,10 +1355,18 @@ class WebService implements JsonI {
             $mappedObject = $this->getObject($mapEntity->entityClass, $mapEntity->setters);
             $params[] = $mappedObject;
         } else {
-            // Original parameter handling
-            foreach ($reflection->getParameters() as $param) {
-                $paramName = $param->getName();
-                $value = $this->getParamVal($paramName);
+            // Use #[RequestParam] attributes for positional matching
+            $requestParamAttrs = $reflection->getAttributes(Annotations\RequestParam::class);
+            $methodParams = $reflection->getParameters();
+
+            foreach ($methodParams as $index => $param) {
+                // If a RequestParam attribute exists at this position, use its name
+                if (isset($requestParamAttrs[$index])) {
+                    $annotation = $requestParamAttrs[$index]->newInstance();
+                    $value = $this->getParamVal($annotation->name);
+                } else {
+                    $value = $this->getParamVal($param->getName());
+                }
 
                 // Handle optional parameters with defaults
                 if ($value === null && $param->isDefaultValueAvailable()) {
@@ -1465,7 +1473,7 @@ class WebService implements JsonI {
             // For non-JSON content types, send raw result
             if (is_array($result)) {
                 $content = new Json();
-                $content->addArray('data', $result);
+                $content->addArray('data', $result, !array_is_list($result));
                 $contentType = 'application/json';
             } else if (is_object($result)) {
                 $content = new Json();
@@ -1477,6 +1485,25 @@ class WebService implements JsonI {
 
             $this->send($contentType, $content, $responseBody->status);
 
+            return;
+        }
+
+        // Handle ResponseEntity for dynamic status codes
+        if ($result instanceof ResponseEntity) {
+            $body = $result->getBody();
+            if ($body === null) {
+                $this->send($result->getContentType(), "", $result->getStatus());
+            } else if ($body instanceof Json || $body instanceof JsonI) {
+                $json = $body instanceof JsonI ? $body->toJSON() : $body;
+                $this->send($result->getContentType(), $json, $result->getStatus());
+            } else if (is_array($body) || is_object($body)) {
+                $json = new Json();
+                $asObj = is_array($body) && !array_is_list($body);
+                $json->add("data", $body, $asObj);
+                $this->send($result->getContentType(), $json, $result->getStatus());
+            } else {
+                $this->send($result->getContentType(), $body, $result->getStatus());
+            }
             return;
         }
 
@@ -1492,7 +1519,8 @@ class WebService implements JsonI {
                 $json = $result->toJSON();
             } else {
                 $json = new Json();
-                $json->add('data', $result);
+                $asObj = is_array($result) && !array_is_list($result);
+                $json->add('data', $result, $asObj);
             }
             $this->send($responseBody->contentType, $json, $responseBody->status);
         } else {
