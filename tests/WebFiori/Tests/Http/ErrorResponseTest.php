@@ -14,40 +14,43 @@ class ErrorResponseTest extends TestCase {
     public function testInvalidParams() {
         $result = ErrorResponse::invalidParams(['email', 'age']);
 
-        $this->assertEquals(404, $result['code']);
+        $this->assertEquals(422, $result['code']);
         $json = $result['json'];
         $this->assertEquals('error', $json->get('type'));
-        $this->assertEquals(404, $json->get('http-code'));
-        $this->assertStringContainsString('email', $json->get('message'));
-        $this->assertStringContainsString('age', $json->get('message'));
-        $this->assertEquals(['email', 'age'], $json->get('more-info')->get('invalid'));
+        $this->assertEquals(422, $json->get('http-code'));
+        $this->assertEquals('Validation failed', $json->get('message'));
+        $errors = $json->get('more-info')->get('errors');
+        $this->assertStringContainsString('email', $errors->get('email'));
+        $this->assertStringContainsString('age', $errors->get('age'));
     }
 
     public function testInvalidParamsSingle() {
         $result = ErrorResponse::invalidParams(['name']);
 
         $json = $result['json'];
-        $this->assertStringContainsString("'name'", $json->get('message'));
-        $this->assertEquals(['name'], $json->get('more-info')->get('invalid'));
+        $errors = $json->get('more-info')->get('errors');
+        $this->assertStringContainsString('name', $errors->get('name'));
     }
 
     public function testMissingParams() {
         $result = ErrorResponse::missingParams(['username', 'password']);
 
-        $this->assertEquals(404, $result['code']);
+        $this->assertEquals(422, $result['code']);
         $json = $result['json'];
         $this->assertEquals('error', $json->get('type'));
-        $this->assertEquals(404, $json->get('http-code'));
-        $this->assertStringContainsString('username', $json->get('message'));
-        $this->assertStringContainsString('password', $json->get('message'));
-        $this->assertEquals(['username', 'password'], $json->get('more-info')->get('missing'));
+        $this->assertEquals(422, $json->get('http-code'));
+        $this->assertEquals('Validation failed', $json->get('message'));
+        $errors = $json->get('more-info')->get('errors');
+        $this->assertStringContainsString('username', $errors->get('username'));
+        $this->assertStringContainsString('password', $errors->get('password'));
     }
 
     public function testMissingParamsSingle() {
         $result = ErrorResponse::missingParams(['token']);
 
         $json = $result['json'];
-        $this->assertStringContainsString("'token'", $json->get('message'));
+        $errors = $json->get('more-info')->get('errors');
+        $this->assertStringContainsString('token', $errors->get('token'));
     }
 
     public function testUnauthorizedDefault() {

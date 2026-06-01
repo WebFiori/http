@@ -48,14 +48,26 @@ class ErrorResponse {
      * @return array{json: Json, code: int} The response body and HTTP code.
      */
     public static function invalidParams(array $params) : array {
-        $val = self::formatParamNames($params);
-        $json = new Json();
-        $json->add('message', ResponseMessage::get('404-1').$val.'.');
-        $json->add('type', WebService::E);
-        $json->add('http-code', 404);
-        $json->add('more-info', new Json(['invalid' => $params]));
+        $errors = new Json();
 
-        return ['json' => $json, 'code' => 404];
+        foreach ($params as $param) {
+            if ($param instanceof RequestParameter) {
+                $name = $param->getName();
+                $errors->add($name, $param->getMessage() ?? "Invalid value for parameter '$name'.");
+            } else {
+                $errors->add($param, "Invalid value for parameter '$param'.");
+            }
+        }
+
+        $json = new Json();
+        $json->add('message', 'Validation failed');
+        $json->add('type', WebService::E);
+        $json->add('http-code', 422);
+        $moreInfo = new Json();
+        $moreInfo->add('errors', $errors);
+        $json->add('more-info', $moreInfo);
+
+        return ['json' => $json, 'code' => 422];
     }
     /**
      * Generates a 405 method not allowed response.
@@ -78,14 +90,26 @@ class ErrorResponse {
      * @return array{json: Json, code: int} The response body and HTTP code.
      */
     public static function missingParams(array $params) : array {
-        $val = self::formatParamNames($params);
-        $json = new Json();
-        $json->add('message', ResponseMessage::get('404-2').$val.'.');
-        $json->add('type', WebService::E);
-        $json->add('http-code', 404);
-        $json->add('more-info', new Json(['missing' => $params]));
+        $errors = new Json();
 
-        return ['json' => $json, 'code' => 404];
+        foreach ($params as $param) {
+            if ($param instanceof RequestParameter) {
+                $name = $param->getName();
+                $errors->add($name, $param->getMessage() ?? "Required parameter '$name' is missing.");
+            } else {
+                $errors->add($param, "Required parameter '$param' is missing.");
+            }
+        }
+
+        $json = new Json();
+        $json->add('message', 'Validation failed');
+        $json->add('type', WebService::E);
+        $json->add('http-code', 422);
+        $moreInfo = new Json();
+        $moreInfo->add('errors', $errors);
+        $json->add('more-info', $moreInfo);
+
+        return ['json' => $json, 'code' => 422];
     }
     /**
      * Generates a 404 response for missing service name.

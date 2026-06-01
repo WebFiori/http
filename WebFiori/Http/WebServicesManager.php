@@ -986,12 +986,12 @@ class WebServicesManager implements JsonI {
 
         foreach ($params as $param) {
             if (!$param->isOptional() && !in_array($param->getName(), $paramsNames)) {
-                $this->missingParamsArr[] = $param->getName();
+                $this->missingParamsArr[] = $param;
                 $processReq = false;
             }
 
-            if ($i->get($param->getName()) === null) {
-                $this->invParamsArr[] = $param->getName();
+            if ($i->get($param->getName()) === null && !$param->isOptional()) {
+                $this->invParamsArr[] = $param;
                 $processReq = false;
             }
         }
@@ -1003,12 +1003,12 @@ class WebServicesManager implements JsonI {
 
         foreach ($params as $param) {
             if (!$param->isOptional() && !isset($i[$param->getName()])) {
-                $this->missingParamsArr[] = $param->getName();
+                $this->missingParamsArr[] = $param;
                 $processReq = false;
             }
 
             if (isset($i[$param->getName()]) && $i[$param->getName()] === 'INV') {
-                $this->invParamsArr[] = $param->getName();
+                $this->invParamsArr[] = $param;
                 $processReq = false;
             }
         }
