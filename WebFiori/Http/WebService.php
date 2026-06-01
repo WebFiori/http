@@ -94,6 +94,12 @@ class WebService implements JsonI {
      */
     private $requireAuth;
     /**
+     * The content type negotiated from the Accept header.
+     * 
+     * @var string|null
+     */
+    private $negotiatedContentType;
+    /**
      * An array that contains descriptions of 
      * possible responses.
      * 
@@ -695,6 +701,17 @@ class WebService implements JsonI {
         return $this->requireAuth;
     }
     /**
+     * Returns the content type negotiated from the client's Accept header.
+     * 
+     * Only meaningful when the method has a #[Produces] attribute.
+     * Defaults to 'application/json' if no negotiation occurred.
+     * 
+     * @return string The negotiated media type.
+     */
+    public function getNegotiatedContentType() : string {
+        return $this->negotiatedContentType ?? MediaType::JSON;
+    }
+    /**
      * Checks if the class has a #[RequiresAuth] attribute.
      * 
      * @return bool True if the class-level RequiresAuth annotation is present.
@@ -765,6 +782,21 @@ class WebService implements JsonI {
 
                 return;
             }
+
+            // Content negotiation
+            $negotiated = $this->negotiateContentType($targetMethod);
+
+            if ($negotiated === null) {
+                $reflection = new \ReflectionMethod($this, $targetMethod);
+                $producesAttrs = $reflection->getAttributes(Annotations\Produces::class);
+                $supported = !empty($producesAttrs) ? $producesAttrs[0]->newInstance()->contentTypes : [MediaType::JSON];
+                $result = ErrorResponse::notAcceptable($supported);
+                $this->getManager()->send('application/json', $result['json'], $result['code']);
+
+                return;
+            }
+
+            $this->negotiatedContentType = $negotiated;
 
             try {
                 // Run cross-field validation
@@ -1352,6 +1384,86 @@ class WebService implements JsonI {
         }
     }
 
+    /**
+     * Performs content negotiation for a method.
+     * 
+     * @param string $methodName The target method name.
+     * 
+     * @return string|null The negotiated content type, or null if no match (406).
+     */
+    private function negotiateContentType(string $methodName): ?string {
+        $reflection = new \ReflectionMethod($this, $methodName);
+        $producesAttrs = $reflection->getAttributes(Annotations\Produces::class);
+
+        if (empty($producesAttrs)) {
+            return MediaType::JSON;
+        }
+
+        $produces = $producesAttrs[0]->newInstance()->contentTypes;
+        $acceptHeader = $this->getAcceptHeader();
+
+        if (empty($acceptHeader)) {
+            return $produces[0];
+        }
+
+        $accepted = self::parseAcceptHeader($acceptHeader);
+
+        foreach ($accepted as $mediaType) {
+            if ($mediaType['type'] === '*/*' || $mediaType['type'] === 'application/*') {
+                return $produces[0];
+            }
+
+            if (in_array($mediaType['type'], $produces, true)) {
+                return $mediaType['type'];
+            }
+        }
+
+        return null;
+    }
+    /**
+     * Gets the Accept header value from the current request.
+     */
+    private function getAcceptHeader(): string {
+        $manager = $this->getManager();
+
+        if ($manager !== null) {
+            $accept = $manager->getRequest()->getHeader('accept');
+
+            return !empty($accept) ? $accept[0] : '';
+        }
+
+        return $_SERVER['HTTP_ACCEPT'] ?? '';
+    }
+    /**
+     * Parses an Accept header into a sorted list of media types by q-value.
+     * 
+     * @param string $header The raw Accept header value.
+     * 
+     * @return array Sorted array of ['type' => string, 'q' => float].
+     */
+    private static function parseAcceptHeader(string $header): array {
+        $types = [];
+
+        foreach (explode(',', $header) as $part) {
+            $segments = explode(';', trim($part));
+            $mediaType = trim($segments[0]);
+            $q = 1.0;
+
+            foreach ($segments as $segment) {
+                $segment = trim($segment);
+
+                if (str_starts_with($segment, 'q=')) {
+                    $q = (float) substr($segment, 2);
+                }
+            }
+
+            $types[] = ['type' => $mediaType, 'q' => $q];
+        }
+
+        usort($types, fn($a, $b) => $b['q'] <=> $a['q']);
+
+        return $types;
+    }
     /**
      * Runs cross-field validation: service-wide validate() + method-specific #[Validate].
      * 

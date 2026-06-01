@@ -643,6 +643,33 @@ For more examples, check the [examples](examples/) directory in this repository.
 - [`ErrorResponse`](https://webfiori.com/docs/webfiori/http/ErrorResponse) - Standardized error response generation
 - [`OpenAPIGenerator`](https://webfiori.com/docs/webfiori/http/OpenAPI/OpenAPIGenerator) - Standalone OpenAPI spec generation
 
+### Content Negotiation
+
+Use `#[Produces]` to declare what content types a method can return. The framework matches against the client's `Accept` header:
+
+```php
+use WebFiori\Http\Annotations\Produces;
+use WebFiori\Http\MediaType;
+use WebFiori\Http\ResponseEntity;
+
+#[GetMapping]
+#[ResponseBody]
+#[Produces(MediaType::JSON, MediaType::XML)]
+public function getUser(int $id): ResponseEntity {
+    $type = $this->getNegotiatedContentType();
+
+    if ($type === MediaType::XML) {
+        return new ResponseEntity('<user>...</user>', 200, MediaType::XML);
+    }
+
+    return ResponseEntity::ok(new Json(['id' => $id]));
+}
+```
+
+- No `#[Produces]` → always JSON (default, unchanged)
+- `Accept` header doesn't match → 406 Not Acceptable
+- `Accept: */*` or not set → server's first preference
+
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
