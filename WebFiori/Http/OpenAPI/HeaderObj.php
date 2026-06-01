@@ -27,7 +27,7 @@ use WebFiori\Json\JsonI;
  * 
  * @see https://spec.openapis.org/oas/v3.1.0#header-object
  */
-class HeaderObj implements JsonI {
+class HeaderObj extends OpenAPIObject implements JsonI {
     /**
      * Specifies that the header is deprecated and SHOULD be transitioned out of usage.
      * 
@@ -36,15 +36,6 @@ class HeaderObj implements JsonI {
      * @var bool
      */
     private bool $deprecated = false;
-    /**
-     * A brief description of the header.
-     * 
-     * This could contain examples of use.
-     * CommonMark syntax MAY be used for rich text representation.
-     * 
-     * @var string|null
-     */
-    private ?string $description = null;
 
     /**
      * Example of the header's potential value.
@@ -99,15 +90,6 @@ class HeaderObj implements JsonI {
 
     public function getDeprecated(): bool {
         return $this->deprecated;
-    }
-
-    /**
-     * Returns the description.
-     * 
-     * @return string|null Returns the value, or null if not set.
-     */
-    public function getDescription(): ?string {
-        return $this->description;
     }
 
     /**
@@ -186,19 +168,6 @@ class HeaderObj implements JsonI {
      */
     public function setDeprecated(bool $deprecated): HeaderObj {
         $this->deprecated = $deprecated;
-
-        return $this;
-    }
-
-    /**
-     * Sets the description of the header.
-     * 
-     * @param string $description A brief description of the header.
-     * 
-     * @return HeaderObj Returns self for method chaining.
-     */
-    public function setDescription(string $description): HeaderObj {
-        $this->description = $description;
 
         return $this;
     }
@@ -289,37 +258,14 @@ class HeaderObj implements JsonI {
     public function toJSON(): Json {
         $json = new Json();
 
-        if ($this->getDescription() !== null) {
-            $json->add('description', $this->getDescription());
-        }
-
-        if ($this->getRequired()) {
-            $json->add('required', $this->getRequired());
-        }
-
-        if ($this->getDeprecated()) {
-            $json->add('deprecated', $this->getDeprecated());
-        }
-
-        if ($this->getStyle() !== null) {
-            $json->add('style', $this->getStyle());
-        }
-
-        if ($this->getExplode() !== null) {
-            $json->add('explode', $this->getExplode());
-        }
-
-        if ($this->getSchema() !== null) {
-            $json->add('schema', $this->getSchema());
-        }
-
-        if ($this->getExample() !== null) {
-            $json->add('example', $this->getExample());
-        }
-
-        if ($this->getExamples() !== null) {
-            $json->add('examples', $this->getExamples());
-        }
+        $this->addIfNotNull($json, 'description', $this->getDescription());
+        $this->addIfTruthy($json, 'required', $this->getRequired());
+        $this->addIfTruthy($json, 'deprecated', $this->getDeprecated());
+        $this->addIfNotNull($json, 'style', $this->getStyle());
+        $this->addIfNotNull($json, 'explode', $this->getExplode());
+        $this->addIfNotNull($json, 'schema', $this->getSchema());
+        $this->addIfNotNull($json, 'example', $this->getExample());
+        $this->addIfNotNull($json, 'examples', $this->getExamples());
 
         return $json;
     }
