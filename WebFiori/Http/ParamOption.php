@@ -75,4 +75,8 @@ class ParamOption {
      * An option which is used to set a regex pattern for string validation.
      */
     const PATTERN = 'pattern';
+    /**
+     * An option which is used to set a custom validation error message for the parameter.
+     */
+    const MESSAGE = 'message';
 }

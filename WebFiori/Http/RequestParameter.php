@@ -137,6 +137,12 @@ class RequestParameter implements JsonI {
      */
     private $pattern;
     /**
+     * Custom validation error message.
+     * 
+     * @var string|null
+     */
+    private $message;
+    /**
      * Creates new instance of the class.
      * 
      * @param string $name The name of the parameter as it appears in the request body. 
@@ -181,6 +187,7 @@ class RequestParameter implements JsonI {
         $this->methods = [];
         $this->allowedValues = [];
         $this->pattern = null;
+        $this->message = null;
     }
     /**
      * Returns a string that represents the object.
@@ -448,6 +455,22 @@ class RequestParameter implements JsonI {
             return true;
         }
         return false;
+    }
+    /**
+     * Returns the custom validation error message.
+     * 
+     * @return string|null The message or null if not set.
+     */
+    public function getMessage() : ?string {
+        return $this->message;
+    }
+    /**
+     * Sets a custom validation error message for this parameter.
+     * 
+     * @param string $message The error message to display when validation fails.
+     */
+    public function setMessage(string $message) : void {
+        $this->message = $message;
     }
     /**
      * Checks if we need to apply basic filter or not 
@@ -877,6 +900,10 @@ class RequestParameter implements JsonI {
 
         if (isset($options[ParamOption::PATTERN])) {
             $param->setPattern($options[ParamOption::PATTERN]);
+        }
+
+        if (isset($options[ParamOption::MESSAGE])) {
+            $param->setMessage($options[ParamOption::MESSAGE]);
         }
     }
     private function getSchema() : Json {

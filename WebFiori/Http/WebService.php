@@ -1445,6 +1445,10 @@ class WebService implements JsonI {
                 $options[ParamOption::PATTERN] = $param->pattern;
             }
 
+            if ($param->message !== null) {
+                $options[ParamOption::MESSAGE] = $param->message;
+            }
+
             $this->addParameters([
                 $param->name => $options
             ]);

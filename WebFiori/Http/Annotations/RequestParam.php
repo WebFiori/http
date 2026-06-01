@@ -23,7 +23,8 @@ class RequestParam {
         public readonly string $description = '',
         public readonly mixed $filter = null,
         public readonly array $allowedValues = [],
-        public readonly ?string $pattern = null
+        public readonly ?string $pattern = null,
+        public readonly ?string $message = null
     ) {
     }
 }

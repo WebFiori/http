@@ -48,9 +48,9 @@ class AnnotatedParamsProcessRequestTest extends APITestCase {
         $this->assertIsArray($response);
         $this->assertEquals('error', $response['type']);
         // Framework should report missing required params
-        $this->assertArrayHasKey('missing', $response['more-info']);
-        $this->assertContains('username', $response['more-info']['missing']);
-        $this->assertContains('password', $response['more-info']['missing']);
+        $this->assertArrayHasKey('errors', $response['more-info']);
+        $this->assertArrayHasKey('username', $response['more-info']['errors']);
+        $this->assertArrayHasKey('password', $response['more-info']['errors']);
     }
 
     /**
@@ -67,7 +67,7 @@ class AnnotatedParamsProcessRequestTest extends APITestCase {
         $response = json_decode($output, true);
         $this->assertIsArray($response);
         $this->assertEquals('error', $response['type']);
-        $this->assertContains('password', $response['more-info']['missing']);
+        $this->assertArrayHasKey('password', $response['more-info']['errors']);
     }
 
     /**
