@@ -81,6 +81,18 @@ class Schema {
         $schema->default = $param->getDefault();
         $schema->description = $param->getDescription();
 
+        if (!empty($param->getAllowedValues())) {
+            $schema->setEnum($param->getAllowedValues());
+        }
+
+        if ($param->getPattern() !== null) {
+            // Strip PHP regex delimiters for OpenAPI (ECMA-262 format)
+            $pattern = $param->getPattern();
+            $delimiter = $pattern[0];
+            $lastPos = strrpos($pattern, $delimiter);
+            $schema->setPattern(substr($pattern, 1, $lastPos - 1));
+        }
+
         return $schema;
     }
 

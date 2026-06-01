@@ -31,6 +31,12 @@ class RequestParameter implements JsonI {
      * @var array
      */
     public const RESERVED_NAMES = ['action', 'service', 'service-name'];
+    /**
+     * An array of allowed values for the parameter.
+     * 
+     * @var array
+     */
+    private $allowedValues;
 
 
     /** A boolean value that is set to true in case the 
@@ -118,12 +124,30 @@ class RequestParameter implements JsonI {
      */
     private $name;
     /**
+     * A regex pattern for validating string parameters.
+     * 
+     * @var string|null
+     */
+    private $pattern;
+    /**
      * The type of the data the parameter will represent.
      * 
      * @var string
      * 
      */
     private $type;
+    /**
+     * An array of allowed values for the parameter.
+     * 
+     * @var array
+     */
+    private $allowedValues;
+    /**
+     * A regex pattern for validating string parameters.
+     * 
+     * @var string|null
+     */
+    private $pattern;
     /**
      * Creates new instance of the class.
      * 
@@ -167,6 +191,8 @@ class RequestParameter implements JsonI {
         $this->applyBasicFilter = true;
         $this->isEmptyStrAllowed = false;
         $this->methods = [];
+        $this->allowedValues = [];
+        $this->pattern = null;
     }
     /**
      * Returns a string that represents the object.
@@ -287,6 +313,14 @@ class RequestParameter implements JsonI {
         return null;
     }
     /**
+     * Returns the array of allowed values for the parameter.
+     * 
+     * @return array The allowed values. Empty array means no restriction.
+     */
+    public function getAllowedValues() : array {
+        return $this->allowedValues;
+    }
+    /**
      * Returns the function that is used as a custom filter 
      * for the parameter.
      * 
@@ -389,6 +423,14 @@ class RequestParameter implements JsonI {
         return $this->name;
     }
     /**
+     * Returns the regex pattern used for validation.
+     * 
+     * @return string|null The pattern or null if not set.
+     */
+    public function getPattern() : ?string {
+        return $this->pattern;
+    }
+    /**
      * Returns the type of the parameter.
      * 
      * @return string The type of the parameter (Such as 'string', 'email', 'integer').
@@ -396,6 +438,44 @@ class RequestParameter implements JsonI {
      */
     public function getType() : string {
         return $this->type;
+    }
+    /**
+     * Returns the array of allowed values for the parameter.
+     * 
+     * @return array The allowed values. Empty array means no restriction.
+     */
+    public function getAllowedValues() : array {
+        return $this->allowedValues;
+    }
+    /**
+     * Sets the allowed values for the parameter.
+     * 
+     * @param array $values An array of permitted values.
+     */
+    public function setAllowedValues(array $values) : void {
+        $this->allowedValues = $values;
+    }
+    /**
+     * Returns the regex pattern used for validation.
+     * 
+     * @return string|null The pattern or null if not set.
+     */
+    public function getPattern() : ?string {
+        return $this->pattern;
+    }
+    /**
+     * Sets a regex pattern for validating the parameter value.
+     * 
+     * @param string $regex A valid PHP regex (e.g. '/^[a-z]+$/').
+     * 
+     * @return bool True if the regex is valid and was set, false otherwise.
+     */
+    public function setPattern(string $regex) : bool {
+        if (@preg_match($regex, '') !== false) {
+            $this->pattern = $regex;
+            return true;
+        }
+        return false;
     }
     /**
      * Checks if we need to apply basic filter or not 
@@ -433,6 +513,14 @@ class RequestParameter implements JsonI {
      */
     public function isOptional() : bool {
         return $this->isOptional;
+    }
+    /**
+     * Sets the allowed values for the parameter.
+     * 
+     * @param array $values An array of permitted values.
+     */
+    public function setAllowedValues(array $values) : void {
+        $this->allowedValues = $values;
     }
     /**
      * Sets a callback method to work as a filter for request parameter.
@@ -700,6 +788,22 @@ class RequestParameter implements JsonI {
         return false;
     }
     /**
+     * Sets a regex pattern for validating the parameter value.
+     * 
+     * @param string $regex A valid PHP regex (e.g. '/^[a-z]+$/').
+     * 
+     * @return bool True if the regex is valid and was set, false otherwise.
+     */
+    public function setPattern(string $regex) : bool {
+        if (@preg_match($regex, '') !== false) {
+            $this->pattern = $regex;
+
+            return true;
+        }
+
+        return false;
+    }
+    /**
      * Sets the type of the parameter.
      * 
      * @param string $type The type of the parameter. It must be a value 
@@ -817,6 +921,14 @@ class RequestParameter implements JsonI {
 
         if (isset($options[ParamOption::DESCRIPTION])) {
             $param->setDescription($options[ParamOption::DESCRIPTION]);
+        }
+
+        if (isset($options[ParamOption::ALLOWED_VALUES])) {
+            $param->setAllowedValues($options[ParamOption::ALLOWED_VALUES]);
+        }
+
+        if (isset($options[ParamOption::PATTERN])) {
+            $param->setPattern($options[ParamOption::PATTERN]);
         }
     }
     private function getSchema() : Json {
