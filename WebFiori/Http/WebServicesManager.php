@@ -213,10 +213,12 @@ class WebServicesManager implements JsonI {
      * request header.
      * 
      */
+    /**
+     * @deprecated Use ErrorResponse::contentTypeNotSupported() instead.
+     */
     public function contentTypeNotSupported(string $cType = '') {
-        $j = new Json();
-        $j->add('request-content-type', $cType);
-        $this->sendResponse(ResponseMessage::get('415'), 415, WebService::E, $j);
+        $result = ErrorResponse::contentTypeNotSupported($cType);
+        $this->send('application/json', $result['json'], $result['code']);
     }
     /**
      * Returns the base path for all services.
@@ -388,23 +390,12 @@ class WebServicesManager implements JsonI {
      * In addition to the message, The response will send HTTP code 404 - Not Found.
      * 
      */
+    /**
+     * @deprecated Use ErrorResponse::invalidParams() instead.
+     */
     public function invParams() {
-        $val = '';
-        $i = 0;
-        $paramsNamesArr = $this->getInvalidParameters();
-        $count = count($paramsNamesArr);
-
-        foreach ($paramsNamesArr as $paramName) {
-            if ($i + 1 == $count) {
-                $val .= '\''.$paramName.'\'';
-            } else {
-                $val .= '\''.$paramName.'\', ';
-            }
-            $i++;
-        }
-        $this->sendResponse(ResponseMessage::get('404-1').$val.'.', 404, WebService::E, new Json([
-            'invalid' => $paramsNamesArr
-        ]));
+        $result = ErrorResponse::invalidParams($this->getInvalidParameters());
+        $this->send('application/json', $result['json'], $result['code']);
     }
     /**
      * Checks if request content type is supported by the service or not (For 'POST' 
@@ -448,23 +439,12 @@ class WebServicesManager implements JsonI {
      * In addition to the message, The response will send HTTP code 404 - Not Found.
      * 
      */
+    /**
+     * @deprecated Use ErrorResponse::missingParams() instead.
+     */
     public function missingParams() {
-        $val = '';
-        $paramsNamesArr = $this->getMissingParameters();
-        $i = 0;
-        $count = count($paramsNamesArr);
-
-        foreach ($paramsNamesArr as $paramName) {
-            if ($i + 1 == $count) {
-                $val .= '\''.$paramName.'\'';
-            } else {
-                $val .= '\''.$paramName.'\', ';
-            }
-            $i++;
-        }
-        $this->sendResponse(ResponseMessage::get('404-2').$val.'.', 404, WebService::E, new Json([
-            'missing' => $paramsNamesArr
-        ]));
+        $result = ErrorResponse::missingParams($this->getMissingParameters());
+        $this->send('application/json', $result['json'], $result['code']);
     }
     /**
      * Sends a response message to tell the front-end that the parameter 
@@ -480,8 +460,12 @@ class WebServicesManager implements JsonI {
      * In addition to the message, The response will send HTTP code 404 - Not Found.
      * 
      */
+    /**
+     * @deprecated Use ErrorResponse::missingServiceName() instead.
+     */
     public function missingServiceName() {
-        $this->sendResponse(ResponseMessage::get('404-3'), 404, WebService::E);
+        $result = ErrorResponse::missingServiceName();
+        $this->send('application/json', $result['json'], $result['code']);
     }
     /**
      * Sends a response message to indicate that a user is not authorized call a 
@@ -497,9 +481,12 @@ class WebServicesManager implements JsonI {
      * In addition to the message, The response will send HTTP code 401 - Not Authorized.
      * 
      */
+    /**
+     * @deprecated Use ErrorResponse::unauthorized() instead.
+     */
     public function notAuth(?string $message = null) {
-        $msg = $message !== null ? $message : ResponseMessage::get('401');
-        $this->sendResponse($msg, 401, WebService::E);
+        $result = ErrorResponse::unauthorized($message);
+        $this->send('application/json', $result['json'], $result['code']);
     }
 
     /**
@@ -622,8 +609,12 @@ class WebServicesManager implements JsonI {
      * In addition to the message, The response will send HTTP code 405 - Method Not Allowed.
      * 
      */
+    /**
+     * @deprecated Use ErrorResponse::methodNotAllowed() instead.
+     */
     public function requestMethodNotAllowed() {
-        $this->sendResponse(ResponseMessage::get('405'), 405, WebService::E);
+        $result = ErrorResponse::methodNotAllowed();
+        $this->send('application/json', $result['json'], $result['code']);
     }
     /**
      * Sends Back a data using specific content type and specific response code.
@@ -730,24 +721,19 @@ class WebServicesManager implements JsonI {
      * In addition to the message, The response will send HTTP code 404 - Not Found.
      * 
      */
+    /**
+     * @deprecated Use ErrorResponse::serviceNotImplemented() instead.
+     */
     public function serviceNotImplemented() {
-        $this->sendResponse(ResponseMessage::get('404-4'), 404, WebService::E);
+        $result = ErrorResponse::serviceNotImplemented();
+        $this->send('application/json', $result['json'], $result['code']);
     }
     /**
-     * Sends a response message to indicate that called web service is not supported by the API.
-     * 
-     * This method will send back a JSON string in the following format:
-     * <p>
-     * {<br/>
-     * &nbsp;&nbsp;"message":"Action not supported",<br/>
-     * &nbsp;&nbsp;"type":"error"<br/>
-     * }
-     * </p>
-     * In addition to the message, The response will send HTTP code 404 - Not Found.
-     * 
+     * @deprecated Use ErrorResponse::serviceNotFound() instead.
      */
     public function serviceNotSupported() {
-        $this->sendResponse(ResponseMessage::get('404-5'), 404, WebService::E);
+        $result = ErrorResponse::serviceNotFound();
+        $this->send('application/json', $result['json'], $result['code']);
     }
     /**
      * Sets the base path for all services in this manager.
