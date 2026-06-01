@@ -353,6 +353,8 @@ ParamOption::MAX_LENGTH   // Maximum length (string types)
 ParamOption::EMPTY        // Allow empty strings
 ParamOption::FILTER       // Custom filter function
 ParamOption::DESCRIPTION  // Parameter description
+ParamOption::ALLOWED_VALUES // Restrict to a set of allowed values
+ParamOption::PATTERN      // Regex pattern for validation
 ```
 
 ### Custom Validation
