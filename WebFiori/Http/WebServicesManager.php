@@ -1130,6 +1130,11 @@ class WebServicesManager implements JsonI {
                 return $service->checkMethodAuthorization();
             }
 
+            // If class-level #[RequiresAuth] is present, check SecurityContext
+            if ($service->hasClassLevelRequiresAuth()) {
+                return SecurityContext::isAuthenticated();
+            }
+
             // Fall back to legacy HTTP-method-specific authorization
             $isAuthCheck = 'isAuthorized'.$this->getRequest()->getMethod();
 

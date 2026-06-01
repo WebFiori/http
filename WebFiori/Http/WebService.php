@@ -328,8 +328,8 @@ class WebService implements JsonI {
 
         // Check RequiresAuth
         if ($hasRequiresAuth) {
-            // First call isAuthorized()
-            if (!$this->isAuthorized()) {
+            // Check SecurityContext directly instead of isAuthorized()
+            if (!SecurityContext::isAuthenticated()) {
                 return false;
             }
 
@@ -353,6 +353,11 @@ class WebService implements JsonI {
             $preAuth = $preAuthAttributes[0]->newInstance();
 
             return SecurityContext::evaluateExpression($preAuth->expression);
+        }
+
+        // If class has #[RequiresAuth], check SecurityContext
+        if ($this->hasClassLevelRequiresAuth()) {
+            return SecurityContext::isAuthenticated();
         }
 
         return $this->isAuthorized();
@@ -688,6 +693,16 @@ class WebService implements JsonI {
      */
     public function isAuthRequired() : bool {
         return $this->requireAuth;
+    }
+    /**
+     * Checks if the class has a #[RequiresAuth] attribute.
+     * 
+     * @return bool True if the class-level RequiresAuth annotation is present.
+     */
+    public function hasClassLevelRequiresAuth() : bool {
+        $reflection = new \ReflectionClass($this);
+
+        return !empty($reflection->getAttributes(Annotations\RequiresAuth::class));
     }
 
     /**
