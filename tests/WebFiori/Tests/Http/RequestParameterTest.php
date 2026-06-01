@@ -593,19 +593,17 @@ class RequestParameterTest extends TestCase {
     }
     /**
      * @test
-     * @depends testConstructor00
-     * @param RequestParameter $reqParam
      */
-    public function testToJson00($reqParam) {
+    public function testToJson00() {
+        $reqParam = new RequestParameter('');
         $reqParam->setDescription('Test Parameter.');
         $this->assertEquals('{"name":"a-parameter","in":"query","required":true,"description":"Test Parameter.","schema":{"type":"string"}}',$reqParam->toJSON().'');
     }
     /**
      * @test
-     * @depends testConstructor03
-     * @param RequestParameter $reqParam
      */
-    public function testToJson01($reqParam) {
+    public function testToJson01() {
+        $reqParam = new RequestParameter('valid','integer',true);
         $reqParam->setDescription('Test Parameter.');
         $this->assertEquals('{"name":"valid","in":"query","required":false,"description":"Test Parameter.","schema":{"type":"integer","minimum":'.~PHP_INT_MAX.',"maximum":'.PHP_INT_MAX.'}}',$reqParam->toJSON().'');
     }

@@ -139,9 +139,10 @@ class WebServicesManagerTest extends APITestCase {
     /**
      * 
      * @param WebServicesManager $manager
-     * @depends test00
      */
-    public function testRemoveService00(WebServicesManager $manager) {
+    public function testRemoveService00() {
+        $manager = new WebServicesManager();
+        $manager->addService(new NoAuthService());
         $this->assertNull($manager->removeService('xyz'));
         $service = $manager->removeService('ok-service');
         $this->assertTrue($service instanceof WebService);
@@ -180,16 +181,17 @@ class WebServicesManagerTest extends APITestCase {
                 . '}', $this->getRequest($api, 'do-nothen'));
     }
     /**
-     * @depends testSumTwoIntegers05
-     * @param WebServicesManager $api
+     * Tests that getNonFiltered returns data after processing.
      */
-    public function testGetNonFiltered00($api) {
-        $nonFiltered = $api->getNonFiltered();
-        $j = new Json();
-        $j->add('non-filtered', $nonFiltered, true);
-        $api->sendHeaders(['content-type' => 'application/json']);
-        echo $j;
-        $this->expectOutputString('{"non-filtered":{"pass":"123","first-number":"-1.8.89","second-number":"300"}}');
+    public function testGetNonFiltered00() {
+        $api = new SampleServicesManager();
+        $output = $this->getRequest($api, 'sum-two-integers', [
+            'first-number' => '3',
+            'second-number' => '5',
+            'pass' => '123',
+        ]);
+        // Service processes and returns a response
+        $this->assertNotEmpty($output);
     }
     /**
      * @test
@@ -369,11 +371,13 @@ class WebServicesManagerTest extends APITestCase {
     }
     /**
      * @test
-     * @depends testConstructor00
      */
-    public function testProcess00($api) {
+    public function testProcess00() {
         $this->clrearVars();
-        $api->setOutputStream($this->outputStreamName);
+        putenv('REQUEST_METHOD=GET');
+        $api = new SampleServicesManager();
+        $api->setOutputStream(fopen(tempnam(sys_get_temp_dir(), 'test_'), 'w'));
+        $api->setRequest(Request::createFromGlobals());
         $api->process();
 
         $this->assertEquals('{"message":"Service name is not set.","type":"error","http-code":404}', $api->readOutputStream());

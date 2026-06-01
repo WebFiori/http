@@ -124,10 +124,9 @@ class WebServiceTest extends TestCase {
     }
     /**
      * @test
-     * @depends testConstructor02
-     * @param TestServiceObj $action 
      */
-    public function testAddRequestMethod00($action) {
+    public function testAddRequestMethod00() {
+        $action = new TestServiceObj('login');
         $this->assertTrue($action->addRequestMethod('get'));
         $this->assertFalse($action->addRequestMethod('get'));
         $this->assertFalse($action->addRequestMethod(' Get '));
@@ -140,8 +139,6 @@ class WebServiceTest extends TestCase {
         $this->assertEquals('POST',$requestMethods[1]);
         $this->assertEquals('DELETE',$requestMethods[2]);
         $this->assertEquals('OPTIONS',$requestMethods[3]);
-
-        return $action;
     }
     /**
      * @test
@@ -236,10 +233,13 @@ class WebServiceTest extends TestCase {
     }
     /**
      * @test
-     * @param TestServiceObj $action
-     * @depends testAddRequestMethod00
      */
-    public function testRemoveRequestMethod($action) {
+    public function testRemoveRequestMethod() {
+        $action = new TestServiceObj('login');
+        $action->addRequestMethod('get');
+        $action->addRequestMethod('post');
+        $action->addRequestMethod('delete');
+        $action->addRequestMethod('options');
         $this->assertTrue($action->removeRequestMethod('get'));
         $this->assertFalse($action->removeRequestMethod('get'));
         $this->assertTrue($action->removeRequestMethod(' PoSt '));
