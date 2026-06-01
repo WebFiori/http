@@ -151,9 +151,14 @@ class HelloService extends AbstractWebService {
 }
 ```
 
-Both approaches work with `WebServicesManager`:
+Both approaches work with `RequestProcessor` (recommended) or `WebServicesManager`:
 
 ```php
+// Recommended: process a single service directly
+$processor = new RequestProcessor();
+$processor->process(new HelloService());
+
+// Legacy: register services in a manager
 $manager = new WebServicesManager();
 $manager->addService(new HelloService());
 $manager->process();
@@ -353,6 +358,8 @@ ParamOption::MAX_LENGTH   // Maximum length (string types)
 ParamOption::EMPTY        // Allow empty strings
 ParamOption::FILTER       // Custom filter function
 ParamOption::DESCRIPTION  // Parameter description
+ParamOption::ALLOWED_VALUES // Restrict to a set of allowed values
+ParamOption::PATTERN      // Regex pattern for validation
 ```
 
 ### Custom Validation
@@ -403,6 +410,73 @@ public function getData(int $id, ?string $name): array {
     return ['id' => $id, 'name' => $name];
 }
 ```
+
+### Reusable Parameter Sets
+
+Implement the `ParameterSet` interface to group related parameters:
+
+```php
+class PaginationParams implements ParameterSet {
+    public function getParameters(): array {
+        return [
+            'page' => [ParamOption::TYPE => ParamType::INT, ParamOption::OPTIONAL => true, ParamOption::DEFAULT => 1],
+            'per_page' => [ParamOption::TYPE => ParamType::INT, ParamOption::OPTIONAL => true, ParamOption::DEFAULT => 20],
+        ];
+    }
+}
+```
+
+Use with attributes:
+
+```php
+#[GetMapping]
+#[ResponseBody]
+#[UseParameterSet(PaginationParams::class)]
+public function listItems(int $page = 1, int $perPage = 20): array { ... }
+```
+
+Or traditionally:
+
+```php
+$this->addParameterSet(new PaginationParams());
+```
+
+## Cross-Field Validation
+
+For validation rules that depend on multiple parameters together, use the `#[Validate]` attribute or override the `validate()` method:
+
+### Method-Specific Validation (Attribute)
+
+```php
+#[PostMapping]
+#[ResponseBody]
+#[Validate('validateRegistration')]
+#[RequestParam('password', ParamType::STRING)]
+#[RequestParam('password_confirm', ParamType::STRING)]
+public function register(string $password, string $passwordConfirm): array { ... }
+
+private function validateRegistration(array $inputs): array {
+    $errors = [];
+    if ($inputs['password'] !== $inputs['password_confirm']) {
+        $errors['password_confirm'] = 'Passwords do not match.';
+    }
+    return $errors; // empty = pass
+}
+```
+
+### Service-Wide Validation (Override)
+
+```php
+public function validate(array $inputs): array {
+    $errors = [];
+    if (isset($inputs['end_date']) && $inputs['end_date'] <= $inputs['start_date']) {
+        $errors['end_date'] = 'End date must be after start date.';
+    }
+    return $errors;
+}
+```
+
+Both run if defined — service-wide first, then method-specific. Errors are merged. If any errors exist, the request returns 422 with the error details.
 
 ## Dynamic Status Codes with ResponseEntity
 
@@ -566,6 +640,35 @@ For more examples, check the [examples](examples/) directory in this repository.
 - [`APIFilter`](https://webfiori.com/docs/webfiori/http/APIFilter) - Input filtering and validation
 - [`Request`](https://webfiori.com/docs/webfiori/http/Request) - HTTP request utilities
 - [`Response`](https://webfiori.com/docs/webfiori/http/Response) - HTTP response utilities
+- [`ErrorResponse`](https://webfiori.com/docs/webfiori/http/ErrorResponse) - Standardized error response generation
+- [`OpenAPIGenerator`](https://webfiori.com/docs/webfiori/http/OpenAPI/OpenAPIGenerator) - Standalone OpenAPI spec generation
+
+### Content Negotiation
+
+Use `#[Produces]` to declare what content types a method can return. The framework matches against the client's `Accept` header:
+
+```php
+use WebFiori\Http\Annotations\Produces;
+use WebFiori\Http\MediaType;
+use WebFiori\Http\ResponseEntity;
+
+#[GetMapping]
+#[ResponseBody]
+#[Produces(MediaType::JSON, MediaType::XML)]
+public function getUser(int $id): ResponseEntity {
+    $type = $this->getNegotiatedContentType();
+
+    if ($type === MediaType::XML) {
+        return new ResponseEntity('<user>...</user>', 200, MediaType::XML);
+    }
+
+    return ResponseEntity::ok(new Json(['id' => $id]));
+}
+```
+
+- No `#[Produces]` → always JSON (default, unchanged)
+- `Accept` header doesn't match → 406 Not Acceptable
+- `Accept: */*` or not set → server's first preference
 
 ## Contributing
 

@@ -20,9 +20,22 @@ use WebFiori\Json\JsonI;
  * is used to group related services. For example, if we have creat, read, write and
  * delete services, they can be added to one instance of this class.
  * 
- * When a request is made to the services set, An instance of the class must be created 
- * and the method <a href="#process">WebServicesManager::process()</a> must be called.
+ * @deprecated Use RequestProcessor for processing individual services directly.
  * 
+ * Migration:
+ * ```php
+ * // Before:
+ * $manager = new WebServicesManager();
+ * $manager->addService(new MyService());
+ * $manager->process();
+ * 
+ * // After:
+ * $processor = new RequestProcessor();
+ * $processor->process(new MyService());
+ * ```
+ * 
+ * For OpenAPI generation, use OpenAPI\OpenAPIGenerator.
+ * For error responses, use ErrorResponse.
  */
 class WebServicesManager implements JsonI {
     /**
@@ -213,10 +226,12 @@ class WebServicesManager implements JsonI {
      * request header.
      * 
      */
+    /**
+     * @deprecated Use ErrorResponse::contentTypeNotSupported() instead.
+     */
     public function contentTypeNotSupported(string $cType = '') {
-        $j = new Json();
-        $j->add('request-content-type', $cType);
-        $this->sendResponse(ResponseMessage::get('415'), 415, WebService::E, $j);
+        $result = ErrorResponse::contentTypeNotSupported($cType);
+        $this->send('application/json', $result['json'], $result['code']);
     }
     /**
      * Returns the base path for all services.
@@ -388,23 +403,12 @@ class WebServicesManager implements JsonI {
      * In addition to the message, The response will send HTTP code 404 - Not Found.
      * 
      */
+    /**
+     * @deprecated Use ErrorResponse::invalidParams() instead.
+     */
     public function invParams() {
-        $val = '';
-        $i = 0;
-        $paramsNamesArr = $this->getInvalidParameters();
-        $count = count($paramsNamesArr);
-
-        foreach ($paramsNamesArr as $paramName) {
-            if ($i + 1 == $count) {
-                $val .= '\''.$paramName.'\'';
-            } else {
-                $val .= '\''.$paramName.'\', ';
-            }
-            $i++;
-        }
-        $this->sendResponse(ResponseMessage::get('404-1').$val.'.', 404, WebService::E, new Json([
-            'invalid' => $paramsNamesArr
-        ]));
+        $result = ErrorResponse::invalidParams($this->getInvalidParameters());
+        $this->send('application/json', $result['json'], $result['code']);
     }
     /**
      * Checks if request content type is supported by the service or not (For 'POST' 
@@ -448,23 +452,12 @@ class WebServicesManager implements JsonI {
      * In addition to the message, The response will send HTTP code 404 - Not Found.
      * 
      */
+    /**
+     * @deprecated Use ErrorResponse::missingParams() instead.
+     */
     public function missingParams() {
-        $val = '';
-        $paramsNamesArr = $this->getMissingParameters();
-        $i = 0;
-        $count = count($paramsNamesArr);
-
-        foreach ($paramsNamesArr as $paramName) {
-            if ($i + 1 == $count) {
-                $val .= '\''.$paramName.'\'';
-            } else {
-                $val .= '\''.$paramName.'\', ';
-            }
-            $i++;
-        }
-        $this->sendResponse(ResponseMessage::get('404-2').$val.'.', 404, WebService::E, new Json([
-            'missing' => $paramsNamesArr
-        ]));
+        $result = ErrorResponse::missingParams($this->getMissingParameters());
+        $this->send('application/json', $result['json'], $result['code']);
     }
     /**
      * Sends a response message to tell the front-end that the parameter 
@@ -480,8 +473,12 @@ class WebServicesManager implements JsonI {
      * In addition to the message, The response will send HTTP code 404 - Not Found.
      * 
      */
+    /**
+     * @deprecated Use ErrorResponse::missingServiceName() instead.
+     */
     public function missingServiceName() {
-        $this->sendResponse(ResponseMessage::get('404-3'), 404, WebService::E);
+        $result = ErrorResponse::missingServiceName();
+        $this->send('application/json', $result['json'], $result['code']);
     }
     /**
      * Sends a response message to indicate that a user is not authorized call a 
@@ -497,15 +494,18 @@ class WebServicesManager implements JsonI {
      * In addition to the message, The response will send HTTP code 401 - Not Authorized.
      * 
      */
-    public function notAuth() {
-        $this->sendResponse(ResponseMessage::get('401'), 401, WebService::E);
+    /**
+     * @deprecated Use ErrorResponse::unauthorized() instead.
+     */
+    public function notAuth(?string $message = null) {
+        $result = ErrorResponse::unauthorized($message);
+        $this->send('application/json', $result['json'], $result['code']);
     }
 
     /**
      * Process user request.
      *
-     * This method must be called after creating any
-     * new instance of the class in order to process user request.
+     * @deprecated Use RequestProcessor::process() instead for processing individual services.
      *
      * @throws Exception
      */
@@ -621,8 +621,12 @@ class WebServicesManager implements JsonI {
      * In addition to the message, The response will send HTTP code 405 - Method Not Allowed.
      * 
      */
+    /**
+     * @deprecated Use ErrorResponse::methodNotAllowed() instead.
+     */
     public function requestMethodNotAllowed() {
-        $this->sendResponse(ResponseMessage::get('405'), 405, WebService::E);
+        $result = ErrorResponse::methodNotAllowed();
+        $this->send('application/json', $result['json'], $result['code']);
     }
     /**
      * Sends Back a data using specific content type and specific response code.
@@ -685,6 +689,7 @@ class WebServicesManager implements JsonI {
      * string, an object... . If null is given, the parameter 'more-info' 
      * will be not included in response. Default is empty string. Default is null.
      * 
+     * @deprecated Use ErrorResponse or Response directly instead.
      */
     public function sendResponse(string $message, int $code = 200, string $type = '', mixed $otherInfo = '') {
         $json = new Json();
@@ -729,24 +734,19 @@ class WebServicesManager implements JsonI {
      * In addition to the message, The response will send HTTP code 404 - Not Found.
      * 
      */
+    /**
+     * @deprecated Use ErrorResponse::serviceNotImplemented() instead.
+     */
     public function serviceNotImplemented() {
-        $this->sendResponse(ResponseMessage::get('404-4'), 404, WebService::E);
+        $result = ErrorResponse::serviceNotImplemented();
+        $this->send('application/json', $result['json'], $result['code']);
     }
     /**
-     * Sends a response message to indicate that called web service is not supported by the API.
-     * 
-     * This method will send back a JSON string in the following format:
-     * <p>
-     * {<br/>
-     * &nbsp;&nbsp;"message":"Action not supported",<br/>
-     * &nbsp;&nbsp;"type":"error"<br/>
-     * }
-     * </p>
-     * In addition to the message, The response will send HTTP code 404 - Not Found.
-     * 
+     * @deprecated Use ErrorResponse::serviceNotFound() instead.
      */
     public function serviceNotSupported() {
-        $this->sendResponse(ResponseMessage::get('404-5'), 404, WebService::E);
+        $result = ErrorResponse::serviceNotFound();
+        $this->send('application/json', $result['json'], $result['code']);
     }
     /**
      * Sets the base path for all services in this manager.
@@ -900,39 +900,32 @@ class WebServicesManager implements JsonI {
     /**
      * Converts the services manager to an OpenAPI document.
      * 
-     * This method generates a complete OpenAPI 3.1.0 specification document
-     * from the registered services. Each service becomes a path in the document.
+     * @deprecated Use OpenAPI\OpenAPIGenerator::generate() instead.
      * 
      * @return OpenAPI\OpenAPIObj The OpenAPI document.
      */
     public function toOpenAPI(): OpenAPI\OpenAPIObj {
-        $info = new OpenAPI\InfoObj(
+        $generator = new OpenAPI\OpenAPIGenerator();
+
+        return $generator->generate(
+            $this->getServices(),
             $this->getDescription(),
-            $this->getVersion()
+            $this->getVersion(),
+            $this->getBasePath()
         );
-
-        $openapi = new OpenAPI\OpenAPIObj($info);
-
-        $paths = new OpenAPI\PathsObj();
-
-        foreach ($this->getServices() as $service) {
-            $path = $this->basePath.'/'.$service->getName();
-            $paths->addPath($path, $service->toPathItemObj());
-        }
-
-        $openapi->setPaths($paths);
-
-        return $openapi;
     }
     private function _AfterParamsCheck($processReq) {
         if ($processReq) {
             $service = $this->getServiceByName($this->getCalledServiceName());
 
 
-            if ($this->isAuth($service)) {
+            $authResult = $this->isAuth($service);
+
+            if ($authResult === true) {
                 $this->processService($service);
             } else {
-                $this->notAuth();
+                $reason = is_string($authResult) ? $authResult : null;
+                $this->notAuth($reason);
             }
         } else if (count($this->missingParamsArr) != 0) {
             $this->missingParams();
@@ -993,12 +986,12 @@ class WebServicesManager implements JsonI {
 
         foreach ($params as $param) {
             if (!$param->isOptional() && !in_array($param->getName(), $paramsNames)) {
-                $this->missingParamsArr[] = $param->getName();
+                $this->missingParamsArr[] = $param;
                 $processReq = false;
             }
 
-            if ($i->get($param->getName()) === null) {
-                $this->invParamsArr[] = $param->getName();
+            if ($i->get($param->getName()) === null && !$param->isOptional()) {
+                $this->invParamsArr[] = $param;
                 $processReq = false;
             }
         }
@@ -1010,12 +1003,12 @@ class WebServicesManager implements JsonI {
 
         foreach ($params as $param) {
             if (!$param->isOptional() && !isset($i[$param->getName()])) {
-                $this->missingParamsArr[] = $param->getName();
+                $this->missingParamsArr[] = $param;
                 $processReq = false;
             }
 
             if (isset($i[$param->getName()]) && $i[$param->getName()] === 'INV') {
-                $this->invParamsArr[] = $param->getName();
+                $this->invParamsArr[] = $param;
                 $processReq = false;
             }
         }
@@ -1064,10 +1057,6 @@ class WebServicesManager implements JsonI {
         } else if ($reqMeth == RequestMethod::POST || 
                    $reqMeth == RequestMethod::PUT || 
                    $reqMeth == RequestMethod::PATCH) {
-            // Populate PUT/PATCH data before filtering
-            if ($reqMeth == RequestMethod::PUT || $reqMeth == RequestMethod::PATCH) {
-                $this->populatePutData($contentType);
-            }
             $this->filter->filterPOST();
         }
     }
@@ -1126,8 +1115,6 @@ class WebServicesManager implements JsonI {
             } else if ($reqMeth == RequestMethod::POST && isset($_POST[$serviceNameIndex])) {
                 $retVal = filter_var($_POST[$serviceNameIndex]);
             } else if ($reqMeth == RequestMethod::PUT || $reqMeth == RequestMethod::PATCH) {
-                $this->populatePutData($contentType);
-
                 if (isset($_POST[$serviceNameIndex])) {
                     $retVal = filter_var($_POST[$serviceNameIndex]);
                 }
@@ -1137,103 +1124,45 @@ class WebServicesManager implements JsonI {
         return $retVal;
     }
     private function isAuth(WebService $service) {
-        $isAuth = false;
-
         if ($service->isAuthRequired()) {
             // Check if method has authorization annotations
             if ($service->hasMethodAuthorizationAnnotations()) {
-                // Use annotation-based authorization
                 return $service->checkMethodAuthorization();
+            }
+
+            // If class-level #[RequiresAuth] is present, check SecurityContext
+            if ($service->hasClassLevelRequiresAuth()) {
+                return SecurityContext::isAuthenticated();
             }
 
             // Fall back to legacy HTTP-method-specific authorization
             $isAuthCheck = 'isAuthorized'.$this->getRequest()->getMethod();
 
             if (!method_exists($service, $isAuthCheck)) {
-                return $service->isAuthorized() === null || $service->isAuthorized();
+                $result = $service->isAuthorized();
+            } else {
+                $result = $service->$isAuthCheck();
             }
 
-            return $service->$isAuthCheck() === null || $service->$isAuthCheck();
+            if ($result === true || $result === null) {
+                return true;
+            }
+
+            // String means not authorized with a custom reason
+            if (is_string($result)) {
+                return $result;
+            }
+
+            return false;
         }
 
         return true;
     }
+    /**
+     * @deprecated Since 5.1.0. PUT/PATCH body parsing is now handled by Request::parsePutPatchBody().
+     */
     private function populatePutData(string $contentType) {
-        $contentType = $_SERVER['CONTENT_TYPE'] ?? '';
-        $input = file_get_contents('php://input');
-
-        if (empty($input)) {
-            return;
-        }
-
-        // Handle application/x-www-form-urlencoded
-        if (strpos($contentType, 'application/x-www-form-urlencoded') === 0) {
-            parse_str($input, $_POST);
-
-            return;
-        }
-
-        // Handle multipart/form-data
-        if (strpos($contentType, 'multipart/form-data') === 0) {
-            // Extract boundary from content type
-            preg_match('/boundary=(.+)$/', $contentType, $matches);
-
-            if (!isset($matches[1])) {
-                return;
-            }
-
-            $boundary = '--'.$matches[1];
-            $parts = explode($boundary, $input);
-
-            foreach ($parts as $part) {
-                if (trim($part) === '' || trim($part) === '--') {
-                    continue;
-                }
-
-                // Split headers and content
-                $sections = explode("\r\n\r\n", $part, 2);
-
-                if (count($sections) !== 2) {
-                    continue;
-                }
-
-                $headers = $sections[0];
-                $content = rtrim($sections[1], "\r\n");
-
-                // Parse Content-Disposition header
-                if (preg_match('/name="([^"]+)"/', $headers, $nameMatch)) {
-                    $fieldName = $nameMatch[1];
-
-                    // Check if it's a file upload
-                    if (preg_match('/filename="([^"]*)"/', $headers, $fileMatch)) {
-                        // Handle file upload
-                        $filename = $fileMatch[1];
-
-                        // Extract content type if present
-                        $fileType = 'application/octet-stream';
-
-                        if (preg_match('/Content-Type:\s*(.+)/i', $headers, $typeMatch)) {
-                            $fileType = trim($typeMatch[1]);
-                        }
-
-                        // Create temporary file
-                        $tmpFile = tempnam(sys_get_temp_dir(), 'put_upload_');
-                        file_put_contents($tmpFile, $content);
-
-                        $_FILES[$fieldName] = [
-                            'name' => $filename,
-                            'type' => $fileType,
-                            'tmp_name' => $tmpFile,
-                            'error' => UPLOAD_ERR_OK,
-                            'size' => strlen($content)
-                        ];
-                    } else {
-                        // Regular form field
-                        $_POST[$fieldName] = $content;
-                    }
-                }
-            }
-        }
+        // No-op: body parsing is now done in Request::createFromGlobals()
     }
     private function processService(WebService $service) {
         // Try auto-processing only if service has ResponseBody methods

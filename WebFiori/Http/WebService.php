@@ -12,6 +12,7 @@ namespace WebFiori\Http;
 
 use WebFiori\Http\Annotations\DeleteMapping;
 use WebFiori\Http\Annotations\GetMapping;
+use WebFiori\Http\Annotations\PatchMapping;
 use WebFiori\Http\Annotations\PostMapping;
 use WebFiori\Http\Annotations\PutMapping;
 use WebFiori\Http\Annotations\ResponseBody;
@@ -92,6 +93,12 @@ class WebService implements JsonI {
      * 
      */
     private $requireAuth;
+    /**
+     * The content type negotiated from the Accept header.
+     * 
+     * @var string|null
+     */
+    private $negotiatedContentType;
     /**
      * An array that contains descriptions of 
      * possible responses.
@@ -236,6 +243,14 @@ class WebService implements JsonI {
         }
     }
     /**
+     * Adds all parameters from a ParameterSet to this service.
+     * 
+     * @param ParameterSet $set The parameter set to add.
+     */
+    public function addParameterSet(ParameterSet $set) : void {
+        $this->addParameters($set->getParameters());
+    }
+    /**
      * Adds new request method.
      * 
      * The value that will be passed to this method can be any string 
@@ -319,8 +334,8 @@ class WebService implements JsonI {
 
         // Check RequiresAuth
         if ($hasRequiresAuth) {
-            // First call isAuthorized()
-            if (!$this->isAuthorized()) {
+            // Check SecurityContext directly instead of isAuthorized()
+            if (!SecurityContext::isAuthenticated()) {
                 return false;
             }
 
@@ -344,6 +359,11 @@ class WebService implements JsonI {
             $preAuth = $preAuthAttributes[0]->newInstance();
 
             return SecurityContext::evaluateExpression($preAuth->expression);
+        }
+
+        // If class has #[RequiresAuth], check SecurityContext
+        if ($this->hasClassLevelRequiresAuth()) {
+            return SecurityContext::isAuthenticated();
         }
 
         return $this->isAuthorized();
@@ -664,7 +684,7 @@ class WebService implements JsonI {
      * @return bool True if the user is allowed to perform the action. False otherwise.
      * 
      */
-    public function isAuthorized() : bool {
+    public function isAuthorized() : string|bool {
         return false;
     }
     /**
@@ -679,6 +699,27 @@ class WebService implements JsonI {
      */
     public function isAuthRequired() : bool {
         return $this->requireAuth;
+    }
+    /**
+     * Returns the content type negotiated from the client's Accept header.
+     * 
+     * Only meaningful when the method has a #[Produces] attribute.
+     * Defaults to 'application/json' if no negotiation occurred.
+     * 
+     * @return string The negotiated media type.
+     */
+    public function getNegotiatedContentType() : string {
+        return $this->negotiatedContentType ?? MediaType::JSON;
+    }
+    /**
+     * Checks if the class has a #[RequiresAuth] attribute.
+     * 
+     * @return bool True if the class-level RequiresAuth annotation is present.
+     */
+    public function hasClassLevelRequiresAuth() : bool {
+        $reflection = new \ReflectionClass($this);
+
+        return !empty($reflection->getAttributes(Annotations\RequiresAuth::class));
     }
 
     /**
@@ -711,6 +752,21 @@ class WebService implements JsonI {
      */
     public function processRequest() {
     }
+    /**
+     * Service-wide cross-field validation hook.
+     * 
+     * Override this method to add validation rules that depend on multiple
+     * parameters together. Called after individual parameter validation passes
+     * but before the request method is invoked.
+     * 
+     * @param array $inputs The filtered input values.
+     * 
+     * @return array An associative array of errors keyed by field name.
+     *               Return empty array if validation passes.
+     */
+    public function validate(array $inputs): array {
+        return [];
+    }
 
     /**
      * Process the web service request with auto-processing support.
@@ -727,7 +783,33 @@ class WebService implements JsonI {
                 return;
             }
 
+            // Content negotiation
+            $negotiated = $this->negotiateContentType($targetMethod);
+
+            if ($negotiated === null) {
+                $reflection = new \ReflectionMethod($this, $targetMethod);
+                $producesAttrs = $reflection->getAttributes(Annotations\Produces::class);
+                $supported = !empty($producesAttrs) ? $producesAttrs[0]->newInstance()->contentTypes : [MediaType::JSON];
+                $result = ErrorResponse::notAcceptable($supported);
+                $this->getManager()->send('application/json', $result['json'], $result['code']);
+
+                return;
+            }
+
+            $this->negotiatedContentType = $negotiated;
+
             try {
+                // Run cross-field validation
+                $validationErrors = $this->runValidation($targetMethod);
+
+                if (!empty($validationErrors)) {
+                    $this->sendResponse('Validation failed', 422, 'error', new \WebFiori\Json\Json([
+                        'errors' => $validationErrors
+                    ]));
+
+                    return;
+                }
+
                 // Inject parameters into method call
                 $params = $this->getMethodParameters($targetMethod);
                 $result = $this->$targetMethod(...$params);
@@ -1072,6 +1154,7 @@ class WebService implements JsonI {
             Annotations\PostMapping::class => RequestMethod::POST,
             Annotations\PutMapping::class => RequestMethod::PUT,
             Annotations\DeleteMapping::class => RequestMethod::DELETE,
+            Annotations\PatchMapping::class => RequestMethod::PATCH,
         ];
 
         foreach ($reflection->getMethods() as $method) {
@@ -1235,7 +1318,8 @@ class WebService implements JsonI {
                 GetMapping::class => RequestMethod::GET,
                 PostMapping::class => RequestMethod::POST,
                 PutMapping::class => RequestMethod::PUT,
-                DeleteMapping::class => RequestMethod::DELETE
+                DeleteMapping::class => RequestMethod::DELETE,
+                PatchMapping::class => RequestMethod::PATCH
             ];
 
             foreach ($methodMappings as $annotationClass => $httpMethod) {
@@ -1301,9 +1385,154 @@ class WebService implements JsonI {
     }
 
     /**
+     * Performs content negotiation for a method.
+     * 
+     * @param string $methodName The target method name.
+     * 
+     * @return string|null The negotiated content type, or null if no match (406).
+     */
+    private function negotiateContentType(string $methodName): ?string {
+        $reflection = new \ReflectionMethod($this, $methodName);
+        $producesAttrs = $reflection->getAttributes(Annotations\Produces::class);
+
+        if (empty($producesAttrs)) {
+            return MediaType::JSON;
+        }
+
+        $produces = $producesAttrs[0]->newInstance()->contentTypes;
+        $acceptHeader = $this->getAcceptHeader();
+
+        if (empty($acceptHeader)) {
+            return $produces[0];
+        }
+
+        $accepted = self::parseAcceptHeader($acceptHeader);
+
+        foreach ($accepted as $mediaType) {
+            if ($mediaType['type'] === '*/*' || $mediaType['type'] === 'application/*') {
+                return $produces[0];
+            }
+
+            if (in_array($mediaType['type'], $produces, true)) {
+                return $mediaType['type'];
+            }
+        }
+
+        return null;
+    }
+    /**
+     * Gets the Accept header value from the current request.
+     */
+    private function getAcceptHeader(): string {
+        $manager = $this->getManager();
+
+        if ($manager !== null) {
+            $accept = $manager->getRequest()->getHeader('accept');
+
+            return !empty($accept) ? $accept[0] : '';
+        }
+
+        return $_SERVER['HTTP_ACCEPT'] ?? '';
+    }
+    /**
+     * Parses an Accept header into a sorted list of media types by q-value.
+     * 
+     * @param string $header The raw Accept header value.
+     * 
+     * @return array Sorted array of ['type' => string, 'q' => float].
+     */
+    private static function parseAcceptHeader(string $header): array {
+        $types = [];
+
+        foreach (explode(',', $header) as $part) {
+            $segments = explode(';', trim($part));
+            $mediaType = trim($segments[0]);
+            $q = 1.0;
+
+            foreach ($segments as $segment) {
+                $segment = trim($segment);
+
+                if (str_starts_with($segment, 'q=')) {
+                    $q = (float) substr($segment, 2);
+                }
+            }
+
+            $types[] = ['type' => $mediaType, 'q' => $q];
+        }
+
+        usort($types, fn($a, $b) => $b['q'] <=> $a['q']);
+
+        return $types;
+    }
+    /**
+     * Runs cross-field validation: service-wide validate() + method-specific #[Validate].
+     * 
+     * @param string $targetMethod The method being invoked.
+     * 
+     * @return array Merged errors from both validators. Empty if all pass.
+     */
+    private function runValidation(string $targetMethod): array {
+        $inputs = $this->getInputs();
+
+        if ($inputs instanceof \WebFiori\Json\Json) {
+            $inputsArray = [];
+
+            foreach ($inputs->getPropsNames() as $name) {
+                $inputsArray[$name] = $inputs->get($name);
+            }
+        } else {
+            $inputsArray = is_array($inputs) ? $inputs : [];
+        }
+
+        // 1. Service-wide validation
+        $errors = $this->validate($inputsArray);
+
+        // 2. Method-specific #[Validate] attribute
+        $reflection = new \ReflectionMethod($this, $targetMethod);
+        $validateAttrs = $reflection->getAttributes(Annotations\Validate::class);
+
+        if (!empty($validateAttrs)) {
+            $validateAnnotation = $validateAttrs[0]->newInstance();
+            $validatorMethod = $validateAnnotation->method;
+
+            if (!method_exists($this, $validatorMethod)) {
+                throw new \InvalidArgumentException(
+                    "Validation method '$validatorMethod' referenced by #[Validate] does not exist on " . get_class($this)
+                );
+            }
+
+            $validatorReflection = new \ReflectionMethod($this, $validatorMethod);
+            $validatorReflection->setAccessible(true);
+            $methodErrors = $validatorReflection->invoke($this, $inputsArray);
+
+            if (is_array($methodErrors)) {
+                $errors = array_merge($errors, $methodErrors);
+            }
+        }
+
+        return $errors;
+    }
+    /**
      * Configure parameters from method RequestParam annotations.
      */
     private function configureParametersFromMethod(\ReflectionMethod $method): void {
+        // Process #[UseParameterSet] attributes first
+        $setAttributes = $method->getAttributes(Annotations\UseParameterSet::class);
+
+        foreach ($setAttributes as $setAttr) {
+            $setAnnotation = $setAttr->newInstance();
+            $className = $setAnnotation->class;
+
+            if (class_exists($className)) {
+                $setInstance = new $className();
+
+                if ($setInstance instanceof ParameterSet) {
+                    $this->addParameterSet($setInstance);
+                }
+            }
+        }
+
+        // Then process #[RequestParam] attributes
         $paramAttributes = $method->getAttributes(Annotations\RequestParam::class);
 
         foreach ($paramAttributes as $attribute) {
@@ -1318,6 +1547,18 @@ class WebService implements JsonI {
 
             if ($param->filter !== null) {
                 $options[ParamOption::FILTER] = $param->filter;
+            }
+
+            if (!empty($param->allowedValues)) {
+                $options[ParamOption::ALLOWED_VALUES] = $param->allowedValues;
+            }
+
+            if ($param->pattern !== null) {
+                $options[ParamOption::PATTERN] = $param->pattern;
+            }
+
+            if ($param->message !== null) {
+                $options[ParamOption::MESSAGE] = $param->message;
             }
 
             $this->addParameters([
@@ -1355,15 +1596,37 @@ class WebService implements JsonI {
             $mappedObject = $this->getObject($mapEntity->entityClass, $mapEntity->setters);
             $params[] = $mappedObject;
         } else {
-            // Use #[RequestParam] attributes for positional matching
+            // Build combined parameter name list: UseParameterSet params first, then RequestParam
+            $setAttrs = $reflection->getAttributes(Annotations\UseParameterSet::class);
+            $paramNames = [];
+
+            foreach ($setAttrs as $setAttr) {
+                $setAnnotation = $setAttr->newInstance();
+                $className = $setAnnotation->class;
+
+                if (class_exists($className)) {
+                    $setInstance = new $className();
+
+                    if ($setInstance instanceof ParameterSet) {
+                        foreach (array_keys($setInstance->getParameters()) as $name) {
+                            $paramNames[] = $name;
+                        }
+                    }
+                }
+            }
+
             $requestParamAttrs = $reflection->getAttributes(Annotations\RequestParam::class);
+
+            foreach ($requestParamAttrs as $rpAttr) {
+                $rp = $rpAttr->newInstance();
+                $paramNames[] = $rp->name;
+            }
+
             $methodParams = $reflection->getParameters();
 
             foreach ($methodParams as $index => $param) {
-                // If a RequestParam attribute exists at this position, use its name
-                if (isset($requestParamAttrs[$index])) {
-                    $annotation = $requestParamAttrs[$index]->newInstance();
-                    $value = $this->getParamVal($annotation->name);
+                if (isset($paramNames[$index])) {
+                    $value = $this->getParamVal($paramNames[$index]);
                 } else {
                     $value = $this->getParamVal($param->getName());
                 }
@@ -1418,7 +1681,8 @@ class WebService implements JsonI {
             GetMapping::class => RequestMethod::GET,
             PostMapping::class => RequestMethod::POST,
             PutMapping::class => RequestMethod::PUT,
-            DeleteMapping::class => RequestMethod::DELETE
+            DeleteMapping::class => RequestMethod::DELETE,
+            PatchMapping::class => RequestMethod::PATCH
         ];
 
         foreach ($methodMappings as $annotationClass => $mappedMethod) {

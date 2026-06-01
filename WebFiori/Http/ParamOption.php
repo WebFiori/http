@@ -67,4 +67,16 @@ class ParamOption {
      * Parameter type option. Applies to all data types.
      */
     const TYPE = 'type';
+    /**
+     * An option which is used to restrict parameter value to a set of allowed values.
+     */
+    const ALLOWED_VALUES = 'allowed-values';
+    /**
+     * An option which is used to set a regex pattern for string validation.
+     */
+    const PATTERN = 'pattern';
+    /**
+     * An option which is used to set a custom validation error message for the parameter.
+     */
+    const MESSAGE = 'message';
 }

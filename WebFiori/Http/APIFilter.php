@@ -168,10 +168,12 @@ class APIFilter {
             $defaultVal = $def[$paramIdx]->getDefault();
 
             if (isset($arr[$name])) {
-                if (gettype($arr[$name]) != 'array') {
-                    $toBeFiltered = urldecode($arr[$name]);
-                } else {
+                if (gettype($arr[$name]) == 'array') {
                     $toBeFiltered = self::decodeArray($arr[$name]);
+                } else if (gettype($arr[$name]) == 'boolean') {
+                    $toBeFiltered = $arr[$name];
+                } else {
+                    $toBeFiltered = urldecode($arr[$name]);
                 }
                 $retVal[$noFIdx][$name] = $toBeFiltered;
 
@@ -344,6 +346,9 @@ class APIFilter {
         if (gettype($toBeFiltered) == 'array') {
             return $toBeFiltered;
         }
+        if (gettype($toBeFiltered) == 'boolean') {
+            return $toBeFiltered;
+        }
         $toBeFiltered = strip_tags($toBeFiltered);
 
         $paramObj = $def['parameter'];
@@ -383,6 +388,10 @@ class APIFilter {
             }
         }
 
+        if ($returnVal !== self::INVALID) {
+            $returnVal = self::checkAllowedAndPattern($returnVal, $paramObj);
+        }
+
         return $returnVal;
     }
     private static function applyCustomFilterFunc($def, $toBeFiltered) {
@@ -420,12 +429,13 @@ class APIFilter {
             $toBeFiltered = strip_tags($toBeFiltered);
         }
 
-        if ($paramType == $toBeFilteredType || $toBeFilteredType == 'object' && $paramType == ParamType::JSON_OBJ) {
+        if ($paramType == $toBeFilteredType || $toBeFilteredType == 'object' && $paramType == ParamType::JSON_OBJ
+            || ($toBeFilteredType == 'string' && in_array($paramType, ParamType::getStringTypes()))) {
             if ($paramType == ParamType::BOOL) {
                 $extraClean->addBoolean($name, $toBeFiltered);
             } else if ($paramType == ParamType::DOUBLE || $paramType == ParamType::INT) {
                 $extraClean->addNumber($name, $toBeFiltered);
-            } else if ($paramType == 'string') {
+            } else if (in_array($paramType, ParamType::getStringTypes())) {
                 $this->cleanJsonStr($extraClean, $def, $toBeFiltered);
             } else if ($paramType == ParamType::ARR) {
                 $extraClean->addArray($name, $this->cleanJsonArray($toBeFiltered, true));
@@ -544,6 +554,11 @@ class APIFilter {
         $cleaned = $extraClean->get($name);
 
         if (strlen($cleaned) == 0 && $def['options']['options']['allow-empty'] === false) {
+            $extraClean->add($name, null);
+            return;
+        }
+
+        if ($cleaned !== null && self::checkAllowedAndPattern($cleaned, $def['parameter']) === self::INVALID) {
             $extraClean->add($name, null);
         }
     }
@@ -964,5 +979,28 @@ class APIFilter {
         }
 
         return false;
+    }
+    /**
+     * Checks allowed values and pattern constraints on a filtered value.
+     * 
+     * @param mixed $value The filtered value.
+     * @param RequestParameter $param The parameter definition.
+     * 
+     * @return mixed The value if valid, or self::INVALID if constraints fail.
+     */
+    private static function checkAllowedAndPattern($value, RequestParameter $param) {
+        $allowed = $param->getAllowedValues();
+
+        if (!empty($allowed) && !in_array($value, $allowed, true)) {
+            return self::INVALID;
+        }
+
+        $pattern = $param->getPattern();
+
+        if ($pattern !== null && is_string($value) && !preg_match($pattern, $value)) {
+            return self::INVALID;
+        }
+
+        return $value;
     }
 }

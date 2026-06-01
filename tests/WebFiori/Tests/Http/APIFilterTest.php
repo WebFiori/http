@@ -1418,6 +1418,37 @@ class APIFilterTest extends TestCase {
         $this->assertTrue($inputs['active'] === true || $inputs['active'] === 1);
         unset($_GET['active']);
     }
+
+    /**
+     * Regression test for #132: native PHP false is destroyed by strip_tags
+     * before the boolean type check.
+     */
+    public function testNativeBooleanFalse() {
+        $filter = new APIFilter();
+        $param = new RequestParameter('disabled', 'boolean');
+        $filter->addRequestParameter($param);
+
+        $_GET['disabled'] = false;
+        $filter->filterGET();
+        $inputs = $filter->getInputs();
+        $this->assertFalse($inputs['disabled']);
+        unset($_GET['disabled']);
+    }
+
+    /**
+     * Verify native PHP true still works.
+     */
+    public function testNativeBooleanTrue() {
+        $filter = new APIFilter();
+        $param = new RequestParameter('enabled', 'boolean');
+        $filter->addRequestParameter($param);
+
+        $_GET['enabled'] = true;
+        $filter->filterGET();
+        $inputs = $filter->getInputs();
+        $this->assertTrue($inputs['enabled']);
+        unset($_GET['enabled']);
+    }
     
     public function testOptionalParameterNotProvided() {
         $filter = new APIFilter();

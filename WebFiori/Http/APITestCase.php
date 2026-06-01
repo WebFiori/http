@@ -16,9 +16,8 @@ use WebFiori\Json\JsonException;
 /**
  * A helper class which is used to implement test cases for API calls.
  *
- * This class will mimic the process of sending HTTP request to an endpoint and
- * store the output temporarily on a file. At second stage, the developer
- * can read the output and compare it to an expected output.
+ * @deprecated Use WebFiori\Http\Test\ServiceTestCase instead for a simpler,
+ * memory-based testing approach with fluent assertions.
  * 
  * @author Ibrahim
  */
@@ -103,16 +102,14 @@ class APITestCase extends TestCase {
 
         $this->setupRequest($method, $serviceName, $parameters, $httpHeaders);
 
-        $manager->setOutputStream(fopen($this->getOutputFile(), 'w'));
+        $outFile = tempnam(sys_get_temp_dir(), 'api_test_');
+        $manager->setOutputStream(fopen($outFile, 'w'));
         $manager->setRequest(Request::createFromGlobals());
         SecurityContext::setCurrentUser($user);
         $manager->process();
 
-        $result = $manager->readOutputStream();
-
-        if (file_exists($this->getOutputFile())) {
-            unlink($this->getOutputFile());
-        }
+        $result = file_get_contents($outFile);
+        @unlink($outFile);
 
         return $this->formatOutput($result);
     }
