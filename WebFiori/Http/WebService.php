@@ -664,7 +664,7 @@ class WebService implements JsonI {
      * @return bool True if the user is allowed to perform the action. False otherwise.
      * 
      */
-    public function isAuthorized() : bool {
+    public function isAuthorized() : string|bool {
         return false;
     }
     /**
