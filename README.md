@@ -151,9 +151,14 @@ class HelloService extends AbstractWebService {
 }
 ```
 
-Both approaches work with `WebServicesManager`:
+Both approaches work with `RequestProcessor` (recommended) or `WebServicesManager`:
 
 ```php
+// Recommended: process a single service directly
+$processor = new RequestProcessor();
+$processor->process(new HelloService());
+
+// Legacy: register services in a manager
 $manager = new WebServicesManager();
 $manager->addService(new HelloService());
 $manager->process();
