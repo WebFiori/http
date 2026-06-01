@@ -236,6 +236,14 @@ class WebService implements JsonI {
         }
     }
     /**
+     * Adds all parameters from a ParameterSet to this service.
+     * 
+     * @param ParameterSet $set The parameter set to add.
+     */
+    public function addParameterSet(ParameterSet $set) : void {
+        $this->addParameters($set->getParameters());
+    }
+    /**
      * Adds new request method.
      * 
      * The value that will be passed to this method can be any string 
@@ -1304,6 +1312,23 @@ class WebService implements JsonI {
      * Configure parameters from method RequestParam annotations.
      */
     private function configureParametersFromMethod(\ReflectionMethod $method): void {
+        // Process #[UseParameterSet] attributes first
+        $setAttributes = $method->getAttributes(Annotations\UseParameterSet::class);
+
+        foreach ($setAttributes as $setAttr) {
+            $setAnnotation = $setAttr->newInstance();
+            $className = $setAnnotation->class;
+
+            if (class_exists($className)) {
+                $setInstance = new $className();
+
+                if ($setInstance instanceof ParameterSet) {
+                    $this->addParameterSet($setInstance);
+                }
+            }
+        }
+
+        // Then process #[RequestParam] attributes
         $paramAttributes = $method->getAttributes(Annotations\RequestParam::class);
 
         foreach ($paramAttributes as $attribute) {
@@ -1363,15 +1388,37 @@ class WebService implements JsonI {
             $mappedObject = $this->getObject($mapEntity->entityClass, $mapEntity->setters);
             $params[] = $mappedObject;
         } else {
-            // Use #[RequestParam] attributes for positional matching
+            // Build combined parameter name list: UseParameterSet params first, then RequestParam
+            $setAttrs = $reflection->getAttributes(Annotations\UseParameterSet::class);
+            $paramNames = [];
+
+            foreach ($setAttrs as $setAttr) {
+                $setAnnotation = $setAttr->newInstance();
+                $className = $setAnnotation->class;
+
+                if (class_exists($className)) {
+                    $setInstance = new $className();
+
+                    if ($setInstance instanceof ParameterSet) {
+                        foreach (array_keys($setInstance->getParameters()) as $name) {
+                            $paramNames[] = $name;
+                        }
+                    }
+                }
+            }
+
             $requestParamAttrs = $reflection->getAttributes(Annotations\RequestParam::class);
+
+            foreach ($requestParamAttrs as $rpAttr) {
+                $rp = $rpAttr->newInstance();
+                $paramNames[] = $rp->name;
+            }
+
             $methodParams = $reflection->getParameters();
 
             foreach ($methodParams as $index => $param) {
-                // If a RequestParam attribute exists at this position, use its name
-                if (isset($requestParamAttrs[$index])) {
-                    $annotation = $requestParamAttrs[$index]->newInstance();
-                    $value = $this->getParamVal($annotation->name);
+                if (isset($paramNames[$index])) {
+                    $value = $this->getParamVal($paramNames[$index]);
                 } else {
                     $value = $this->getParamVal($param->getName());
                 }
