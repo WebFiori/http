@@ -31,6 +31,12 @@ class Request extends HttpMessage {
         $request->setRequestMethod($request->getMethodFromGlobals());
         $request->setBody(file_get_contents('php://input'));
 
+        $method = $request->getMethod();
+
+        if ($method === RequestMethod::PUT || $method === RequestMethod::PATCH) {
+            $request->parsePutPatchBody();
+        }
+
         return $request;
     }
     /**
@@ -229,6 +235,35 @@ class Request extends HttpMessage {
     public function getUri() : RequestUri {
         return new RequestUri($this->getRequestedURI());
     }
+    /**
+     * Parses PUT/PATCH request bodies into $_POST and $_FILES.
+     * 
+     * PHP only auto-parses POST bodies. For PUT and PATCH, the raw body
+     * must be parsed manually for application/x-www-form-urlencoded and
+     * multipart/form-data content types.
+     */
+    public function parsePutPatchBody() : void {
+        $contentType = $_SERVER['CONTENT_TYPE'] ?? '';
+        $input = $this->getBody();
+
+        if (empty($input)) {
+            $input = file_get_contents('php://input');
+        }
+
+        if (empty($input)) {
+            return;
+        }
+
+        if (strpos($contentType, 'application/x-www-form-urlencoded') === 0) {
+            parse_str($input, $_POST);
+
+            return;
+        }
+
+        if (strpos($contentType, 'multipart/form-data') === 0) {
+            $this->parseMultipartBody($input, $contentType);
+        }
+    }
 
     private function extractHeaders() {
         $this->getHeadersPool()->clear();
@@ -311,5 +346,57 @@ class Request extends HttpMessage {
         }
 
         return $retVal;
+    }
+
+    private function parseMultipartBody(string $input, string $contentType) : void {
+        preg_match('/boundary=(.+)$/', $contentType, $matches);
+
+        if (!isset($matches[1])) {
+            return;
+        }
+
+        $boundary = '--'.$matches[1];
+        $parts = explode($boundary, $input);
+
+        foreach ($parts as $part) {
+            if (trim($part) === '' || trim($part) === '--') {
+                continue;
+            }
+
+            $sections = explode("\r\n\r\n", $part, 2);
+
+            if (count($sections) !== 2) {
+                continue;
+            }
+
+            $headers = $sections[0];
+            $content = rtrim($sections[1], "\r\n");
+
+            if (preg_match('/name="([^"]+)"/', $headers, $nameMatch)) {
+                $fieldName = $nameMatch[1];
+
+                if (preg_match('/filename="([^"]*)"/', $headers, $fileMatch)) {
+                    $filename = $fileMatch[1];
+                    $fileType = 'application/octet-stream';
+
+                    if (preg_match('/Content-Type:\s*(.+)/i', $headers, $typeMatch)) {
+                        $fileType = trim($typeMatch[1]);
+                    }
+
+                    $tmpFile = tempnam(sys_get_temp_dir(), 'put_upload_');
+                    file_put_contents($tmpFile, $content);
+
+                    $_FILES[$fieldName] = [
+                        'name' => $filename,
+                        'type' => $fileType,
+                        'tmp_name' => $tmpFile,
+                        'error' => UPLOAD_ERR_OK,
+                        'size' => strlen($content)
+                    ];
+                } else {
+                    $_POST[$fieldName] = $content;
+                }
+            }
+        }
     }
 }
