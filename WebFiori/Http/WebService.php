@@ -1320,6 +1320,14 @@ class WebService implements JsonI {
                 $options[ParamOption::FILTER] = $param->filter;
             }
 
+            if (!empty($param->allowedValues)) {
+                $options[ParamOption::ALLOWED_VALUES] = $param->allowedValues;
+            }
+
+            if ($param->pattern !== null) {
+                $options[ParamOption::PATTERN] = $param->pattern;
+            }
+
             $this->addParameters([
                 $param->name => $options
             ]);
