@@ -420,12 +420,13 @@ class APIFilter {
             $toBeFiltered = strip_tags($toBeFiltered);
         }
 
-        if ($paramType == $toBeFilteredType || $toBeFilteredType == 'object' && $paramType == ParamType::JSON_OBJ) {
+        if ($paramType == $toBeFilteredType || $toBeFilteredType == 'object' && $paramType == ParamType::JSON_OBJ
+            || ($toBeFilteredType == 'string' && in_array($paramType, ParamType::getStringTypes()))) {
             if ($paramType == ParamType::BOOL) {
                 $extraClean->addBoolean($name, $toBeFiltered);
             } else if ($paramType == ParamType::DOUBLE || $paramType == ParamType::INT) {
                 $extraClean->addNumber($name, $toBeFiltered);
-            } else if ($paramType == 'string') {
+            } else if (in_array($paramType, ParamType::getStringTypes())) {
                 $this->cleanJsonStr($extraClean, $def, $toBeFiltered);
             } else if ($paramType == ParamType::ARR) {
                 $extraClean->addArray($name, $this->cleanJsonArray($toBeFiltered, true));
