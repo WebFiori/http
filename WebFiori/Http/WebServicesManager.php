@@ -20,9 +20,22 @@ use WebFiori\Json\JsonI;
  * is used to group related services. For example, if we have creat, read, write and
  * delete services, they can be added to one instance of this class.
  * 
- * When a request is made to the services set, An instance of the class must be created 
- * and the method <a href="#process">WebServicesManager::process()</a> must be called.
+ * @deprecated Use RequestProcessor for processing individual services directly.
  * 
+ * Migration:
+ * ```php
+ * // Before:
+ * $manager = new WebServicesManager();
+ * $manager->addService(new MyService());
+ * $manager->process();
+ * 
+ * // After:
+ * $processor = new RequestProcessor();
+ * $processor->process(new MyService());
+ * ```
+ * 
+ * For OpenAPI generation, use OpenAPI\OpenAPIGenerator.
+ * For error responses, use ErrorResponse.
  */
 class WebServicesManager implements JsonI {
     /**
@@ -492,8 +505,7 @@ class WebServicesManager implements JsonI {
     /**
      * Process user request.
      *
-     * This method must be called after creating any
-     * new instance of the class in order to process user request.
+     * @deprecated Use RequestProcessor::process() instead for processing individual services.
      *
      * @throws Exception
      */
@@ -677,6 +689,7 @@ class WebServicesManager implements JsonI {
      * string, an object... . If null is given, the parameter 'more-info' 
      * will be not included in response. Default is empty string. Default is null.
      * 
+     * @deprecated Use ErrorResponse or Response directly instead.
      */
     public function sendResponse(string $message, int $code = 200, string $type = '', mixed $otherInfo = '') {
         $json = new Json();
