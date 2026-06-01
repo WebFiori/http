@@ -411,6 +411,36 @@ public function getData(int $id, ?string $name): array {
 }
 ```
 
+### Reusable Parameter Sets
+
+Implement the `ParameterSet` interface to group related parameters:
+
+```php
+class PaginationParams implements ParameterSet {
+    public function getParameters(): array {
+        return [
+            'page' => [ParamOption::TYPE => ParamType::INT, ParamOption::OPTIONAL => true, ParamOption::DEFAULT => 1],
+            'per_page' => [ParamOption::TYPE => ParamType::INT, ParamOption::OPTIONAL => true, ParamOption::DEFAULT => 20],
+        ];
+    }
+}
+```
+
+Use with attributes:
+
+```php
+#[GetMapping]
+#[ResponseBody]
+#[UseParameterSet(PaginationParams::class)]
+public function listItems(int $page = 1, int $perPage = 20): array { ... }
+```
+
+Or traditionally:
+
+```php
+$this->addParameterSet(new PaginationParams());
+```
+
 ## Dynamic Status Codes with ResponseEntity
 
 The `ResponseEntity` class allows `#[ResponseBody]` methods to return different HTTP status codes based on runtime logic:
