@@ -568,6 +568,8 @@ For more examples, check the [examples](examples/) directory in this repository.
 - [`APIFilter`](https://webfiori.com/docs/webfiori/http/APIFilter) - Input filtering and validation
 - [`Request`](https://webfiori.com/docs/webfiori/http/Request) - HTTP request utilities
 - [`Response`](https://webfiori.com/docs/webfiori/http/Response) - HTTP response utilities
+- [`ErrorResponse`](https://webfiori.com/docs/webfiori/http/ErrorResponse) - Standardized error response generation
+- [`OpenAPIGenerator`](https://webfiori.com/docs/webfiori/http/OpenAPI/OpenAPIGenerator) - Standalone OpenAPI spec generation
 
 ## Contributing
 

@@ -887,29 +887,19 @@ class WebServicesManager implements JsonI {
     /**
      * Converts the services manager to an OpenAPI document.
      * 
-     * This method generates a complete OpenAPI 3.1.0 specification document
-     * from the registered services. Each service becomes a path in the document.
+     * @deprecated Use OpenAPI\OpenAPIGenerator::generate() instead.
      * 
      * @return OpenAPI\OpenAPIObj The OpenAPI document.
      */
     public function toOpenAPI(): OpenAPI\OpenAPIObj {
-        $info = new OpenAPI\InfoObj(
+        $generator = new OpenAPI\OpenAPIGenerator();
+
+        return $generator->generate(
+            $this->getServices(),
             $this->getDescription(),
-            $this->getVersion()
+            $this->getVersion(),
+            $this->getBasePath()
         );
-
-        $openapi = new OpenAPI\OpenAPIObj($info);
-
-        $paths = new OpenAPI\PathsObj();
-
-        foreach ($this->getServices() as $service) {
-            $path = $this->basePath.'/'.$service->getName();
-            $paths->addPath($path, $service->toPathItemObj());
-        }
-
-        $openapi->setPaths($paths);
-
-        return $openapi;
     }
     private function _AfterParamsCheck($processReq) {
         if ($processReq) {
