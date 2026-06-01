@@ -12,6 +12,7 @@ namespace WebFiori\Http;
 
 use WebFiori\Http\Annotations\DeleteMapping;
 use WebFiori\Http\Annotations\GetMapping;
+use WebFiori\Http\Annotations\PatchMapping;
 use WebFiori\Http\Annotations\PostMapping;
 use WebFiori\Http\Annotations\PutMapping;
 use WebFiori\Http\Annotations\ResponseBody;
@@ -1080,6 +1081,7 @@ class WebService implements JsonI {
             Annotations\PostMapping::class => RequestMethod::POST,
             Annotations\PutMapping::class => RequestMethod::PUT,
             Annotations\DeleteMapping::class => RequestMethod::DELETE,
+            Annotations\PatchMapping::class => RequestMethod::PATCH,
         ];
 
         foreach ($reflection->getMethods() as $method) {
@@ -1243,7 +1245,8 @@ class WebService implements JsonI {
                 GetMapping::class => RequestMethod::GET,
                 PostMapping::class => RequestMethod::POST,
                 PutMapping::class => RequestMethod::PUT,
-                DeleteMapping::class => RequestMethod::DELETE
+                DeleteMapping::class => RequestMethod::DELETE,
+                PatchMapping::class => RequestMethod::PATCH
             ];
 
             foreach ($methodMappings as $annotationClass => $httpMethod) {
@@ -1473,7 +1476,8 @@ class WebService implements JsonI {
             GetMapping::class => RequestMethod::GET,
             PostMapping::class => RequestMethod::POST,
             PutMapping::class => RequestMethod::PUT,
-            DeleteMapping::class => RequestMethod::DELETE
+            DeleteMapping::class => RequestMethod::DELETE,
+            PatchMapping::class => RequestMethod::PATCH
         ];
 
         foreach ($methodMappings as $annotationClass => $mappedMethod) {
