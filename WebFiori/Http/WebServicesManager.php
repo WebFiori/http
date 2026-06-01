@@ -497,8 +497,9 @@ class WebServicesManager implements JsonI {
      * In addition to the message, The response will send HTTP code 401 - Not Authorized.
      * 
      */
-    public function notAuth() {
-        $this->sendResponse(ResponseMessage::get('401'), 401, WebService::E);
+    public function notAuth(?string $message = null) {
+        $msg = $message !== null ? $message : ResponseMessage::get('401');
+        $this->sendResponse($msg, 401, WebService::E);
     }
 
     /**
@@ -929,10 +930,13 @@ class WebServicesManager implements JsonI {
             $service = $this->getServiceByName($this->getCalledServiceName());
 
 
-            if ($this->isAuth($service)) {
+            $authResult = $this->isAuth($service);
+
+            if ($authResult === true) {
                 $this->processService($service);
             } else {
-                $this->notAuth();
+                $reason = is_string($authResult) ? $authResult : null;
+                $this->notAuth($reason);
             }
         } else if (count($this->missingParamsArr) != 0) {
             $this->missingParams();
@@ -1137,12 +1141,9 @@ class WebServicesManager implements JsonI {
         return $retVal;
     }
     private function isAuth(WebService $service) {
-        $isAuth = false;
-
         if ($service->isAuthRequired()) {
             // Check if method has authorization annotations
             if ($service->hasMethodAuthorizationAnnotations()) {
-                // Use annotation-based authorization
                 return $service->checkMethodAuthorization();
             }
 
@@ -1150,10 +1151,21 @@ class WebServicesManager implements JsonI {
             $isAuthCheck = 'isAuthorized'.$this->getRequest()->getMethod();
 
             if (!method_exists($service, $isAuthCheck)) {
-                return $service->isAuthorized() === null || $service->isAuthorized();
+                $result = $service->isAuthorized();
+            } else {
+                $result = $service->$isAuthCheck();
             }
 
-            return $service->$isAuthCheck() === null || $service->$isAuthCheck();
+            if ($result === true || $result === null) {
+                return true;
+            }
+
+            // String means not authorized with a custom reason
+            if (is_string($result)) {
+                return $result;
+            }
+
+            return false;
         }
 
         return true;
