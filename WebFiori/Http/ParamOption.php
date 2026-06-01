@@ -22,6 +22,14 @@ class ParamOption {
      */
     const DEFAULT = 'default';
     /**
+     * An option which is used to restrict parameter value to a set of allowed values.
+     */
+    const ALLOWED_VALUES = 'allowed-values';
+    /**
+     * An option which is used to set a regex pattern for string validation.
+     */
+    const PATTERN = 'pattern';
+    /**
      * An option which is used to set a description for the parameter
      */
     const DESCRIPTION = 'description';
