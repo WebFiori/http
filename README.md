@@ -441,6 +441,43 @@ Or traditionally:
 $this->addParameterSet(new PaginationParams());
 ```
 
+## Cross-Field Validation
+
+For validation rules that depend on multiple parameters together, use the `#[Validate]` attribute or override the `validate()` method:
+
+### Method-Specific Validation (Attribute)
+
+```php
+#[PostMapping]
+#[ResponseBody]
+#[Validate('validateRegistration')]
+#[RequestParam('password', ParamType::STRING)]
+#[RequestParam('password_confirm', ParamType::STRING)]
+public function register(string $password, string $passwordConfirm): array { ... }
+
+private function validateRegistration(array $inputs): array {
+    $errors = [];
+    if ($inputs['password'] !== $inputs['password_confirm']) {
+        $errors['password_confirm'] = 'Passwords do not match.';
+    }
+    return $errors; // empty = pass
+}
+```
+
+### Service-Wide Validation (Override)
+
+```php
+public function validate(array $inputs): array {
+    $errors = [];
+    if (isset($inputs['end_date']) && $inputs['end_date'] <= $inputs['start_date']) {
+        $errors['end_date'] = 'End date must be after start date.';
+    }
+    return $errors;
+}
+```
+
+Both run if defined — service-wide first, then method-specific. Errors are merged. If any errors exist, the request returns 422 with the error details.
+
 ## Dynamic Status Codes with ResponseEntity
 
 The `ResponseEntity` class allows `#[ResponseBody]` methods to return different HTTP status codes based on runtime logic:

@@ -735,6 +735,21 @@ class WebService implements JsonI {
      */
     public function processRequest() {
     }
+    /**
+     * Service-wide cross-field validation hook.
+     * 
+     * Override this method to add validation rules that depend on multiple
+     * parameters together. Called after individual parameter validation passes
+     * but before the request method is invoked.
+     * 
+     * @param array $inputs The filtered input values.
+     * 
+     * @return array An associative array of errors keyed by field name.
+     *               Return empty array if validation passes.
+     */
+    public function validate(array $inputs): array {
+        return [];
+    }
 
     /**
      * Process the web service request with auto-processing support.
@@ -752,6 +767,17 @@ class WebService implements JsonI {
             }
 
             try {
+                // Run cross-field validation
+                $validationErrors = $this->runValidation($targetMethod);
+
+                if (!empty($validationErrors)) {
+                    $this->sendResponse('Validation failed', 422, 'error', new \WebFiori\Json\Json([
+                        'errors' => $validationErrors
+                    ]));
+
+                    return;
+                }
+
                 // Inject parameters into method call
                 $params = $this->getMethodParameters($targetMethod);
                 $result = $this->$targetMethod(...$params);
@@ -1326,6 +1352,54 @@ class WebService implements JsonI {
         }
     }
 
+    /**
+     * Runs cross-field validation: service-wide validate() + method-specific #[Validate].
+     * 
+     * @param string $targetMethod The method being invoked.
+     * 
+     * @return array Merged errors from both validators. Empty if all pass.
+     */
+    private function runValidation(string $targetMethod): array {
+        $inputs = $this->getInputs();
+
+        if ($inputs instanceof \WebFiori\Json\Json) {
+            $inputsArray = [];
+
+            foreach ($inputs->getPropsNames() as $name) {
+                $inputsArray[$name] = $inputs->get($name);
+            }
+        } else {
+            $inputsArray = is_array($inputs) ? $inputs : [];
+        }
+
+        // 1. Service-wide validation
+        $errors = $this->validate($inputsArray);
+
+        // 2. Method-specific #[Validate] attribute
+        $reflection = new \ReflectionMethod($this, $targetMethod);
+        $validateAttrs = $reflection->getAttributes(Annotations\Validate::class);
+
+        if (!empty($validateAttrs)) {
+            $validateAnnotation = $validateAttrs[0]->newInstance();
+            $validatorMethod = $validateAnnotation->method;
+
+            if (!method_exists($this, $validatorMethod)) {
+                throw new \InvalidArgumentException(
+                    "Validation method '$validatorMethod' referenced by #[Validate] does not exist on " . get_class($this)
+                );
+            }
+
+            $validatorReflection = new \ReflectionMethod($this, $validatorMethod);
+            $validatorReflection->setAccessible(true);
+            $methodErrors = $validatorReflection->invoke($this, $inputsArray);
+
+            if (is_array($methodErrors)) {
+                $errors = array_merge($errors, $methodErrors);
+            }
+        }
+
+        return $errors;
+    }
     /**
      * Configure parameters from method RequestParam annotations.
      */
