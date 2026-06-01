@@ -31,12 +31,6 @@ class RequestParameter implements JsonI {
      * @var array
      */
     public const RESERVED_NAMES = ['action', 'service', 'service-name'];
-    /**
-     * An array of allowed values for the parameter.
-     * 
-     * @var array
-     */
-    private $allowedValues;
 
 
     /** A boolean value that is set to true in case the 
@@ -123,12 +117,6 @@ class RequestParameter implements JsonI {
      * 
      */
     private $name;
-    /**
-     * A regex pattern for validating string parameters.
-     * 
-     * @var string|null
-     */
-    private $pattern;
     /**
      * The type of the data the parameter will represent.
      * 
@@ -313,14 +301,6 @@ class RequestParameter implements JsonI {
         return null;
     }
     /**
-     * Returns the array of allowed values for the parameter.
-     * 
-     * @return array The allowed values. Empty array means no restriction.
-     */
-    public function getAllowedValues() : array {
-        return $this->allowedValues;
-    }
-    /**
      * Returns the function that is used as a custom filter 
      * for the parameter.
      * 
@@ -423,14 +403,6 @@ class RequestParameter implements JsonI {
         return $this->name;
     }
     /**
-     * Returns the regex pattern used for validation.
-     * 
-     * @return string|null The pattern or null if not set.
-     */
-    public function getPattern() : ?string {
-        return $this->pattern;
-    }
-    /**
      * Returns the type of the parameter.
      * 
      * @return string The type of the parameter (Such as 'string', 'email', 'integer').
@@ -513,14 +485,6 @@ class RequestParameter implements JsonI {
      */
     public function isOptional() : bool {
         return $this->isOptional;
-    }
-    /**
-     * Sets the allowed values for the parameter.
-     * 
-     * @param array $values An array of permitted values.
-     */
-    public function setAllowedValues(array $values) : void {
-        $this->allowedValues = $values;
     }
     /**
      * Sets a callback method to work as a filter for request parameter.
@@ -781,22 +745,6 @@ class RequestParameter implements JsonI {
                 throw new \InvalidArgumentException("Parameter name '$nameTrimmed' is reserved and cannot be used. Reserved names: ".implode(', ', self::RESERVED_NAMES));
             }
 
-
-            return true;
-        }
-
-        return false;
-    }
-    /**
-     * Sets a regex pattern for validating the parameter value.
-     * 
-     * @param string $regex A valid PHP regex (e.g. '/^[a-z]+$/').
-     * 
-     * @return bool True if the regex is valid and was set, false otherwise.
-     */
-    public function setPattern(string $regex) : bool {
-        if (@preg_match($regex, '') !== false) {
-            $this->pattern = $regex;
 
             return true;
         }

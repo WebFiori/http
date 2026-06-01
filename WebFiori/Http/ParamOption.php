@@ -17,22 +17,10 @@ namespace WebFiori\Http;
  */
 class ParamOption {
     /**
-     * An option which is used to restrict parameter value to a set of allowed values.
-     */
-    const ALLOWED_VALUES = 'allowed-values';
-    /**
      * An option which is used to set default value if parameter is optional and
      * not provided.
      */
     const DEFAULT = 'default';
-    /**
-     * An option which is used to restrict parameter value to a set of allowed values.
-     */
-    const ALLOWED_VALUES = 'allowed-values';
-    /**
-     * An option which is used to set a regex pattern for string validation.
-     */
-    const PATTERN = 'pattern';
     /**
      * An option which is used to set a description for the parameter
      */
@@ -76,11 +64,15 @@ class ParamOption {
      */
     const OPTIONAL = 'optional';
     /**
-     * An option which is used to set a regex pattern for string validation.
-     */
-    const PATTERN = 'pattern';
-    /**
      * Parameter type option. Applies to all data types.
      */
     const TYPE = 'type';
+    /**
+     * An option which is used to restrict parameter value to a set of allowed values.
+     */
+    const ALLOWED_VALUES = 'allowed-values';
+    /**
+     * An option which is used to set a regex pattern for string validation.
+     */
+    const PATTERN = 'pattern';
 }
