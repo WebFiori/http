@@ -168,10 +168,12 @@ class APIFilter {
             $defaultVal = $def[$paramIdx]->getDefault();
 
             if (isset($arr[$name])) {
-                if (gettype($arr[$name]) != 'array') {
-                    $toBeFiltered = urldecode($arr[$name]);
-                } else {
+                if (gettype($arr[$name]) == 'array') {
                     $toBeFiltered = self::decodeArray($arr[$name]);
+                } else if (gettype($arr[$name]) == 'boolean') {
+                    $toBeFiltered = $arr[$name];
+                } else {
+                    $toBeFiltered = urldecode($arr[$name]);
                 }
                 $retVal[$noFIdx][$name] = $toBeFiltered;
 
@@ -342,6 +344,9 @@ class APIFilter {
     }
     private static function applyBasicFilterOnly($def,$toBeFiltered) {
         if (gettype($toBeFiltered) == 'array') {
+            return $toBeFiltered;
+        }
+        if (gettype($toBeFiltered) == 'boolean') {
             return $toBeFiltered;
         }
         $toBeFiltered = strip_tags($toBeFiltered);
