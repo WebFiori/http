@@ -22,6 +22,7 @@ A powerful and flexible PHP library for creating RESTful web APIs with built-in 
 
 ## Table of Contents
 
+- [Motivation](#motivation)
 - [Supported PHP Versions](#supported-php-versions)
 - [Key Features](#key-features)
 - [Installation](#installation)
@@ -38,6 +39,18 @@ A powerful and flexible PHP library for creating RESTful web APIs with built-in 
 - [Testing](#testing)
 - [Examples](#examples)
 
+
+## Motivation
+
+With well-established PHP HTTP libraries available, you might wonder why this one exists.
+
+**Validation is not optional.** In most frameworks, input validation is a separate step you wire up after defining your routes. Here, you cannot define an endpoint without declaring exactly what data it accepts, its type, and how it should be validated. The API contract is the code.
+
+**Minimal dependencies.** The library has a single runtime dependency (`webfiori/jsonx`). No PSR-7 stack, no framework coupling, no transitive dependency tree. What you install is what you get.
+
+**One service, one unit.** Each endpoint is a self-contained object with its own parameters, authorization logic, and processing — independently testable and self-documenting. Built-in OpenAPI spec generation is a natural result of this design.
+
+**Full control.** Request parsing, header management, content negotiation, and response handling are all implemented internally. No hidden layers, no framework tax.
 
 ## Supported PHP Versions
 
