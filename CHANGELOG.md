@@ -1,5 +1,12 @@
 # Changelog
 
+## [6.0.1](https://github.com/WebFiori/http/compare/v6.0.0...v6.0.1) (2026-06-13)
+
+
+### Miscellaneous Chores
+
+* JsonX Bump-up ([10837f2](https://github.com/WebFiori/http/commit/10837f2faeaa49395d6f68385102ef9a77e5f33e))
+
 ## [6.0.0](https://github.com/WebFiori/http/compare/v5.0.8...v6.0.0) (2026-06-01)
 
 
