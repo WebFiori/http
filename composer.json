@@ -16,7 +16,7 @@
     "license": "MIT",
     "require": {
         "php": ">=8.1",
-        "webfiori/jsonx": "4.0.x",
+        "webfiori/jsonx": "5.0.x",
         "ext-json": "*",
         "ext-mbstring": "*"
     },
