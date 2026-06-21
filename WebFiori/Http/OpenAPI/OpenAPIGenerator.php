@@ -38,7 +38,7 @@ class OpenAPIGenerator {
 
         foreach ($services as $service) {
             if ($service instanceof WebService) {
-                $path = $basePath.'/'.$service->getName();
+                $path = $basePath.'/'.$service->getPath();
                 $paths->addPath($path, $service->toPathItemObj());
             }
         }

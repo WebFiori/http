@@ -17,7 +17,8 @@ use Attribute;
 class RestController {
     public function __construct(
         public readonly string $name = '',
-        public readonly string $description = ''
+        public readonly string $description = '',
+        public readonly string $path = ''
     ) {
     }
 }

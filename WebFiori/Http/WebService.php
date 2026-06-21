@@ -124,6 +124,12 @@ class WebService implements JsonI {
      */
     private $sinceVersion;
     /**
+     * Custom route path for this service.
+     * 
+     * @var string
+     */
+    private string $servicePath = '';
+    /**
      * Creates new instance of the class.
      * 
      * The developer can supply an optional service name. 
@@ -459,6 +465,31 @@ class WebService implements JsonI {
      */
     public final function getName() : string {
         return $this->name;
+    }
+    /**
+     * Returns the custom route path for this service.
+     * 
+     * If a path is set, it will be used for URL routing and OpenAPI spec
+     * generation instead of the service name. If not set, falls back to
+     * the service name.
+     * 
+     * @return string The custom path, or the service name if no path is set.
+     */
+    public final function getPath() : string {
+        return $this->servicePath !== '' ? $this->servicePath : $this->name;
+    }
+    /**
+     * Sets a custom route path for this service.
+     * 
+     * The path may contain slashes for multi-segment URLs (e.g., 'auth/login').
+     * 
+     * @param string $path The route path.
+     * 
+     * @return self
+     */
+    public function setPath(string $path) : self {
+        $this->servicePath = trim($path, '/');
+        return $this;
     }
     /**
      * Map service parameter to specific instance of a class.
@@ -1335,6 +1366,10 @@ class WebService implements JsonI {
             $restController = $attributes[0]->newInstance();
             $serviceName = $restController->name ?: $fallbackName;
             $description = $restController->description;
+
+            if ($restController->path !== '') {
+                $this->setPath($restController->path);
+            }
         } else {
             $serviceName = $fallbackName;
             $description = '';
