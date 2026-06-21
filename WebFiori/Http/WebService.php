@@ -124,6 +124,12 @@ class WebService implements JsonI {
      */
     private $sinceVersion;
     /**
+     * Custom route path for this service.
+     * 
+     * @var string
+     */
+    private string $servicePath = '';
+    /**
      * Creates new instance of the class.
      * 
      * The developer can supply an optional service name. 
@@ -459,6 +465,31 @@ class WebService implements JsonI {
      */
     public final function getName() : string {
         return $this->name;
+    }
+    /**
+     * Returns the custom route path for this service.
+     * 
+     * If a path is set, it will be used for URL routing and OpenAPI spec
+     * generation instead of the service name. If not set, falls back to
+     * the service name.
+     * 
+     * @return string The custom path, or the service name if no path is set.
+     */
+    public final function getPath() : string {
+        return $this->servicePath !== '' ? $this->servicePath : $this->name;
+    }
+    /**
+     * Sets a custom route path for this service.
+     * 
+     * The path may contain slashes for multi-segment URLs (e.g., 'auth/login').
+     * 
+     * @param string $path The route path.
+     * 
+     * @return self
+     */
+    public function setPath(string $path) : self {
+        $this->servicePath = trim($path, '/');
+        return $this;
     }
     /**
      * Map service parameter to specific instance of a class.
@@ -1086,13 +1117,18 @@ class WebService implements JsonI {
     public function toPathItemObj(): OpenAPI\PathItemObj {
         $pathItem = new OpenAPI\PathItemObj();
         $annotatedParams = $this->getAnnotatedRequestParams();
+        $annotatedResponses = $this->getAnnotatedApiResponses();
 
         foreach ($this->getRequestMethods() as $method) {
             $responses = $this->getResponsesForMethod($method);
 
             if ($responses === null) {
-                $responses = new OpenAPI\ResponsesObj();
-                $responses->addResponse('200', 'Successful operation');
+                if (isset($annotatedResponses[$method])) {
+                    $responses = $annotatedResponses[$method];
+                } else {
+                    $responses = new OpenAPI\ResponsesObj();
+                    $responses->addResponse('200', 'Successful operation');
+                }
             }
 
             $operation = new OpenAPI\OperationObj($responses);
@@ -1169,6 +1205,47 @@ class WebService implements JsonI {
             foreach ($mappings as $annotationClass => $httpMethod) {
                 if (!empty($method->getAttributes($annotationClass))) {
                     $result[$httpMethod] = array_merge($result[$httpMethod] ?? [], $params);
+                }
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Reads #[ApiResponse] annotations from methods and groups them by HTTP method.
+     *
+     * @return array<string, OpenAPI\ResponsesObj> Map of HTTP method to ResponsesObj.
+     */
+    private function getAnnotatedApiResponses(): array {
+        $reflection = new \ReflectionClass($this);
+        $result = [];
+
+        $mappings = [
+            Annotations\GetMapping::class => RequestMethod::GET,
+            Annotations\PostMapping::class => RequestMethod::POST,
+            Annotations\PutMapping::class => RequestMethod::PUT,
+            Annotations\DeleteMapping::class => RequestMethod::DELETE,
+            Annotations\PatchMapping::class => RequestMethod::PATCH,
+        ];
+
+        foreach ($reflection->getMethods() as $method) {
+            $responseAttrs = $method->getAttributes(Annotations\ApiResponse::class);
+
+            if (empty($responseAttrs)) {
+                continue;
+            }
+
+            foreach ($mappings as $annotationClass => $httpMethod) {
+                if (!empty($method->getAttributes($annotationClass))) {
+                    if (!isset($result[$httpMethod])) {
+                        $result[$httpMethod] = new OpenAPI\ResponsesObj();
+                    }
+
+                    foreach ($responseAttrs as $attr) {
+                        $instance = $attr->newInstance();
+                        $result[$httpMethod]->addResponse($instance->status, $instance->description);
+                    }
                 }
             }
         }
@@ -1289,6 +1366,10 @@ class WebService implements JsonI {
             $restController = $attributes[0]->newInstance();
             $serviceName = $restController->name ?: $fallbackName;
             $description = $restController->description;
+
+            if ($restController->path !== '') {
+                $this->setPath($restController->path);
+            }
         } else {
             $serviceName = $fallbackName;
             $description = '';
@@ -1735,19 +1816,23 @@ class WebService implements JsonI {
         // Handle custom content types
         if ($contentType !== 'application/json') {
             // For non-JSON content types, send raw result
-            if (is_array($result)) {
+            if ($result instanceof Json) {
+                $this->send($contentType, $result . '', $responseBody->status);
+            } else if ($result instanceof JsonI) {
+                $this->send($contentType, $result->toJSON() . '', $responseBody->status);
+            } else if (is_array($result)) {
                 $content = new Json();
                 $content->addArray('data', $result, !array_is_list($result));
                 $contentType = 'application/json';
+                $this->send($contentType, $content, $responseBody->status);
             } else if (is_object($result)) {
                 $content = new Json();
                 $content->addObject('data', $result);
                 $contentType = 'application/json';
+                $this->send($contentType, $content, $responseBody->status);
             } else {
-                $content = (string)$result;
+                $this->send($contentType, (string)$result, $responseBody->status);
             }
-
-            $this->send($contentType, $content, $responseBody->status);
 
             return;
         }
@@ -1775,17 +1860,14 @@ class WebService implements JsonI {
         if ($result === null) {
             // Null return = empty response with configured status
             $this->sendResponse('', $responseBody->status, $responseBody->type);
+        } else if ($result instanceof Json) {
+            $this->send($responseBody->contentType, $result . '', $responseBody->status);
+        } else if ($result instanceof JsonI) {
+            $this->send($responseBody->contentType, $result->toJSON() . '', $responseBody->status);
         } else if (is_array($result) || is_object($result)) {
-            // Array/object = JSON response
-            if ($result instanceof Json) {
-                $json = $result;
-            } else if ($result instanceof JsonI) {
-                $json = $result->toJSON();
-            } else {
-                $json = new Json();
-                $asObj = is_array($result) && !array_is_list($result);
-                $json->add('data', $result, $asObj);
-            }
+            $json = new Json();
+            $asObj = is_array($result) && !array_is_list($result);
+            $json->add('data', $result, $asObj);
             $this->send($responseBody->contentType, $json, $responseBody->status);
         } else {
             // String/scalar = plain response
