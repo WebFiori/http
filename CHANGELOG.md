@@ -1,5 +1,82 @@
 # Changelog
 
+## [6.0.0](https://github.com/WebFiori/http/compare/v5.0.8...v6.0.0) (2026-06-01)
+
+
+### ⚠ BREAKING CHANGES
+
+* **#113:** Validation error responses now return HTTP 422 instead of 404.
+
+### Features
+
+* **#111:** allow isAuthorized() to return string as denial reason ([9186547](https://github.com/WebFiori/http/commit/91865474f66287bf1002223e778ce4aec5730882))
+* **#111:** allow isAuthorized() to return string as denial reason ([19a1b8f](https://github.com/WebFiori/http/commit/19a1b8f50ecf703198835bf0ff61330426995708))
+* **#113:** change validation errors to 422 and add custom error messages ([26341e2](https://github.com/WebFiori/http/commit/26341e24b66edafbe6f393b72240e6f313ea7dec))
+* **#114:** add allowed-values and pattern validation to RequestParameter ([f86f5c8](https://github.com/WebFiori/http/commit/f86f5c85ada5b9858d25983f0b9a9e79bcf8b64e))
+* **#114:** add allowed-values and pattern validation to RequestParameter ([e74d92d](https://github.com/WebFiori/http/commit/e74d92d80014b37bca9657d561e1bcd21e3a9071))
+* **#114:** add allowed-values and pattern validation to RequestParameter ([161ee39](https://github.com/WebFiori/http/commit/161ee39d483a53c2d5a8bf999a621a84714212c9))
+* **#115:** add cross-field validation with #[Validate] attribute ([2793917](https://github.com/WebFiori/http/commit/2793917b3388689930ed02bd2943f25d64f0851d))
+* **#115:** add cross-field validation with #[Validate] attribute ([851d6a0](https://github.com/WebFiori/http/commit/851d6a0356e1182762e0e4700daea8002dd11457))
+* **#116:** add reusable parameter sets with ParameterSet interface ([5bd309a](https://github.com/WebFiori/http/commit/5bd309ae3337dbfaa8d5bd508c7d4ed89604dd64))
+* **#116:** add reusable parameter sets with ParameterSet interface ([90e6914](https://github.com/WebFiori/http/commit/90e6914c14c30faa263d79f02ffe6e52b3555dfe))
+* **#117:** #[RequiresAuth] checks SecurityContext::isAuthenticated() directly ([b60aa66](https://github.com/WebFiori/http/commit/b60aa66028027164e396d7c4c06d90c8c13bac26))
+* **#117:** #[RequiresAuth] checks SecurityContext::isAuthenticated() directly ([2598fb9](https://github.com/WebFiori/http/commit/2598fb98f2b8363ef4a6aceb85df1b87eed20f5d))
+* **#121:** create RequestProcessor class ([7810da5](https://github.com/WebFiori/http/commit/7810da574c445c553db0c710b991430b60732080))
+* **#121:** create RequestProcessor class ([d06f00e](https://github.com/WebFiori/http/commit/d06f00ed204018fe369c0849801e49926db15e4f))
+* add content negotiation with #[Produces] attribute ([bc33b35](https://github.com/WebFiori/http/commit/bc33b351e27c333d11e0da1d849d769336ab717a))
+* add content negotiation with #[Produces] attribute and MediaType constants ([0826ce1](https://github.com/WebFiori/http/commit/0826ce1b1e276aeb37ce06f2da5ab7f8bc754a3c))
+* add ServiceTestCase and TestResponse for simplified service testing ([01ce116](https://github.com/WebFiori/http/commit/01ce116d6bd3769eb00748e474942ff96fdf4719))
+
+
+### Bug Fixes
+
+* **#112:** EMAIL param injection returns null for JSON body requests ([8147a7d](https://github.com/WebFiori/http/commit/8147a7d83e8b63685d7261be2afec981294e608e))
+* **#112:** EMAIL param injection returns null for JSON body requests ([4425b60](https://github.com/WebFiori/http/commit/4425b605312393af88e986cf4b1f347c5929d8d4))
+* **#132:** preserve native PHP boolean false in APIFilter ([e28ef9f](https://github.com/WebFiori/http/commit/e28ef9f0204f3a76f2196bf0f4b8be89c1f5edf5))
+* add missing PatchMapping annotation class ([8107785](https://github.com/WebFiori/http/commit/81077850b5db5148f135f713808169321de3c748))
+* remove [@depends](https://github.com/depends) from tests for PHPUnit 12 compatibility ([2b9a2e3](https://github.com/WebFiori/http/commit/2b9a2e3a4daf92a3e377923112584cc0573993fb))
+* remove duplicate property and method declarations ([56cd360](https://github.com/WebFiori/http/commit/56cd360d9f0aab8558179f96c4a619c16c35d426))
+
+
+### Miscellaneous Chores
+
+* exclude tests and examples from SonarCloud duplication detection ([04f7d99](https://github.com/WebFiori/http/commit/04f7d99f6816e11aef046591a7f1ce4978b46e3f))
+* unify phpunit config, update CI to workflows v1.2.5 ([4a45a68](https://github.com/WebFiori/http/commit/4a45a68bf03157464000e0f98146dd9faec01545))
+
+## [5.0.8](https://github.com/WebFiori/http/compare/v5.0.7...v5.0.8) (2026-05-05)
+
+
+### Features
+
+* add ResponseEntity class for dynamic HTTP status codes with #[ResponseBody] ([09162ce](https://github.com/WebFiori/http/commit/09162ce7f8f6954101334e8a9a79a8212b6cf676)), closes [#107](https://github.com/WebFiori/http/issues/107)
+
+
+### Bug Fixes
+
+* resolve method parameter injection for hyphenated request param names ([83caed4](https://github.com/WebFiori/http/commit/83caed403b1ccc4f51f84faaa84ce4f326cdceeb)), closes [#106](https://github.com/WebFiori/http/issues/106)
+
+
+### Miscellaneous Chores
+
+* Merge pull request [#110](https://github.com/WebFiori/http/issues/110) from WebFiori/dev ([fa077cd](https://github.com/WebFiori/http/commit/fa077cdd649719ce6eca3f745a2f14cd0afd38cc))
+
+## [5.0.7](https://github.com/WebFiori/http/compare/v5.0.6...v5.0.7) (2026-05-03)
+
+
+### Features
+
+* OpenAPI Support for Annotations ([5b99eb5](https://github.com/WebFiori/http/commit/5b99eb593c8b2df765a76572189cc24eb8d9af90))
+
+
+### Bug Fixes
+
+* Annotations on `processRequest` ([23ac100](https://github.com/WebFiori/http/commit/23ac1004b852f96a3444607d0be38149b451d5fd))
+
+
+### Miscellaneous Chores
+
+* Version Update ([442f336](https://github.com/WebFiori/http/commit/442f336dbc3a973b2d63e161a94f1d63bb99f775))
+
 ## [5.0.6](https://github.com/WebFiori/http/compare/v5.0.5...v5.0.6) (2026-04-28)
 
 

@@ -313,7 +313,7 @@ class WebServicesManagerTest extends APITestCase {
         $api = new SampleServicesManager();
         $api->setOutputStream($this->outputStreamName);
         $api->process();
-        $this->assertEquals('{"user":{"Id":99,"FullName":"Ibx"}}', $api->readOutputStream());
+        $this->assertEquals('{"user":{"Id":99,"FullName":"Ibx","Username":null}}', $api->readOutputStream());
     }
     /**
      * @test
