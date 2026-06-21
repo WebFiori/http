@@ -1781,19 +1781,23 @@ class WebService implements JsonI {
         // Handle custom content types
         if ($contentType !== 'application/json') {
             // For non-JSON content types, send raw result
-            if (is_array($result)) {
+            if ($result instanceof Json) {
+                $this->send($contentType, $result . '', $responseBody->status);
+            } else if ($result instanceof JsonI) {
+                $this->send($contentType, $result->toJSON() . '', $responseBody->status);
+            } else if (is_array($result)) {
                 $content = new Json();
                 $content->addArray('data', $result, !array_is_list($result));
                 $contentType = 'application/json';
+                $this->send($contentType, $content, $responseBody->status);
             } else if (is_object($result)) {
                 $content = new Json();
                 $content->addObject('data', $result);
                 $contentType = 'application/json';
+                $this->send($contentType, $content, $responseBody->status);
             } else {
-                $content = (string)$result;
+                $this->send($contentType, (string)$result, $responseBody->status);
             }
-
-            $this->send($contentType, $content, $responseBody->status);
 
             return;
         }
@@ -1821,17 +1825,14 @@ class WebService implements JsonI {
         if ($result === null) {
             // Null return = empty response with configured status
             $this->sendResponse('', $responseBody->status, $responseBody->type);
+        } else if ($result instanceof Json) {
+            $this->send($responseBody->contentType, $result . '', $responseBody->status);
+        } else if ($result instanceof JsonI) {
+            $this->send($responseBody->contentType, $result->toJSON() . '', $responseBody->status);
         } else if (is_array($result) || is_object($result)) {
-            // Array/object = JSON response
-            if ($result instanceof Json) {
-                $json = $result;
-            } else if ($result instanceof JsonI) {
-                $json = $result->toJSON();
-            } else {
-                $json = new Json();
-                $asObj = is_array($result) && !array_is_list($result);
-                $json->add('data', $result, $asObj);
-            }
+            $json = new Json();
+            $asObj = is_array($result) && !array_is_list($result);
+            $json->add('data', $result, $asObj);
             $this->send($responseBody->contentType, $json, $responseBody->status);
         } else {
             // String/scalar = plain response
