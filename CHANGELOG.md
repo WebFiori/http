@@ -1,5 +1,21 @@
 # Changelog
 
+## [6.0.2](https://github.com/WebFiori/http/compare/v6.0.1...v6.0.2) (2026-06-21)
+
+
+### Features
+
+* **annotations:** add path property to #[RestController] attribute ([cdd937a](https://github.com/WebFiori/http/commit/cdd937a8b8e1e1ece90dc314bc82b9e9dc643bbe)), closes [#141](https://github.com/WebFiori/http/issues/141)
+* OpenAPI annotations, path routing, and JsonI serialization ([4b3efd3](https://github.com/WebFiori/http/commit/4b3efd3093afddefbc3caeae4a15d909e0842cf2))
+* **openapi:** add #[ApiResponse] annotation for declarative response descriptions ([b1efc1e](https://github.com/WebFiori/http/commit/b1efc1eed5936b59b57007bd4cf0d48ee4f248ec)), closes [#143](https://github.com/WebFiori/http/issues/143)
+* **openapi:** add namespace scanning and built-in OpenAPISpecService ([4e4b230](https://github.com/WebFiori/http/commit/4e4b2309dd78f02f38a8c9539379bbe497af5873)), closes [#144](https://github.com/WebFiori/http/issues/144)
+* **response:** serialize JsonI objects directly without metadata in #[ResponseBody] ([2a4e8b9](https://github.com/WebFiori/http/commit/2a4e8b9a96b1a18620f14303b9664c132de07af8)), closes [#142](https://github.com/WebFiori/http/issues/142)
+
+
+### Miscellaneous Chores
+
+* Merge pull request [#146](https://github.com/WebFiori/http/issues/146) from WebFiori/dev ([79a25aa](https://github.com/WebFiori/http/commit/79a25aab1a6f7ae012d6579aece81985ef0589b0))
+
 ## [6.0.1](https://github.com/WebFiori/http/compare/v6.0.0...v6.0.1) (2026-06-13)
 
 
