@@ -1086,13 +1086,18 @@ class WebService implements JsonI {
     public function toPathItemObj(): OpenAPI\PathItemObj {
         $pathItem = new OpenAPI\PathItemObj();
         $annotatedParams = $this->getAnnotatedRequestParams();
+        $annotatedResponses = $this->getAnnotatedApiResponses();
 
         foreach ($this->getRequestMethods() as $method) {
             $responses = $this->getResponsesForMethod($method);
 
             if ($responses === null) {
-                $responses = new OpenAPI\ResponsesObj();
-                $responses->addResponse('200', 'Successful operation');
+                if (isset($annotatedResponses[$method])) {
+                    $responses = $annotatedResponses[$method];
+                } else {
+                    $responses = new OpenAPI\ResponsesObj();
+                    $responses->addResponse('200', 'Successful operation');
+                }
             }
 
             $operation = new OpenAPI\OperationObj($responses);
@@ -1169,6 +1174,47 @@ class WebService implements JsonI {
             foreach ($mappings as $annotationClass => $httpMethod) {
                 if (!empty($method->getAttributes($annotationClass))) {
                     $result[$httpMethod] = array_merge($result[$httpMethod] ?? [], $params);
+                }
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Reads #[ApiResponse] annotations from methods and groups them by HTTP method.
+     *
+     * @return array<string, OpenAPI\ResponsesObj> Map of HTTP method to ResponsesObj.
+     */
+    private function getAnnotatedApiResponses(): array {
+        $reflection = new \ReflectionClass($this);
+        $result = [];
+
+        $mappings = [
+            Annotations\GetMapping::class => RequestMethod::GET,
+            Annotations\PostMapping::class => RequestMethod::POST,
+            Annotations\PutMapping::class => RequestMethod::PUT,
+            Annotations\DeleteMapping::class => RequestMethod::DELETE,
+            Annotations\PatchMapping::class => RequestMethod::PATCH,
+        ];
+
+        foreach ($reflection->getMethods() as $method) {
+            $responseAttrs = $method->getAttributes(Annotations\ApiResponse::class);
+
+            if (empty($responseAttrs)) {
+                continue;
+            }
+
+            foreach ($mappings as $annotationClass => $httpMethod) {
+                if (!empty($method->getAttributes($annotationClass))) {
+                    if (!isset($result[$httpMethod])) {
+                        $result[$httpMethod] = new OpenAPI\ResponsesObj();
+                    }
+
+                    foreach ($responseAttrs as $attr) {
+                        $instance = $attr->newInstance();
+                        $result[$httpMethod]->addResponse($instance->status, $instance->description);
+                    }
                 }
             }
         }
