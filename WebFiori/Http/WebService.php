@@ -372,6 +372,11 @@ class WebService implements JsonI {
             return SecurityContext::isAuthenticated();
         }
 
+        // If class has #[AllowAnonymous], allow access
+        if (!$this->isAuthRequired()) {
+            return true;
+        }
+
         return $this->isAuthorized();
     }
 

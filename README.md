@@ -71,7 +71,7 @@ With well-established PHP HTTP libraries available, you might wonder why this on
 - **HTTP Method Support**: Support for all standard HTTP methods (GET, POST, PUT, DELETE, etc.)
 - **Content Type Handling**: Support for `application/json`, `application/x-www-form-urlencoded`, and `multipart/form-data`
 - **Object Mapping**: Automatic mapping of request parameters to PHP objects
-- **Comprehensive Testing**: Built-in testing utilities with `APITestCase` class
+- **Comprehensive Testing**: Built-in testing utilities with `ServiceTestCase` class
 - **Error Handling**: Structured error responses with appropriate HTTP status codes
 - **Stream Support**: Custom input/output stream handling for advanced use cases
 
@@ -548,36 +548,30 @@ return new ResponseEntity($body, 418, 'text/plain');
 
 ## Testing
 
-### Using APITestCase
+### Using ServiceTestCase
 
 ```php
 <?php
-use WebFiori\Http\APITestCase;
+use WebFiori\Http\Test\ServiceTestCase;
 
-class MyServiceTest extends APITestCase {
+class MyServiceTest extends ServiceTestCase {
     public function testGetRequest() {
-        $manager = new WebServicesManager();
-        $manager->addService(new MyService());
-        
-        $response = $this->getRequest($manager, 'my-service', [
+        $this->get(new MyService(), [
             'param1' => 'value1',
             'param2' => 'value2'
-        ]);
-        
-        $this->assertJson($response);
-        $this->assertContains('success', $response);
+        ])
+            ->assertOk()
+            ->assertJson()
+            ->assertBodyContains('success');
     }
     
     public function testPostRequest() {
-        $manager = new WebServicesManager();
-        $manager->addService(new MyService());
-        
-        $response = $this->postRequest($manager, 'my-service', [
+        $this->post(new MyService(), [
             'name' => 'John Doe',
             'email' => 'john@example.com'
-        ]);
-        
-        $this->assertJson($response);
+        ])
+            ->assertOk()
+            ->assertJson();
     }
 }
 ```

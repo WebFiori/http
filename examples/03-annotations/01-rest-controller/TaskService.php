@@ -20,6 +20,7 @@ use WebFiori\Json\Json;
  * - Dynamic HTTP status codes via ResponseEntity
  */
 #[RestController('tasks', 'Task management service')]
+#[AllowAnonymous]
 class TaskService extends WebService {
 
     private array $tasks = [
@@ -30,11 +31,9 @@ class TaskService extends WebService {
 
     #[GetMapping]
     #[ResponseBody]
-    #[AllowAnonymous]
     #[RequestParam('task-id', ParamType::INT, true)]
     public function getTask(?int $id): ResponseEntity {
         if ($id === null) {
-            // Return all tasks
             return ResponseEntity::ok(new Json(['tasks' => array_values($this->tasks)]));
         }
 
@@ -47,7 +46,6 @@ class TaskService extends WebService {
 
     #[PostMapping]
     #[ResponseBody]
-    #[AllowAnonymous]
     #[RequestParam('task-name', ParamType::STRING)]
     #[RequestParam('task-priority', ParamType::STRING, true)]
     public function createTask(string $name, ?string $priority): ResponseEntity {
@@ -63,7 +61,6 @@ class TaskService extends WebService {
 
     #[DeleteMapping]
     #[ResponseBody]
-    #[AllowAnonymous]
     #[RequestParam('task-id', ParamType::INT)]
     public function deleteTask(int $id): ResponseEntity {
         if (!isset($this->tasks[$id])) {
@@ -71,12 +68,5 @@ class TaskService extends WebService {
         }
 
         return ResponseEntity::noContent();
-    }
-
-    public function isAuthorized(): bool {
-        return true;
-    }
-
-    public function processRequest() {
     }
 }
