@@ -424,6 +424,21 @@ public function getData(int $id, ?string $name): array {
 }
 ```
 
+### Allowing Empty Strings
+
+By default, sending an empty string for a string parameter results in a validation error. Use `allowEmpty: true` in the `#[RequestParam]` attribute to accept empty strings:
+
+```php
+#[PostMapping]
+#[ResponseBody]
+#[RequestParam(name: 'notes', type: ParamType::STRING, optional: true, allowEmpty: true)]
+public function create(?string $notes): array {
+    return ['notes' => $notes ?? ''];
+}
+```
+
+This is the attribute equivalent of `ParamOption::EMPTY => true` in the array-based approach.
+
 ### Reusable Parameter Sets
 
 Implement the `ParameterSet` interface to group related parameters:

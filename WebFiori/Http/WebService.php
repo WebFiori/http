@@ -1641,6 +1641,9 @@ class WebService implements JsonI {
             if ($param->message !== null) {
                 $options[ParamOption::MESSAGE] = $param->message;
             }
+            if ($param->allowEmpty) {
+                $options[ParamOption::EMPTY] = true;
+            }
 
             $this->addParameters([
                 $param->name => $options
