@@ -3,8 +3,7 @@
 require_once '../../../vendor/autoload.php';
 require_once 'TaskService.php';
 
-use WebFiori\Http\WebServicesManager;
+use WebFiori\Http\RequestProcessor;
 
-$manager = new WebServicesManager();
-$manager->addService(new TaskService());
-$manager->process();
+$processor = new RequestProcessor();
+$processor->process(new TaskService());

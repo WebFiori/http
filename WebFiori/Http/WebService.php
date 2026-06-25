@@ -372,6 +372,11 @@ class WebService implements JsonI {
             return SecurityContext::isAuthenticated();
         }
 
+        // If class has #[AllowAnonymous], allow access
+        if (!$this->isAuthRequired()) {
+            return true;
+        }
+
         return $this->isAuthorized();
     }
 
@@ -1640,6 +1645,9 @@ class WebService implements JsonI {
 
             if ($param->message !== null) {
                 $options[ParamOption::MESSAGE] = $param->message;
+            }
+            if ($param->allowEmpty) {
+                $options[ParamOption::EMPTY] = true;
             }
 
             $this->addParameters([
