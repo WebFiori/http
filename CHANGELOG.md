@@ -1,5 +1,17 @@
 # Changelog
 
+## [6.0.3](https://github.com/WebFiori/http/compare/v6.0.2...v6.0.3) (2026-06-25)
+
+
+### Features
+
+* **annotations:** add allowEmpty parameter to #[RequestParam] attribute ([7e8c217](https://github.com/WebFiori/http/commit/7e8c2174fc7cdaa4a3a8f22e6e78c65369f7c3a1)), closes [#148](https://github.com/WebFiori/http/issues/148)
+
+
+### Miscellaneous Chores
+
+* Merge pull request [#149](https://github.com/WebFiori/http/issues/149) from WebFiori/dev ([01e4204](https://github.com/WebFiori/http/commit/01e42043150884928f7337926afb25358d642220))
+
 ## [6.0.2](https://github.com/WebFiori/http/compare/v6.0.1...v6.0.2) (2026-06-21)
 
 
