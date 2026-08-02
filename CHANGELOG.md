@@ -1,5 +1,18 @@
 # Changelog
 
+## [6.1.0](https://github.com/WebFiori/http/compare/v6.0.3...v6.1.0) (2026-08-02)
+
+
+### Features
+
+* **annotations:** add #[Consumes] for per-method content type control ([480e1cc](https://github.com/WebFiori/http/commit/480e1ccdfdf25f13d5186115c31d1ef405601e77)), closes [#151](https://github.com/WebFiori/http/issues/151)
+
+
+### Miscellaneous Chores
+
+* Merge pull request [#152](https://github.com/WebFiori/http/issues/152) from WebFiori/dev ([48e4234](https://github.com/WebFiori/http/commit/48e4234bdb783dab87bbb24754107a24c554f5b7))
+* normalize line endings to LF ([d93ff10](https://github.com/WebFiori/http/commit/d93ff10a0fa123a15904cf3b0af5621cc663f8df))
+
 ## [6.0.3](https://github.com/WebFiori/http/compare/v6.0.2...v6.0.3) (2026-06-25)
 
 
