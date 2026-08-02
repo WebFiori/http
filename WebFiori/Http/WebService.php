@@ -1123,6 +1123,8 @@ class WebService implements JsonI {
         $pathItem = new OpenAPI\PathItemObj();
         $annotatedParams = $this->getAnnotatedRequestParams();
         $annotatedResponses = $this->getAnnotatedApiResponses();
+        $consumesMap = $this->getAnnotatedConsumes();
+        $producesMap = $this->getAnnotatedProduces();
 
         foreach ($this->getRequestMethods() as $method) {
             $responses = $this->getResponsesForMethod($method);
@@ -1132,12 +1134,20 @@ class WebService implements JsonI {
                     $responses = $annotatedResponses[$method];
                 } else {
                     $responses = new OpenAPI\ResponsesObj();
-                    $responses->addResponse('200', 'Successful operation');
+                    $producedTypes = $producesMap[$method] ?? null;
+
+                    if ($producedTypes !== null) {
+                        $desc = 'Successful operation. Produces: ' . implode(', ', $producedTypes);
+                        $responses->addResponse('200', $desc);
+                    } else {
+                        $responses->addResponse('200', 'Successful operation');
+                    }
                 }
             }
 
             $operation = new OpenAPI\OperationObj($responses);
             $methodParams = $annotatedParams[$method] ?? [];
+            $consumesTypes = $consumesMap[$method] ?? null;
 
             if (!empty($methodParams)) {
                 $isBodyMethod = in_array($method, [
@@ -1148,7 +1158,7 @@ class WebService implements JsonI {
 
                 if ($isBodyMethod) {
                     $operation->setRequestBody(
-                        self::buildRequestBody($methodParams)
+                        self::buildRequestBody($methodParams, $consumesTypes)
                     );
                 } else {
                     foreach ($methodParams as $param) {
@@ -1157,6 +1167,13 @@ class WebService implements JsonI {
                         );
                     }
                 }
+            } else if ($consumesTypes !== null && in_array($method, [
+                RequestMethod::POST, RequestMethod::PUT, RequestMethod::PATCH
+            ])) {
+                // No request params but #[Consumes] is present (e.g. raw binary upload)
+                $operation->setRequestBody(
+                    self::buildRawRequestBody($consumesTypes)
+                );
             }
 
             switch ($method) {
@@ -1259,6 +1276,78 @@ class WebService implements JsonI {
     }
 
     /**
+     * Reads #[Consumes] annotations from methods and groups them by HTTP method.
+     *
+     * @return array<string, string[]> Map of HTTP method to content type arrays.
+     */
+    private function getAnnotatedConsumes(): array {
+        $reflection = new \ReflectionClass($this);
+        $result = [];
+
+        $mappings = [
+            Annotations\GetMapping::class => RequestMethod::GET,
+            Annotations\PostMapping::class => RequestMethod::POST,
+            Annotations\PutMapping::class => RequestMethod::PUT,
+            Annotations\DeleteMapping::class => RequestMethod::DELETE,
+            Annotations\PatchMapping::class => RequestMethod::PATCH,
+        ];
+
+        foreach ($reflection->getMethods() as $method) {
+            $consumesAttrs = $method->getAttributes(Annotations\Consumes::class);
+
+            if (empty($consumesAttrs)) {
+                continue;
+            }
+
+            $types = $consumesAttrs[0]->newInstance()->contentTypes;
+
+            foreach ($mappings as $annotationClass => $httpMethod) {
+                if (!empty($method->getAttributes($annotationClass))) {
+                    $result[$httpMethod] = $types;
+                }
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Reads #[Produces] annotations from methods and groups them by HTTP method.
+     *
+     * @return array<string, string[]> Map of HTTP method to content type arrays.
+     */
+    private function getAnnotatedProduces(): array {
+        $reflection = new \ReflectionClass($this);
+        $result = [];
+
+        $mappings = [
+            Annotations\GetMapping::class => RequestMethod::GET,
+            Annotations\PostMapping::class => RequestMethod::POST,
+            Annotations\PutMapping::class => RequestMethod::PUT,
+            Annotations\DeleteMapping::class => RequestMethod::DELETE,
+            Annotations\PatchMapping::class => RequestMethod::PATCH,
+        ];
+
+        foreach ($reflection->getMethods() as $method) {
+            $producesAttrs = $method->getAttributes(Annotations\Produces::class);
+
+            if (empty($producesAttrs)) {
+                continue;
+            }
+
+            $types = $producesAttrs[0]->newInstance()->contentTypes;
+
+            foreach ($mappings as $annotationClass => $httpMethod) {
+                if (!empty($method->getAttributes($annotationClass))) {
+                    $result[$httpMethod] = $types;
+                }
+            }
+        }
+
+        return $result;
+    }
+
+    /**
      * Builds an OpenAPI ParameterObj (query param) from a RequestParam annotation.
      */
     private static function buildQueryParameter(Annotations\RequestParam $param): OpenAPI\ParameterObj {
@@ -1277,8 +1366,9 @@ class WebService implements JsonI {
      * Builds an OpenAPI requestBody Json object from RequestParam annotations.
      *
      * @param Annotations\RequestParam[] $params
+     * @param array|null $consumesTypes Content types from #[Consumes], or null for default.
      */
-    private static function buildRequestBody(array $params): \WebFiori\Json\Json {
+    private static function buildRequestBody(array $params, ?array $consumesTypes = null): \WebFiori\Json\Json {
         $properties = new \WebFiori\Json\Json();
         $required = [];
 
@@ -1301,7 +1391,38 @@ class WebService implements JsonI {
         $content = new \WebFiori\Json\Json();
         $mediaType = new \WebFiori\Json\Json();
         $mediaType->add('schema', $schema);
-        $content->add('application/x-www-form-urlencoded', $mediaType);
+
+        // Use #[Consumes] types if available, otherwise default
+        $types = $consumesTypes ?? ['application/x-www-form-urlencoded'];
+
+        foreach ($types as $type) {
+            $content->add($type, $mediaType);
+        }
+
+        $body = new \WebFiori\Json\Json();
+        $body->add('content', $content);
+
+        return $body;
+    }
+    /**
+     * Builds an OpenAPI requestBody Json for raw body endpoints (no parameters).
+     * 
+     * Used when #[Consumes] is present but no #[RequestParam] annotations exist
+     * (e.g. binary upload endpoints).
+     *
+     * @param array $consumesTypes Content types from #[Consumes].
+     */
+    private static function buildRawRequestBody(array $consumesTypes): \WebFiori\Json\Json {
+        $content = new \WebFiori\Json\Json();
+
+        foreach ($consumesTypes as $type) {
+            $mediaType = new \WebFiori\Json\Json();
+            $schema = new \WebFiori\Json\Json();
+            $schema->add('type', 'string');
+            $schema->add('format', 'binary');
+            $mediaType->add('schema', $schema);
+            $content->add($type, $mediaType);
+        }
 
         $body = new \WebFiori\Json\Json();
         $body->add('content', $content);

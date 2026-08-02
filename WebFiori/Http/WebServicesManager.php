@@ -414,18 +414,41 @@ class WebServicesManager implements JsonI {
      * Checks if request content type is supported by the service or not (For 'POST' 
      * and PUT requests only).
      * 
+     * This performs a baseline check against the default allowed types. If a service
+     * method has a #[Consumes] annotation, that check is performed later after service
+     * resolution via isContentTypeAllowedForService().
+     * 
+     * @param WebService|null $service If provided, checks #[Consumes] on the service's
+     *   target method. If the annotation is present, its types override the defaults.
+     * 
      * @return bool Returns false in case the 'content-type' header is not 
      * set and the request method is 'POST' or 'PUT'. If content type is supported (for 
      * PUT and POST), the method will return true, false if not. Other than that, the method 
      * will return true.
      * 
      */
-    public final function isContentTypeSupported() : bool {
+    public final function isContentTypeSupported(?WebService $service = null) : bool {
         $c = $this->getRequest()->getContentType();
         $rm = $this->getRequest()->getMethod();
 
         if ($c !== null && ($rm == RequestMethod::POST || $rm == RequestMethod::PUT)) {
-            // Check if content type starts with any of the supported types
+            // If a service is provided, check its #[Consumes] annotation first
+            if ($service !== null) {
+                $consumesTypes = $this->getConsumesTypes($service);
+
+                if ($consumesTypes !== null) {
+                    // #[Consumes] is present - validate against its types only
+                    foreach ($consumesTypes as $allowedType) {
+                        if (strpos($c, $allowedType) === 0) {
+                            return true;
+                        }
+                    }
+
+                    return false;
+                }
+            }
+
+            // No #[Consumes] annotation - check default types
             foreach (self::POST_CONTENT_TYPES as $supportedType) {
                 if (strpos($c, $supportedType) === 0) {
                     return true;
@@ -438,6 +461,56 @@ class WebServicesManager implements JsonI {
         }
 
         return true;
+    }
+    /**
+     * Returns the content types declared by #[Consumes] on the service's target method.
+     * 
+     * @param WebService $service The service to inspect.
+     * 
+     * @return array|null The array of content types from #[Consumes], or null if not present.
+     */
+    private function getConsumesTypes(WebService $service): ?array {
+        $targetMethod = $service->getTargetMethod();
+
+        if ($targetMethod === null) {
+            return null;
+        }
+
+        try {
+            $reflection = new \ReflectionMethod($service, $targetMethod);
+            $attrs = $reflection->getAttributes(Annotations\Consumes::class);
+
+            if (empty($attrs)) {
+                return null;
+            }
+
+            return $attrs[0]->newInstance()->contentTypes;
+        } catch (\ReflectionException $e) {
+            return null;
+        }
+    }
+    /**
+     * Checks if the request content type is a parseable type (form-encoded, multipart, or JSON).
+     * 
+     * When #[Consumes] allows a non-parseable type (e.g. application/octet-stream),
+     * parameter filtering should be skipped.
+     * 
+     * @return bool True if the content type is one that the framework can parse parameters from.
+     */
+    private function isParseableContentType(): bool {
+        $c = $this->getRequest()->getContentType();
+
+        if ($c === null) {
+            return false;
+        }
+
+        foreach (self::POST_CONTENT_TYPES as $parseableType) {
+            if (strpos($c, $parseableType) === 0) {
+                return true;
+            }
+        }
+
+        return false;
     }
     /**
      * Sends a response message to indicate that a request parameter or parameters are missing.
@@ -513,48 +586,64 @@ class WebServicesManager implements JsonI {
         $this->invParamsArr = [];
         $this->missingParamsArr = [];
 
-        if ($this->isContentTypeSupported()) {
-            if ($this->_checkAction()) {
-                $actionObj = $this->getServiceByName($this->getCalledServiceName());
+        $c = $this->getRequest()->getContentType();
+        $rm = $this->getRequest()->getMethod();
 
-                // Configure parameters for ResponseBody services before getting them
-                if ($this->serviceHasResponseBodyMethods($actionObj)) {
-                    $this->configureServiceParameters($actionObj);
-                }
+        // Early rejection: POST/PUT with no content-type header at all
+        if ($c === null && ($rm == RequestMethod::POST || $rm == RequestMethod::PUT)) {
+            $this->contentTypeNotSupported('NOT_SET');
 
-                // Resolve #[RequestParam] annotations for the current HTTP method.
-                // This ensures annotated parameters are registered before filtering,
-                // even for services using the traditional processRequest() pattern.
-                $actionObj->getParameterByName('', $this->getRequest()->getRequestMethod());
+            return;
+        }
 
-                $params = $actionObj->getParameters();
-                $this->filter->clearParametersDef();
-                $this->filter->clearInputs();
-                $requestMethod = $this->getRequest()->getRequestMethod();
+        if ($this->_checkAction()) {
+            $actionObj = $this->getServiceByName($this->getCalledServiceName());
 
-                foreach ($params as $param) {
-                    $paramMethods = $param->getMethods();
+            // Check content type with #[Consumes] annotation awareness
+            if (!$this->isContentTypeSupported($actionObj)) {
+                $this->contentTypeNotSupported($c ?? 'NOT_SET');
 
-                    if (count($paramMethods) == 0 || in_array($requestMethod, $paramMethods)) {
-                        $this->filter->addRequestParameter($param);
-                    }
-                }
-                $this->filterInputsHelper();
-                $i = $this->getInputs();
+                return;
+            }
 
-                if (!($i instanceof Json)) {
-                    $this->_processNonJson($this->filter->getParameters());
-                } else {
-                    $this->_processJson($this->filter->getParameters());
+            // Configure parameters for ResponseBody services before getting them
+            if ($this->serviceHasResponseBodyMethods($actionObj)) {
+                $this->configureServiceParameters($actionObj);
+            }
+
+            // If content type is non-parseable (e.g. octet-stream allowed by #[Consumes]),
+            // skip parameter filtering and dispatch directly (POST/PUT only)
+            if (($rm == RequestMethod::POST || $rm == RequestMethod::PUT) && !$this->isParseableContentType()) {
+                $this->processService($actionObj);
+
+                return;
+            }
+
+            // Resolve #[RequestParam] annotations for the current HTTP method.
+            // This ensures annotated parameters are registered before filtering,
+            // even for services using the traditional processRequest() pattern.
+            $actionObj->getParameterByName('', $this->getRequest()->getRequestMethod());
+
+            $params = $actionObj->getParameters();
+            $this->filter->clearParametersDef();
+            $this->filter->clearInputs();
+            $requestMethod = $this->getRequest()->getRequestMethod();
+
+            foreach ($params as $param) {
+                $paramMethods = $param->getMethods();
+
+                if (count($paramMethods) == 0 || in_array($requestMethod, $paramMethods)) {
+                    $this->filter->addRequestParameter($param);
                 }
             }
-        } else {
-            $c = $this->getRequest()->getContentType();
+            $this->filterInputsHelper();
+            $i = $this->getInputs();
 
-            if ($c === null) {
-                $c = 'NOT_SET';
-            } 
-            $this->contentTypeNotSupported($c);
+            if (!($i instanceof Json)) {
+                $this->_processNonJson($this->filter->getParameters());
+            } else {
+                $this->_processJson($this->filter->getParameters());
+            }
         }
     }
     /**
