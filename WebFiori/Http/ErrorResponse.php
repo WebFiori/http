@@ -125,6 +125,25 @@ class ErrorResponse {
         return ['json' => $json, 'code' => 404];
     }
     /**
+     * Generates a 406 Not Acceptable response.
+     * 
+     * @param array $supported The content types the server can produce.
+     * 
+     * @return array{json: Json, code: int} The response body and HTTP code.
+     */
+    public static function notAcceptable(array $supported = []) : array {
+        $json = new Json();
+        $json->add('message', 'Not Acceptable');
+        $json->add('type', WebService::E);
+        $json->add('http-code', 406);
+
+        if (!empty($supported)) {
+            $json->add('more-info', new Json(['supported' => $supported]));
+        }
+
+        return ['json' => $json, 'code' => 406];
+    }
+    /**
      * Generates a 404 response for unsupported service.
      * 
      * @return array{json: Json, code: int} The response body and HTTP code.
@@ -165,25 +184,6 @@ class ErrorResponse {
         $json->add('http-code', 401);
 
         return ['json' => $json, 'code' => 401];
-    }
-    /**
-     * Generates a 406 Not Acceptable response.
-     * 
-     * @param array $supported The content types the server can produce.
-     * 
-     * @return array{json: Json, code: int} The response body and HTTP code.
-     */
-    public static function notAcceptable(array $supported = []) : array {
-        $json = new Json();
-        $json->add('message', 'Not Acceptable');
-        $json->add('type', WebService::E);
-        $json->add('http-code', 406);
-
-        if (!empty($supported)) {
-            $json->add('more-info', new Json(['supported' => $supported]));
-        }
-
-        return ['json' => $json, 'code' => 406];
     }
     /**
      * Formats an array of parameter names into a comma-separated quoted string.

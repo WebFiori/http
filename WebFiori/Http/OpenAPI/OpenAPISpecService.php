@@ -34,10 +34,10 @@ use WebFiori\Json\JsonI;
  */
 #[RestController(name: 'openapi', description: 'OpenAPI specification endpoint')]
 class OpenAPISpecService extends WebService {
-    private string $namespace;
     private string $apiBasePath;
     private string $apiTitle;
     private string $apiVersion;
+    private string $namespace;
 
     /**
      * Creates a new OpenAPI spec service.
@@ -55,10 +55,6 @@ class OpenAPISpecService extends WebService {
         $this->apiVersion = $version;
     }
 
-    public function isAuthorized(): bool {
-        return true;
-    }
-
     #[GetMapping]
     #[ResponseBody]
     #[AllowAnonymous]
@@ -71,6 +67,10 @@ class OpenAPISpecService extends WebService {
             $this->apiVersion,
             $this->apiBasePath
         );
+    }
+
+    public function isAuthorized(): bool {
+        return true;
     }
 
     public function processRequest() {

@@ -40,23 +40,27 @@ use WebFiori\Http\WebService;
 class ServiceTestCase extends TestCase {
     private array $globalsBackup;
 
-    protected function setUp(): void {
-        parent::setUp();
-        $this->globalsBackup = [
-            'GET' => $_GET,
-            'POST' => $_POST,
-            'FILES' => $_FILES,
-            'SERVER' => $_SERVER,
-        ];
-    }
+    private function setupGlobals(string $method, array $params, array $headers): void {
+        $normalizedHeaders = [];
 
-    protected function tearDown(): void {
-        $_GET = $this->globalsBackup['GET'];
-        $_POST = $this->globalsBackup['POST'];
-        $_FILES = $this->globalsBackup['FILES'];
-        $_SERVER = $this->globalsBackup['SERVER'];
-        SecurityContext::clear();
-        parent::tearDown();
+        foreach ($headers as $name => $value) {
+            $normalizedHeaders[strtolower($name)] = $value;
+        }
+
+        if (in_array($method, [RequestMethod::POST, RequestMethod::PUT, RequestMethod::PATCH])) {
+            $_POST = $params;
+            $_SERVER['CONTENT_TYPE'] = $normalizedHeaders['content-type'] ?? 'application/x-www-form-urlencoded';
+        } else {
+            $_GET = $params;
+        }
+
+        putenv('REQUEST_METHOD='.$method);
+
+        foreach ($normalizedHeaders as $name => $value) {
+            if ($name !== 'content-type') {
+                $_SERVER['HTTP_'.strtoupper(str_replace('-', '_', $name))] = $value;
+            }
+        }
     }
     /**
      * Send a request to a service with a specific HTTP method.
@@ -87,12 +91,28 @@ class ServiceTestCase extends TestCase {
         return new TestResponse($body);
     }
     /**
+     * Send a DELETE request to a service.
+     * 
+     * @return TestResponse
+     */
+    protected function delete(WebService $service, array $params = [], ?SecurityPrincipal $user = null, array $headers = []): TestResponse {
+        return $this->call(RequestMethod::DELETE, $service, $params, $user, $headers);
+    }
+    /**
      * Send a GET request to a service.
      * 
      * @return TestResponse
      */
     protected function get(WebService $service, array $params = [], ?SecurityPrincipal $user = null, array $headers = []): TestResponse {
         return $this->call(RequestMethod::GET, $service, $params, $user, $headers);
+    }
+    /**
+     * Send a PATCH request to a service.
+     * 
+     * @return TestResponse
+     */
+    protected function patch(WebService $service, array $params = [], ?SecurityPrincipal $user = null, array $headers = []): TestResponse {
+        return $this->call(RequestMethod::PATCH, $service, $params, $user, $headers);
     }
     /**
      * Send a POST request to a service.
@@ -110,43 +130,23 @@ class ServiceTestCase extends TestCase {
     protected function put(WebService $service, array $params = [], ?SecurityPrincipal $user = null, array $headers = []): TestResponse {
         return $this->call(RequestMethod::PUT, $service, $params, $user, $headers);
     }
-    /**
-     * Send a PATCH request to a service.
-     * 
-     * @return TestResponse
-     */
-    protected function patch(WebService $service, array $params = [], ?SecurityPrincipal $user = null, array $headers = []): TestResponse {
-        return $this->call(RequestMethod::PATCH, $service, $params, $user, $headers);
-    }
-    /**
-     * Send a DELETE request to a service.
-     * 
-     * @return TestResponse
-     */
-    protected function delete(WebService $service, array $params = [], ?SecurityPrincipal $user = null, array $headers = []): TestResponse {
-        return $this->call(RequestMethod::DELETE, $service, $params, $user, $headers);
+
+    protected function setUp(): void {
+        parent::setUp();
+        $this->globalsBackup = [
+            'GET' => $_GET,
+            'POST' => $_POST,
+            'FILES' => $_FILES,
+            'SERVER' => $_SERVER,
+        ];
     }
 
-    private function setupGlobals(string $method, array $params, array $headers): void {
-        $normalizedHeaders = [];
-
-        foreach ($headers as $name => $value) {
-            $normalizedHeaders[strtolower($name)] = $value;
-        }
-
-        if (in_array($method, [RequestMethod::POST, RequestMethod::PUT, RequestMethod::PATCH])) {
-            $_POST = $params;
-            $_SERVER['CONTENT_TYPE'] = $normalizedHeaders['content-type'] ?? 'application/x-www-form-urlencoded';
-        } else {
-            $_GET = $params;
-        }
-
-        putenv('REQUEST_METHOD=' . $method);
-
-        foreach ($normalizedHeaders as $name => $value) {
-            if ($name !== 'content-type') {
-                $_SERVER['HTTP_' . strtoupper(str_replace('-', '_', $name))] = $value;
-            }
-        }
+    protected function tearDown(): void {
+        $_GET = $this->globalsBackup['GET'];
+        $_POST = $this->globalsBackup['POST'];
+        $_FILES = $this->globalsBackup['FILES'];
+        $_SERVER = $this->globalsBackup['SERVER'];
+        SecurityContext::clear();
+        parent::tearDown();
     }
 }

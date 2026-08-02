@@ -31,6 +31,12 @@ class RequestParameter implements JsonI {
      * @var array
      */
     public const RESERVED_NAMES = ['action', 'service', 'service-name'];
+    /**
+     * An array of allowed values for the parameter.
+     * 
+     * @var array
+     */
+    private $allowedValues;
 
 
     /** A boolean value that is set to true in case the 
@@ -90,6 +96,12 @@ class RequestParameter implements JsonI {
      */
     private $maxVal;
     /**
+     * Custom validation error message.
+     * 
+     * @var string|null
+     */
+    private $message;
+    /**
      * An array of request methods at which the parameter must exist.
      * 
      * @var array
@@ -118,30 +130,18 @@ class RequestParameter implements JsonI {
      */
     private $name;
     /**
-     * The type of the data the parameter will represent.
-     * 
-     * @var string
-     * 
-     */
-    private $type;
-    /**
-     * An array of allowed values for the parameter.
-     * 
-     * @var array
-     */
-    private $allowedValues;
-    /**
      * A regex pattern for validating string parameters.
      * 
      * @var string|null
      */
     private $pattern;
     /**
-     * Custom validation error message.
+     * The type of the data the parameter will represent.
      * 
-     * @var string|null
+     * @var string
+     * 
      */
-    private $message;
+    private $type;
     /**
      * Creates new instance of the class.
      * 
@@ -308,6 +308,14 @@ class RequestParameter implements JsonI {
         return null;
     }
     /**
+     * Returns the array of allowed values for the parameter.
+     * 
+     * @return array The allowed values. Empty array means no restriction.
+     */
+    public function getAllowedValues() : array {
+        return $this->allowedValues;
+    }
+    /**
      * Returns the function that is used as a custom filter 
      * for the parameter.
      * 
@@ -367,6 +375,14 @@ class RequestParameter implements JsonI {
         return $this->maxVal;
     }
     /**
+     * Returns the custom validation error message.
+     * 
+     * @return string|null The message or null if not set.
+     */
+    public function getMessage() : ?string {
+        return $this->message;
+    }
+    /**
      * Returns an array of request methods at which the parameter must exist.
      * 
      * @return array An array of request method names (e.g., ['GET', 'POST']).
@@ -410,31 +426,6 @@ class RequestParameter implements JsonI {
         return $this->name;
     }
     /**
-     * Returns the type of the parameter.
-     * 
-     * @return string The type of the parameter (Such as 'string', 'email', 'integer').
-     * 
-     */
-    public function getType() : string {
-        return $this->type;
-    }
-    /**
-     * Returns the array of allowed values for the parameter.
-     * 
-     * @return array The allowed values. Empty array means no restriction.
-     */
-    public function getAllowedValues() : array {
-        return $this->allowedValues;
-    }
-    /**
-     * Sets the allowed values for the parameter.
-     * 
-     * @param array $values An array of permitted values.
-     */
-    public function setAllowedValues(array $values) : void {
-        $this->allowedValues = $values;
-    }
-    /**
      * Returns the regex pattern used for validation.
      * 
      * @return string|null The pattern or null if not set.
@@ -443,34 +434,13 @@ class RequestParameter implements JsonI {
         return $this->pattern;
     }
     /**
-     * Sets a regex pattern for validating the parameter value.
+     * Returns the type of the parameter.
      * 
-     * @param string $regex A valid PHP regex (e.g. '/^[a-z]+$/').
+     * @return string The type of the parameter (Such as 'string', 'email', 'integer').
      * 
-     * @return bool True if the regex is valid and was set, false otherwise.
      */
-    public function setPattern(string $regex) : bool {
-        if (@preg_match($regex, '') !== false) {
-            $this->pattern = $regex;
-            return true;
-        }
-        return false;
-    }
-    /**
-     * Returns the custom validation error message.
-     * 
-     * @return string|null The message or null if not set.
-     */
-    public function getMessage() : ?string {
-        return $this->message;
-    }
-    /**
-     * Sets a custom validation error message for this parameter.
-     * 
-     * @param string $message The error message to display when validation fails.
-     */
-    public function setMessage(string $message) : void {
-        $this->message = $message;
+    public function getType() : string {
+        return $this->type;
     }
     /**
      * Checks if we need to apply basic filter or not 
@@ -508,6 +478,14 @@ class RequestParameter implements JsonI {
      */
     public function isOptional() : bool {
         return $this->isOptional;
+    }
+    /**
+     * Sets the allowed values for the parameter.
+     * 
+     * @param array $values An array of permitted values.
+     */
+    public function setAllowedValues(array $values) : void {
+        $this->allowedValues = $values;
     }
     /**
      * Sets a callback method to work as a filter for request parameter.
@@ -678,6 +656,14 @@ class RequestParameter implements JsonI {
         return false;
     }
     /**
+     * Sets a custom validation error message for this parameter.
+     * 
+     * @param string $message The error message to display when validation fails.
+     */
+    public function setMessage(string $message) : void {
+        $this->message = $message;
+    }
+    /**
      * Sets the minimum length that the parameter can accept.
      * 
      * The value will be updated 
@@ -768,6 +754,22 @@ class RequestParameter implements JsonI {
                 throw new \InvalidArgumentException("Parameter name '$nameTrimmed' is reserved and cannot be used. Reserved names: ".implode(', ', self::RESERVED_NAMES));
             }
 
+
+            return true;
+        }
+
+        return false;
+    }
+    /**
+     * Sets a regex pattern for validating the parameter value.
+     * 
+     * @param string $regex A valid PHP regex (e.g. '/^[a-z]+$/').
+     * 
+     * @return bool True if the regex is valid and was set, false otherwise.
+     */
+    public function setPattern(string $regex) : bool {
+        if (@preg_match($regex, '') !== false) {
+            $this->pattern = $regex;
 
             return true;
         }

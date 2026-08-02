@@ -463,56 +463,6 @@ class WebServicesManager implements JsonI {
         return true;
     }
     /**
-     * Returns the content types declared by #[Consumes] on the service's target method.
-     * 
-     * @param WebService $service The service to inspect.
-     * 
-     * @return array|null The array of content types from #[Consumes], or null if not present.
-     */
-    private function getConsumesTypes(WebService $service): ?array {
-        $targetMethod = $service->getTargetMethod();
-
-        if ($targetMethod === null) {
-            return null;
-        }
-
-        try {
-            $reflection = new \ReflectionMethod($service, $targetMethod);
-            $attrs = $reflection->getAttributes(Annotations\Consumes::class);
-
-            if (empty($attrs)) {
-                return null;
-            }
-
-            return $attrs[0]->newInstance()->contentTypes;
-        } catch (\ReflectionException $e) {
-            return null;
-        }
-    }
-    /**
-     * Checks if the request content type is a parseable type (form-encoded, multipart, or JSON).
-     * 
-     * When #[Consumes] allows a non-parseable type (e.g. application/octet-stream),
-     * parameter filtering should be skipped.
-     * 
-     * @return bool True if the content type is one that the framework can parse parameters from.
-     */
-    private function isParseableContentType(): bool {
-        $c = $this->getRequest()->getContentType();
-
-        if ($c === null) {
-            return false;
-        }
-
-        foreach (self::POST_CONTENT_TYPES as $parseableType) {
-            if (strpos($c, $parseableType) === 0) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-    /**
      * Sends a response message to indicate that a request parameter or parameters are missing.
      * 
      * This method will send back a JSON string in the following format:
@@ -806,10 +756,6 @@ class WebServicesManager implements JsonI {
             $this->response->send();
         }
     }
-    
-    public function setResponse(Response $response) {
-        $this->response = $response;
-    }
     /**
      * Sends a response message to indicate that web service is not implemented.
      * 
@@ -922,6 +868,10 @@ class WebServicesManager implements JsonI {
         $this->request = $request;
 
         return $this;
+    }
+
+    public function setResponse(Response $response) {
+        $this->response = $response;
     }
     /**
      * Sets version number of the set.
@@ -1212,6 +1162,33 @@ class WebServicesManager implements JsonI {
 
         return $retVal;
     }
+    /**
+     * Returns the content types declared by #[Consumes] on the service's target method.
+     * 
+     * @param WebService $service The service to inspect.
+     * 
+     * @return array|null The array of content types from #[Consumes], or null if not present.
+     */
+    private function getConsumesTypes(WebService $service): ?array {
+        $targetMethod = $service->getTargetMethod();
+
+        if ($targetMethod === null) {
+            return null;
+        }
+
+        try {
+            $reflection = new \ReflectionMethod($service, $targetMethod);
+            $attrs = $reflection->getAttributes(Annotations\Consumes::class);
+
+            if (empty($attrs)) {
+                return null;
+            }
+
+            return $attrs[0]->newInstance()->contentTypes;
+        } catch (\ReflectionException $e) {
+            return null;
+        }
+    }
     private function isAuth(WebService $service) {
         if ($service->isAuthRequired()) {
             // Check if method has authorization annotations
@@ -1246,6 +1223,29 @@ class WebServicesManager implements JsonI {
         }
 
         return true;
+    }
+    /**
+     * Checks if the request content type is a parseable type (form-encoded, multipart, or JSON).
+     * 
+     * When #[Consumes] allows a non-parseable type (e.g. application/octet-stream),
+     * parameter filtering should be skipped.
+     * 
+     * @return bool True if the content type is one that the framework can parse parameters from.
+     */
+    private function isParseableContentType(): bool {
+        $c = $this->getRequest()->getContentType();
+
+        if ($c === null) {
+            return false;
+        }
+
+        foreach (self::POST_CONTENT_TYPES as $parseableType) {
+            if (strpos($c, $parseableType) === 0) {
+                return true;
+            }
+        }
+
+        return false;
     }
     /**
      * @deprecated Since 5.1.0. PUT/PATCH body parsing is now handled by Request::parsePutPatchBody().

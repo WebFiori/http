@@ -22,27 +22,11 @@ use WebFiori\Json\Json;
 #[RestController('tasks', 'Task management service')]
 #[AllowAnonymous]
 class TaskService extends WebService {
-
     private array $tasks = [
         1 => ['id' => 1, 'name' => 'Write documentation', 'priority' => 'high'],
         2 => ['id' => 2, 'name' => 'Fix bugs', 'priority' => 'medium'],
         3 => ['id' => 3, 'name' => 'Add tests', 'priority' => 'low'],
     ];
-
-    #[GetMapping]
-    #[ResponseBody]
-    #[RequestParam('task-id', ParamType::INT, true)]
-    public function getTask(?int $id): ResponseEntity {
-        if ($id === null) {
-            return ResponseEntity::ok(new Json(['tasks' => array_values($this->tasks)]));
-        }
-
-        if (!isset($this->tasks[$id])) {
-            return ResponseEntity::notFound(new Json(['message' => "Task $id not found"]));
-        }
-
-        return ResponseEntity::ok(new Json($this->tasks[$id]));
-    }
 
     #[PostMapping]
     #[ResponseBody]
@@ -68,5 +52,20 @@ class TaskService extends WebService {
         }
 
         return ResponseEntity::noContent();
+    }
+
+    #[GetMapping]
+    #[ResponseBody]
+    #[RequestParam('task-id', ParamType::INT, true)]
+    public function getTask(?int $id): ResponseEntity {
+        if ($id === null) {
+            return ResponseEntity::ok(new Json(['tasks' => array_values($this->tasks)]));
+        }
+
+        if (!isset($this->tasks[$id])) {
+            return ResponseEntity::notFound(new Json(['message' => "Task $id not found"]));
+        }
+
+        return ResponseEntity::ok(new Json($this->tasks[$id]));
     }
 }

@@ -112,7 +112,7 @@ class RequestUri extends Uri {
     public function equals(Uri $otherUri) : bool {
         $thisUri = $this->getAuthority().$this->getPath();
         $otherUriStr = $otherUri->getAuthority().$otherUri->getPath();
-        
+
         if ($thisUri != $otherUriStr) {
             return false;
         }

@@ -23,6 +23,44 @@ use WebFiori\Http\WebService;
  */
 class OpenAPIGenerator {
     /**
+     * Discovers WebService instances in a given namespace.
+     * 
+     * Scans all declared classes for those belonging to the namespace,
+     * extending WebService, having #[RestController], and not being abstract.
+     * 
+     * @param string $namespace The namespace to scan.
+     * 
+     * @return WebService[] Array of instantiated service objects.
+     */
+    public static function discoverServices(string $namespace) : array {
+        $namespace = rtrim($namespace, '\\').'\\';
+        $services = [];
+
+        foreach (get_declared_classes() as $class) {
+            if (!str_starts_with($class, $namespace)) {
+                continue;
+            }
+
+            if (!is_subclass_of($class, WebService::class)) {
+                continue;
+            }
+
+            $reflection = new \ReflectionClass($class);
+
+            if ($reflection->isAbstract()) {
+                continue;
+            }
+
+            if (empty($reflection->getAttributes(RestController::class))) {
+                continue;
+            }
+
+            $services[] = new $class();
+        }
+
+        return $services;
+    }
+    /**
      * Generates an OpenAPI specification from an array of web services.
      * 
      * @param WebService[] $services Array of web service instances.
@@ -67,44 +105,5 @@ class OpenAPIGenerator {
         $services = self::discoverServices($namespace);
 
         return $this->generate($services, $description, $version, $basePath);
-    }
-
-    /**
-     * Discovers WebService instances in a given namespace.
-     * 
-     * Scans all declared classes for those belonging to the namespace,
-     * extending WebService, having #[RestController], and not being abstract.
-     * 
-     * @param string $namespace The namespace to scan.
-     * 
-     * @return WebService[] Array of instantiated service objects.
-     */
-    public static function discoverServices(string $namespace) : array {
-        $namespace = rtrim($namespace, '\\') . '\\';
-        $services = [];
-
-        foreach (get_declared_classes() as $class) {
-            if (!str_starts_with($class, $namespace)) {
-                continue;
-            }
-
-            if (!is_subclass_of($class, WebService::class)) {
-                continue;
-            }
-
-            $reflection = new \ReflectionClass($class);
-
-            if ($reflection->isAbstract()) {
-                continue;
-            }
-
-            if (empty($reflection->getAttributes(RestController::class))) {
-                continue;
-            }
-
-            $services[] = new $class();
-        }
-
-        return $services;
     }
 }

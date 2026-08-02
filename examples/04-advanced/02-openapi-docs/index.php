@@ -2,29 +2,21 @@
 
 require_once '../../../vendor/autoload.php';
 
-use WebFiori\Http\OpenAPI\OpenAPIGenerator;
-use WebFiori\Http\WebService;
-use WebFiori\Http\Annotations\RestController;
+use WebFiori\Http\Annotations\AllowAnonymous;
 use WebFiori\Http\Annotations\GetMapping;
 use WebFiori\Http\Annotations\PostMapping;
 use WebFiori\Http\Annotations\RequestParam;
 use WebFiori\Http\Annotations\ResponseBody;
-use WebFiori\Http\Annotations\AllowAnonymous;
+use WebFiori\Http\Annotations\RestController;
+use WebFiori\Http\OpenAPI\OpenAPIGenerator;
 use WebFiori\Http\ParamType;
+use WebFiori\Http\WebService;
 
 /**
  * Example service for OpenAPI generation.
  */
 #[RestController('users', 'User management')]
 class UserService extends WebService {
-    #[GetMapping]
-    #[ResponseBody]
-    #[AllowAnonymous]
-    #[RequestParam('id', ParamType::INT, true)]
-    public function getUser(?int $id): array {
-        return ['id' => $id ?? 1, 'name' => 'John'];
-    }
-
     #[PostMapping]
     #[ResponseBody]
     #[AllowAnonymous]
@@ -33,9 +25,19 @@ class UserService extends WebService {
     public function createUser(string $name, string $email): array {
         return ['id' => 2, 'name' => $name, 'email' => $email];
     }
+    #[GetMapping]
+    #[ResponseBody]
+    #[AllowAnonymous]
+    #[RequestParam('id', ParamType::INT, true)]
+    public function getUser(?int $id): array {
+        return ['id' => $id ?? 1, 'name' => 'John'];
+    }
 
-    public function isAuthorized(): bool { return true; }
-    public function processRequest() {}
+    public function isAuthorized(): bool {
+        return true;
+    }
+    public function processRequest() {
+    }
 }
 
 // Generate OpenAPI spec using the standalone generator

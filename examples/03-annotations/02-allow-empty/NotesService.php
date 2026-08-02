@@ -19,7 +19,6 @@ use WebFiori\Http\WebService;
 #[RestController('notes', 'Notes service demonstrating allowEmpty')]
 #[AllowAnonymous]
 class NotesService extends WebService {
-
     #[PostMapping]
     #[ResponseBody]
     #[RequestParam(name: 'title', type: ParamType::STRING)]

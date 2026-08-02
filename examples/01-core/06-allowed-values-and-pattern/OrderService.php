@@ -16,29 +16,6 @@ use WebFiori\Http\WebService;
  */
 #[RestController('orders', 'Order management with enum and pattern validation')]
 class OrderService extends WebService {
-
-    /**
-     * Get orders filtered by status.
-     * The status parameter only accepts specific values.
-     */
-    #[GetMapping]
-    #[ResponseBody]
-    #[AllowAnonymous]
-    #[RequestParam('status', ParamType::STRING, allowedValues: ['pending', 'shipped', 'delivered', 'cancelled'])]
-    #[RequestParam('sort', ParamType::STRING, true, 'date', allowedValues: ['date', 'total', 'status'])]
-    public function getOrders(string $status, string $sort = 'date'): array {
-        return [
-            'filters' => [
-                'status' => $status,
-                'sort' => $sort,
-            ],
-            'orders' => [
-                ['id' => 1, 'status' => $status, 'total' => 29.99],
-                ['id' => 2, 'status' => $status, 'total' => 59.99],
-            ]
-        ];
-    }
-
     /**
      * Create a new order.
      * Phone must match international format, postal code must be 5 digits.
@@ -58,6 +35,28 @@ class OrderService extends WebService {
                 'phone' => $phone,
                 'postal_code' => $postalCode,
                 'country' => $country,
+            ]
+        ];
+    }
+
+    /**
+     * Get orders filtered by status.
+     * The status parameter only accepts specific values.
+     */
+    #[GetMapping]
+    #[ResponseBody]
+    #[AllowAnonymous]
+    #[RequestParam('status', ParamType::STRING, allowedValues: ['pending', 'shipped', 'delivered', 'cancelled'])]
+    #[RequestParam('sort', ParamType::STRING, true, 'date', allowedValues: ['date', 'total', 'status'])]
+    public function getOrders(string $status, string $sort = 'date'): array {
+        return [
+            'filters' => [
+                'status' => $status,
+                'sort' => $sort,
+            ],
+            'orders' => [
+                ['id' => 1, 'status' => $status, 'total' => 29.99],
+                ['id' => 2, 'status' => $status, 'total' => 59.99],
             ]
         ];
     }

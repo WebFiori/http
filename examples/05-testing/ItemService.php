@@ -14,6 +14,17 @@ use WebFiori\Http\WebService;
 #[RestController('items', 'Item management service')]
 #[AllowAnonymous]
 class ItemService extends WebService {
+    #[PostMapping]
+    #[ResponseBody]
+    #[RequestParam('name', ParamType::STRING)]
+    #[RequestParam('price', ParamType::DOUBLE)]
+    public function createItem(string $name, float $price): array {
+        return [
+            'id' => 3,
+            'name' => $name,
+            'price' => $price,
+        ];
+    }
 
     #[GetMapping]
     #[ResponseBody]
@@ -31,17 +42,5 @@ class ItemService extends WebService {
         }
 
         return ['id' => $id, 'name' => 'Widget'];
-    }
-
-    #[PostMapping]
-    #[ResponseBody]
-    #[RequestParam('name', ParamType::STRING)]
-    #[RequestParam('price', ParamType::DOUBLE)]
-    public function createItem(string $name, float $price): array {
-        return [
-            'id' => 3,
-            'name' => $name,
-            'price' => $price,
-        ];
     }
 }

@@ -6,11 +6,9 @@ use WebFiori\Http\Annotations\AllowAnonymous;
 use WebFiori\Http\Annotations\Consumes;
 use WebFiori\Http\Annotations\PostMapping;
 use WebFiori\Http\Annotations\PutMapping;
-use WebFiori\Http\Annotations\RequestParam;
 use WebFiori\Http\Annotations\ResponseBody;
 use WebFiori\Http\Annotations\RestController;
 use WebFiori\Http\MediaType;
-use WebFiori\Http\ParamType;
 use WebFiori\Http\ResponseEntity;
 use WebFiori\Http\WebService;
 use WebFiori\Json\Json;
@@ -26,7 +24,6 @@ use WebFiori\Json\Json;
 #[RestController('files', 'File management service')]
 #[AllowAnonymous]
 class FileUploadService extends WebService {
-
     /**
      * Upload a raw binary file.
      * 
