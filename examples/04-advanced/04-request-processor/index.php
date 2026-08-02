@@ -19,7 +19,13 @@ class GreetService extends WebService {
     #[AllowAnonymous]
     #[RequestParam('name', ParamType::STRING, true)]
     public function hello(?string $name): array {
-        return ['message' => 'Hello, ' . ($name ?? 'World') . '!'];
+        return ['message' => 'Hello, '.($name ?? 'World').'!'];
+    }
+
+    public function isAuthorized(): bool {
+        return true;
+    }
+    public function processRequest() {
     }
 
     #[PostMapping]
@@ -30,9 +36,6 @@ class GreetService extends WebService {
     public function sendGreeting(string $to, string $body): array {
         return ['sent_to' => $to, 'body' => $body, 'timestamp' => time()];
     }
-
-    public function isAuthorized(): bool { return true; }
-    public function processRequest() {}
 }
 
 // Process directly — no WebServicesManager needed

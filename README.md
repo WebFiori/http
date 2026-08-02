@@ -70,6 +70,7 @@ With well-established PHP HTTP libraries available, you might wonder why this on
 - **Authentication Support**: Built-in support for various authentication schemes (Basic, Bearer, etc.)
 - **HTTP Method Support**: Support for all standard HTTP methods (GET, POST, PUT, DELETE, etc.)
 - **Content Type Handling**: Support for `application/json`, `application/x-www-form-urlencoded`, and `multipart/form-data`
+- **Per-Method Content Type Control**: `#[Consumes]` annotation to accept custom content types (e.g. `application/octet-stream`, `application/xml`) on specific methods
 - **Object Mapping**: Automatic mapping of request parameters to PHP objects
 - **Comprehensive Testing**: Built-in testing utilities with `ServiceTestCase` class
 - **Error Handling**: Structured error responses with appropriate HTTP status codes

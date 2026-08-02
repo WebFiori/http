@@ -58,6 +58,12 @@ class WebService implements JsonI {
      */
     private $name;
     /**
+     * The content type negotiated from the Accept header.
+     * 
+     * @var string|null
+     */
+    private $negotiatedContentType;
+    /**
      * The manager that the service belongs to.
      * 
      * @var WebServicesManager
@@ -94,12 +100,6 @@ class WebService implements JsonI {
      */
     private $requireAuth;
     /**
-     * The content type negotiated from the Accept header.
-     * 
-     * @var string|null
-     */
-    private $negotiatedContentType;
-    /**
      * An array that contains descriptions of 
      * possible responses.
      * 
@@ -116,6 +116,12 @@ class WebService implements JsonI {
      */
     private $serviceDesc;
     /**
+     * Custom route path for this service.
+     * 
+     * @var string
+     */
+    private string $servicePath = '';
+    /**
      * An attribute that is used to tell since which API version the 
      * service was added.
      * 
@@ -123,12 +129,6 @@ class WebService implements JsonI {
      * 
      */
     private $sinceVersion;
-    /**
-     * Custom route path for this service.
-     * 
-     * @var string
-     */
-    private string $servicePath = '';
     /**
      * Creates new instance of the class.
      * 
@@ -472,29 +472,15 @@ class WebService implements JsonI {
         return $this->name;
     }
     /**
-     * Returns the custom route path for this service.
+     * Returns the content type negotiated from the client's Accept header.
      * 
-     * If a path is set, it will be used for URL routing and OpenAPI spec
-     * generation instead of the service name. If not set, falls back to
-     * the service name.
+     * Only meaningful when the method has a #[Produces] attribute.
+     * Defaults to 'application/json' if no negotiation occurred.
      * 
-     * @return string The custom path, or the service name if no path is set.
+     * @return string The negotiated media type.
      */
-    public final function getPath() : string {
-        return $this->servicePath !== '' ? $this->servicePath : $this->name;
-    }
-    /**
-     * Sets a custom route path for this service.
-     * 
-     * The path may contain slashes for multi-segment URLs (e.g., 'auth/login').
-     * 
-     * @param string $path The route path.
-     * 
-     * @return self
-     */
-    public function setPath(string $path) : self {
-        $this->servicePath = trim($path, '/');
-        return $this;
+    public function getNegotiatedContentType() : string {
+        return $this->negotiatedContentType ?? MediaType::JSON;
     }
     /**
      * Map service parameter to specific instance of a class.
@@ -580,6 +566,18 @@ class WebService implements JsonI {
         return null;
     }
     /**
+     * Returns the custom route path for this service.
+     * 
+     * If a path is set, it will be used for URL routing and OpenAPI spec
+     * generation instead of the service name. If not set, falls back to
+     * the service name.
+     * 
+     * @return string The custom path, or the service name if no path is set.
+     */
+    public final function getPath() : string {
+        return $this->servicePath !== '' ? $this->servicePath : $this->name;
+    }
+    /**
      * Returns an indexed array that contains information about possible responses.
      * 
      * It is used to describe the API for front-end developers and help them 
@@ -646,6 +644,16 @@ class WebService implements JsonI {
         }
 
         return null;
+    }
+    /**
+     * Checks if the class has a #[RequiresAuth] attribute.
+     * 
+     * @return bool True if the class-level RequiresAuth annotation is present.
+     */
+    public function hasClassLevelRequiresAuth() : bool {
+        $reflection = new \ReflectionClass($this);
+
+        return !empty($reflection->getAttributes(Annotations\RequiresAuth::class));
     }
 
     /**
@@ -736,27 +744,6 @@ class WebService implements JsonI {
     public function isAuthRequired() : bool {
         return $this->requireAuth;
     }
-    /**
-     * Returns the content type negotiated from the client's Accept header.
-     * 
-     * Only meaningful when the method has a #[Produces] attribute.
-     * Defaults to 'application/json' if no negotiation occurred.
-     * 
-     * @return string The negotiated media type.
-     */
-    public function getNegotiatedContentType() : string {
-        return $this->negotiatedContentType ?? MediaType::JSON;
-    }
-    /**
-     * Checks if the class has a #[RequiresAuth] attribute.
-     * 
-     * @return bool True if the class-level RequiresAuth annotation is present.
-     */
-    public function hasClassLevelRequiresAuth() : bool {
-        $reflection = new \ReflectionClass($this);
-
-        return !empty($reflection->getAttributes(Annotations\RequiresAuth::class));
-    }
 
     /**
      * Validates the name of a web service or request parameter.
@@ -787,21 +774,6 @@ class WebService implements JsonI {
      * Process client's request.
      */
     public function processRequest() {
-    }
-    /**
-     * Service-wide cross-field validation hook.
-     * 
-     * Override this method to add validation rules that depend on multiple
-     * parameters together. Called after individual parameter validation passes
-     * but before the request method is invoked.
-     * 
-     * @param array $inputs The filtered input values.
-     * 
-     * @return array An associative array of errors keyed by field name.
-     *               Return empty array if validation passes.
-     */
-    public function validate(array $inputs): array {
-        return [];
     }
 
     /**
@@ -839,7 +811,7 @@ class WebService implements JsonI {
                 $validationErrors = $this->runValidation($targetMethod);
 
                 if (!empty($validationErrors)) {
-                    $this->sendResponse('Validation failed', 422, 'error', new \WebFiori\Json\Json([
+                    $this->sendResponse('Validation failed', 422, 'error', new Json([
                         'errors' => $validationErrors
                     ]));
 
@@ -1058,6 +1030,20 @@ class WebService implements JsonI {
 
         return false;
     }
+    /**
+     * Sets a custom route path for this service.
+     * 
+     * The path may contain slashes for multi-segment URLs (e.g., 'auth/login').
+     * 
+     * @param string $path The route path.
+     * 
+     * @return self
+     */
+    public function setPath(string $path) : self {
+        $this->servicePath = trim($path, '/');
+
+        return $this;
+    }
 
     /**
      * Sets the request instance for the service.
@@ -1123,6 +1109,8 @@ class WebService implements JsonI {
         $pathItem = new OpenAPI\PathItemObj();
         $annotatedParams = $this->getAnnotatedRequestParams();
         $annotatedResponses = $this->getAnnotatedApiResponses();
+        $consumesMap = $this->getAnnotatedConsumes();
+        $producesMap = $this->getAnnotatedProduces();
 
         foreach ($this->getRequestMethods() as $method) {
             $responses = $this->getResponsesForMethod($method);
@@ -1132,12 +1120,20 @@ class WebService implements JsonI {
                     $responses = $annotatedResponses[$method];
                 } else {
                     $responses = new OpenAPI\ResponsesObj();
-                    $responses->addResponse('200', 'Successful operation');
+                    $producedTypes = $producesMap[$method] ?? null;
+
+                    if ($producedTypes !== null) {
+                        $desc = 'Successful operation. Produces: '.implode(', ', $producedTypes);
+                        $responses->addResponse('200', $desc);
+                    } else {
+                        $responses->addResponse('200', 'Successful operation');
+                    }
                 }
             }
 
             $operation = new OpenAPI\OperationObj($responses);
             $methodParams = $annotatedParams[$method] ?? [];
+            $consumesTypes = $consumesMap[$method] ?? null;
 
             if (!empty($methodParams)) {
                 $isBodyMethod = in_array($method, [
@@ -1148,7 +1144,7 @@ class WebService implements JsonI {
 
                 if ($isBodyMethod) {
                     $operation->setRequestBody(
-                        self::buildRequestBody($methodParams)
+                        self::buildRequestBody($methodParams, $consumesTypes)
                     );
                 } else {
                     foreach ($methodParams as $param) {
@@ -1157,6 +1153,13 @@ class WebService implements JsonI {
                         );
                     }
                 }
+            } else if ($consumesTypes !== null && in_array($method, [
+                RequestMethod::POST, RequestMethod::PUT, RequestMethod::PATCH
+            ])) {
+                // No request params but #[Consumes] is present (e.g. raw binary upload)
+                $operation->setRequestBody(
+                    self::buildRawRequestBody($consumesTypes)
+                );
             }
 
             switch ($method) {
@@ -1180,133 +1183,20 @@ class WebService implements JsonI {
 
         return $pathItem;
     }
-
     /**
-     * Reads #[RequestParam] annotations from methods and groups them by HTTP method.
-     *
-     * @return array<string, Annotations\RequestParam[]> Map of HTTP method to RequestParam annotations.
+     * Service-wide cross-field validation hook.
+     * 
+     * Override this method to add validation rules that depend on multiple
+     * parameters together. Called after individual parameter validation passes
+     * but before the request method is invoked.
+     * 
+     * @param array $inputs The filtered input values.
+     * 
+     * @return array An associative array of errors keyed by field name.
+     *               Return empty array if validation passes.
      */
-    private function getAnnotatedRequestParams(): array {
-        $reflection = new \ReflectionClass($this);
-        $result = [];
-
-        $mappings = [
-            Annotations\GetMapping::class => RequestMethod::GET,
-            Annotations\PostMapping::class => RequestMethod::POST,
-            Annotations\PutMapping::class => RequestMethod::PUT,
-            Annotations\DeleteMapping::class => RequestMethod::DELETE,
-            Annotations\PatchMapping::class => RequestMethod::PATCH,
-        ];
-
-        foreach ($reflection->getMethods() as $method) {
-            $paramAttrs = $method->getAttributes(Annotations\RequestParam::class);
-
-            if (empty($paramAttrs)) {
-                continue;
-            }
-
-            $params = array_map(fn($a) => $a->newInstance(), $paramAttrs);
-
-            foreach ($mappings as $annotationClass => $httpMethod) {
-                if (!empty($method->getAttributes($annotationClass))) {
-                    $result[$httpMethod] = array_merge($result[$httpMethod] ?? [], $params);
-                }
-            }
-        }
-
-        return $result;
-    }
-
-    /**
-     * Reads #[ApiResponse] annotations from methods and groups them by HTTP method.
-     *
-     * @return array<string, OpenAPI\ResponsesObj> Map of HTTP method to ResponsesObj.
-     */
-    private function getAnnotatedApiResponses(): array {
-        $reflection = new \ReflectionClass($this);
-        $result = [];
-
-        $mappings = [
-            Annotations\GetMapping::class => RequestMethod::GET,
-            Annotations\PostMapping::class => RequestMethod::POST,
-            Annotations\PutMapping::class => RequestMethod::PUT,
-            Annotations\DeleteMapping::class => RequestMethod::DELETE,
-            Annotations\PatchMapping::class => RequestMethod::PATCH,
-        ];
-
-        foreach ($reflection->getMethods() as $method) {
-            $responseAttrs = $method->getAttributes(Annotations\ApiResponse::class);
-
-            if (empty($responseAttrs)) {
-                continue;
-            }
-
-            foreach ($mappings as $annotationClass => $httpMethod) {
-                if (!empty($method->getAttributes($annotationClass))) {
-                    if (!isset($result[$httpMethod])) {
-                        $result[$httpMethod] = new OpenAPI\ResponsesObj();
-                    }
-
-                    foreach ($responseAttrs as $attr) {
-                        $instance = $attr->newInstance();
-                        $result[$httpMethod]->addResponse($instance->status, $instance->description);
-                    }
-                }
-            }
-        }
-
-        return $result;
-    }
-
-    /**
-     * Builds an OpenAPI ParameterObj (query param) from a RequestParam annotation.
-     */
-    private static function buildQueryParameter(Annotations\RequestParam $param): OpenAPI\ParameterObj {
-        $p = new OpenAPI\ParameterObj($param->name, 'query');
-        $p->setRequired(!$param->optional);
-        $p->setSchema(self::buildParamSchema($param)->toJson());
-
-        if ($param->description !== '') {
-            $p->setDescription($param->description);
-        }
-
-        return $p;
-    }
-
-    /**
-     * Builds an OpenAPI requestBody Json object from RequestParam annotations.
-     *
-     * @param Annotations\RequestParam[] $params
-     */
-    private static function buildRequestBody(array $params): \WebFiori\Json\Json {
-        $properties = new \WebFiori\Json\Json();
-        $required = [];
-
-        foreach ($params as $param) {
-            $properties->add($param->name, self::buildParamSchema($param)->toJson());
-
-            if (!$param->optional) {
-                $required[] = $param->name;
-            }
-        }
-
-        $schema = new \WebFiori\Json\Json();
-        $schema->add('type', 'object');
-        $schema->add('properties', $properties);
-
-        if (!empty($required)) {
-            $schema->add('required', $required);
-        }
-
-        $content = new \WebFiori\Json\Json();
-        $mediaType = new \WebFiori\Json\Json();
-        $mediaType->add('schema', $schema);
-        $content->add('application/x-www-form-urlencoded', $mediaType);
-
-        $body = new \WebFiori\Json\Json();
-        $body->add('content', $content);
-
-        return $body;
+    public function validate(array $inputs): array {
+        return [];
     }
 
     /**
@@ -1326,6 +1216,89 @@ class WebService implements JsonI {
         }
 
         return $schema;
+    }
+
+    /**
+     * Builds an OpenAPI ParameterObj (query param) from a RequestParam annotation.
+     */
+    private static function buildQueryParameter(Annotations\RequestParam $param): OpenAPI\ParameterObj {
+        $p = new OpenAPI\ParameterObj($param->name, 'query');
+        $p->setRequired(!$param->optional);
+        $p->setSchema(self::buildParamSchema($param)->toJson());
+
+        if ($param->description !== '') {
+            $p->setDescription($param->description);
+        }
+
+        return $p;
+    }
+    /**
+     * Builds an OpenAPI requestBody Json for raw body endpoints (no parameters).
+     * 
+     * Used when #[Consumes] is present but no #[RequestParam] annotations exist
+     * (e.g. binary upload endpoints).
+     *
+     * @param array $consumesTypes Content types from #[Consumes].
+     */
+    private static function buildRawRequestBody(array $consumesTypes): Json {
+        $content = new Json();
+
+        foreach ($consumesTypes as $type) {
+            $mediaType = new Json();
+            $schema = new Json();
+            $schema->add('type', 'string');
+            $schema->add('format', 'binary');
+            $mediaType->add('schema', $schema);
+            $content->add($type, $mediaType);
+        }
+
+        $body = new Json();
+        $body->add('content', $content);
+
+        return $body;
+    }
+
+    /**
+     * Builds an OpenAPI requestBody Json object from RequestParam annotations.
+     *
+     * @param Annotations\RequestParam[] $params
+     * @param array|null $consumesTypes Content types from #[Consumes], or null for default.
+     */
+    private static function buildRequestBody(array $params, ?array $consumesTypes = null): Json {
+        $properties = new Json();
+        $required = [];
+
+        foreach ($params as $param) {
+            $properties->add($param->name, self::buildParamSchema($param)->toJson());
+
+            if (!$param->optional) {
+                $required[] = $param->name;
+            }
+        }
+
+        $schema = new Json();
+        $schema->add('type', 'object');
+        $schema->add('properties', $properties);
+
+        if (!empty($required)) {
+            $schema->add('required', $required);
+        }
+
+        $content = new Json();
+        $mediaType = new Json();
+        $mediaType->add('schema', $schema);
+
+        // Use #[Consumes] types if available, otherwise default
+        $types = $consumesTypes ?? ['application/x-www-form-urlencoded'];
+
+        foreach ($types as $type) {
+            $content->add($type, $mediaType);
+        }
+
+        $body = new Json();
+        $body->add('content', $content);
+
+        return $body;
     }
 
     /**
@@ -1457,7 +1430,7 @@ class WebService implements JsonI {
                 'POST' => PostMapping::class,
                 'PUT' => PutMapping::class,
                 'DELETE' => DeleteMapping::class,
-                'PATCH' => Annotations\PatchMapping::class,
+                'PATCH' => PatchMapping::class,
             ];
 
             if (isset($annotations[$httpMethod])) {
@@ -1468,135 +1441,6 @@ class WebService implements JsonI {
                 $this->configureParametersFromMethod($method);
             }
         }
-    }
-
-    /**
-     * Performs content negotiation for a method.
-     * 
-     * @param string $methodName The target method name.
-     * 
-     * @return string|null The negotiated content type, or null if no match (406).
-     */
-    private function negotiateContentType(string $methodName): ?string {
-        $reflection = new \ReflectionMethod($this, $methodName);
-        $producesAttrs = $reflection->getAttributes(Annotations\Produces::class);
-
-        if (empty($producesAttrs)) {
-            return MediaType::JSON;
-        }
-
-        $produces = $producesAttrs[0]->newInstance()->contentTypes;
-        $acceptHeader = $this->getAcceptHeader();
-
-        if (empty($acceptHeader)) {
-            return $produces[0];
-        }
-
-        $accepted = self::parseAcceptHeader($acceptHeader);
-
-        foreach ($accepted as $mediaType) {
-            if ($mediaType['type'] === '*/*' || $mediaType['type'] === 'application/*') {
-                return $produces[0];
-            }
-
-            if (in_array($mediaType['type'], $produces, true)) {
-                return $mediaType['type'];
-            }
-        }
-
-        return null;
-    }
-    /**
-     * Gets the Accept header value from the current request.
-     */
-    private function getAcceptHeader(): string {
-        $manager = $this->getManager();
-
-        if ($manager !== null) {
-            $accept = $manager->getRequest()->getHeader('accept');
-
-            return !empty($accept) ? $accept[0] : '';
-        }
-
-        return $_SERVER['HTTP_ACCEPT'] ?? '';
-    }
-    /**
-     * Parses an Accept header into a sorted list of media types by q-value.
-     * 
-     * @param string $header The raw Accept header value.
-     * 
-     * @return array Sorted array of ['type' => string, 'q' => float].
-     */
-    private static function parseAcceptHeader(string $header): array {
-        $types = [];
-
-        foreach (explode(',', $header) as $part) {
-            $segments = explode(';', trim($part));
-            $mediaType = trim($segments[0]);
-            $q = 1.0;
-
-            foreach ($segments as $segment) {
-                $segment = trim($segment);
-
-                if (str_starts_with($segment, 'q=')) {
-                    $q = (float) substr($segment, 2);
-                }
-            }
-
-            $types[] = ['type' => $mediaType, 'q' => $q];
-        }
-
-        usort($types, fn($a, $b) => $b['q'] <=> $a['q']);
-
-        return $types;
-    }
-    /**
-     * Runs cross-field validation: service-wide validate() + method-specific #[Validate].
-     * 
-     * @param string $targetMethod The method being invoked.
-     * 
-     * @return array Merged errors from both validators. Empty if all pass.
-     */
-    private function runValidation(string $targetMethod): array {
-        $inputs = $this->getInputs();
-
-        if ($inputs instanceof \WebFiori\Json\Json) {
-            $inputsArray = [];
-
-            foreach ($inputs->getPropsNames() as $name) {
-                $inputsArray[$name] = $inputs->get($name);
-            }
-        } else {
-            $inputsArray = is_array($inputs) ? $inputs : [];
-        }
-
-        // 1. Service-wide validation
-        $errors = $this->validate($inputsArray);
-
-        // 2. Method-specific #[Validate] attribute
-        $reflection = new \ReflectionMethod($this, $targetMethod);
-        $validateAttrs = $reflection->getAttributes(Annotations\Validate::class);
-
-        if (!empty($validateAttrs)) {
-            $validateAnnotation = $validateAttrs[0]->newInstance();
-            $validatorMethod = $validateAnnotation->method;
-
-            if (!method_exists($this, $validatorMethod)) {
-                throw new \InvalidArgumentException(
-                    "Validation method '$validatorMethod' referenced by #[Validate] does not exist on " . get_class($this)
-                );
-            }
-
-            $validatorReflection = new \ReflectionMethod($this, $validatorMethod);
-            $validatorReflection->setAccessible(true);
-            $methodErrors = $validatorReflection->invoke($this, $inputsArray);
-
-            if (is_array($methodErrors)) {
-                $errors = array_merge($errors, $methodErrors);
-            }
-        }
-
-        return $errors;
     }
     /**
      * Configure parameters from method RequestParam annotations.
@@ -1646,6 +1490,7 @@ class WebService implements JsonI {
             if ($param->message !== null) {
                 $options[ParamOption::MESSAGE] = $param->message;
             }
+
             if ($param->allowEmpty) {
                 $options[ParamOption::EMPTY] = true;
             }
@@ -1654,6 +1499,169 @@ class WebService implements JsonI {
                 $param->name => $options
             ]);
         }
+    }
+    /**
+     * Gets the Accept header value from the current request.
+     */
+    private function getAcceptHeader(): string {
+        $manager = $this->getManager();
+
+        if ($manager !== null) {
+            $accept = $manager->getRequest()->getHeader('accept');
+
+            return !empty($accept) ? $accept[0] : '';
+        }
+
+        return $_SERVER['HTTP_ACCEPT'] ?? '';
+    }
+
+    /**
+     * Reads #[ApiResponse] annotations from methods and groups them by HTTP method.
+     *
+     * @return array<string, OpenAPI\ResponsesObj> Map of HTTP method to ResponsesObj.
+     */
+    private function getAnnotatedApiResponses(): array {
+        $reflection = new \ReflectionClass($this);
+        $result = [];
+
+        $mappings = [
+            GetMapping::class => RequestMethod::GET,
+            PostMapping::class => RequestMethod::POST,
+            PutMapping::class => RequestMethod::PUT,
+            DeleteMapping::class => RequestMethod::DELETE,
+            PatchMapping::class => RequestMethod::PATCH,
+        ];
+
+        foreach ($reflection->getMethods() as $method) {
+            $responseAttrs = $method->getAttributes(Annotations\ApiResponse::class);
+
+            if (empty($responseAttrs)) {
+                continue;
+            }
+
+            foreach ($mappings as $annotationClass => $httpMethod) {
+                if (!empty($method->getAttributes($annotationClass))) {
+                    if (!isset($result[$httpMethod])) {
+                        $result[$httpMethod] = new OpenAPI\ResponsesObj();
+                    }
+
+                    foreach ($responseAttrs as $attr) {
+                        $instance = $attr->newInstance();
+                        $result[$httpMethod]->addResponse($instance->status, $instance->description);
+                    }
+                }
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Reads #[Consumes] annotations from methods and groups them by HTTP method.
+     *
+     * @return array<string, string[]> Map of HTTP method to content type arrays.
+     */
+    private function getAnnotatedConsumes(): array {
+        $reflection = new \ReflectionClass($this);
+        $result = [];
+
+        $mappings = [
+            GetMapping::class => RequestMethod::GET,
+            PostMapping::class => RequestMethod::POST,
+            PutMapping::class => RequestMethod::PUT,
+            DeleteMapping::class => RequestMethod::DELETE,
+            PatchMapping::class => RequestMethod::PATCH,
+        ];
+
+        foreach ($reflection->getMethods() as $method) {
+            $consumesAttrs = $method->getAttributes(Annotations\Consumes::class);
+
+            if (empty($consumesAttrs)) {
+                continue;
+            }
+
+            $types = $consumesAttrs[0]->newInstance()->contentTypes;
+
+            foreach ($mappings as $annotationClass => $httpMethod) {
+                if (!empty($method->getAttributes($annotationClass))) {
+                    $result[$httpMethod] = $types;
+                }
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Reads #[Produces] annotations from methods and groups them by HTTP method.
+     *
+     * @return array<string, string[]> Map of HTTP method to content type arrays.
+     */
+    private function getAnnotatedProduces(): array {
+        $reflection = new \ReflectionClass($this);
+        $result = [];
+
+        $mappings = [
+            GetMapping::class => RequestMethod::GET,
+            PostMapping::class => RequestMethod::POST,
+            PutMapping::class => RequestMethod::PUT,
+            DeleteMapping::class => RequestMethod::DELETE,
+            PatchMapping::class => RequestMethod::PATCH,
+        ];
+
+        foreach ($reflection->getMethods() as $method) {
+            $producesAttrs = $method->getAttributes(Annotations\Produces::class);
+
+            if (empty($producesAttrs)) {
+                continue;
+            }
+
+            $types = $producesAttrs[0]->newInstance()->contentTypes;
+
+            foreach ($mappings as $annotationClass => $httpMethod) {
+                if (!empty($method->getAttributes($annotationClass))) {
+                    $result[$httpMethod] = $types;
+                }
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Reads #[RequestParam] annotations from methods and groups them by HTTP method.
+     *
+     * @return array<string, Annotations\RequestParam[]> Map of HTTP method to RequestParam annotations.
+     */
+    private function getAnnotatedRequestParams(): array {
+        $reflection = new \ReflectionClass($this);
+        $result = [];
+
+        $mappings = [
+            GetMapping::class => RequestMethod::GET,
+            PostMapping::class => RequestMethod::POST,
+            PutMapping::class => RequestMethod::PUT,
+            DeleteMapping::class => RequestMethod::DELETE,
+            PatchMapping::class => RequestMethod::PATCH,
+        ];
+
+        foreach ($reflection->getMethods() as $method) {
+            $paramAttrs = $method->getAttributes(Annotations\RequestParam::class);
+
+            if (empty($paramAttrs)) {
+                continue;
+            }
+
+            $params = array_map(fn($a) => $a->newInstance(), $paramAttrs);
+
+            foreach ($mappings as $annotationClass => $httpMethod) {
+                if (!empty($method->getAttributes($annotationClass))) {
+                    $result[$httpMethod] = array_merge($result[$httpMethod] ?? [], $params);
+                }
+            }
+        }
+
+        return $result;
     }
 
     /**
@@ -1784,6 +1792,121 @@ class WebService implements JsonI {
     }
 
     /**
+     * Performs content negotiation for a method.
+     * 
+     * @param string $methodName The target method name.
+     * 
+     * @return string|null The negotiated content type, or null if no match (406).
+     */
+    private function negotiateContentType(string $methodName): ?string {
+        $reflection = new \ReflectionMethod($this, $methodName);
+        $producesAttrs = $reflection->getAttributes(Annotations\Produces::class);
+
+        if (empty($producesAttrs)) {
+            return MediaType::JSON;
+        }
+
+        $produces = $producesAttrs[0]->newInstance()->contentTypes;
+        $acceptHeader = $this->getAcceptHeader();
+
+        if (empty($acceptHeader)) {
+            return $produces[0];
+        }
+
+        $accepted = self::parseAcceptHeader($acceptHeader);
+
+        foreach ($accepted as $mediaType) {
+            if ($mediaType['type'] === '*/*' || $mediaType['type'] === 'application/*') {
+                return $produces[0];
+            }
+
+            if (in_array($mediaType['type'], $produces, true)) {
+                return $mediaType['type'];
+            }
+        }
+
+        return null;
+    }
+    /**
+     * Parses an Accept header into a sorted list of media types by q-value.
+     * 
+     * @param string $header The raw Accept header value.
+     * 
+     * @return array Sorted array of ['type' => string, 'q' => float].
+     */
+    private static function parseAcceptHeader(string $header): array {
+        $types = [];
+
+        foreach (explode(',', $header) as $part) {
+            $segments = explode(';', trim($part));
+            $mediaType = trim($segments[0]);
+            $q = 1.0;
+
+            foreach ($segments as $segment) {
+                $segment = trim($segment);
+
+                if (str_starts_with($segment, 'q=')) {
+                    $q = (float) substr($segment, 2);
+                }
+            }
+
+            $types[] = ['type' => $mediaType, 'q' => $q];
+        }
+
+        usort($types, fn($a, $b) => $b['q'] <=> $a['q']);
+
+        return $types;
+    }
+    /**
+     * Runs cross-field validation: service-wide validate() + method-specific #[Validate].
+     * 
+     * @param string $targetMethod The method being invoked.
+     * 
+     * @return array Merged errors from both validators. Empty if all pass.
+     */
+    private function runValidation(string $targetMethod): array {
+        $inputs = $this->getInputs();
+
+        if ($inputs instanceof Json) {
+            $inputsArray = [];
+
+            foreach ($inputs->getPropsNames() as $name) {
+                $inputsArray[$name] = $inputs->get($name);
+            }
+        } else {
+            $inputsArray = is_array($inputs) ? $inputs : [];
+        }
+
+        // 1. Service-wide validation
+        $errors = $this->validate($inputsArray);
+
+        // 2. Method-specific #[Validate] attribute
+        $reflection = new \ReflectionMethod($this, $targetMethod);
+        $validateAttrs = $reflection->getAttributes(Annotations\Validate::class);
+
+        if (!empty($validateAttrs)) {
+            $validateAnnotation = $validateAttrs[0]->newInstance();
+            $validatorMethod = $validateAnnotation->method;
+
+            if (!method_exists($this, $validatorMethod)) {
+                throw new \InvalidArgumentException(
+                    "Validation method '$validatorMethod' referenced by #[Validate] does not exist on ".get_class($this)
+                );
+            }
+
+            $validatorReflection = new \ReflectionMethod($this, $validatorMethod);
+            $validatorReflection->setAccessible(true);
+            $methodErrors = $validatorReflection->invoke($this, $inputsArray);
+
+            if (is_array($methodErrors)) {
+                $errors = array_merge($errors, $methodErrors);
+            }
+        }
+
+        return $errors;
+    }
+
+    /**
      * Get the current processing method name (to be overridden by subclasses if needed).
      */
     protected function getCurrentProcessingMethod(): ?string {
@@ -1825,9 +1948,9 @@ class WebService implements JsonI {
         if ($contentType !== 'application/json') {
             // For non-JSON content types, send raw result
             if ($result instanceof Json) {
-                $this->send($contentType, $result . '', $responseBody->status);
+                $this->send($contentType, $result.'', $responseBody->status);
             } else if ($result instanceof JsonI) {
-                $this->send($contentType, $result->toJSON() . '', $responseBody->status);
+                $this->send($contentType, $result->toJSON().'', $responseBody->status);
             } else if (is_array($result)) {
                 $content = new Json();
                 $content->addArray('data', $result, !array_is_list($result));
@@ -1848,6 +1971,7 @@ class WebService implements JsonI {
         // Handle ResponseEntity for dynamic status codes
         if ($result instanceof ResponseEntity) {
             $body = $result->getBody();
+
             if ($body === null) {
                 $this->send($result->getContentType(), "", $result->getStatus());
             } else if ($body instanceof Json || $body instanceof JsonI) {
@@ -1861,6 +1985,7 @@ class WebService implements JsonI {
             } else {
                 $this->send($result->getContentType(), $body, $result->getStatus());
             }
+
             return;
         }
 
@@ -1869,9 +1994,9 @@ class WebService implements JsonI {
             // Null return = empty response with configured status
             $this->sendResponse('', $responseBody->status, $responseBody->type);
         } else if ($result instanceof Json) {
-            $this->send($responseBody->contentType, $result . '', $responseBody->status);
+            $this->send($responseBody->contentType, $result.'', $responseBody->status);
         } else if ($result instanceof JsonI) {
-            $this->send($responseBody->contentType, $result->toJSON() . '', $responseBody->status);
+            $this->send($responseBody->contentType, $result->toJSON().'', $responseBody->status);
         } else if (is_array($result) || is_object($result)) {
             $json = new Json();
             $asObj = is_array($result) && !array_is_list($result);

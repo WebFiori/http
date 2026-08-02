@@ -29,6 +29,7 @@ abstract class OpenAPIObject {
 
     public function setDescription(string $description) : static {
         $this->description = $description;
+
         return $this;
     }
     /**

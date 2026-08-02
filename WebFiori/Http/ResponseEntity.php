@@ -35,41 +35,14 @@ class ResponseEntity {
     }
 
     /**
-     * Returns the response body.
+     * Creates a ResponseEntity with HTTP 400 Bad Request status.
      * 
-     * @return mixed The body content of the response.
+     * @param mixed $body The response body content describing the error.
+     * 
+     * @return self A new ResponseEntity instance with status 400.
      */
-    public function getBody(): mixed {
-        return $this->body;
-    }
-
-    /**
-     * Returns the HTTP status code.
-     * 
-     * @return int The HTTP status code.
-     */
-    public function getStatus(): int {
-        return $this->status;
-    }
-
-    /**
-     * Returns the content type of the response.
-     * 
-     * @return string The content type header value.
-     */
-    public function getContentType(): string {
-        return $this->contentType;
-    }
-
-    /**
-     * Creates a ResponseEntity with HTTP 200 OK status.
-     * 
-     * @param mixed $body The response body content.
-     * 
-     * @return self A new ResponseEntity instance with status 200.
-     */
-    public static function ok(mixed $body): self {
-        return new self($body, 200);
+    public static function badRequest(mixed $body): self {
+        return new self($body, 400);
     }
 
     /**
@@ -84,34 +57,14 @@ class ResponseEntity {
     }
 
     /**
-     * Creates a ResponseEntity with HTTP 204 No Content status and null body.
-     * 
-     * @return self A new ResponseEntity instance with status 204 and no body.
-     */
-    public static function noContent(): self {
-        return new self(null, 204);
-    }
-
-    /**
-     * Creates a ResponseEntity with HTTP 400 Bad Request status.
+     * Creates a ResponseEntity with HTTP 500 Internal Server Error status.
      * 
      * @param mixed $body The response body content describing the error.
      * 
-     * @return self A new ResponseEntity instance with status 400.
+     * @return self A new ResponseEntity instance with status 500.
      */
-    public static function badRequest(mixed $body): self {
-        return new self($body, 400);
-    }
-
-    /**
-     * Creates a ResponseEntity with HTTP 401 Unauthorized status.
-     * 
-     * @param mixed $body The response body content describing the authentication failure.
-     * 
-     * @return self A new ResponseEntity instance with status 401.
-     */
-    public static function unauthorized(mixed $body): self {
-        return new self($body, 401);
+    public static function error(mixed $body): self {
+        return new self($body, 500);
     }
 
     /**
@@ -126,6 +79,42 @@ class ResponseEntity {
     }
 
     /**
+     * Returns the response body.
+     * 
+     * @return mixed The body content of the response.
+     */
+    public function getBody(): mixed {
+        return $this->body;
+    }
+
+    /**
+     * Returns the content type of the response.
+     * 
+     * @return string The content type header value.
+     */
+    public function getContentType(): string {
+        return $this->contentType;
+    }
+
+    /**
+     * Returns the HTTP status code.
+     * 
+     * @return int The HTTP status code.
+     */
+    public function getStatus(): int {
+        return $this->status;
+    }
+
+    /**
+     * Creates a ResponseEntity with HTTP 204 No Content status and null body.
+     * 
+     * @return self A new ResponseEntity instance with status 204 and no body.
+     */
+    public static function noContent(): self {
+        return new self(null, 204);
+    }
+
+    /**
      * Creates a ResponseEntity with HTTP 404 Not Found status.
      * 
      * @param mixed $body The response body content describing what was not found.
@@ -137,13 +126,24 @@ class ResponseEntity {
     }
 
     /**
-     * Creates a ResponseEntity with HTTP 500 Internal Server Error status.
+     * Creates a ResponseEntity with HTTP 200 OK status.
      * 
-     * @param mixed $body The response body content describing the error.
+     * @param mixed $body The response body content.
      * 
-     * @return self A new ResponseEntity instance with status 500.
+     * @return self A new ResponseEntity instance with status 200.
      */
-    public static function error(mixed $body): self {
-        return new self($body, 500);
+    public static function ok(mixed $body): self {
+        return new self($body, 200);
+    }
+
+    /**
+     * Creates a ResponseEntity with HTTP 401 Unauthorized status.
+     * 
+     * @param mixed $body The response body content describing the authentication failure.
+     * 
+     * @return self A new ResponseEntity instance with status 401.
+     */
+    public static function unauthorized(mixed $body): self {
+        return new self($body, 401);
     }
 }

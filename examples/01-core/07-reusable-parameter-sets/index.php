@@ -9,9 +9,9 @@ use WebFiori\Http\Annotations\RequestParam;
 use WebFiori\Http\Annotations\ResponseBody;
 use WebFiori\Http\Annotations\RestController;
 use WebFiori\Http\Annotations\UseParameterSet;
+use WebFiori\Http\ParameterSet;
 use WebFiori\Http\ParamOption;
 use WebFiori\Http\ParamType;
-use WebFiori\Http\ParameterSet;
 use WebFiori\Http\RequestProcessor;
 use WebFiori\Http\WebService;
 
@@ -41,6 +41,22 @@ class AddressParams implements ParameterSet {
 
 #[RestController('orders')]
 class OrderService extends WebService {
+    #[PostMapping]
+    #[ResponseBody]
+    #[AllowAnonymous]
+    #[UseParameterSet(AddressParams::class)]
+    #[RequestParam('total', ParamType::DOUBLE)]
+    public function createOrder(string $street, string $city, string $zip, string $country, float $total): array {
+        return [
+            'message' => 'Order created',
+            'address' => compact('street', 'city', 'zip', 'country'),
+            'total' => $total,
+        ];
+    }
+
+    public function isAuthorized(): bool {
+        return true;
+    }
 
     #[GetMapping]
     #[ResponseBody]
@@ -56,22 +72,8 @@ class OrderService extends WebService {
             ]
         ];
     }
-
-    #[PostMapping]
-    #[ResponseBody]
-    #[AllowAnonymous]
-    #[UseParameterSet(AddressParams::class)]
-    #[RequestParam('total', ParamType::DOUBLE)]
-    public function createOrder(string $street, string $city, string $zip, string $country, float $total): array {
-        return [
-            'message' => 'Order created',
-            'address' => compact('street', 'city', 'zip', 'country'),
-            'total' => $total,
-        ];
+    public function processRequest() {
     }
-
-    public function isAuthorized(): bool { return true; }
-    public function processRequest() {}
 }
 
 $processor = new RequestProcessor();

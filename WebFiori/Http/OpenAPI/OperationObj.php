@@ -25,15 +25,6 @@ use WebFiori\Json\JsonI;
  */
 class OperationObj implements JsonI {
     /**
-     * The list of possible responses as they are returned from executing this operation.
-     * 
-     * REQUIRED.
-     * 
-     * @var ResponsesObj
-     */
-    private ResponsesObj $responses;
-
-    /**
      * A list of parameters that are applicable for this operation.
      * 
      * @var ParameterObj[]
@@ -46,19 +37,17 @@ class OperationObj implements JsonI {
      * @var Json|null
      */
     private ?Json $requestBody = null;
+    /**
+     * The list of possible responses as they are returned from executing this operation.
+     * 
+     * REQUIRED.
+     * 
+     * @var ResponsesObj
+     */
+    private ResponsesObj $responses;
 
     public function __construct(ResponsesObj $responses) {
         $this->responses = $responses;
-    }
-
-    public function getResponses(): ResponsesObj {
-        return $this->responses;
-    }
-
-    public function setResponses(ResponsesObj $responses): OperationObj {
-        $this->responses = $responses;
-
-        return $this;
     }
 
     /**
@@ -84,6 +73,19 @@ class OperationObj implements JsonI {
     }
 
     /**
+     * Returns the request body.
+     * 
+     * @return Json|null
+     */
+    public function getRequestBody(): ?Json {
+        return $this->requestBody;
+    }
+
+    public function getResponses(): ResponsesObj {
+        return $this->responses;
+    }
+
+    /**
      * Sets the request body for this operation.
      * 
      * @param Json $requestBody The request body object.
@@ -96,13 +98,10 @@ class OperationObj implements JsonI {
         return $this;
     }
 
-    /**
-     * Returns the request body.
-     * 
-     * @return Json|null
-     */
-    public function getRequestBody(): ?Json {
-        return $this->requestBody;
+    public function setResponses(ResponsesObj $responses): OperationObj {
+        $this->responses = $responses;
+
+        return $this;
     }
 
     public function toJSON(): Json {

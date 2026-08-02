@@ -18,20 +18,6 @@ use WebFiori\Http\WebService;
  */
 #[RestController(name: 'products', path: 'shop/products', description: 'Product catalog')]
 class ProductService extends WebService {
-
-    #[GetMapping]
-    #[ResponseBody]
-    #[AllowAnonymous]
-    #[ApiResponse(status: '200', description: 'List of products or a single product')]
-    #[ApiResponse(status: '404', description: 'Product not found')]
-    #[RequestParam('id', ParamType::INT, true)]
-    public function getProducts(?int $id): array {
-        if ($id !== null) {
-            return ['id' => $id, 'name' => 'Widget', 'price' => 9.99];
-        }
-        return ['products' => [['id' => 1, 'name' => 'Widget']]];
-    }
-
     #[PostMapping]
     #[ResponseBody]
     #[AllowAnonymous]
@@ -53,6 +39,23 @@ class ProductService extends WebService {
         return ['deleted' => $id];
     }
 
-    public function isAuthorized(): bool { return true; }
-    public function processRequest() {}
+    #[GetMapping]
+    #[ResponseBody]
+    #[AllowAnonymous]
+    #[ApiResponse(status: '200', description: 'List of products or a single product')]
+    #[ApiResponse(status: '404', description: 'Product not found')]
+    #[RequestParam('id', ParamType::INT, true)]
+    public function getProducts(?int $id): array {
+        if ($id !== null) {
+            return ['id' => $id, 'name' => 'Widget', 'price' => 9.99];
+        }
+
+        return ['products' => [['id' => 1, 'name' => 'Widget']]];
+    }
+
+    public function isAuthorized(): bool {
+        return true;
+    }
+    public function processRequest() {
+    }
 }

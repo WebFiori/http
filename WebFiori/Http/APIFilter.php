@@ -346,6 +346,7 @@ class APIFilter {
         if (gettype($toBeFiltered) == 'array') {
             return $toBeFiltered;
         }
+
         if (gettype($toBeFiltered) == 'boolean') {
             return $toBeFiltered;
         }
@@ -449,6 +450,29 @@ class APIFilter {
         } else {
             $extraClean->addNull($name);
         }
+    }
+    /**
+     * Checks allowed values and pattern constraints on a filtered value.
+     * 
+     * @param mixed $value The filtered value.
+     * @param RequestParameter $param The parameter definition.
+     * 
+     * @return mixed The value if valid, or self::INVALID if constraints fail.
+     */
+    private static function checkAllowedAndPattern($value, RequestParameter $param) {
+        $allowed = $param->getAllowedValues();
+
+        if (!empty($allowed) && !in_array($value, $allowed, true)) {
+            return self::INVALID;
+        }
+
+        $pattern = $param->getPattern();
+
+        if ($pattern !== null && is_string($value) && !preg_match($pattern, $value)) {
+            return self::INVALID;
+        }
+
+        return $value;
     }
     private function checkExtracted(Json $extraClean, $name, $defaultVal) {
         $extractedVal = $extraClean->get($name);
@@ -555,6 +579,7 @@ class APIFilter {
 
         if (strlen($cleaned) == 0 && $def['options']['options']['allow-empty'] === false) {
             $extraClean->add($name, null);
+
             return;
         }
 
@@ -979,28 +1004,5 @@ class APIFilter {
         }
 
         return false;
-    }
-    /**
-     * Checks allowed values and pattern constraints on a filtered value.
-     * 
-     * @param mixed $value The filtered value.
-     * @param RequestParameter $param The parameter definition.
-     * 
-     * @return mixed The value if valid, or self::INVALID if constraints fail.
-     */
-    private static function checkAllowedAndPattern($value, RequestParameter $param) {
-        $allowed = $param->getAllowedValues();
-
-        if (!empty($allowed) && !in_array($value, $allowed, true)) {
-            return self::INVALID;
-        }
-
-        $pattern = $param->getPattern();
-
-        if ($pattern !== null && is_string($value) && !preg_match($pattern, $value)) {
-            return self::INVALID;
-        }
-
-        return $value;
     }
 }
