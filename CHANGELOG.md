@@ -1,5 +1,13 @@
 # Changelog
 
+## [6.2.0](https://github.com/WebFiori/http/compare/v6.1.0...v6.2.0) (2026-09-20)
+
+
+### Features
+
+* **WebService:** cache per-class annotation configuration ([1e7d8f4](https://github.com/WebFiori/http/commit/1e7d8f4bc09316231aa1d8d226cc4795ee357c22))
+* **WebService:** cache per-class annotation configuration ([8a27306](https://github.com/WebFiori/http/commit/8a27306c5dc2ba783ce9a3463c13081d04d9836e)), closes [#154](https://github.com/WebFiori/http/issues/154)
+
 ## [6.1.0](https://github.com/WebFiori/http/compare/v6.0.3...v6.1.0) (2026-08-02)
 
 
