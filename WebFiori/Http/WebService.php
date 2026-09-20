@@ -51,6 +51,42 @@ class WebService implements JsonI {
      */
     const S = 'success';
     /**
+     * Per-class cache of reflection-derived annotation configuration.
+     *
+     * Keyed by concrete class name (static::class). A class's annotations are
+     * immutable for the lifetime of the process, so this is computed once per
+     * class per process and replayed on subsequent constructions to avoid
+     * repeated reflection. The service name is intentionally NOT cached for
+     * unannotated classes, since the same class may be constructed with
+     * different names (e.g. `new WebService('a')` vs `new WebService('b')`).
+     *
+     * @var array<string, array<string, mixed>>
+     */
+    private static $annotationCache = [];
+    /**
+     * Per-class-and-method cache of reflection-derived authorization facts.
+     *
+     * Keyed by "static::class::methodName". Stores only static facts (attribute
+     * presence and the PreAuthorize expression string); SecurityContext is
+     * always evaluated live at call time, so authorization decisions are never
+     * cached.
+     *
+     * @var array<string, array<string, mixed>>
+     */
+    private static $methodAuthCache = [];
+    /**
+     * Per-class-and-method cache of reflection-derived parameter descriptors.
+     *
+     * Keyed by "static::class::methodName". Stores the parameter-set class names
+     * and the RequestParam option descriptors (plain scalars/arrays) so the
+     * per-method reflection runs once per class-method per process. Fresh
+     * parameter mutations are replayed per instance, so no mutable state is
+     * shared between instances (important for OpenAPI generation).
+     *
+     * @var array<string, array<string, mixed>>
+     */
+    private static $methodParamCache = [];
+    /**
      * The name of the service.
      * 
      * @var string
@@ -314,18 +350,16 @@ class WebService implements JsonI {
      * Check method-level authorization before processing.
      */
     public function checkMethodAuthorization(): bool {
-        $reflection = new \ReflectionClass($this);
         $method = $this->getCurrentProcessingMethod() ?: $this->getTargetMethod();
 
         if (!$method) {
             return $this->isAuthorized();
         }
 
-        $reflectionMethod = $reflection->getMethod($method);
+        $facts = $this->getMethodAuthFacts($method);
 
-        // Check for conflicting annotations
-        $hasAllowAnonymous = !empty($reflectionMethod->getAttributes(Annotations\AllowAnonymous::class));
-        $hasRequiresAuth = !empty($reflectionMethod->getAttributes(Annotations\RequiresAuth::class));
+        $hasAllowAnonymous = $facts['hasAllowAnonymous'];
+        $hasRequiresAuth = $facts['hasRequiresAuth'];
 
         if ($hasAllowAnonymous && $hasRequiresAuth) {
             throw new \InvalidArgumentException(
@@ -346,12 +380,8 @@ class WebService implements JsonI {
             }
 
             // Then check for PreAuthorize
-            $preAuthAttributes = $reflectionMethod->getAttributes(Annotations\PreAuthorize::class);
-
-            if (!empty($preAuthAttributes)) {
-                $preAuth = $preAuthAttributes[0]->newInstance();
-
-                return SecurityContext::evaluateExpression($preAuth->expression);
+            if ($facts['preAuthExpression'] !== null) {
+                return SecurityContext::evaluateExpression($facts['preAuthExpression']);
             }
 
             // If no PreAuthorize, continue based on isAuthorized (already passed)
@@ -359,12 +389,8 @@ class WebService implements JsonI {
         }
 
         // Check PreAuthorize without RequiresAuth
-        $preAuthAttributes = $reflectionMethod->getAttributes(Annotations\PreAuthorize::class);
-
-        if (!empty($preAuthAttributes)) {
-            $preAuth = $preAuthAttributes[0]->newInstance();
-
-            return SecurityContext::evaluateExpression($preAuth->expression);
+        if ($facts['preAuthExpression'] !== null) {
+            return SecurityContext::evaluateExpression($facts['preAuthExpression']);
         }
 
         // If class has #[RequiresAuth], check SecurityContext
@@ -1200,6 +1226,98 @@ class WebService implements JsonI {
     }
 
     /**
+     * Applies previously cached annotation configuration to this instance,
+     * avoiding all reflection.
+     *
+     * Name resolution stays per-instance: an annotated class uses its annotation
+     * name; an unannotated class uses the constructor's fallback name.
+     *
+     * @param string $fallbackName The constructor-provided fallback name.
+     * @param array<string, mixed> $cached The cached, class-static config.
+     */
+    private function applyCachedAnnotations(string $fallbackName, array $cached): void {
+        if ($cached['path'] !== '') {
+            $this->setPath($cached['path']);
+        }
+
+        $serviceName = $cached['hasAnnotation'] && $cached['annotationName'] !== null
+            ? $cached['annotationName']
+            : $fallbackName;
+
+        if (!$this->setName($serviceName)) {
+            $this->setName('new-service');
+        }
+
+        if ($cached['description'] !== '') {
+            $this->setDescription($cached['description']);
+        }
+
+        if (!empty($cached['requestMethods'])) {
+            $this->setRequestMethods($cached['requestMethods']);
+        }
+
+        $this->setIsAuthRequired($cached['authRequired']);
+    }
+    /**
+     * Builds cacheable parameter descriptors from a method's RequestParam and
+     * UseParameterSet attributes via reflection.
+     *
+     * The returned structure contains only plain scalars/arrays and class-name
+     * strings, so it is safe to cache and replay across instances.
+     *
+     * @param \ReflectionMethod $method The method to inspect.
+     *
+     * @return array{parameterSets: string[], params: array<string, array<string, mixed>>}
+     */
+    private function buildParamDescriptors(\ReflectionMethod $method): array {
+        $parameterSets = [];
+
+        foreach ($method->getAttributes(Annotations\UseParameterSet::class) as $setAttr) {
+            $parameterSets[] = $setAttr->newInstance()->class;
+        }
+
+        $params = [];
+
+        foreach ($method->getAttributes(Annotations\RequestParam::class) as $attribute) {
+            $param = $attribute->newInstance();
+
+            $options = [
+                ParamOption::TYPE => $this->mapParamType($param->type),
+                ParamOption::OPTIONAL => $param->optional,
+                ParamOption::DEFAULT => $param->default,
+                ParamOption::DESCRIPTION => $param->description
+            ];
+
+            if ($param->filter !== null) {
+                $options[ParamOption::FILTER] = $param->filter;
+            }
+
+            if (!empty($param->allowedValues)) {
+                $options[ParamOption::ALLOWED_VALUES] = $param->allowedValues;
+            }
+
+            if ($param->pattern !== null) {
+                $options[ParamOption::PATTERN] = $param->pattern;
+            }
+
+            if ($param->message !== null) {
+                $options[ParamOption::MESSAGE] = $param->message;
+            }
+
+            if ($param->allowEmpty) {
+                $options[ParamOption::EMPTY] = true;
+            }
+
+            $params[$param->name] = $options;
+        }
+
+        return [
+            'parameterSets' => $parameterSets,
+            'params' => $params,
+        ];
+    }
+
+    /**
      * Builds an OpenAPI Schema from a RequestParam annotation.
      */
     private static function buildParamSchema(Annotations\RequestParam $param): OpenAPI\Schema {
@@ -1337,11 +1455,22 @@ class WebService implements JsonI {
      * Configure service from annotations if present.
      */
     private function configureFromAnnotations(string $fallbackName): void {
+        $cacheKey = static::class;
+
+        if (isset(self::$annotationCache[$cacheKey])) {
+            $this->applyCachedAnnotations($fallbackName, self::$annotationCache[$cacheKey]);
+
+            return;
+        }
+
         $reflection = new \ReflectionClass($this);
         $attributes = $reflection->getAttributes(Annotations\RestController::class);
+        $hasAnnotation = !empty($attributes);
+        $annotationName = null;
 
-        if (!empty($attributes)) {
+        if ($hasAnnotation) {
             $restController = $attributes[0]->newInstance();
+            $annotationName = $restController->name !== '' ? $restController->name : null;
             $serviceName = $restController->name ?: $fallbackName;
             $description = $restController->description;
 
@@ -1363,6 +1492,18 @@ class WebService implements JsonI {
 
         $this->configureMethodMappings();
         $this->configureAuthentication();
+
+        // Record derived, class-static facts only AFTER the full reflection path
+        // (including the duplicate-mapping check) has succeeded. The name is not
+        // cached for unannotated classes; only the annotation name (if any) is.
+        self::$annotationCache[$cacheKey] = [
+            'hasAnnotation' => $hasAnnotation,
+            'annotationName' => $annotationName,
+            'path' => $this->getPath(),
+            'description' => $this->getDescription(),
+            'requestMethods' => $this->getRequestMethods(),
+            'authRequired' => $this->isAuthRequired(),
+        ];
     }
 
     /**
@@ -1446,13 +1587,17 @@ class WebService implements JsonI {
      * Configure parameters from method RequestParam annotations.
      */
     private function configureParametersFromMethod(\ReflectionMethod $method): void {
-        // Process #[UseParameterSet] attributes first
-        $setAttributes = $method->getAttributes(Annotations\UseParameterSet::class);
+        $cacheKey = static::class.'::'.$method->getName();
 
-        foreach ($setAttributes as $setAttr) {
-            $setAnnotation = $setAttr->newInstance();
-            $className = $setAnnotation->class;
+        if (!isset(self::$methodParamCache[$cacheKey])) {
+            self::$methodParamCache[$cacheKey] = $this->buildParamDescriptors($method);
+        }
 
+        $descriptors = self::$methodParamCache[$cacheKey];
+
+        // Replay the mutations per instance using fresh objects/arrays so no
+        // state is shared between instances.
+        foreach ($descriptors['parameterSets'] as $className) {
             if (class_exists($className)) {
                 $setInstance = new $className();
 
@@ -1462,42 +1607,8 @@ class WebService implements JsonI {
             }
         }
 
-        // Then process #[RequestParam] attributes
-        $paramAttributes = $method->getAttributes(Annotations\RequestParam::class);
-
-        foreach ($paramAttributes as $attribute) {
-            $param = $attribute->newInstance();
-
-            $options = [
-                ParamOption::TYPE => $this->mapParamType($param->type),
-                ParamOption::OPTIONAL => $param->optional,
-                ParamOption::DEFAULT => $param->default,
-                ParamOption::DESCRIPTION => $param->description
-            ];
-
-            if ($param->filter !== null) {
-                $options[ParamOption::FILTER] = $param->filter;
-            }
-
-            if (!empty($param->allowedValues)) {
-                $options[ParamOption::ALLOWED_VALUES] = $param->allowedValues;
-            }
-
-            if ($param->pattern !== null) {
-                $options[ParamOption::PATTERN] = $param->pattern;
-            }
-
-            if ($param->message !== null) {
-                $options[ParamOption::MESSAGE] = $param->message;
-            }
-
-            if ($param->allowEmpty) {
-                $options[ParamOption::EMPTY] = true;
-            }
-
-            $this->addParameters([
-                $param->name => $options
-            ]);
+        foreach ($descriptors['params'] as $name => $options) {
+            $this->addParameters([$name => $options]);
         }
     }
     /**
@@ -1673,6 +1784,35 @@ class WebService implements JsonI {
             'requiresAuth' => !empty($reflection->getAttributes(Annotations\RequiresAuth::class)),
             'preAuthorize' => $reflection->getAttributes(Annotations\PreAuthorize::class)
         ];
+    }
+    /**
+     * Returns the memoized static authorization facts for a method.
+     *
+     * Only static reflection facts are cached (attribute presence and the
+     * PreAuthorize expression string). SecurityContext is always evaluated live
+     * by the caller, so authorization decisions are never cached.
+     *
+     * @param string $method The method name.
+     *
+     * @return array{hasAllowAnonymous: bool, hasRequiresAuth: bool, preAuthExpression: string|null}
+     */
+    private function getMethodAuthFacts(string $method): array {
+        $cacheKey = static::class.'::'.$method;
+
+        if (!isset(self::$methodAuthCache[$cacheKey])) {
+            $reflectionMethod = (new \ReflectionClass($this))->getMethod($method);
+            $preAuthAttributes = $reflectionMethod->getAttributes(Annotations\PreAuthorize::class);
+
+            self::$methodAuthCache[$cacheKey] = [
+                'hasAllowAnonymous' => !empty($reflectionMethod->getAttributes(Annotations\AllowAnonymous::class)),
+                'hasRequiresAuth' => !empty($reflectionMethod->getAttributes(Annotations\RequiresAuth::class)),
+                'preAuthExpression' => !empty($preAuthAttributes)
+                    ? $preAuthAttributes[0]->newInstance()->expression
+                    : null,
+            ];
+        }
+
+        return self::$methodAuthCache[$cacheKey];
     }
 
     /**
